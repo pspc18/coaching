@@ -581,7 +581,22 @@
 @endsection
 
 @section('content')
+@include('layout.message')
 <div class="fg-mob-container">
+
+    {{-- Flash Notifications --}}
+    @if(session('message'))
+        <div style="margin-bottom:10px; background:#dcfce7; border:1px solid #86efac; color:#166534; padding:8px 12px; border-radius:4px; font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <i class="fa fa-check-circle" style="font-size:14px;"></i>
+            <span>{{ session('message') }}</span>
+        </div>
+    @endif
+    @if(session('error'))
+        <div style="margin-bottom:10px; background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:8px 12px; border-radius:4px; font-size:11.5px; font-weight:700; display:flex; align-items:center; gap:8px;">
+            <i class="fa fa-exclamation-circle" style="font-size:14px;"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
     {{-- 1. Hero Card (Exact match with admissionView) --}}
     <div class="mob-hero-card">
@@ -697,11 +712,14 @@
 
                 {{-- Action Row (Exact match with student-card-actions in admissionView) --}}
                 <div class="fg-card-actions">
-                    {{-- Edit Action --}}
-                    <a href="{{ url('feesGroupEdit/'.$item->id) }}" 
-                       class="mob-btn-action btn-act-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}">
+                    {{-- Edit Action (Opens Add/Edit Bottom Sheet) --}}
+                    <button type="button" 
+                       class="mob-btn-action btn-act-edit btn-trigger-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}"
+                       data-id="{{ $item->id }}"
+                       data-name="{{ $item->name ?? '' }}"
+                       data-refund="{{ $isRefundable ? 'yes' : 'no' }}">
                         <i class="fa fa-edit"></i> Edit
-                    </a>
+                    </button>
 
                     {{-- Delete Action --}}
                     @if(!$isInUse)
@@ -736,12 +754,12 @@
 </div>
 
 {{-- =========================================================================
-   4. NATIVE BOTTOM SHEET: ADD FEE GROUP (Exact match with admissionView sheet)
+   4. NATIVE BOTTOM SHEET: ADD / EDIT FEE GROUP
    ========================================================================= --}}
 <div class="mob-filter-modal-backdrop" id="mobAddBackdrop"></div>
 <div class="mob-filter-sheet" id="mobAddSheet">
     <div class="mob-sheet-header">
-        <div class="mob-sheet-title">
+        <div class="mob-sheet-title" id="mobAddSheetTitle">
             <i class="fa fa-plus-circle text-primary"></i> Add Fees Group
         </div>
         <div class="mob-sheet-close" id="btnCloseAddSheet">
@@ -749,12 +767,12 @@
         </div>
     </div>
 
-    <form action="{{ url('feesGroup') }}" method="post">
+    <form id="mobGroupForm" action="{{ url('feesGroup') }}" method="post">
         @csrf
         <div class="mob-sheet-body">
             <div class="mob-form-group">
                 <label class="mob-form-label">Group Name <span class="text-danger">*</span></label>
-                <input type="text" name="name" class="mob-form-input" placeholder="e.g. Tuition Fee, Exam Fee, Hostel Fee" required autofocus>
+                <input type="text" name="name" id="sheet_group_name" class="mob-form-input" placeholder="e.g. Tuition Fee, Exam Fee, Hostel Fee" required>
             </div>
 
             <div class="mob-form-group mt-3">
@@ -763,7 +781,7 @@
                         <div style="font-size:11.5px; font-weight:700; color:#0f172a;">Refundable Fee</div>
                         <small style="font-size:9.5px; color:#64748b;">Eligible for refund on admission cancellation?</small>
                     </div>
-                    <input type="checkbox" id="sheet_refund_cb" value="yes" onchange="document.getElementById('sheet_refund_input').value = this.checked ? 'yes' : 'no';" style="width:18px; height:18px; cursor:pointer;">
+                    <input type="checkbox" id="sheet_refund_cb" value="yes" style="width:18px; height:18px; cursor:pointer;">
                 </div>
                 <input type="hidden" id="sheet_refund_input" name="fees_refund" value="no">
             </div>
@@ -773,8 +791,8 @@
             <button type="button" class="btn-sheet-reset" id="btnCancelAddSheet">
                 Cancel
             </button>
-            <button type="submit" class="btn-sheet-apply">
-                <i class="fa fa-check mr-1"></i> Save Fee Group
+            <button type="submit" class="btn-sheet-apply" id="btnGroupSubmit">
+                <i class="fa fa-check mr-1"></i> <span id="btnGroupSubmitText">Save Fee Group</span>
             </button>
         </div>
     </form>
@@ -820,12 +838,39 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
-    // 1. Add Bottom Sheet Handlers
+    var addUrl = "{{ url('feesGroup') }}";
+    var editBaseUrl = "{{ url('feesGroupEdit') }}";
+
+    // 1. Add / Edit Bottom Sheet Handlers
     function openAddSheet() {
+        $('#mobAddSheetTitle').html('<i class="fa fa-plus-circle text-primary"></i> Add Fees Group');
+        $('#mobGroupForm').attr('action', addUrl);
+        $('#sheet_group_name').val('');
+        $('#sheet_refund_cb').prop('checked', false);
+        $('#sheet_refund_input').val('no');
+        $('#btnGroupSubmitText').text('Save Fee Group');
+
         $('#mobAddBackdrop').addClass('show');
         $('#mobAddSheet').addClass('show');
         $('body').css('overflow', 'hidden');
+        setTimeout(function() { $('#sheet_group_name').focus(); }, 250);
     }
+
+    function openEditSheet(id, name, refund) {
+        $('#mobAddSheetTitle').html('<i class="fa fa-edit text-primary"></i> Edit Fees Group');
+        $('#mobGroupForm').attr('action', editBaseUrl + '/' + id);
+        $('#sheet_group_name').val(name);
+        var isRef = (String(refund).toLowerCase() === 'yes');
+        $('#sheet_refund_cb').prop('checked', isRef);
+        $('#sheet_refund_input').val(isRef ? 'yes' : 'no');
+        $('#btnGroupSubmitText').text('Update Fee Group');
+
+        $('#mobAddBackdrop').addClass('show');
+        $('#mobAddSheet').addClass('show');
+        $('body').css('overflow', 'hidden');
+        setTimeout(function() { $('#sheet_group_name').focus(); }, 250);
+    }
+
     function closeAddSheet() {
         $('#mobAddBackdrop').removeClass('show');
         $('#mobAddSheet').removeClass('show');
@@ -834,6 +879,18 @@ $(document).ready(function() {
 
     $('#btnOpenAddSheet').on('click', openAddSheet);
     $('#btnCloseAddSheet, #btnCancelAddSheet, #mobAddBackdrop').on('click', closeAddSheet);
+
+    $(document).on('click', '.btn-trigger-edit', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var refund = $(this).data('refund');
+        openEditSheet(id, name, refund);
+    });
+
+    $('#sheet_refund_cb').on('change', function() {
+        $('#sheet_refund_input').val($(this).is(':checked') ? 'yes' : 'no');
+    });
 
     // 2. Delete Bottom Sheet Handlers
     function openDeleteSheet(id, name) {
