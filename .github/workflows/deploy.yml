@@ -32,13 +32,19 @@ jobs:
             git reset --hard origin/master
             git pull origin master
 
-            echo "🧹 Purging Laravel view, config & application caches..."
+            echo "🧹 Purging all Laravel caches..."
+            php artisan optimize:clear || true
             php artisan view:clear || true
             php artisan config:clear || true
+            php artisan route:clear || true
             php artisan cache:clear || true
-            php artisan optimize:clear || true
+            php artisan clear-compiled || true
 
-            echo "⚡ Reloading PHP-FPM / OPcache..."
+            echo "⚡ Re-optimizing Laravel caches..."
+            php artisan optimize || true
+
+            echo "⚡ Reloading PHP-FPM / OPcache & Web Server..."
             sudo systemctl reload php*-fpm || systemctl reload php*-fpm || service php*-fpm reload || true
+            sudo systemctl reload nginx || systemctl reload apache2 || service nginx reload || service apache2 reload || true
 
             echo "✅ Deployment completed successfully!"

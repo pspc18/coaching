@@ -10,6 +10,9 @@ $setting = Helper::getSetting();
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
         <title>{{ $setting->name ?? '' }}</title>
         <link rel="icon" type="image/x-icon" href="{{ asset($setting->left_logo ?? '') }}" width="42px" height="42px">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-theme.css') }}">    
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/all.min.css') }}">
