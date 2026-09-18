@@ -25,10 +25,18 @@ jobs:
             echo "🚀 Starting Deployment on VPS..."
             cd /var/www/coaching.rusoft.online/public
 
-            echo "📥 Pulling latest changes from master branch..."
+            echo "📥 Fetching and syncing latest master branch..."
+            git fetch origin master
+            git reset --hard origin/master
             git pull origin master
 
-            echo "🧹 Clearing and optimizing Laravel caches..."
+            echo "🧹 Purging Laravel view, config & application caches..."
+            php artisan view:clear || true
+            php artisan config:clear || true
+            php artisan cache:clear || true
             php artisan optimize:clear || true
+
+            echo "⚡ Reloading PHP-FPM / OPcache..."
+            sudo systemctl reload php*-fpm || systemctl reload php*-fpm || service php*-fpm reload || true
 
             echo "✅ Deployment completed successfully!"
