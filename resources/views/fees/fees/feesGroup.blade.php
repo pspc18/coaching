@@ -15,11 +15,13 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - FEES GROUP SIGNATURE THEME
+   ARISE ERP - FEES GROUP SIGNATURE THEME (FULL-VIEWPORT & EQUAL HEIGHT CARDS)
    Exact match with viewUser & expenseAdd Guidelines:
+   - Full viewport height utilization (calc(100vh - 58px))
+   - Equal-height synchronized left form card & right table card
+   - Increased 14px spacious gap between columns
    - Sharp border-radius: 2px throughout
    - Signature Dark Navy Theme: #002C54 to #0f3460
-   - Compact 29px-30px inputs with #cbd5e1 border
    - Sticky table headers & in-column Excel filters (#08335c)
    ========================================================================== */
 
@@ -28,8 +30,11 @@
     color: #0f172a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 12px;
-    padding: 6px 10px 24px;
-    min-height: calc(100vh - 56px);
+    padding: 8px 12px 10px 12px;
+    height: calc(100vh - 58px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 .fg-page-wrapper * {
     box-sizing: border-box;
@@ -40,14 +45,15 @@
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #fff;
     border-radius: 2px;
-    padding: 6px 12px;
+    padding: 7px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     box-shadow: 0 1px 3px rgba(0,44,84,.15);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 .fg-hero-text {
     display: flex;
@@ -80,7 +86,7 @@
     color: #cbd5e1;
 }
 
-/* Quick Summary Stat Badges in Hero */
+/* Hero Stat Badges */
 .fg-hero-stats {
     display: flex;
     align-items: center;
@@ -91,7 +97,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 8px;
+    padding: 3px 9px;
     background: rgba(255,255,255,.12);
     border: 1px solid rgba(255,255,255,.2);
     border-radius: 2px;
@@ -131,7 +137,7 @@
     justify-content: center;
     gap: 5px;
     height: 27px;
-    padding: 0 10px;
+    padding: 0 11px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
@@ -169,17 +175,62 @@
     background: #0369a1;
 }
 
-/* 2. Signature Card & Header Styles */
+/* 2. Main Flex Grid Layout with Increased Gap */
+.fg-main-grid {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 14px;
+    overflow: hidden;
+}
+.fg-col-form {
+    flex: 0 0 360px;
+    max-width: 380px;
+    min-width: 310px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.fg-col-table {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+@media (max-width: 991.98px) {
+    .fg-page-wrapper {
+        height: auto;
+        overflow: visible;
+        padding-bottom: 24px;
+    }
+    .fg-main-grid {
+        flex-direction: column;
+        overflow: visible;
+        gap: 12px;
+    }
+    .fg-col-form, .fg-col-table {
+        flex: 1 1 auto;
+        max-width: 100%;
+        min-height: auto;
+    }
+}
+
+/* 3. Unified Signature Cards (Equal Height Stretched) */
 .signature-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
 }
 .dash-card-header {
-    padding: 6px 10px;
+    padding: 7px 12px;
     border-bottom: 1px solid rgba(255,255,255,.12);
     background: #002342;
     color: #ffffff;
@@ -208,26 +259,32 @@
     border: 1px solid rgba(255,255,255,.15);
 }
 
-/* 3. Form Layout (Exact match with expenseAdd) */
+/* 4. Left Form Card Body - Spacious & Clean */
 .form-card-body {
-    padding: 12px 14px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14px;
     background: #ffffff;
+    overflow-y: auto;
 }
 .form-group-compact {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 .form-label-compact {
     display: block;
     font-size: 11px;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: .02em;
 }
 .form-control-compact {
     width: 100%;
-    height: 29px;
+    height: 30px;
     padding: 4px 8px;
     font-size: 12px;
     font-weight: 500;
@@ -243,13 +300,13 @@
     box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
 }
 
-/* Custom Refund Box in Form */
+/* Refund Switch Box */
 .refund-toggle-box {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 2px;
-    padding: 8px 10px;
-    margin-bottom: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -257,23 +314,42 @@
 .refund-toggle-text {
     display: flex;
     flex-direction: column;
+    padding-right: 10px;
 }
 .refund-toggle-title {
     font-size: 11.5px;
     font-weight: 700;
     color: #0f172a;
+    margin-bottom: 1px;
 }
 .refund-toggle-desc {
     font-size: 10px;
     color: #64748b;
+    line-height: 1.3;
 }
 
-/* 4. Table Layout (Exact match with viewUser) */
+/* Pro-Tip Box */
+.fg-tip-banner {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #166534;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+
+/* 5. Right Table Card Viewport */
 .table-scroll-container {
+    flex: 1;
+    min-height: 0;
     overflow-x: auto;
     overflow-y: auto;
-    max-height: calc(100vh - 210px);
     background: #ffffff;
+    position: relative;
 }
 .dash-table {
     width: 100%;
@@ -291,8 +367,8 @@
     top: 0;
     background: #002C54;
     color: #ffffff;
-    padding: 7px 8px;
-    height: 34px;
+    padding: 8px 8px;
+    height: 36px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -305,7 +381,7 @@
 }
 .excel-filter-row th {
     position: sticky;
-    top: 34px;
+    top: 36px;
     background: #08335c;
     color: #ffffff;
     padding: 4px 6px;
@@ -355,7 +431,7 @@ select.excel-col-filter option {
     background: #edf2f7 !important;
 }
 .dash-table tbody td {
-    padding: 6px 8px;
+    padding: 7px 8px;
     border-bottom: 1px solid #e2e8f0;
     border-right: 1px solid #f1f5f9;
     color: #1e293b;
@@ -378,7 +454,7 @@ select.excel-col-filter option {
 .status-pill-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 .status-pill-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 
-/* Compact Action Buttons */
+/* Action Buttons */
 .action-btn-wrap {
     display: flex;
     align-items: center;
@@ -404,17 +480,17 @@ select.excel-col-filter option {
 .btn-act-del:hover { background: #dc2626; color: #ffffff; }
 .btn-act-lock { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
 
-/* Tip Banner in Form */
-.fg-tip-banner {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 2px;
-    padding: 8px 10px;
+/* Footer */
+.table-card-footer {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
     font-size: 11px;
-    color: #166534;
+    color: #64748b;
     display: flex;
-    gap: 6px;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
 }
 
 /* Delete Modal */
@@ -437,253 +513,251 @@ select.excel-col-filter option {
 
 @section('content')
 <div class="content-wrapper fg-page-wrapper">
-    <section class="content p-0">
-        <div class="container-fluid p-0">
 
-            {{-- 1. Top Hero Banner (Signature Arise Dark Navy Header) --}}
-            <div class="fg-hero">
-                <div class="fg-hero-text">
-                    <span class="fg-kicker"><i class="fa fa-money mr-1"></i>Fees Management</span>
-                    <h1 class="fg-title">{{ __('fees.Fees Group') }}</h1>
-                    <p class="fg-subtitle">Configure fee heads, refund eligibility, and class-wise payment groupings</p>
+    {{-- 1. Top Hero Banner (Signature Arise Dark Navy Header) --}}
+    <div class="fg-hero">
+        <div class="fg-hero-text">
+            <span class="fg-kicker"><i class="fa fa-money mr-1"></i>Fees Management</span>
+            <h1 class="fg-title">{{ __('fees.Fees Group') }}</h1>
+            <p class="fg-subtitle">Configure fee heads, refund eligibility, and class-wise payment groupings</p>
+        </div>
+
+        {{-- Hero Metric Badges --}}
+        <div class="fg-hero-stats">
+            <span class="hero-stat-badge">Total Groups: <b>{{ $stats['total'] ?? 0 }}</b></span>
+            <span class="hero-stat-badge badge-green">Refundable: <b>{{ $stats['refundable'] ?? 0 }}</b></span>
+            <span class="hero-stat-badge badge-cyan">Standard: <b>{{ $stats['non_refundable'] ?? 0 }}</b></span>
+            <span class="hero-stat-badge badge-amber">In-Use: <b>{{ $stats['in_use'] ?? 0 }}</b></span>
+        </div>
+
+        {{-- Hero Action Buttons --}}
+        <div class="fg-hero-actions">
+            <a href="{{ url('feesMaster') }}" class="dash-btn dash-btn-light">
+                <i class="fa fa-sliders"></i> Fees Master
+            </a>
+            <a href="{{ url('feesCollectAdd') }}" class="dash-btn dash-btn-outline">
+                <i class="fa fa-inr"></i> Collect Fees
+            </a>
+            <a href="{{ url('fee_dashboard') }}" class="dash-btn dash-btn-outline">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    {{-- 2. Main Flex Layout: Equal Height Cards with 14px Gap --}}
+    <div class="fg-main-grid">
+        
+        {{-- Left Form Column (Equal Height) --}}
+        <div class="fg-col-form">
+            <div class="signature-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-plus-circle text-info"></i> {{ __('fees.Add Fees Group') }}
+                    </h3>
+                    <span class="badge-total-records">New Record</span>
                 </div>
-
-                {{-- Hero Metric Badges --}}
-                <div class="fg-hero-stats">
-                    <span class="hero-stat-badge">Total Groups: <b>{{ $stats['total'] ?? 0 }}</b></span>
-                    <span class="hero-stat-badge badge-green">Refundable: <b>{{ $stats['refundable'] ?? 0 }}</b></span>
-                    <span class="hero-stat-badge badge-cyan">Standard: <b>{{ $stats['non_refundable'] ?? 0 }}</b></span>
-                    <span class="hero-stat-badge badge-amber">In-Use: <b>{{ $stats['in_use'] ?? 0 }}</b></span>
-                </div>
-
-                {{-- Hero Action Buttons --}}
-                <div class="fg-hero-actions">
-                    <a href="{{ url('feesMaster') }}" class="dash-btn dash-btn-light">
-                        <i class="fa fa-sliders"></i> Fees Master
-                    </a>
-                    <a href="{{ url('feesCollectAdd') }}" class="dash-btn dash-btn-outline">
-                        <i class="fa fa-inr"></i> Collect Fees
-                    </a>
-                    <a href="{{ url('fee_dashboard') }}" class="dash-btn dash-btn-outline">
-                        <i class="fa fa-arrow-left"></i> Back
-                    </a>
-                </div>
-            </div>
-
-            {{-- 2. Split Content Layout --}}
-            <div class="row m-0">
-                
-                {{-- Left: Create Form (Exact match with expenseAdd) --}}
-                <div class="col-lg-4 col-md-5 p-0 pr-md-2">
-                    <div class="signature-card">
-                        <div class="dash-card-header">
-                            <h3 class="dash-card-title">
-                                <i class="fa fa-plus-circle text-info"></i> {{ __('fees.Add Fees Group') }}
-                            </h3>
-                            <span class="badge-total-records">New Record</span>
-                        </div>
-                        <div class="form-card-body">
-                            <form id="quickForm" action="{{ url('feesGroup') }}" method="post">
-                                @csrf
-
-                                {{-- Name Input --}}
-                                <div class="form-group-compact">
-                                    <label class="form-label-compact" for="name">
-                                        {{ __('messages.Name') }} <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control-compact @error('name') is-invalid @enderror" 
-                                           name="name" 
-                                           id="name" 
-                                           value="{{ old('name') }}" 
-                                           placeholder="e.g. Tuition Fee, Hostel Fee, Exam Fee" 
-                                           required 
-                                           autofocus>
-                                    @error('name')
-                                        <div class="text-danger font-weight-bold mt-1" style="font-size:11px;">
-                                            <i class="fa fa-exclamation-circle mr-1"></i>{{ $message }}
-                                        </div>
-                                    @enderror
-                                </div>
-
-                                {{-- Refundable Fee Toggle --}}
-                                <div class="refund-toggle-box">
-                                    <div class="refund-toggle-text">
-                                        <span class="refund-toggle-title">Refundable Fee</span>
-                                        <span class="refund-toggle-desc">Is this fee eligible for refund upon cancellation?</span>
+                <div class="form-card-body">
+                    <form id="quickForm" action="{{ url('feesGroup') }}" method="post" class="d-flex flex-column h-100 justify-content-between">
+                        @csrf
+                        
+                        <div>
+                            {{-- Name Input --}}
+                            <div class="form-group-compact">
+                                <label class="form-label-compact" for="name">
+                                    {{ __('messages.Name') }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control-compact @error('name') is-invalid @enderror" 
+                                       name="name" 
+                                       id="name" 
+                                       value="{{ old('name') }}" 
+                                       placeholder="e.g. Tuition Fee, Hostel Fee, Exam Fee" 
+                                       required 
+                                       autofocus>
+                                @error('name')
+                                    <div class="text-danger font-weight-bold mt-1" style="font-size:11px;">
+                                        <i class="fa fa-exclamation-circle mr-1"></i>{{ $message }}
                                     </div>
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="refund_fees_toggle" onchange="toggleRefundStatus(this)">
-                                        <label class="custom-control-label" for="refund_fees_toggle"></label>
-                                    </div>
-                                    <input type="hidden" id="fees_refund" name="fees_refund" value="no">
-                                </div>
+                                @enderror
+                            </div>
 
-                                {{-- Submit Button --}}
-                                <div class="mb-2">
-                                    <button type="submit" class="dash-btn dash-btn-primary w-100" style="height:30px; font-size:12px;">
-                                        <i class="fa fa-plus-circle mr-1"></i> {{ __('messages.submit') }}
-                                    </button>
+                            {{-- Refundable Fee Toggle --}}
+                            <div class="refund-toggle-box">
+                                <div class="refund-toggle-text">
+                                    <span class="refund-toggle-title">Refundable Fee</span>
+                                    <span class="refund-toggle-desc">Is this fee eligible for refund on admission cancellation?</span>
                                 </div>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="refund_fees_toggle" onchange="toggleRefundStatus(this)">
+                                    <label class="custom-control-label" for="refund_fees_toggle"></label>
+                                </div>
+                                <input type="hidden" id="fees_refund" name="fees_refund" value="no">
+                            </div>
 
-                                {{-- Pro-Tip --}}
-                                <div class="fg-tip-banner">
-                                    <i class="fa fa-lightbulb-o mt-1 text-success"></i>
-                                    <div>
-                                        <strong>Pro-Tip:</strong> After adding a group, configure class-wise amounts and due dates in <strong>Fees Master</strong>.
-                                    </div>
+                            {{-- Pro-Tip Banner --}}
+                            <div class="fg-tip-banner">
+                                <i class="fa fa-lightbulb-o mt-1 text-success font-weight-bold"></i>
+                                <div>
+                                    <strong>Pro-Tip:</strong> Once created, link this fee group to classes and assign amounts inside <strong>Fees Master</strong>.
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
+
+                        {{-- Submit Button at bottom of card --}}
+                        <div class="pt-3 border-top mt-3">
+                            <button type="submit" class="dash-btn dash-btn-primary w-100" style="height:32px; font-size:12px; font-weight:700;">
+                                <i class="fa fa-plus-circle mr-1"></i> {{ __('messages.submit') }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                {{-- Right: Groups Listing Table (Exact match with viewUser) --}}
-                <div class="col-lg-8 col-md-7 p-0 pl-md-0">
-                    <div class="signature-card">
-                        <div class="dash-card-header">
-                            <h3 class="dash-card-title">
-                                <i class="fa fa-list text-info"></i> {{ __('Fees Group List') }}
-                            </h3>
-                            <span class="badge-total-records">
-                                Total Records: <b>{{ count($dataview ?? []) }}</b>
-                            </span>
-                        </div>
-
-                        {{-- Table Container with In-Column Excel Filters --}}
-                        <div class="table-scroll-container">
-                            <table class="dash-table" id="feesGroupTable">
-                                <thead>
-                                    {{-- Row 1: Thead Column Titles --}}
-                                    <tr class="header-titles-row">
-                                        <th style="width: 45px; text-align: center;">{{ __('messages.Sr.No.') }}</th>
-                                        <th>{{ __('messages.Name') }}</th>
-                                        <th style="width: 140px; text-align: center;">{{ __('Fees Refund') }}</th>
-                                        <th style="width: 110px; text-align: center;">Usage Status</th>
-                                        <th style="width: 80px; text-align: center;">{{ __('messages.Action') }}</th>
-                                    </tr>
-
-                                    {{-- Row 2: Sticky Excel-Style Filter Bar --}}
-                                    <tr class="excel-filter-row">
-                                        <th></th>
-                                        <th>
-                                            <input type="text" id="filter_name" class="excel-col-filter" placeholder="Filter Name...">
-                                        </th>
-                                        <th>
-                                            <select id="filter_refund" class="excel-col-filter">
-                                                <option value="">All Status</option>
-                                                <option value="refundable">Refundable</option>
-                                                <option value="non-refundable">Non-Refundable</option>
-                                            </select>
-                                        </th>
-                                        <th>
-                                            <select id="filter_usage" class="excel-col-filter">
-                                                <option value="">All</option>
-                                                <option value="in-use">In-Use</option>
-                                                <option value="unlinked">Unlinked</option>
-                                            </select>
-                                        </th>
-                                        <th style="text-align: center;">
-                                            <button type="button" id="btn_clear_filters" class="dash-btn dash-btn-sm dash-btn-outline w-100" style="height:23px; font-size:10px;" title="Clear Filters">
-                                                <i class="fa fa-refresh"></i> Reset
-                                            </button>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if(!empty($dataview) && count($dataview) > 0)
-                                        @php $i = 1; @endphp
-                                        @foreach ($dataview as $item)
-                                            @php
-                                                $isRefundable = strtolower($item->fees_refund ?? '') === 'yes';
-                                                $isInUse = in_array($item->id, $inUseGroupIds);
-                                                $nameLower = strtolower($item->name ?? '');
-                                                $refundVal = $isRefundable ? 'refundable' : 'non-refundable';
-                                                $usageVal = $isInUse ? 'in-use' : 'unlinked';
-                                            @endphp
-                                            <tr class="fg-row" 
-                                                data-name="{{ $nameLower }}" 
-                                                data-refund="{{ $refundVal }}" 
-                                                data-usage="{{ $usageVal }}">
-                                                <td style="text-align: center; font-weight: 600;">{{ $i++ }}</td>
-                                                <td>
-                                                    <span class="font-weight-bold text-dark">{{ $item->name ?? '' }}</span>
-                                                    @if($item->fees_type === 'installment')
-                                                        <span class="badge badge-light border ml-1" style="font-size:9.5px;">Installment</span>
-                                                    @endif
-                                                </td>
-                                                <td style="text-align: center;">
-                                                    @if($isRefundable)
-                                                        <span class="status-pill status-pill-success">
-                                                            <i class="fa fa-check-circle"></i> Refundable
-                                                        </span>
-                                                    @else
-                                                        <span class="status-pill status-pill-secondary">
-                                                            <i class="fa fa-minus-circle"></i> Non-Refundable
-                                                        </span>
-                                                    @endif
-                                                </td>
-                                                <td style="text-align: center;">
-                                                    @if($isInUse)
-                                                        <span class="status-pill status-pill-warning" title="Assigned in Fees Master / Receipts">
-                                                            <i class="fa fa-link"></i> In-Use
-                                                        </span>
-                                                    @else
-                                                        <span class="status-pill status-pill-secondary" title="Not currently assigned">
-                                                            <i class="fa fa-circle-o"></i> Unlinked
-                                                        </span>
-                                                    @endif
-                                                </td>
-                                                <td style="text-align: center;">
-                                                    <div class="action-btn-wrap">
-                                                        {{-- Edit Action --}}
-                                                        <a href="{{ url('feesGroupEdit') }}/{{ $item->id }}" 
-                                                           class="btn-act btn-act-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
-                                                           title="Edit">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-
-                                                        {{-- Delete Action --}}
-                                                        @if(!$isInUse)
-                                                            <button type="button" 
-                                                                    class="btn-act btn-act-del btn-delete-group {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}" 
-                                                                    data-id="{{ $item->id }}" 
-                                                                    data-name="{{ $item->name }}" 
-                                                                    title="Delete">
-                                                                <i class="fa fa-trash-o"></i>
-                                                            </button>
-                                                        @else
-                                                            <button type="button" class="btn-act btn-act-lock" title="Protected: Currently assigned to classes/students" disabled>
-                                                                <i class="fa fa-lock"></i>
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @else
-                                        <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">
-                                                <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
-                                                No Fees Groups found. Use the form on the left to add one!
-                                            </td>
-                                        </tr>
-                                    @endif
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {{-- Card Footer Safety Notice --}}
-                        <div class="p-2 border-top bg-light text-muted d-flex align-items-center justify-content-between" style="font-size:11px;">
-                            <span><i class="fa fa-shield text-warning mr-1"></i> <b>Safety Guard:</b> Fee groups actively assigned to classes or receipt transactions cannot be deleted.</span>
-                            <span class="font-weight-bold">Showing {{ count($dataview ?? []) }} items</span>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </section>
+
+        {{-- Right Table Column (Equal Height) --}}
+        <div class="fg-col-table">
+            <div class="signature-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-list text-info"></i> {{ __('Fees Group List') }}
+                    </h3>
+                    <span class="badge-total-records">
+                        Total Records: <b>{{ count($dataview ?? []) }}</b>
+                    </span>
+                </div>
+
+                {{-- Scrollable Table Body with Sticky Headers --}}
+                <div class="table-scroll-container">
+                    <table class="dash-table" id="feesGroupTable">
+                        <thead>
+                            {{-- Row 1: Titles --}}
+                            <tr class="header-titles-row">
+                                <th style="width: 50px; text-align: center;">{{ __('messages.Sr.No.') }}</th>
+                                <th>{{ __('messages.Name') }}</th>
+                                <th style="width: 140px; text-align: center;">{{ __('Fees Refund') }}</th>
+                                <th style="width: 120px; text-align: center;">Usage Status</th>
+                                <th style="width: 85px; text-align: center;">{{ __('messages.Action') }}</th>
+                            </tr>
+
+                            {{-- Row 2: In-Column Sticky Excel Filter --}}
+                            <tr class="excel-filter-row">
+                                <th></th>
+                                <th>
+                                    <input type="text" id="filter_name" class="excel-col-filter" placeholder="Filter Name...">
+                                </th>
+                                <th>
+                                    <select id="filter_refund" class="excel-col-filter">
+                                        <option value="">All Status</option>
+                                        <option value="refundable">Refundable</option>
+                                        <option value="non-refundable">Non-Refundable</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <select id="filter_usage" class="excel-col-filter">
+                                        <option value="">All</option>
+                                        <option value="in-use">In-Use</option>
+                                        <option value="unlinked">Unlinked</option>
+                                    </select>
+                                </th>
+                                <th style="text-align: center;">
+                                    <button type="button" id="btn_clear_filters" class="dash-btn dash-btn-sm dash-btn-outline w-100" style="height:23px; font-size:10px;" title="Reset Filters">
+                                        <i class="fa fa-refresh"></i> Reset
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(!empty($dataview) && count($dataview) > 0)
+                                @php $i = 1; @endphp
+                                @foreach ($dataview as $item)
+                                    @php
+                                        $isRefundable = strtolower($item->fees_refund ?? '') === 'yes';
+                                        $isInUse = in_array($item->id, $inUseGroupIds);
+                                        $nameLower = strtolower($item->name ?? '');
+                                        $refundVal = $isRefundable ? 'refundable' : 'non-refundable';
+                                        $usageVal = $isInUse ? 'in-use' : 'unlinked';
+                                    @endphp
+                                    <tr class="fg-row" 
+                                        data-name="{{ $nameLower }}" 
+                                        data-refund="{{ $refundVal }}" 
+                                        data-usage="{{ $usageVal }}">
+                                        <td style="text-align: center; font-weight: 600;">{{ $i++ }}</td>
+                                        <td>
+                                            <span class="font-weight-bold text-dark">{{ $item->name ?? '' }}</span>
+                                            @if($item->fees_type === 'installment')
+                                                <span class="badge badge-light border ml-1" style="font-size:9.5px;">Installment</span>
+                                            @endif
+                                        </td>
+                                        <td style="text-align: center;">
+                                            @if($isRefundable)
+                                                <span class="status-pill status-pill-success">
+                                                    <i class="fa fa-check-circle"></i> Refundable
+                                                </span>
+                                            @else
+                                                <span class="status-pill status-pill-secondary">
+                                                    <i class="fa fa-minus-circle"></i> Non-Refundable
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td style="text-align: center;">
+                                            @if($isInUse)
+                                                <span class="status-pill status-pill-warning" title="Assigned in Fees Master / Receipts">
+                                                    <i class="fa fa-link"></i> In-Use
+                                                </span>
+                                            @else
+                                                <span class="status-pill status-pill-secondary" title="Not currently assigned">
+                                                    <i class="fa fa-circle-o"></i> Unlinked
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div class="action-btn-wrap">
+                                                {{-- Edit Action --}}
+                                                <a href="{{ url('feesGroupEdit') }}/{{ $item->id }}" 
+                                                   class="btn-act btn-act-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
+                                                   title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+
+                                                {{-- Delete Action --}}
+                                                @if(!$isInUse)
+                                                    <button type="button" 
+                                                            class="btn-act btn-act-del btn-delete-group {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}" 
+                                                            data-id="{{ $item->id }}" 
+                                                            data-name="{{ $item->name }}" 
+                                                            title="Delete">
+                                                        <i class="fa fa-trash-o"></i>
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="btn-act btn-act-lock" title="Protected: Currently assigned to classes/students" disabled>
+                                                        <i class="fa fa-lock"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
+                                        No Fees Groups found. Use the form on the left to add one!
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Table Card Footer --}}
+                <div class="table-card-footer">
+                    <span><i class="fa fa-shield text-warning mr-1"></i> <b>Safety Guard:</b> Active fee groups cannot be deleted while assigned.</span>
+                    <span class="font-weight-bold text-dark">Showing {{ count($dataview ?? []) }} records</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 {{-- Delete Confirmation Modal --}}
@@ -730,7 +804,7 @@ $(document).ready(function() {
         $('#deleteConfirmModal').modal('show');
     });
 
-    // In-Column Live Excel Filters (Exact match with viewUser live filter behavior)
+    // In-Column Live Excel Filters
     function applyExcelFilters() {
         var filterName = $('#filter_name').val().toLowerCase().trim();
         var filterRefund = $('#filter_refund').val();
