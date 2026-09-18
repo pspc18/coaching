@@ -737,11 +737,30 @@ select.excel-col-filter option {
                                         </td>
                                     </tr>
                                 @endforeach
+                                <tr id="fgEmptyFilterRow" class="d-none">
+                                    <td colspan="5" class="text-center py-5">
+                                        <div style="padding: 24px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                            <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:22px; color:#64748b; margin-bottom:10px;">
+                                                <i class="fa fa-search"></i>
+                                            </div>
+                                            <div style="font-size:13px; font-weight:700; color:#002C54; margin-bottom:3px;">No Matching Fee Groups Found</div>
+                                            <div style="font-size:11px; color:#64748b; margin-bottom:10px;">No groups match your current in-column filter criteria.</div>
+                                            <button type="button" class="dash-btn dash-btn-secondary" id="btn_clear_empty_filters" style="height:28px; font-size:11px; padding:0 12px;">
+                                                <i class="fa fa-refresh mr-1"></i> Clear Filters
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
                             @else
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
-                                        No Fees Groups found. Use the form on the left to add one!
+                                    <td colspan="5" class="text-center py-5">
+                                        <div style="padding: 30px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                            <div style="width:54px; height:54px; border-radius:50%; background:#e0f2fe; border:1.5px dashed #7dd3fc; display:flex; align-items:center; justify-content:center; font-size:22px; color:#0284c7; margin-bottom:10px;">
+                                                <i class="fa fa-folder-open-o"></i>
+                                            </div>
+                                            <div style="font-size:13.5px; font-weight:700; color:#002C54; margin-bottom:3px;">No Fee Groups Added Yet</div>
+                                            <div style="font-size:11px; color:#64748b;">Use the form on the left to create your first fee group.</div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endif
@@ -809,6 +828,7 @@ $(document).ready(function() {
         var filterName = $('#filter_name').val().toLowerCase().trim();
         var filterRefund = $('#filter_refund').val();
         var filterUsage = $('#filter_usage').val();
+        var visibleCount = 0;
 
         $('.fg-row').each(function() {
             var rowName = $(this).data('name') || '';
@@ -821,20 +841,28 @@ $(document).ready(function() {
 
             if (matchName && matchRefund && matchUsage) {
                 $(this).show();
+                visibleCount++;
             } else {
                 $(this).hide();
             }
         });
+
+        if (visibleCount === 0) {
+            $('#fgEmptyFilterRow').removeClass('d-none');
+        } else {
+            $('#fgEmptyFilterRow').addClass('d-none');
+        }
     }
 
     $('#filter_name').on('keyup input', applyExcelFilters);
     $('#filter_refund, #filter_usage').on('change', applyExcelFilters);
 
-    $('#btn_clear_filters').on('click', function() {
+    $('#btn_clear_filters, #btn_clear_empty_filters').on('click', function() {
         $('#filter_name').val('');
         $('#filter_refund').val('');
         $('#filter_usage').val('');
         $('.fg-row').show();
+        $('#fgEmptyFilterRow').addClass('d-none');
     });
 });
 </script>

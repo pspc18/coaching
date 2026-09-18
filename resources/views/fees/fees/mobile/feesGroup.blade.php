@@ -577,6 +577,83 @@
     justify-content: center;
     gap: 4px;
 }
+
+/* Centered Modern Empty States */
+.mob-empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: calc(100vh - 350px);
+    min-height: clamp(260px, 48vh, 500px);
+    padding: 32px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    margin: 4px 0 16px 0;
+}
+.mob-empty-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+.mob-empty-icon-circle.icon-accent {
+    background: #e0f2fe;
+    border-color: #bae6fd;
+    color: #0284c7;
+}
+.mob-empty-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #002C54;
+    margin: 0 0 5px 0;
+}
+.mob-empty-desc {
+    font-size: 11px;
+    color: #64748b;
+    max-width: 260px;
+    line-height: 1.5;
+    margin: 0 0 15px 0;
+}
+.mob-empty-btn {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all .15s ease;
+}
+.mob-empty-btn-reset {
+    background: #002C54;
+    color: #ffffff;
+}
+.mob-empty-btn-reset:active {
+    background: #001f3b;
+}
+.mob-empty-btn-add {
+    background: #0284c7;
+    color: #ffffff;
+}
+.mob-empty-btn-add:active {
+    background: #0369a1;
+}
 </style>
 @endsection
 
@@ -738,17 +815,29 @@
 
             </div>
         @empty
-            <div class="text-center py-4 text-muted bg-white rounded border" style="font-size: 11.5px;">
-                <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
-                No fee groups found. Tap "+ New Fee Group" above to create one.
+            <div class="mob-empty-state-box">
+                <div class="mob-empty-icon-circle icon-accent">
+                    <i class="fa fa-folder-open-o"></i>
+                </div>
+                <h6 class="mob-empty-title">No Fee Groups Found</h6>
+                <p class="mob-empty-desc">No fee groups have been created yet. Tap the button below to add your first group.</p>
+                <button type="button" class="mob-empty-btn mob-empty-btn-add" id="btnEmptyAdd">
+                    <i class="fa fa-plus"></i> + Add First Group
+                </button>
             </div>
         @endforelse
     </div>
 
-    {{-- Empty State on Search --}}
-    <div id="fgEmptyState" class="text-center py-4 text-muted bg-white rounded border d-none" style="font-size: 11.5px;">
-        <i class="fa fa-search fa-2x mb-2 text-secondary d-block"></i>
-        No matching fee groups found.
+    {{-- Empty State on Search / Filter --}}
+    <div id="fgEmptyState" class="mob-empty-state-box d-none">
+        <div class="mob-empty-icon-circle">
+            <i class="fa fa-search"></i>
+        </div>
+        <h6 class="mob-empty-title">No Matching Fee Groups</h6>
+        <p class="mob-empty-desc">No fee groups match your search query or selected filter chips.</p>
+        <button type="button" class="mob-empty-btn mob-empty-btn-reset" id="btnEmptyReset">
+            <i class="fa fa-refresh"></i> Reset Filters
+        </button>
     </div>
 
 </div>
@@ -967,6 +1056,15 @@ $(document).ready(function() {
         $(this).addClass('active');
         activeFilterChip = $(this).data('filter');
         runSearchFilter();
+    });
+
+    // 4. Empty State Action Triggers
+    $(document).on('click', '#btnEmptyReset', function() {
+        $('#btnResetFilter').trigger('click');
+    });
+
+    $(document).on('click', '#btnEmptyAdd', function() {
+        openAddSheet();
     });
 });
 </script>
