@@ -59,6 +59,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-modals.css') }}?v=1789536729">
     
     <script src="{{ URL::asset('public/assets/school/js/jquery.min.js') }}"></script>
     <script src="{{ URL::asset('public/assets/school/js/bootstrap.bundle.min.js') }}"></script>
@@ -128,6 +129,110 @@
     .mt-1 { margin-top: 0.25rem !important; }
     .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
     .py-3 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+
+    /* Core Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        text-align: center;
+        vertical-align: middle;
+        user-select: none;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 11.5px;
+        line-height: 1.4;
+        border-radius: 4px;
+        transition: all .15s ease-in-out;
+        cursor: pointer;
+        text-decoration: none !important;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 11px;
+        border-radius: 3px;
+    }
+    .btn-xs {
+        padding: 0.15rem 0.45rem;
+        font-size: 10px;
+        border-radius: 2px;
+        line-height: 1.2;
+    }
+    .btn-primary {
+        color: #fff !important;
+        background-color: #0284c7;
+        border-color: #0284c7;
+    }
+    .btn-primary:active, .btn-primary:hover {
+        background-color: #0369a1;
+        border-color: #0369a1;
+    }
+    .btn-secondary {
+        color: #334155 !important;
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    .btn-secondary:active, .btn-secondary:hover {
+        background-color: #e2e8f0;
+    }
+    .btn-danger {
+        color: #fff !important;
+        background-color: #dc2626;
+        border-color: #dc2626;
+    }
+    .btn-danger:active, .btn-danger:hover {
+        background-color: #b91c1c;
+    }
+    .btn-light {
+        color: #0f172a !important;
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    /* Core Form Controls */
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: #0f172a;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        outline: none;
+    }
+    .form-control:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+    .form-control-sm {
+        height: 30px;
+        padding: 0.2rem 0.5rem;
+        font-size: 11.5px;
+    }
+
+    /* Core Badges */
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.5em;
+        font-size: 9.5px;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 3px;
+    }
+    .bg-success { background-color: #16a34a !important; color: #fff !important; }
+    .bg-light { background-color: #f1f5f9 !important; color: #334155 !important; }
+    .bg-warning { background-color: #f59e0b !important; color: #000 !important; }
+    .bg-danger { background-color: #dc2626 !important; color: #fff !important; }
+    .border { border: 1px solid #cbd5e1 !important; }
 
     /* App Shell */
     .mobile-app-shell {
