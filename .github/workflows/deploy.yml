@@ -23,6 +23,8 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             echo "🚀 Starting Deployment on VPS..."
+            git config --global --add safe.directory '*' || true
+            git config --global --add safe.directory /var/www/coaching.rusoft.online/public || true
             cd /var/www/coaching.rusoft.online/public
 
             echo "📥 Fetching and syncing latest master branch..."
