@@ -622,7 +622,7 @@
                 <i class="fa fa-user"></i>
             </div>
             <div>
-                <div class="hero-user-title">Hello, {{ $userName }}! 👋</div>
+                <div class="hero-user-title">Test Dashboard &bull; {{ $userName }} 👋</div>
                 <div class="hero-user-sub">{{ now()->format('l, d M Y') }}</div>
             </div>
         </div>
