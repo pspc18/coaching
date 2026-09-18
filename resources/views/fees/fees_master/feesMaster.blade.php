@@ -1,377 +1,880 @@
 @php
-$getFeesGroup = Helper::getFeesGroup();
-$classType = Helper::classType();
-
-$filteredData = $dataview;
-
+    $getFeesGroup = Helper::getFeesGroup();
+    $classType = Helper::classType();
+    $stats = $stats ?? [
+        'total_classes' => count($groupedByClass ?? []),
+        'total_heads' => count($allFeesMasters ?? []),
+        'total_amount' => 0,
+        'in_use_heads' => 0,
+    ];
+    $currentSessionName = Session::get('session_name') ?? '2026-27';
 @endphp
+
 @extends('layout.app')
+
 @section('content')
+<style>
+/* Viewport and Split Columns System (1:1 with expenseAdd & feesGroup) */
+.fg-viewport-wrapper {
+    height: calc(100vh - 58px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #f4f6f9;
+}
 
-<div class="content-wrapper">
+/* 1. Dark Navy Hero Banner */
+.dash-hero {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    padding: 8px 16px;
+    border-bottom: 2px solid #002C54;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.dash-hero-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.2px;
+}
+.dash-hero-title i {
+    color: #38bdf8;
+    font-size: 15px;
+}
+.dash-breadcrumb-inline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.dash-breadcrumb-inline a {
+    color: #cbd5e1;
+    text-decoration: none;
+}
+.dash-breadcrumb-inline a:hover {
+    color: #ffffff;
+}
+.dash-breadcrumb-inline .sep {
+    color: #64748b;
+    font-size: 10px;
+}
+.dash-breadcrumb-inline .active {
+    color: #38bdf8;
+    font-weight: 600;
+}
 
-  <section class="content pt-3">
-      
-      <div class="container-fluid">
-    <div class="row align-items-center">
-      <div class="col-md-4">
-        <nav aria-label="breadcrumb">
-    <ol class="breadcrumb p-0" style='margin-top:5px'>
-      <li class="breadcrumb-item"><a href="{{url('/')}}">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="{{url('fee_dashboard')}}">Fees Management</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Fees Master</li>
-    </ol>
-  </nav>
-      </div>
-      <div class="col-md-8 text-md-right">
-        <button style='margin-top:-11px' class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#students_list_modal">Student Fee Assign</button>
-        <button style='margin-top:-11px' id="fees_modification_btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fees_modification">Student Fee Modification</button>
-        <!--<button style='margin-top:-11px' class="btn btn-primary">Modify Fees</button>-->
-        <!--<button style='margin-top:-11px' class="btn btn-primary">Modify Fees</button>-->
-      </div>
+/* Stats Counter Pills in Hero */
+.dash-hero-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.dash-hero-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 11px;
+    color: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.dash-hero-pill b {
+    color: #ffffff;
+    font-weight: 700;
+}
+.dash-hero-pill.pill-active {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+}
+
+/* Actions in Hero */
+.dash-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.hero-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+}
+.hero-btn-primary {
+    background: #0284c7;
+    color: #ffffff;
+}
+.hero-btn-primary:hover {
+    background: #0369a1;
+    color: #ffffff;
+}
+.hero-btn-outline {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.hero-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 2. Equal Height Columns Wrap (14px gap) */
+.dash-split-wrap {
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    min-height: 0;
+    padding: 10px 14px;
+    overflow: hidden;
+}
+
+.fg-col-form {
+    width: 440px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex-shrink: 0;
+}
+.fg-col-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Signature Card (matching expenseAdd & feesGroup) */
+.signature-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    min-height: 0;
+    overflow: hidden;
+}
+.dash-card-header {
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-bottom: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+.dash-card-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #002C54;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.badge-total-records {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #475569;
+    background: #e2e8f0;
+    padding: 2px 7px;
+    border-radius: 3px;
+}
+
+/* Scroll Containers */
+.form-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    min-height: 0;
+}
+.table-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    min-height: 0;
+    background: #ffffff;
+}
+
+/* Form inputs */
+.dash-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 4px;
+    display: block;
+}
+.dash-select, .dash-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+}
+.dash-select:focus, .dash-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+
+/* Fee Matrix Table in Left Form */
+.fee-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+.fee-matrix-table th {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 700;
+    padding: 6px 8px;
+    border-bottom: 1px solid #cbd5e1;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.fee-matrix-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.fee-matrix-table tr:hover td {
+    background: #f8fafc;
+}
+.matrix-input-amount {
+    height: 26px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: right;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 0 6px;
+    width: 100%;
+}
+.matrix-input-date {
+    height: 26px;
+    font-size: 10.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 0 4px;
+    width: 100%;
+}
+
+/* Custom Switch Toggle */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 17px;
+    margin: 0;
+}
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .2s;
+    border-radius: 17px;
+}
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+}
+input:checked + .switch-slider {
+    background-color: #0284c7;
+}
+input:checked + .switch-slider:before {
+    transform: translateX(15px);
+}
+
+/* Right Table Styles */
+.dash-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 11.5px;
+}
+.dash-table thead tr.header-titles-row th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #002C54;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 7px 10px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    font-size: 11.5px;
+}
+.dash-table thead tr.excel-filter-row th {
+    position: sticky;
+    top: 31px;
+    z-index: 9;
+    background: #f1f5f9;
+    padding: 4px 6px;
+    border-bottom: 1px solid #cbd5e1;
+}
+.excel-filter-input {
+    width: 100%;
+    height: 24px;
+    font-size: 11px;
+    padding: 0 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+}
+.excel-filter-input:focus {
+    border-color: #0284c7;
+}
+.dash-table tbody tr {
+    transition: background .1s ease;
+}
+.dash-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+.dash-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    vertical-align: middle;
+}
+
+/* Fee Head Breakdown Pills in Directory */
+.heads-pill-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.head-pill-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #334155;
+    white-space: nowrap;
+}
+.head-pill-item b {
+    color: #002C54;
+}
+.head-pill-amount {
+    color: #0284c7;
+    font-weight: 700;
+}
+.head-pill-date {
+    font-size: 9.5px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 0 4px;
+    border-radius: 2px;
+}
+.btn-delete-head {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 11px;
+    line-height: 1;
+}
+.btn-delete-head:hover {
+    color: #b91c1c;
+}
+.head-lock-badge {
+    color: #d97706;
+    font-size: 9.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Action Buttons */
+.action-btn-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.btn-act {
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 11px;
+    text-decoration: none !important;
+}
+.btn-act-edit {
+    background: #e0f2fe;
+    color: #0284c7;
+    border-color: #bae6fd;
+}
+.btn-act-edit:hover {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+/* Buttons */
+.dash-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 0 10px;
+    height: 28px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none !important;
+}
+.dash-btn-primary {
+    background: #002C54;
+    color: #ffffff;
+}
+.dash-btn-primary:hover {
+    background: #001f3b;
+    color: #ffffff;
+}
+.dash-btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+.dash-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Table Footer */
+.table-card-footer {
+    padding: 6px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748b;
+    flex-shrink: 0;
+}
+</style>
+
+<div class="fg-viewport-wrapper">
+
+    {{-- 1. Dark Navy Hero Banner --}}
+    <div class="dash-hero">
+        <div>
+            <h1 class="dash-hero-title">
+                <i class="fa fa-sliders"></i> {{ __('fees.Fees Master') }}
+            </h1>
+            <ul class="dash-breadcrumb-inline">
+                <li><a href="{{ url('/') }}">Dashboard</a></li>
+                <li class="sep">/</li>
+                <li><a href="{{ url('fee_dashboard') }}">Fees Management</a></li>
+                <li class="sep">/</li>
+                <li class="active">{{ __('fees.Fees Master') }}</li>
+            </ul>
+        </div>
+
+        {{-- Metric Counter Pills --}}
+        <div class="dash-hero-pills">
+            <span class="dash-hero-pill pill-active">
+                <i class="fa fa-graduation-cap"></i> Classes: <b>{{ $stats['total_classes'] ?? 0 }}</b>
+            </span>
+            <span class="dash-hero-pill">
+                <i class="fa fa-cubes"></i> Heads: <b>{{ $stats['total_heads'] ?? 0 }}</b>
+            </span>
+            <span class="dash-hero-pill">
+                <i class="fa fa-inr"></i> Total: <b>₹{{ number_format($stats['total_amount'] ?? 0) }}</b>
+            </span>
+            <span class="dash-hero-pill">
+                <i class="fa fa-lock text-warning"></i> In-Use: <b>{{ $stats['in_use_heads'] ?? 0 }}</b>
+            </span>
+            <span class="dash-hero-pill">
+                <i class="fa fa-calendar-check-o"></i> Session: <b>{{ $currentSessionName }}</b>
+            </span>
+        </div>
+
+        {{-- Hero Shortcuts & Modal Triggers --}}
+        <div class="dash-hero-actions">
+            <button type="button" class="hero-btn hero-btn-primary" data-bs-toggle="modal" data-bs-target="#students_list_modal">
+                <i class="fa fa-user-plus mr-1"></i> Student Fee Assign
+            </button>
+            <button type="button" class="hero-btn hero-btn-outline" id="fees_modification_btn" data-bs-toggle="modal" data-bs-target="#fees_modification">
+                <i class="fa fa-pencil-square-o mr-1"></i> Modify Student Fees
+            </button>
+            <a href="{{ url('feesGroup') }}" class="hero-btn hero-btn-outline">
+                <i class="fa fa-folder-open mr-1"></i> Fees Group
+            </a>
+            <a href="{{ url('feesCollectAdd') }}" class="hero-btn hero-btn-outline">
+                <i class="fa fa-inr mr-1"></i> Collect Fees
+            </a>
+        </div>
     </div>
-  </div>
 
+    {{-- 2. Equal-Height Split Workspace --}}
+    <div class="dash-split-wrap">
 
-    <div class="container-fluid">
-      <div class="row">
-      
-           
-          <div class="card card-outline w-100">
-            
-            
-              <div class="row m-2">
-                   
-                    <div class="col-md-10">
-                       <div class="card">
-                           <div class="card-body pl-0 pr-0 pt-2 pb-2">
-                                               <div class="col-md-12 text-left"> 
-                                            <p class="text-danger font-weight-bold ">Full Payment assign to {{ __('common.Class') }} :-</p>
-                                        </div>
-                                        <form  class="col-md-12" id="quickForm" action="{{ url('feesMasterAdd') }}" method="post">
-                              @csrf
-                                <div class="col-md-12">
-                                  <div class="form-group">
-                                    <label style="color:red;">{{ __('common.Class') }}*</label>
-                                    <select class="form-control select2 @error('class_type_id') is-invalid @enderror " id="class_type_id" name="class_type_id" required>
-                                      <option value="">{{ __('messages.Select') }}</option>
-                                      @if(!empty($classType))
-                                      @foreach($classType as $type)
-                                      <option value="{{ $type->id }}">{{ $type->name ?? ''  }}</option>
-                                      @endforeach
-                                      @endif
-                                    </select>
-                                    @error('class_type_id')
-                                    <span class="invalid-feedback" role="alert">
-                                      <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
-                                  </div>
-                                </div>
-                                <div class="col-md-12">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped dataTable dtr-inline padding_table">
-                                        <thead>
+        {{-- Left Form Column (Assign Fee Structure to Class) --}}
+        <div class="fg-col-form">
+            <div class="signature-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-plus-circle text-primary"></i> Assign Fee Structure to Class
+                    </h3>
+                </div>
+
+                <div class="form-scroll-container">
+                    <form id="quickForm" action="{{ url('feesMasterAdd') }}" method="post">
+                        @csrf
+
+                        {{-- Select Class --}}
+                        <div class="form-group mb-3">
+                            <label class="dash-label">{{ __('common.Class') }} <span class="text-danger">*</span></label>
+                            <select class="dash-select @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" required>
+                                <option value="">-- Select Class --</option>
+                                @if(!empty($classType))
+                                    @foreach($classType as $type)
+                                        <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            @error('class_type_id')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Fee Group Matrix --}}
+                        <div class="form-group mb-2">
+                            <label class="dash-label d-flex justify-content-between align-items-center">
+                                <span>{{ __('fees.Fees Group') }} Matrix</span>
+                                <span class="text-muted" style="font-size:10px; font-weight:normal;">Check heads to assign</span>
+                            </label>
+
+                            <div style="border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden;">
+                                <table class="fee-matrix-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 28px; text-align: center;">
+                                                <input type="checkbox" id="select_group" checked style="cursor:pointer;">
+                                            </th>
+                                            <th>Fee Head</th>
+                                            <th style="width: 90px; text-align: right;">Amount (₹)</th>
+                                            <th style="width: 105px; text-align: center;">Due Date</th>
+                                            <th style="width: 50px; text-align: center;" title="Allow student-level edit on admission">Edit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if(!empty($getFeesGroup))
+                                            @foreach ($getFeesGroup as $gType)
+                                                @php
+                                                    $isRefundable = strtolower($gType->fees_refund ?? '') === 'yes';
+                                                @endphp
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        <input type="checkbox" class="group_checkbox" id="fees_group_{{ $gType->id }}" name="fees_group_id[]" value="{{ $gType->id }}" checked style="cursor:pointer;">
+                                                    </td>
+                                                    <td>
+                                                        <label for="fees_group_{{ $gType->id }}" style="cursor:pointer; margin:0; font-weight:700; color:#1e293b;">
+                                                            {{ $gType->name ?? '' }}
+                                                        </label>
+                                                        @if($isRefundable)
+                                                            <span class="badge badge-success ml-1" style="font-size:8.5px; padding:1px 4px;">Refund</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <input class="matrix-input-amount" type="text" name="amount[{{ $gType->id }}]" placeholder="0" value="0" onkeypress="javascript:return isNumber(event)">
+                                                    </td>
+                                                    <td>
+                                                        <input class="matrix-input-date" type="date" name="installment_due_date[{{ $gType->id }}]">
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <label class="custom-switch">
+                                                            <input type="checkbox" class="matrix-editable-cb" onchange="$(this).closest('td').find('.editable-val').val(this.checked ? 1 : 0);">
+                                                            <span class="switch-slider"></span>
+                                                        </label>
+                                                        <input type="hidden" name="editable_value[{{ $gType->id }}]" class="editable-val" value="0">
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
                                             <tr>
-                                                <th>#</th>
-                                                <th><input type="checkbox" id="select_group" checked for="select_group"> <label for="select_group">{{ __('Select All') }}</label></th>
-                                                <th>{{ __('fees.Fees Group') }}*</th>
-                                                <th>{{ __('messages.Amount') }}*</th>
-                                                <th>{{ __('Due Date') }}</th>
-                                                <th>{{ __('Editable') }}</th>
+                                                <td colspan="5" class="text-center py-3 text-muted" style="font-size:11px;">
+                                                    No Fee Groups found. <a href="{{ url('feesGroup') }}">Create Groups</a> first.
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if(!empty($getFeesGroup))
-                                                @php $i=1; @endphp
-                                                @foreach ($getFeesGroup as $type)
-                                                    <tr>
-                                                        <td> {{ $i++ }}</td>
-                                                        <td> <input type="checkbox" class="group_checkbox" id="fees_group_id" name="fees_group_id[]" value="{{ $type->id ?? ''  }}" checked></td>
-                                                        <td>{{ $type->name ?? ''  }}</td>
-                                                        <td>
-                                                            <input class="form-control amount_0 @error('amount') is-invalid @enderror" type="text" name="amount[{{ $type->id ?? ''  }}]" id="amount" placeholder="Amount" value="0" onkeypress="javascript:return isNumber(event)">
-                                                        </td>
-                                                        <td>
-                                                            <input class="form-control" type="date" name="installment_due_date[{{ $type->id ?? ''  }}]">
-                                                        </td>
-                                                        <td>
-                                                            <input class="form-control change_box" data-amount_id="0" type="checkbox" name="editable[{{ $type->id ?? ''  }}]" id="editable">
-                                                            <input type="hidden" name="editable_value[{{ $type->id ?? ''  }}]" class="close_edited_value" id="editable_value" value="0">
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            @endif
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                  <div class="col-md-12">
-                                <div class="col-md-12 text-center">
-                                  <button type="submit" class="btn btn-primary">{{ __('messages.submit') }} </button>
-                                </div>
-                              </div>
-                              </form>
-                           </div>
-                       </div>
-                    </div>
-                    
-                    <div class="col-md-6 d-none">
-                        <div class="card">
-                            <div class="card-body pl-0 pr-0 pt-2 pb-2">
-                                <form  class="col-md-12" id="installment_form">
-                    <div class="col-md-12 text-left"> 
-                        <p class="text-danger font-weight-bold ">Installment Payment assign to class :-</p>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="totalAmount">Amt of Installment</label>
-                                <input type="text" class="form-control" id="totalAmount" name='total_amount' placeholder="Enter total amount">
+                                        @endif
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        
-                        <div class="col-md-3">
-                          <div class="form-group">
-                                <label style="color:red;">{{ __('common.Class') }}*</label>
-                                <select class="form-control" id="installment_class_type_id select2" name="installment_class_type_id">
-                                  <option value="">{{ __('messages.Select') }}</option>
-                                  @if(!empty($classType))
-                                  @foreach($classType as $type)
-                                  <option value="{{ $type->id }}">{{ $type->name ?? ''  }}</option>
-                                  @endforeach
-                                  @endif
-                                </select>
-                          </div>
-                        </div>
-                        
-                        <!--<div class="col-md-3">
-                            <div class="form-group">
-                                <label for="numInstallments">Installment Frequency</label>
-                                <input type="number" min="1" value='1' max='12' class="form-control" id="frequency">
-                            </div>
-                        </div>-->
-                        
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="numInstallments">Due Date On Every</label>
-                               <select class="form-control " name="due_date_on_every" id='due_date_on_every'>
-									<!--<option value="">{{ __('common.Select') }}</option>-->
-								
-									@for($i=1; $i < 32; $i++)
-									 <option value="{{ sprintf('%02d', $i) }}" {{ sprintf('%02d', $i) == "05" ? 'selected' : '' }}>{{ sprintf('%02d', $i) }}</option>
-									@endfor
-								
-								</select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="text-white">Preview</label><br>
-                                <button type="button" class="btn btn-primary" id="previewBtn">Preview</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-12">
-                        <div id="errorNotification" class="alert alert-danger" style="display: none;font-size:12px"></div>
-                    </div>
-                
-                    <div id="installments_data" style="display:none;">
-                        <div class="row">
-                    <div class="col-md-12">
-                        <table class="table table-bordered table-striped dataTable dtr-inline padding_table">
-            <thead>
-                <tr>
-                    <th><input type='checkbox' id="select_all" {{ count($feesGroupInstallmentsList) == 0 ? 'disabled' : '' }} /></th>
-                    <th>Installment Name</th>
-                    <th>Amount</th>
-                    <th>Month</th>
-                    <th>Due Date</th>
-                    <th>Fine[In Percentage %]</th>
-                </tr>
-            </thead>  
-            <tbody id="academicCalendar">
-                @if(count($feesGroupInstallmentsList) != 0)
-                    @php
-                       $i=1;
-                    @endphp
-                    @foreach ($feesGroupInstallmentsList as $key => $item)
-                        <tr>
-                                <td><input type='checkbox' name="installmentRow[]" class="select_checkbox" value="{{ $item->id }}" /></td>
-                                <td>
-                                    {{$item['name'] ?? ''}}
-                                    <input type="hidden" class="form-control installmentName install" id="installment_name_{{$item->id}}" value="{{ $item['name'] ?? '' }}">
-                                    <input type="hidden" class="form-control installmentId" id="installment_id_{{$item->id}}" value="{{$item['id'] ?? ''}}">
-                                </td>
-                                <td><input type="text" id="installment_amount_{{ $item->id }}" class="form-control installment-amount amountInstallment"></td>
-                                <td>
-                                    <select class="form-control installmentMonth" id="installment_month_{{ $item->id }}">
-                                        <option value="Jan" selected="">Jan</option>
-                                        <option value="Feb">Feb</option>
-                                        <option value="Mar">Mar</option>
-                                        <option value="Apr">Apr</option>
-                                        <option value="May">May</option>
-                                        <option value="Jun">Jun</option>
-                                        <option value="Jul">Jul</option>
-                                        <option value="Aug">Aug</option>
-                                        <option value="Sep">Sep</option>
-                                        <option value="Oct">Oct</option>
-                                        <option value="Nov">Nov</option>
-                                        <option value="Dec">Dec</option>
-                                    </select>
-                                </td>
-                                <td><input type="date" class="form-control installmentDueDate" id="installment_due_date_{{ $item->id }}"></td>
-                                <td><input type="number" class="installmentFine" min="0" value="0" max="100" class="form-control" id="installment_fine_{{ $item->id }}" placeholder="Enter fine"></td>
-                            </tr>
-                    @endforeach
-                    @else
-                    <tr class="text-center">
-                        <td class="text-danger" colspan="12">Please Create Installment First !!</td>
-                    </tr>
-                @endif
-            </tbody>
-        </table>
-                	</div>
-                </div>
-                    </div>
-                     
-                
-                
-                
-                 <div class="row m-2">
-                    <div class="col-md-12 text-center">
-                  <button type="button" id="installment_submit_button" style="display:none;" class="btn btn-primary">{{ __('messages.submit') }} </button>
-                </div>
-                        </div>
-              </form>
-                            </div>
-                        </div>
-                    </div>
-              
-              
-              </div>
-              
-              <div class="card m-2">
-                  <div class="card-body pl-0 pr-0 pt-2 pb-2">
-                       <div class="col-md-12">
-           <div class="col-md-12  text-left"> 
-                <p class="text-danger font-weight-bold">Fees assigned to classes list :-</p>
-            </div>
-            <div class="row m-2">
-                    <div class="col-md-12">
-                            <div class="row">
-                      
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <lable>{{ __('common.Class') }}</lable>
-                                    <select class="form-control" id="classTypeID" name="class_type_id">
-                                        <option value="">Select</option>
-                                        @foreach($classType as $class)
-                                        <option value="{{ $class->id }}">{{ $class->name ?? '' }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-2">
-                                <lable>&nbsp;</lable><br>
-                                <button type="button" class="filterData btn btn-primary">Search</button>
-                            </div>
-                            </div>
-                    </div>
-              <div class="col-md-12">
-                <table id="example1" class="table table-bordered table-striped dataTable dtr-inline padding_table">
-                  <thead>
-                    <tr role="row">
-                      <th>{{ __('messages.Sr.No.') }}</th>
-                      <th>{{ __('messages.Class') }}</th>
-                      <th>{{ __('fees.Fees Group') }}</th>
-                     
-                      <th>{{ __('messages.Action') }}</th>
-                      
-                    </tr>
-                  </thead>
-                  <tbody id="">
 
-                    @if(!empty($dataview))
-                    @php
-                    $i=1;
-                    $masterFeesArray = [];
-                    @endphp
-                    @foreach ($dataview as $item)
-                        @php
-                            $masterFees = [];
-                        @endphp
-                    <tr class="all_data" data-class="{{$item->class_type_id}}">
-                      <td>{{ $i++ }}</td>
-                      <td>{{ $item['ClassTypes']['name'] ??'' }}</td>
-                     <td>
-                          @php
-                            $allData = DB::table('fees_master')
-                            ->select('fees_master.amount','fees_group.name as fees_group_name','fees_master.id as fees_master_id','fees_master.installment_due_date')
-                            ->leftjoin('fees_group','fees_group.id','=','fees_master.fees_group_id')
-                            ->select('fees_master.amount','fees_group.name as fees_group_name','fees_master.id','fees_master.fees_group_id','fees_master.installment_due_date')
-                            ->where('class_type_id',$item->class_type_id)->where('fees_master.session_id',Session::get('session_id'))->whereNull('fees_master.deleted_at')->get();
-                            
-                          @endphp
-                        @if(!empty($allData))
-                        @foreach ($allData as $mydata)
-                            @php
-                            //dd($mydata);
-                                $masterFees[] = $mydata->fees_group_name;
-                            @endphp
-                            <p style="margin-bottom: 0%;"> {{ $mydata->fees_group_name ?? '' }} = <span>{{ $mydata->amount ?? '' }}</span> &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;Due Date = <span>{{ $mydata->installment_due_date ?? '' }}</span>
-                        @php
-               
-                        $isDeleteAllowed1 = DB::table('fees_detail')->where('fees_group_id',$mydata->fees_group_id)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->whereNull('deleted_at')->count();
-                        $isDeleteAllowed2 = DB::table('fees_assign_details')->where('class_type_id',$item['ClassTypes']['id'])->where('fees_group_id',$mydata->fees_group_id)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->whereNull('deleted_at')->count();
-                  
-                     @endphp
-                     
-                    
-                        <a href="javascript:;" data-groupname='{{$mydata->id ?? ''}}' data-bs-toggle="modal" data-bs-target="#Modal_id" class="deleteData {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}"><i class="fa fa-remove text-danger" title="Delete"></i></a>
-                   
-                        </p>
-                        @endforeach
-                        @endif
-                      </td>
-                      
-                      <td>
-                        <a href="{{ url('feesMasterEdit') }}/{{$item['class_type_id'] ?? '' }}" class="text-success tooltip1 {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" title1="Edit"><i class="fa fa-edit pl-2"></i></a>
-                      </td>
-                     
-                    </tr>
-                    @php
-                        $masterFeesArray[$item->class_type_id] = $masterFees;
-                    @endphp
-                    @endforeach
-                    @endif
-                  </tbody>
-                </table>
-              </div>
-                  	        <div class="col-md-12">
-                    <p class="note_text text-danger">
-                        <b>Note :</b> You can't delete the fees group until it is no longer in use.
-                    </p>
+                        {{-- Submit Button --}}
+                        <div class="pt-2 mt-3 border-top">
+                            <button type="submit" class="dash-btn dash-btn-primary w-100" style="height:32px; font-size:12px;">
+                                <i class="fa fa-check-circle mr-1"></i> Save Fee Structure
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-                  </div>
-              </div>
-                 
-              
 
-            
-           
-          </div>
-       
+        {{-- Right Table Column (Configured Class Directory) --}}
+        <div class="fg-col-table">
+            <div class="signature-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-list text-info"></i> Class Fee Master Directory
+                    </h3>
+                    <span class="badge-total-records">
+                        Configured Classes: <b>{{ count($groupedByClass ?? []) }}</b>
+                    </span>
+                </div>
 
+                {{-- Scrollable Table Container with Sticky Headers --}}
+                <div class="table-scroll-container">
+                    <table class="dash-table" id="feesMasterTable">
+                        <thead>
+                            {{-- Row 1: Header Titles --}}
+                            <tr class="header-titles-row">
+                                <th style="width: 45px; text-align: center;">#</th>
+                                <th style="width: 140px;">{{ __('common.Class') }}</th>
+                                <th>Assigned Fee Heads & Amounts</th>
+                                <th style="width: 110px; text-align: right;">Total Fee</th>
+                                <th style="width: 70px; text-align: center;">{{ __('messages.Action') }}</th>
+                            </tr>
 
-      </div>
+                            {{-- Row 2: In-Column Sticky Excel Filter --}}
+                            <tr class="excel-filter-row">
+                                <th></th>
+                                <th>
+                                    <input type="text" id="filter_class" class="excel-filter-input" placeholder="Search class...">
+                                </th>
+                                <th colspan="2" style="font-size: 10px; color: #64748b; font-weight: normal; vertical-align: middle;">
+                                    <i class="fa fa-info-circle text-primary mr-1"></i> Instant Class Filter
+                                </th>
+                                <th style="text-align: center;">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary" id="btn_clear_filters" title="Reset Filter" style="height: 22px; padding: 0 6px;">
+                                        <i class="fa fa-refresh"></i>
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @forelse($groupedByClass as $classTypeId => $classFeeMasters)
+                                @php
+                                    $className = $classFeeMasters->first()->ClassTypes->name ?? 'Class #' . $classTypeId;
+                                    $classNameLower = strtolower($className);
+                                    $totalClassFee = $classFeeMasters->sum('amount');
+                                    $headsCount = $classFeeMasters->count();
+                                @endphp
+                                <tr class="fm-class-row" data-class="{{ $classNameLower }}">
+                                    <td style="text-align:center; font-weight:700; color:#64748b;">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <div style="font-weight: 800; color:#002C54; font-size:12px;">{{ $className }}</div>
+                                        <span class="badge badge-light border" style="font-size:9.5px; color:#475569;">
+                                            {{ $headsCount }} {{ Str::plural('Fee Head', $headsCount) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="heads-pill-wrap">
+                                            @foreach($classFeeMasters as $fm)
+                                                @php
+                                                    $isLocked = isset($usedDetailGroups[$fm->fees_group_id]) || isset($usedAssignPairs[$classTypeId . '_' . $fm->fees_group_id]);
+                                                    $headName = $fm->feesGroup->name ?? 'Group #' . $fm->fees_group_id;
+                                                    $dueFormatted = !empty($fm->installment_due_date) ? date('d M Y', strtotime($fm->installment_due_date)) : '';
+                                                @endphp
+                                                <div class="head-pill-item">
+                                                    <span><b>{{ $headName }}</b>: <span class="head-pill-amount">₹{{ number_format($fm->amount) }}</span></span>
+                                                    @if(!empty($dueFormatted))
+                                                        <span class="head-pill-date" title="Due Date"><i class="fa fa-calendar-o"></i> {{ $dueFormatted }}</span>
+                                                    @endif
+                                                    @if($isLocked)
+                                                        <span class="head-lock-badge" title="Active student records linked. Locked from deletion.">
+                                                            <i class="fa fa-lock"></i>
+                                                        </span>
+                                                    @else
+                                                        <a href="javascript:void(0);" 
+                                                           data-groupname="{{ $fm->id }}" 
+                                                           data-groupname-label="{{ $headName }} ({{ $className }})"
+                                                           data-bs-toggle="modal" 
+                                                           data-bs-target="#Modal_id" 
+                                                           class="btn-delete-head deleteData {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}" 
+                                                           title="Delete this fee head from {{ $className }}">
+                                                            <i class="fa fa-times"></i>
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span style="font-size:12.5px; font-weight:800; color:#0284c7;">
+                                            ₹{{ number_format($totalClassFee) }}
+                                        </span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <div class="action-btn-wrap">
+                                            <a href="{{ url('feesMasterEdit/' . $classTypeId) }}" 
+                                               class="btn-act btn-act-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
+                                               title="Edit Class Fee Structure">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr id="fmInitialEmptyRow">
+                                    <td colspan="5" class="text-center py-5">
+                                        <div style="padding: 30px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                            <div style="width:54px; height:54px; border-radius:50%; background:#e0f2fe; border:1.5px dashed #7dd3fc; display:flex; align-items:center; justify-content:center; font-size:22px; color:#0284c7; margin-bottom:10px;">
+                                                <i class="fa fa-folder-open-o"></i>
+                                            </div>
+                                            <div style="font-size:13.5px; font-weight:700; color:#002C54; margin-bottom:3px;">No Class Fee Structures Configured Yet</div>
+                                            <div style="font-size:11px; color:#64748b;">Use the form on the left to assign fees to your first class.</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+
+                            {{-- Empty State on In-Column Excel Filter --}}
+                            <tr id="fgEmptyFilterRow" class="d-none">
+                                <td colspan="5" class="text-center py-5">
+                                    <div style="padding: 24px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                        <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:22px; color:#64748b; margin-bottom:10px;">
+                                            <i class="fa fa-search"></i>
+                                        </div>
+                                        <div style="font-size:13px; font-weight:700; color:#002C54; margin-bottom:3px;">No Matching Classes Found</div>
+                                        <div style="font-size:11px; color:#64748b; margin-bottom:10px;">No class fee records match your search filter.</div>
+                                        <button type="button" class="dash-btn dash-btn-secondary" id="btn_clear_empty_filters" style="height:28px; font-size:11px; padding:0 12px;">
+                                            <i class="fa fa-refresh mr-1"></i> Clear Filters
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Table Card Footer --}}
+                <div class="table-card-footer">
+                    <span><i class="fa fa-shield text-warning mr-1"></i> <b>Safety Guard:</b> Active fee heads assigned to students or with payments are locked from deletion.</span>
+                    <span class="font-weight-bold text-dark">Showing {{ count($groupedByClass ?? []) }} classes</span>
+                </div>
+            </div>
+        </div>
+
     </div>
-  </section>
 </div>
+
+<script>
+$(document).ready(function() {
+    function applyClassFilter() {
+        var q = $('#filter_class').val().toLowerCase().trim();
+        var matchCount = 0;
+
+        $('.fm-class-row').each(function() {
+            var className = $(this).data('class') || '';
+            if (!q || className.indexOf(q) !== -1) {
+                $(this).show();
+                matchCount++;
+            } else {
+                $(this).hide();
+            }
+        });
+
+        if (matchCount === 0) {
+            $('#fgEmptyFilterRow').removeClass('d-none');
+        } else {
+            $('#fgEmptyFilterRow').addClass('d-none');
+        }
+    }
+
+    $('#filter_class').on('keyup input', applyClassFilter);
+
+    $('#btn_clear_filters, #btn_clear_empty_filters').on('click', function() {
+        $('#filter_class').val('');
+        $('.fm-class-row').show();
+        $('#fgEmptyFilterRow').addClass('d-none');
+    });
+
+    // Select All Checkbox
+    $('#select_group').on('change', function() {
+        $('.group_checkbox').prop('checked', $(this).prop('checked'));
+    });
+
+    $('.group_checkbox').on('change', function() {
+        if ($('.group_checkbox:checked').length === $('.group_checkbox').length) {
+            $('#select_group').prop('checked', true);
+        } else {
+            $('#select_group').prop('checked', false);
+        }
+    });
+
+    // Delete single head handler
+    $(document).on('click', '.deleteData', function() {
+        var delete_id = $(this).data('groupname');
+        var label = $(this).data('groupname-label') || '';
+        $('#delete_id').val(delete_id);
+        if (label) {
+            $('#delete_head_label').text('"' + label + '"');
+        }
+    });
+});
+</script>
 
 
 
@@ -755,25 +1258,29 @@ $(document).ready(function(){
     $('#delete_id').val(delete_id);
   });
 </script>
-<!-- The Modal -->
-<div class="modal" id="Modal_id">
-  <div class="modal-dialog">
-    <div class="modal-content" style="background: #555b5beb;">
+<!-- The Delete Modal -->
+<div class="modal fade" id="Modal_id" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content" style="border:none; border-radius:6px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.15);">
 
-      <div class="modal-header">
-        <h4 class="modal-title text-white">{{ __('messages.Delete Confirmation') }}</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"><i class="fa fa-times" aria-hidden="true"></i></button>
+      <div class="modal-header" style="background:#dc2626; color:#ffffff; padding:10px 14px;">
+        <h5 class="modal-title" style="font-size:13px; font-weight:700;"><i class="fa fa-trash-o mr-1"></i> {{ __('messages.Delete Confirmation') }}</h5>
+        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close" style="filter:brightness(0) invert(1); opacity:0.8;"></button>
       </div>
 
       <form action="{{ url('feesMasterDelete') }}" method="post">
         @csrf
-        <div class="modal-body">
-          <input type=hidden id="delete_id" name=delete_id>
-          <h5 class="text-white">{{ __('messages.Are you sure you want to delete') }} ?</h5>
+        <div class="modal-body text-center" style="padding:20px 16px;">
+          <input type="hidden" id="delete_id" name="delete_id">
+          <div style="width:48px; height:48px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 12px auto;">
+              <i class="fa fa-trash"></i>
+          </div>
+          <p style="font-size:12px; color:#64748b; margin-bottom:4px;">Are you sure you want to delete this fee head:</p>
+          <h6 style="font-size:13.5px; font-weight:800; color:#002C54; margin:0;" id="delete_head_label"></h6>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect remove-data-from-delete-form" data-bs-dismiss="modal">{{ __('messages.Close') }}</button>
-          <button type="submit" class="btn btn-danger waves-effect waves-light">{{ __('messages.Delete') }}</button>
+        <div class="modal-footer justify-content-center" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:8px 12px;">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" style="font-size:11px; font-weight:700; padding:4px 12px;">{{ __('messages.Close') }}</button>
+          <button type="submit" class="btn btn-sm btn-danger" style="font-size:11px; font-weight:700; padding:4px 16px;"><i class="fa fa-trash mr-1"></i> {{ __('messages.Delete') }}</button>
         </div>
       </form>
     </div>

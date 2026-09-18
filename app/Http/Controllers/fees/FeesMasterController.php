@@ -32,6 +32,7 @@ use Redirect;
 use Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FeesMasterController extends Controller
 
@@ -42,42 +43,112 @@ class FeesMasterController extends Controller
             public function feesMaster(Request $request){
                 if ($request->isMethod('post')) {
                     $request->validate([
-                        //'fees_group_id' => 'required',
-                        //'amount' => 'required',
                         'class_type_id' => 'required',
                     ]);
-                   // dd($request->amount[$key]);
-                    foreach ($request->fees_group_id as $key => $fees_group_id) {
-                        $oldData = FeesMaster::where('session_id', Session::get('session_id'))->where('branch_id', Session::get('branch_id'))
-                        ->where('class_type_id', $request->class_type_id)
-                        ->where('fees_group_id',$fees_group_id)->first();
-                        if(empty($oldData)){
-                           
-                            $fees_master = new FeesMaster; //model name
-                            $fees_master->user_id = Session::get('id');
-                            $fees_master->session_id = Session::get('session_id');
-                            $fees_master->branch_id = Session::get('branch_id');
-                            $fees_master->fees_group_id = $fees_group_id;
-                            $fees_master->amount = $request->amount[$fees_group_id];
-                            $fees_master->installment_due_date = $request->installment_due_date[$fees_group_id];
-                            $fees_master->editable = $request->editable_value[$fees_group_id];
-                            $fees_master->class_type_id = $request->class_type_id;
-                            $fees_master->save();
-                        }
-                        else{
-                            //return redirect::to('feesMasterAdd')->with('error', 'Already Assigned !');
-                             continue;
+                    if (!empty($request->fees_group_id)) {
+                        foreach ($request->fees_group_id as $key => $fees_group_id) {
+                            $oldData = FeesMaster::where('session_id', Session::get('session_id'))
+                                ->where('branch_id', Session::get('branch_id'))
+                                ->where('class_type_id', $request->class_type_id)
+                                ->where('fees_group_id', $fees_group_id)
+                                ->first();
+                            if (empty($oldData)) {
+                                $fees_master = new FeesMaster;
+                                $fees_master->user_id = Session::get('id');
+                                $fees_master->session_id = Session::get('session_id');
+                                $fees_master->branch_id = Session::get('branch_id');
+                                $fees_master->fees_group_id = $fees_group_id;
+                                $fees_master->amount = $request->amount[$fees_group_id] ?? 0;
+                                $fees_master->installment_due_date = $request->installment_due_date[$fees_group_id] ?? null;
+                                $fees_master->editable = $request->editable_value[$fees_group_id] ?? 0;
+                                $fees_master->class_type_id = $request->class_type_id;
+                                $fees_master->save();
+                            } else {
+                                continue;
+                            }
                         }
                     }
                     return redirect::to('feesMasterAdd')->with('message', 'Fees Record Added Successfully !');
                 }
-                $fees_master_list = FeesMaster::with('feesGroup')->with('ClassTypes')->where('session_id', Session::get('session_id'))->where('branch_id', Session::get('branch_id'))->groupBy('class_type_id')->get();
-        $all_data = FeesMaster::with('feesGroup')->with('ClassTypes')->where('session_id', Session::get('session_id'));
-      
-     
-                        $feesGroupInstallmentsList = FeesGroup::where('fees_type','installment')->get();
 
-                return view('fees.fees_master.feesMaster', ['feesGroupInstallmentsList'=>$feesGroupInstallmentsList,'dataview' => $fees_master_list,'allData'=>$all_data]);
+                $sessionId = Session::get('session_id');
+                $branchId = Session::get('branch_id');
+
+                // 1. Single query eager-loading all FeesMaster records with feesGroup and ClassTypes
+                $allFeesMasters = FeesMaster::with(['feesGroup', 'ClassTypes'])
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->orderBy('class_type_id', 'ASC')
+                    ->get();
+
+                // Group records by class_type_id
+                $groupedByClass = $allFeesMasters->groupBy('class_type_id');
+
+                // 2. Pre-fetch in-use fees_group_ids from fees_detail for O(1) in-memory lookup
+                $usedDetailGroups = DB::table('fees_detail')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->pluck('fees_group_id')
+                    ->flip()
+                    ->toArray();
+
+                // 3. Pre-fetch in-use (class_type_id + fees_group_id) pairs from fees_assign_details for O(1) in-memory lookup
+                $usedAssignPairs = DB::table('fees_assign_details')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->select('class_type_id', 'fees_group_id')
+                    ->get()
+                    ->mapWithKeys(function($row) {
+                        return [$row->class_type_id . '_' . $row->fees_group_id => true];
+                    })
+                    ->toArray();
+
+                // 4. Calculate KPI statistics
+                $totalClassesConfigured = $groupedByClass->count();
+                $totalHeadsAssigned = $allFeesMasters->count();
+                $totalProjectedAmount = $allFeesMasters->sum('amount');
+                $inUseHeadsCount = 0;
+
+                foreach ($allFeesMasters as $fm) {
+                    $cId = $fm->class_type_id;
+                    $gId = $fm->fees_group_id;
+                    if (isset($usedDetailGroups[$gId]) || isset($usedAssignPairs[$cId . '_' . $gId])) {
+                        $inUseHeadsCount++;
+                    }
+                }
+
+                $stats = [
+                    'total_classes' => $totalClassesConfigured,
+                    'total_heads' => $totalHeadsAssigned,
+                    'total_amount' => $totalProjectedAmount,
+                    'in_use_heads' => $inUseHeadsCount,
+                ];
+
+                $masterFeesArray = [];
+                foreach ($groupedByClass as $cId => $fms) {
+                    $masterFeesArray[$cId] = $fms->map(function($fm) {
+                        return $fm->feesGroup->name ?? '';
+                    })->filter()->values()->toArray();
+                }
+
+                // For compatibility with existing modals and components
+                $fees_master_list = $allFeesMasters->unique('class_type_id')->values();
+                $feesGroupInstallmentsList = FeesGroup::where('fees_type', 'installment')->get();
+
+                return Helper::view('fees.fees_master.feesMaster', [
+                    'allFeesMasters' => $allFeesMasters,
+                    'groupedByClass' => $groupedByClass,
+                    'usedDetailGroups' => $usedDetailGroups,
+                    'usedAssignPairs' => $usedAssignPairs,
+                    'stats' => $stats,
+                    'masterFeesArray' => $masterFeesArray,
+                    'dataview' => $fees_master_list,
+                    'allData' => $allFeesMasters,
+                    'feesGroupInstallmentsList' => $feesGroupInstallmentsList,
+                ]);
             }
 
             public function feesMasterEdit(Request $request, $id){
