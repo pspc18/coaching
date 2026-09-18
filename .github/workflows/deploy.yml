@@ -23,7 +23,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             echo "🚀 Starting Deployment on VPS..."
-            cd /var/www/coaching.rusoft.online
+            cd /var/www/coaching.rusoft.online/public
 
             echo "📥 Pulling latest changes from master branch..."
             git pull origin master
