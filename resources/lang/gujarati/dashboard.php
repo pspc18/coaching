@@ -1,0 +1,48 @@
+<?php
+return [
+         'Hindi' => 'Hindi',
+         'Student Remark Notification' => 'વિદ્યાર્થી રીમાર્ક સૂચના',
+        'Admin Dashboard' => 'એડમિન ડેશબોર્ડ',
+        'Student Details' => 'વિદ્યાર્થી વિગતો',
+        'Studednt Details' => 'વિદ્યાર્થીઓની વિગતો',
+        'TOTAL STUDENTS' => 'કુલ વિદ્યાર્થીઓ',
+        'PRESENT STUDENTS' => 'હાજર વિદ્યાર્થીઓ',
+        'FEES COLLECTION' => 'ફીસ સંગ્રહણ',
+        'TODAY COLLECTION' => 'આજનું સંગ્રહણ',
+        'Hostel Details' => 'હોસ્ટલ વિગતો',
+        'Hostel Student' => 'હોસ્ટલ વિદ્યાર્થી',
+        'View Complaints' => 'શિકાયતો જુઓ',
+        'Add Complaint' => 'શિકાયત ઉમેરો',
+        'Description' => 'વર્ણન',
+        'Submit Review' => 'સમીક્ષા સબમિટ કરો',
+        'Admin Action' => 'એડમિન ક્રિયા',
+        'Edit Complaint' => 'શિકાયત સંપાદિત કરો',
+        'HOSTEL FEES COLLECTION' => 'હોસ્ટલ ફીસ સંગ્રહણ',
+        'HOSTEL FEES LEDGER' => 'હોસ્ટલ ફીસ લેજર',
+        'Library Details' => 'લાઇબ્રેરી વિગતો',
+        'LIBRARY STUDENTS' => 'લાઇબ્રેરી વિદ્યાર્થીઓ',
+        'LIBRARY FEES COLLECTION' => 'લાઇબ્રેરી ફીસ સંગ્રહણ',
+        'LIBRARY Assign Books' => 'લાઇબ્રેરી પુસ્તકો સોંપવી',
+        'User Details' => 'વપરાશકર્તા વિગતો',
+        'TOTAL USERS' => 'કુલ વપરાશકર્તાઓ',
+        'TOTAL TEACHERS' => 'કુલ શિક્ષકો',
+        'TOTAL COMPLAINTS' => 'કુલ શિકાયતો',
+        'TOTAL ACCOUNTS' => 'કુલ એકાઉન્ટ્સ',
+        'Teacher Attendance Chart' => 'શિક્ષક હાજરી ચાર્ટ',
+        'PRESENT TEACHERS' => 'હાજર શિક્ષકો',
+        'Hostel Fees Reminder' => 'હોસ્ટલ ફીસ રીમાઇન્ડર',
+        'MONTHLY EXPENSES' => 'માસિક ખર્ચો',
+        'INVENTORY' => 'સ્ટોરેજ મેનેજમેન્ટ',
+        'To Do List' => 'કરવાની યાદી',
+        'Notifications' => 'સૂચનાઓ',
+        'Area Chart' => 'એરિયા ચાર્ટ',
+        'Enter Task' => 'કામ દાખલ કરો',
+        'Student Attendance Chart' => 'વિદ્યાર્થી હાજરી ચાર્ટ',
+        'Stacked Bar Chart' => 'સ્ટેક્ડ બાર ચાર્ટ',
+        'Bar Chart' => 'બાર ચાર્ટ',
+	
+
+];
+
+
+?>

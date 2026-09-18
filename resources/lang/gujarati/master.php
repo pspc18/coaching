@@ -1,0 +1,328 @@
+<?php
+return [
+    'Hindi' => 'Hindi',
+    //Master Dashboard
+    'Master Management' => 'માસ્ટર વ્યવસ્થાપન',
+    'Branch' => 'શાખા',
+    'Subject Teachers' => 'વિષય શિક્ષકો',
+    'Complaints' => 'ફરિયાદો',
+    'Gallery' => 'ગૅલેરી',
+    'Leave' => 'રજા',
+    'Message Template' => 'સંદેશ ટેમ્પલેટ',
+    'Notice Bord' => 'નોટિસ બોર્ડ',
+    'Sessions' => 'સેશન્સ',
+    'Recycle Bin' => 'રીસાયકલ બિન',
+    'Prayer' => 'પ્રાર્થના',
+    'Uniform' => 'યૂનિફોર્મ',
+    'Rule' => 'નિયમ',
+    'Gate Pass' => 'ગેટ પાસ',
+    'School Desk' => 'સ્કૂલ ડેસ્ક',
+    'Books/Uniform' => 'પુસ્તકો/યૂનિફોર્મ',
+    'Time Periods' => 'સમય અવધિ',
+    'Staff Category' => 'કર્મચારી વર્ગ',
+    'Assign Section' => 'અનુમોદન વિભાગ',
+     
+    //Branch  
+    'Add Branch' => 'શાખા ઉમેરો',
+    'View Branch' => 'શાખા જોવો',
+    'Edit Branch' => 'શાખા સંપાદિત કરો',
+    'Branch Code' => 'શાખા કોડ',
+    'Branch Name' => 'શાખા નામ',
+    'Director/Administrator' => 'ડાયરેક્ટર/એડમિનિસ્ટ્રેટર',
+    'Contact Person' => 'સંપર્ક વ્યક્તિ',
+    'Mobile Number' => 'મોબાઇલ નંબર',
+    'Trial Period' => 'ટ્રાયલ અવધિ',
+    'Expert Name' => 'એક્સપર્ટ નું નામ',
+    'Login Background' => 'લોગિન બેકગ્રાઉંડ',
+     
+ //Staff Categories
+     'Edit Staff Categories' => 'સ્ટાફ શ્રેણીઓ સંપાદિત કરો',
+    'Staff Categories' =>'સ્ટાફ શ્રેણીઓ',
+    'Category' =>  'શ્રેણી',
+    'View Staff Categories' =>  'સ્ટાફ શ્રેણીઓ જુઓ',
+     
+    //Class
+    'Add Class' => 'વર્ગ ઉમેરો',
+    'View Class' => 'વર્ગ જુઓ',
+    'Edit Class' => 'વર્ગ સંપાદિત કરો',
+    'Class' => 'વર્ગ',
+    
+    //Section
+    'Add Section' => 'અનુભાગ ઉમેરો',
+    'View Section' => 'અનુભાગ જુઓ',
+    'Edit Section' => 'અનુભાગ સંપાદિત કરો',
+    'Section' => 'અનુભાગ',
+     
+    
+     //Assign Section
+    'Add Section-Class' => 'અનુભાગ-વર્ગ ઉમેરો',
+    'View Section-Class' => 'અનુભાગ-વર્ગ જોવો',
+    'Edit Section-class' => 'અનુભાગ-વર્ગ સંપાદિત કરો',
+    'Class Type' => 'વર્ગ પ્રકાર',
+    
+    //Subject
+    'Add Subject' => 'વિષય ઉમેરો',
+    'Edit Subject' => 'વિષય સંપાદિત કરો',
+    'View Subject' => 'વિષય જોવો',
+    'Edit/Delete' => 'સંપાદિત/ડિલિટ કરો',
+    
+    //Add Subject Streams
+    'Add Subject Streams' => 'વિષય સ્ટ્રીમ્સ ઉમેરો',
+    'View Subject Stream' => 'વિષય સ્ટ્રીમ જોવું',
+    'Edit Stream & Subject' => 'સ્ટ્રીમ અને વિષય સંપાદિત કરો',
+    
+    //Periods
+    'Add Class Periods Time' => 'વર્ગ પિરિયડ સમય ઉમેરો',
+    'Edit Time Period' => 'સમય અવધિ સંપાદિત કરો',
+    'From Time' => 'સમયમાંથી',
+    'To Time' => 'સમય સુધી',
+    'View Class Periods' => 'વર્ગ પિરિયડ્સ જોવું',
+    'Period.No.' => 'પિરિયડ નંબર',
+    
+    
+    //Subject Teacher
+    'Add Subject Teacher' => 'વિષય શિક્ષક ઉમેરો',
+    'Please fill out this field.' => 'આ ક્ષેત્ર ભરો આપશો.',
+    'Teacher' => 'શિક્ષક',
+    'Teacher Name' => 'શિક્ષક નું નામ',
+    'Time Periods' => 'સમય અવધિ',
+    'Time' => 'સમય',
+    'Edit Subject Teacher' => 'વિષય શિક્ષક સંપાદિત કરો',
+    'View Subject Teacher' => 'વિષય શિક્ષક જોવો',
+    
+    //Complaints
+    'View Complaints' => 'ફરિયાદો જોવો',
+    
+    
+    
+    //Gallery
+    'Add Gallery' => 'ગૅલેરી ઉમેરો',
+    'Edit Gallery' => 'ગૅલેરી સંપાદિત કરો',
+    'View Gallery' => 'ગૅલેરી જોવો',
+    'Image category' => 'ચિત્ર શ્રેણી',
+    
+    //Message Template
+    'Message Template Dashboard' => 'સંદેશ ટેમ્પલેટ ડેશબોર્ડ',
+    'Message Type' => 'સંદેશ પ્રકાર',
+    'Message Type Name' => 'સંદેશ પ્રકાર નું નામ',
+    'Message Template' => 'સંદેશ ટેમ્પલેટ',
+    'View Message Type' => 'સંદેશ પ્રકાર જોવો',
+    'Status' => 'સ્થિતિ',
+    'Edit Message Type' => 'સંદેશ પ્રકાર સંપાદિત કરો',
+    'Add Message Template' => 'સંદેશ ટેમ્પલેટ ઉમેરો',
+    'Subject/ Title Name' => 'વિષય / શ્રેણી નું નામ',
+    'Email Status' => 'ઇમેઇલ સ્થિતિ',
+    'Sms Status' => 'એસએમએસ સ્થિતિ',
+    'SMS Template Id' => 'એસએમએસ ટેમ્પલેટ આઈડી',
+    'Whatsapp Status' => 'વોટ્સએપ સ્થિતિ',
+    'View Message Template' => 'સંદેશ ટેમ્પલેટ જોવો',
+    'Edit Message Contant' => 'સંદેશ મુદ્દો સંપાદિત કરો',
+    'Title' => 'શ્રેણી',
+    'Content' => 'મુદ્દો',
+    
+    
+     //Add Notice
+    'Add Notice' => 'નોટિસ ઉમેરો',
+    'View Notices' => 'નોટિસ જોવો',
+    'Edit Notice' => 'નોટિસ સંપાદિત કરો',
+    'Message' => 'સંદેશ',
+    'From Date' => 'તારીખમાંથી',
+    'To Date' => 'તારીખ સુધી',
+    'Send To' => 'મોકલો',
+    
+    //Edit Recycle Bin
+    'Edit Recycle Bin' => 'રીસાયકલ બિન સંપાદિત કરો',
+    
+    //Sessions
+    'View Sessions' => 'સેશન્સ જોવો',
+    'Add Sessions' => 'સેશન્સ ઉમેરો',
+    'Edit Sessions' => 'સેશન્સ સંપાદિત કરો',
+    'From Year' => 'વર્ષમાંથી',
+    'To Year' => 'વર્ષ સુધી',
+    
+    
+   //Prayer
+    'Add Prayer' => 'પ્રાર્થના ઉમેરો',
+    'Prayer' => 'પ્રાર્થના',
+    'View Prayer' => 'પ્રાર્થના જોવો',
+    'Edit Prayer' => 'પ્રાર્થના સંપાદિત કરો',
+    
+    //Uniform
+    'Add Uniform' => 'યૂનિફોર્મ ઉમેરો',
+    'Uniform Image' => 'યૂનિફોર્મ ચિત્ર',
+    'View Uniform' => 'યૂનિફોર્મ જોવો',
+    'Edit Uniform' => 'યૂનિફોર્મ સંપાદિત કરો',
+    
+    //Rule
+    'Add Rule' => 'નિયમ ઉમેરો',
+    'Edit Rule' => 'નિયમ સંપાદિત કરો',
+    'Role Name' => 'ભૂમિકા નું નામ',
+    'View Rule' => 'નિયમ જોવો',
+    'Description' => 'વર્ણન',
+    
+    
+    //Gate Pass
+    'Gate Pass Add' => 'ગેટ પાસ ઉમેરો',
+    'View Gate Pass' => 'ગેટ પાસ જોવો',
+    'Student Name' => 'વિદ્યાર્થી નું નામ',
+    'OTP Send' => 'OTP મોકલો',
+    'OTP' => 'OTP',
+    'Reciver name field is required' => 'પ્રાપ્તકર્તાનું નામ આવશ્યક છે',
+    'Reciver Mobile' => 'પ્રાપ્તકર્તાનું મોબાઇલ',
+    'Reciver mobile field is required' => 'પ્રાપ્તકર્તાનું મોબાઇલ આવશ્યક છે',
+    'Relation' => 'સંબંધ',
+    'Relation field is required' => 'સંબંધ આવશ્યક છે',
+    'Admission No.' => 'પ્રવેશ નંબર',
+    'Reciver Detail' => 'પ્રાપ્તકર્તાની વિગત',
+    'Reciver Name' => 'પ્રાપ્તકર્તાનું નામ',
+    
+    //School Desk
+    'School Desk Description' => 'શાળા ડેસ્ક વર્ણન',
+    'School Desk' => 'શાળા ડેસ્ક',
+    
+    //Shop
+    'Add Shop Detail' => 'દુકાનની વિગતો ઉમેરો',
+    'Edit Shop Detail' => 'દુકાનની વિગતો સંપાદિત કરો',
+    'Books' => 'પુસ્તકો',
+    'Shop Name' => 'દુકાનનું નામ',
+    'Shopkeeper No' => 'દુકાનદાર નંબર',
+    'Live Location' => 'લાઇવ સ્થળ',
+    'View Shops' => 'દુકાનો જોવો',
+    'Assignment List' => 'અસાઇનમેન્ટ લિસ્ટ',
+    'View Email Records' => 'ઇમેઇલ રેકોર્ડ્સ જોવો',
+
+    'Edit Enquiry' => 'વચવણી સંપાદિત કરો',
+    'Edit Role' => 'ભૂમિકા સંપાદિત કરો',
+    'Email Records' => 'ઇમેઇલ રેકોર્ડ્સ',
+    'Role Add' => 'ભૂમિકા ઉમેરો',
+    'Sidebar Permission' => 'સાઇડબાર મંજૂરી',
+    'Development Class' => 'વિકાસ વર્ગ',
+    'Role' => 'ભૂમિકા',
+    'View Role' => 'ભૂમિકા જોવો',
+    'Add Role' => 'ભૂમિકા ઉમેરો',
+    'Sidebar Permission' => 'સાઇડબાર મંજૂરી',
+    'Dashboard' => 'ડેશબોર્ડ',
+    'Staff Panel' => 'સ્ટાફ પેનલ',
+    'Students Panel' => 'વિદ્યાર્થી પેનલ',
+    'Account Panel' => 'એકાઉન્ટ પેનલ',
+    'User panel' => 'વપરાશકર્તા પેનલ',
+    'Examination Panel' => 'પરીક્ષા પેનલ',
+    'Master' => 'માસ્ટર',
+    'Fees Management' => 'ફીસ વ્યવસ્થા',
+    'Homework' => 'હોમવર્ક',
+    'Download Center' => 'ડાઉનલોડ સેન્ટર',
+    'Send Message' => 'સંદેશ મોકલો',
+    'Chat Panel' => 'ચેટ પેનલ',
+    'Hostel Management' => 'હોસ્ટેલ વ્યવસ્થા',
+    'Expenses' => 'વ્યય',
+    'Library Management' => 'લાઇબ્રેરી વ્યવસ્થા',
+    'Settings' => 'સેટિંગ્સ',
+    'IP Setting' => 'IP સેટિંગ',
+    'Inventory' => 'માલવર્ગ',
+    'Transportation' => 'પરિવહન',
+    'Select All' => 'બધુ પસંદ કરો',
+    'Time Table Management' => 'સમય પટાવવાની વ્યવસ્થા',
+    'Time Table' => 'સમય પટાવો',
+    'Class Period' => 'વર્ગ કાળ',
+    'Period Name' => 'કાળનું નામ',
+    'Start Time' => 'સમય પ્રારંભ',
+    'End Time' => 'સમય સમાપ્ત',
+    'Class Period' => 'વર્ગ કાળ',
+    'Time Table List' => 'સમય પટાવો યાદી',
+    'Enter' => 'પ્રવેશ કરો',
+    'Time Table' => 'સમય પટાવો',
+    'Bus Service' => 'બસ સેવા',
+    'View Enquiry' => 'વચવણી જોવો',
+    'Type' => 'પ્રકાર',
+    'Enquiry' => 'વચવણી',
+    
+    'Complain' => 'શિકાયત',
+    'View Complaint' => 'શિકાયત જોવો',
+    'Admin Action' => 'એડમિન ક્રિયા',
+    'Subject' => 'વિષય',
+       
+        
+       'All' => 'બધુ',
+    'Tour 1' => 'પર્યટન 1',
+    'Tour 2' => 'પર્યટન 2',
+    'Annual Ceremony' => 'વાર્ષિક સમારંભ',
+    'Sports' => 'ખેલાડી',
+    'Other' => 'અન્ય',
+    'Leave Applications' => 'રજા અરજીઓ',
+    'Applied leave list' => 'અરજીઓની યાદી',
+    'Reason' => 'કારણ',
+    
+    'Status' => 'સ્થિતિ',
+    
+    'Message Template Setting' => 'સંદેશ ટેમ્પ્લેટ સેટિંગ',
+    'Add Content' => 'માટે કન્ટેન્ટ ઉમેરો',
+    'View Content' => 'કન્ટેન્ટ જોવો',
+    'Add Message Content' => 'સંદેશ કન્ટેન્ટ ઉમેરો',
+    'Title Name' => 'શીર્ષક નામ',
+    'E-mail Content' => 'ઇ-મેલ કન્ટેન્ટ',
+    'SMS Content' => 'SMS કન્ટેન્ટ',
+    'Whatsapp Content' => 'વોટ્સએપ કન્ટેન્ટ',
+    'Message Title' => 'સંદેશ શીર્ષક',
+        
+        'Resent' => 'મોકલ્યું છે',
+    'Add' => 'ઉમેરો',
+    'Back' => 'પાછળ',
+    'Sr. No.' => 'ક્રમાંક',
+    'Email ID' => 'ઇમેઇલ આઈડી',
+    'Country' => 'દેશ',
+    'State' => 'રાજ્ય',
+    'City' => 'શહેર',
+    'Pin Code' => 'પિન કોડ',
+    'Address' => 'સરનામું',
+    'Whatsapp Message' => 'વોટ્સએપ સંદેશ',
+    'Add Content' => 'કન્ટેન્ટ ઉમેરો',
+    'Content Title' => 'કન્ટેન્ટ શીર્ષક',
+    'Content Type' => 'કન્ટેન્ટ પ્રકાર',
+    'Upload Date' => 'અપલોડ તારીખ',
+    'Content File' => 'કન્ટેન્ટ ફાઇલ',
+    'Submit' => 'સબમિટ',
+    'Content List' => 'કન્ટેન્ટ યાદી',
+    'Back' => 'પાછળ',
+    'Sr.No.' => 'ક્રમાંક',
+    'Date' => 'તારીખ',
+    'Action' => 'ક્રિયા',
+    'Add Certificate Management' => 'પ્રમાણપત્ર વ્યવસ્થા ઉમેરો',
+    'Search' => 'શોધો',
+    'Fathers Name' => 'પિતાનું નામ',
+    'Student Roll No.' => 'વિદ્યાર્થી રોલ નંબર',
+    'School Name' => 'શાળા નું નામ',
+    'During Year' => 'વર્ષના દરમિયાન',
+    'To' => 'સુધી',
+    'Character Type' => 'ચરિત્ર પ્રકાર',
+    'View Certificate Management' => 'પ્રમાણપત્ર વ્યવસ્થા જોવી',
+    'Add Event Certificate Management' => 'ઈવેન્ટ પ્રમાણપત્ર વ્યવસ્થા ઉમેરો',
+    'Select' => 'પસંદ કરો',
+    'Event Type' => 'ઈવેન્ટ પ્રકાર',
+    'Organized Date' => 'આયોજિત તારીખ',
+    'Rank' => 'શ્રેણી',
+    'View Student Certificate' => 'વિદ્યાર્થી પ્રમાણપત્ર જોવો',
+    'Add Sport Management' => 'ખેલ વ્યવસ્થા ઉમેરો',
+    'Sports Type' => 'ખેલ પ્રકાર',
+    'View Sport List' => 'ખેલ યાદી જોવી',
+    'Add Tc Certificate Management' => 'ટીસી પ્રમાણપત્ર વ્યવસ્થા ઉમેરો',
+    'Student UID No.' => 'વિદ્યાર્થી UID નંબર',
+    'Student Class' => 'વિદ્યાર્થી વર્ગ',
+    'SSSM ID No.' => 'SSSM ID નંબર',
+    'Mothers Name' => 'માતાનું નામ',
+    'Date Of Birth' => 'જન્મ તારીખ',
+    "Student's Admission No." => "વિદ્યાર્થીનું પ્રવેશ નંબર",
+    'Admission Date' => 'પ્રવેશ તારીખ',
+    'Class In Which Admitted' => 'કેમ પ્રવેશ મળ્યો છે',
+    'Issue Date' => 'જાહેર તારીખ',
+    'Region For Leaving' => 'છોડવા માટેનો પ્રદેશ',
+    'Class In Which Leaving' => 'ક્યાંક છોડવું',
+    'Due If Any' => 'જો કોઇ છે તો',
+    'Conduct And Behaviour' => 'વર્તન અને વર્તન',
+    'Medium' => 'મધ્ય',
+    'View Tc Certificate Management' => 'ટીસી પ્રમાણપત્ર વ્યવસ્થા જોવી',
+    'Student Section' => 'વિદ્યાર્થી સેક્શન',
+    
+];
+
+
+?>

@@ -1,0 +1,42 @@
+<?php
+return [
+    'Hindi' => 'Hindi',
+    'Edit Setting' => 'Edit Setting',
+    'View Setting' =>  'View Setting',
+	'Logo' =>  'Logo',
+	'Mobile' =>  'Mobile',
+	'Pin Code' =>  'Pin Code',
+	'Seal & Sign.' =>  'Seal & Sign.',
+	'View IP Setting' =>  'View IP Setting',
+	'IP Address' =>  'IP Address',
+	'Address' => 'Address',
+	'Add Setting Management' => 'Add Setting Management',
+    'Add Setting' => 'Add Setting',
+    'Right Logo' => 'Right Logo',
+    'Left Logo' => 'Left Logo',
+    'Branch' => 'Branch',
+    'Remark' => 'Remark',
+    'IP Address' => 'IP Address',
+    'Add IP Setting' => 'Add IP Setting',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Branch' => 'Branch',
+    'Account Name' => 'Account Name',
+    'Tin No.' => 'Tin No.',
+    'G-mail' => 'G-mail',
+    'Name' => 'Name',
+    'Address' => 'Address',
+    'Mobile No.' => 'Mobile No.',
+    'Pin Code' => 'Pin Code',
+    'Submit' => 'Submit',
+    'Home' => 'Home',
+    'Back' => 'Back',
+    
+    ];
+
+
+?>

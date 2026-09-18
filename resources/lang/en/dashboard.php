@@ -1,0 +1,47 @@
+<?php
+return [
+    'Hindi' => 'Hindi',
+    'Admin Dashboard' =>  'Admin Dashboard',
+    'Studednt Details' =>  'Studednt Details',
+    'Student Remark Notification' =>  'Student Remark Notification',
+    'TOTAL STUDENTS' =>  'TOTAL STUDENTS',
+    'PRESENT STUDENTS' =>  'PRESENT STUDENTS',
+    'FEES COLLECTION' =>  'FEES COLLECTION',
+    'TODAY COLLECTION' =>  'TODAY COLLECTION',
+    'Hostel Details' =>  'Hostel Details',
+    'Hostel Student' =>  'Hostel Student',
+    'HOSTEL FEES COLLECTION' =>  'HOSTEL FEES COLLECTION',
+    'HOSTEL FEES LEDGER' =>  'HOSTEL FEES LEDGER',
+    'Library Details' =>  'Library Details',
+	'LIBRARY STUDENTS' =>  'LIBRARY STUDENTS',
+	'LIBRARY FEES COLLECTION' =>  'LIBRARY FEES COLLECTION',
+	'LIBRARY Assign Books' =>  'LIBRARY Assign Books',
+	'User Details' =>  'User Details',
+	'TOTAL USERS' =>  'TOTAL USERS',
+	'TOTAL TEACHERS' =>  'TOTAL TEACHERS',
+	'TOTAL COMPLAINTS' =>  'TOTAL COMPLAINTS',
+	'TOTAL ACCOUNTS' =>  'TOTAL ACCOUNTS',
+	'Teacher Attendance Chart' =>  'Teacher Attendance Chart',
+	'PRESENT TEACHERS' =>  'PRESENT TEACHERS',
+	'Hostel Fees Reminder' =>  'Hostel Fees Reminder',
+	'MONTHLY EXPENSES' =>  'MONTHLY EXPENSES',
+	'INVENTORY' =>  'INVENTORY',
+	'To Do List' =>  'To Do List',
+	'Notifications' =>  'Notifications',
+	'View Complaints' =>  'View Complaints',
+	'Add Complaint' =>  'Add Complaint',
+	'Description' =>  'Description',
+	'Submit Review' =>  'Submit Review',
+	'Admin Action' =>  'Admin Action',
+	'Edit Complaint' =>  'Edit Complaint',
+	'Area Chart' =>  'Area Chart',
+	'Enter Task' =>  'Enter Task',
+	'Student Attendance Chart' =>  'Student Attendance Chart',
+	'Stacked Bar Chart' =>  'Stacked Bar Chart',
+	'Bar Chart' =>  'Bar Chart',
+	
+
+];
+
+
+?>

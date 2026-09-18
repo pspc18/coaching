@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+table {
+    width: 100%;
+}
+
+.flex_Centered {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+p {
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
+.description {
+    font-size: 14px;
+    font-weight: 400;
+    text-align: end;
+}
+
+.sky_tr {
+    background-color: #e0ebff;
+}
+
+.padding_item th,
+.padding_item td {
+    padding: 8px;
+    border-bottom: 2px solid #00000082;
+}
+
+.title_page {
+    font-size: 24px;
+    font-weight: 600;
+    white-space:nowrap;
+}
+
+.table_view {
+    margin: 0px 40px;
+}
+
+table td {
+    text-align: center;
+}
+
+.table {
+    margin-top: 40px;
+}
+
+.table_border {
+    border: 2px solid #00000082;
+    border-collapse: collapse;
+}
+
+.table_border tbody {
+    padding-bottom: 40px;
+}
+
+.table_tr_border tr th {
+    border: 2px solid #00000082;
+}
+
+.table_tr_border tr td {
+    border: 2px solid #00000082;
+}
+
+.left_all {
+    text-align: left;
+}
+
+.right_items {
+    text-align: end;
+    padding-top: 15px;
+}
+
+.right_items p {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 32px;
+    padding-right: 10px;
+}
+
+.center_items {
+    text-align: center;
+    padding-top: 15px;
+}
+
+.text_right{
+    text-align:right;
+}
+
+.center_items p {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 32px;
+}
+
+.other_color {
+    background-color: #ffcaca;
+}
+
+.padding_none {
+    padding: 0px !important;
+}
+
+.top_space {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 20px;
+}
+
+@page {
+    margin-left: 1cm;
+    margin-right: 1cm;
+}
+
+.panel-options{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top:10px;
+}
+
+.panel-options button{
+    padding: 8px;
+    margin-left: 28px;
+    cursor: pointer;
+    background: skyblue;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+}
+
+.capital_letters{
+    text-transform : capitalize;
+    /*text-align:left;*/
+}
+
+.notes{
+    display:flex;
+    align-items:first baseline;
+}
+
+.margin_left{
+    margin-left:10px;
+}
+
+.payment_mode{
+    margin:10px 0px;
+}

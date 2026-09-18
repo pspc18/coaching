@@ -1,0 +1,424 @@
+/**
+ * ==============================================================================
+ * Arise ERP - Global Unified Modal Stylesheet (arise-modals.css)
+ * Standardizes all Bootstrap Modals (Add, Edit, View, Delete, Import, Confirm)
+ * across the entire application with the gold-standard ERP UI design.
+ * ==============================================================================
+ */
+
+/* 1. Backdrop Overlay (Must strictly stay behind .modal) */
+.modal-backdrop,
+div.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1040 !important;
+    background-color: #001428 !important;
+}
+
+.modal-backdrop.fade {
+    opacity: 0 !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.58 !important;
+    backdrop-filter: blur(2px) !important;
+}
+
+/* 2. Modal Wrapper & Stacking Context (Above Backdrop) */
+.modal,
+div.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    outline: 0 !important;
+    z-index: 1050 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.modal.show,
+div.modal.show {
+    z-index: 1055 !important;
+    display: block !important;
+}
+
+/* 3. Modal Dialog Container & Centering */
+.modal-dialog,
+div.modal-dialog {
+    position: relative !important;
+    z-index: 1060 !important;
+    width: auto !important;
+    margin: 1.75rem auto !important;
+    max-width: 500px;
+    pointer-events: none !important;
+    transition: transform 0.25s ease-out !important;
+}
+
+.modal-dialog.modal-sm {
+    max-width: 380px !important;
+}
+
+.modal-dialog.modal-md {
+    max-width: 560px !important;
+}
+
+.modal-dialog.modal-lg {
+    max-width: 800px !important;
+}
+
+.modal-dialog.modal-xl {
+    max-width: 1140px !important;
+}
+
+.modal-dialog-centered {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 3.5rem) !important;
+}
+
+/* 4. Modal Content (Clean white background, sharp border, elegant shadow) */
+.modal-content,
+div.modal-content,
+.modal .modal-content {
+    position: relative !important;
+    z-index: 1065 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    pointer-events: auto !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(0, 44, 84, 0.18) !important;
+    border-radius: 5px !important;
+    box-shadow: 0 20px 45px -8px rgba(0, 44, 84, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    overflow: hidden !important;
+    outline: none !important;
+}
+
+/* 5. Modal Header (Default / Primary Navy Theme) */
+.modal-header,
+div.modal-header,
+.modal .modal-header,
+.modal-header.bg-primary {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 10px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    min-height: 42px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Modal Header Color Variants */
+/* Danger / Delete Modals */
+.modal-header.bg-danger,
+.modal-danger .modal-header,
+#Modal_id .modal-header,
+[id*="delete"] .modal-header,
+[id*="Delete"] .modal-header,
+[id*="Modal_id"] .modal-header,
+.delete-modal .modal-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Warning Modals */
+.modal-header.bg-warning,
+.modal-warning .modal-header,
+[id*="warning"] .modal-header,
+[id*="Warning"] .modal-header {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Success Modals */
+.modal-header.bg-success,
+.modal-success .modal-header,
+[id*="success"] .modal-header,
+[id*="Success"] .modal-header {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Info Modals */
+.modal-header.bg-info,
+.modal-info .modal-header {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+}
+
+/* 6. Modal Titles */
+.modal-title,
+.modal-header .modal-title,
+.modal-header h1.modal-title,
+.modal-header h2.modal-title,
+.modal-header h3.modal-title,
+.modal-header h4.modal-title,
+.modal-header h5.modal-title,
+.modal-header h6.modal-title,
+.modal-header h1,
+.modal-header h2,
+.modal-header h3,
+.modal-header h4,
+.modal-header h5,
+.modal-header h6 {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    letter-spacing: 0.015em !important;
+    line-height: 1.3 !important;
+}
+
+.modal-header .modal-title i,
+.modal-header .modal-title svg {
+    font-size: 14px !important;
+    opacity: 0.92;
+}
+
+/* 7. Modal Close Buttons */
+.modal-header .close,
+.modal-header .btn-close,
+.modal-header button[data-dismiss="modal"],
+.modal-header button[data-bs-dismiss="modal"] {
+    color: #ffffff !important;
+    opacity: 0.85 !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 17px !important;
+    text-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 26px !important;
+    height: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+    line-height: 1 !important;
+}
+
+.modal-header .close:hover,
+.modal-header .btn-close:hover,
+.modal-header button[data-dismiss="modal"]:hover,
+.modal-header button[data-bs-dismiss="modal"]:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+}
+
+/* 8. Modal Body */
+.modal-body,
+div.modal-body,
+.modal .modal-body {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    padding: 16px 18px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+}
+
+/* Fix legacy text-white inside modal body on delete prompts */
+.modal-body .text-white,
+#Modal_id .modal-body h5,
+#Modal_id .modal-body p,
+[id*="delete"] .modal-body h5,
+[id*="delete"] .modal-body p,
+[id*="Delete"] .modal-body h5,
+[id*="Delete"] .modal-body p {
+    color: #1e293b !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+.modal-body p {
+    margin-bottom: 0.5rem;
+    color: #334155;
+}
+
+/* Form groups and labels inside Modal */
+.modal-body .form-group {
+    margin-bottom: 12px;
+}
+
+.modal-body label {
+    font-weight: 600 !important;
+    font-size: 11.5px !important;
+    color: #334155 !important;
+    margin-bottom: 4px !important;
+    display: inline-block;
+}
+
+.modal-body label span.text-danger,
+.modal-body label[style*="red"] {
+    color: #dc2626 !important;
+    font-weight: 700;
+}
+
+.modal-body .form-control,
+.modal-body select.form-control,
+.modal-body textarea.form-control {
+    font-size: 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 3px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 5px 8px !important;
+    min-height: 31px;
+    height: auto;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.modal-body .form-control:focus,
+.modal-body select.form-control:focus,
+.modal-body textarea.form-control:focus {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.15) !important;
+    outline: none !important;
+}
+
+.modal-body select.form-control {
+    cursor: pointer;
+}
+
+/* 9. Modal Footer */
+.modal-footer,
+div.modal-footer,
+.modal .modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 8px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+}
+
+/* 10. Buttons in Modal Footer */
+/* Cancel / Dismiss Buttons */
+.modal-footer .btn-secondary,
+.modal-footer .btn-default,
+.modal-footer button[data-dismiss="modal"],
+.modal-footer button[data-bs-dismiss="modal"],
+.modal-footer .remove-data-from-delete-form {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 12px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    line-height: 1.4 !important;
+}
+
+.modal-footer .btn-secondary:hover,
+.modal-footer .btn-default:hover,
+.modal-footer button[data-dismiss="modal"]:hover,
+.modal-footer button[data-bs-dismiss="modal"]:hover,
+.modal-footer .remove-data-from-delete-form:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+/* Primary / Submit Buttons */
+.modal-footer .btn-primary,
+.modal-footer .btn-submit,
+.modal-footer button[type="submit"]:not(.btn-danger):not(.btn-success) {
+    background: #002C54 !important;
+    border: 1px solid #002C54 !important;
+    color: #ffffff !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 14px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    line-height: 1.4 !important;
+}
+
+.modal-footer .btn-primary:hover,
+.modal-footer .btn-submit:hover,
+.modal-footer button[type="submit"]:not(.btn-danger):not(.btn-success):hover {
+    background: #001f3d !important;
+    border-color: #001f3d !important;
+    color: #ffffff !important;
+}
+
+/* Danger / Delete Buttons */
+.modal-footer .btn-danger,
+.modal-danger .modal-footer button[type="submit"] {
+    background: #dc2626 !important;
+    border: 1px solid #dc2626 !important;
+    color: #ffffff !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 14px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    line-height: 1.4 !important;
+}
+
+.modal-footer .btn-danger:hover,
+.modal-danger .modal-footer button[type="submit"]:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    color: #ffffff !important;
+}
+
+/* Success Buttons */
+.modal-footer .btn-success {
+    background: #059669 !important;
+    border: 1px solid #059669 !important;
+    color: #ffffff !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 4px 14px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.modal-footer .btn-success:hover {
+    background: #047857 !important;
+    border-color: #047857 !important;
+    color: #ffffff !important;
+}
+
+/* 11. Mobile Screen Tweaks */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem auto !important;
+        width: calc(100% - 1rem) !important;
+        max-width: 100% !important;
+    }
+    
+    .modal-body {
+        padding: 12px 14px !important;
+    }
+}
