@@ -282,7 +282,6 @@ class FeesController extends Controller
             }
 
             public function feesGroup(Request $request){
-           
                 if ($request->isMethod('post')) {
                     $request->validate([
                         'name' => 'required',
@@ -292,21 +291,60 @@ class FeesController extends Controller
                     $fees_group->session_id = Session::get('session_id');
                     $fees_group->branch_id = Session::get('branch_id');
                     $fees_group->name = $request->name;
-                    $fees_group->fees_refund = $request->fees_refund;
+                    $fees_group->fees_refund = $request->fees_refund ?? 'no';
+                    $fees_group->fees_type = 'full';
                     $fees_group->save();
                     return redirect::to('feesGroup')->with('message', 'Fees Group Added Successfully !');
                 }
-                $fees_group_list = FeesGroup::where('session_id', Session::get('session_id'));
-               
-                    $fees_group_list = $fees_group_list->where('branch_id', Session::get('branch_id'));
-                
-                
-                $fees_group_list = $fees_group_list->orderBy('id', 'ASC')->get();
-                return view('fees.fees.feesGroup', ['dataview' => $fees_group_list]);
+
+                $sessionId = Session::get('session_id');
+                $branchId = Session::get('branch_id');
+
+                $fees_group_list = FeesGroup::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->orderBy('id', 'ASC')
+                    ->get();
+
+                $usedGroupIdsMaster = FeesMaster::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $usedGroupIdsAssign = DB::table('fees_assign_details')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $usedGroupIdsDetail = DB::table('fees_detail')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $inUseGroupIds = array_values(array_unique(array_filter(array_merge($usedGroupIdsMaster, $usedGroupIdsAssign, $usedGroupIdsDetail))));
+
+                $stats = [
+                    'total' => $fees_group_list->count(),
+                    'refundable' => $fees_group_list->where('fees_refund', 'yes')->count(),
+                    'non_refundable' => $fees_group_list->where('fees_refund', '!=', 'yes')->count(),
+                    'in_use' => $fees_group_list->whereIn('id', $inUseGroupIds)->count(),
+                ];
+
+                return Helper::view('fees.fees.feesGroup', [
+                    'dataview' => $fees_group_list,
+                    'stats' => $stats,
+                    'inUseGroupIds' => $inUseGroupIds
+                ]);
             }
 
             public function feesGroupEdit(Request $request, $id){
                 $data = FeesGroup::find($id);
+                if (!$data) {
+                    return redirect::to('feesGroup')->with('error', 'Fees Group not found!');
+                }
                 if ($request->isMethod('post')) {
                     $request->validate([
                         'name' => 'required',
@@ -315,26 +353,71 @@ class FeesController extends Controller
                     $data->session_id = Session::get('session_id');
                     $data->branch_id = Session::get('branch_id');
                     $data->name = $request->name;
-                    $data->fees_refund = $request->fees_refund;
+                    $data->fees_refund = $request->fees_refund ?? 'no';
                     $data->save();
                     return redirect::to('feesGroup')->with('message', 'Fees Group Updated Successfully !');
                 }
-                $fees_group_list = FeesGroup::where('session_id', Session::get('session_id'))->where('branch_id', Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-                return view('fees.fees.feesGroupEdit', ['data' => $data, 'dataview' => $fees_group_list]);
+
+                $sessionId = Session::get('session_id');
+                $branchId = Session::get('branch_id');
+
+                $fees_group_list = FeesGroup::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->orderBy('id', 'ASC')
+                    ->get();
+
+                $usedGroupIdsMaster = FeesMaster::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $usedGroupIdsAssign = DB::table('fees_assign_details')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $usedGroupIdsDetail = DB::table('fees_detail')
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->pluck('fees_group_id')
+                    ->toArray();
+
+                $inUseGroupIds = array_values(array_unique(array_filter(array_merge($usedGroupIdsMaster, $usedGroupIdsAssign, $usedGroupIdsDetail))));
+
+                $stats = [
+                    'total' => $fees_group_list->count(),
+                    'refundable' => $fees_group_list->where('fees_refund', 'yes')->count(),
+                    'non_refundable' => $fees_group_list->where('fees_refund', '!=', 'yes')->count(),
+                    'in_use' => $fees_group_list->whereIn('id', $inUseGroupIds)->count(),
+                ];
+
+                return Helper::view('fees.fees.feesGroupEdit', [
+                    'data' => $data,
+                    'dataview' => $fees_group_list,
+                    'stats' => $stats,
+                    'inUseGroupIds' => $inUseGroupIds
+                ]);
             }
             
-         
-                 public function feesGroupDelete(Request $request)
-               {
-                    $id = $request->input('delete_id');
-                    $feesGroup = FeesGroup::find($id);
-                    if (!$feesGroup) {
-                        return Redirect::to('feesGroup')->with('error', 'Fees Group not found!');
-                    }
-                    $feesGroup->delete();
-                
-                    return Redirect::to('feesGroup')->with('message', 'Fees Group Deleted Successfully!');
+            public function feesGroupDelete(Request $request)
+            {
+                $id = $request->input('delete_id');
+                $feesGroup = FeesGroup::find($id);
+                if (!$feesGroup) {
+                    return Redirect::to('feesGroup')->with('error', 'Fees Group not found!');
                 }
+                $isUsedInDetail = DB::table('fees_detail')->where('fees_group_id', $id)->whereNull('deleted_at')->count();
+                $isUsedInAssign = DB::table('fees_assign_details')->where('fees_group_id', $id)->whereNull('deleted_at')->count();
+                if (($isUsedInDetail + $isUsedInAssign) > 0) {
+                    return Redirect::to('feesGroup')->with('error', 'Cannot delete this Fees Group because it is currently assigned or has transaction records!');
+                }
+                $feesGroup->delete();
+            
+                return Redirect::to('feesGroup')->with('message', 'Fees Group Deleted Successfully!');
+            }
                 
                 
             public function studentFeesOnclick(Request $request)
