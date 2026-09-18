@@ -21,7 +21,7 @@
             <div class="dash-hero mb-2">
                 <div class="dash-hero-text">
                     <span class="dash-kicker"><i class="fa fa-calendar-o mr-1"></i>{{ now()->format('l, d M Y') }}</span>
-                    <h1 class="dash-title">Test Dashboard</h1>
+                    <h1 class="dash-title">{{ $roleName->name ?? 'Admin' }} Dashboard</h1>
                     <p class="dash-subtitle">School performance, attendance & finances overview</p>
                 </div>
                 <div class="dash-hero-actions">
