@@ -16,17 +16,25 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - MOBILE FEES GROUP STYLES (MATCHING CORE MOBILE STANDARDS)
+   ARISE ERP - MOBILE FEES GROUP VIEW
+   100% matched with students/admission/mobile/view.blade.php design standards:
+   - Font-family: Plus Jakarta Sans / system fonts
+   - Card title: 12.5px font-weight:800 color:#002C54 (Natural title case, NO uppercase)
+   - Status badges: 8.5px uppercase font-weight:800
+   - ID & sub-pills: 9px font-weight:800 padding:1px 5px
+   - Meta grid: 10.5px color:#334155
+   - Action buttons: height:29px font-size:11px font-weight:700
+   - Native Bottom Sheets (.mob-filter-sheet) with smooth slide-up animation
    ========================================================================== */
 
-.mob-fg-wrapper {
-    padding: 6px 8px 70px 8px;
+.fg-mob-container {
+    padding: 0 0 60px 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
     font-size: 12px;
 }
 
-/* 1. Hero Card */
+/* 1. Glassmorphic Hero Card (Exact match with admissionView) */
 .mob-hero-card {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
@@ -36,7 +44,7 @@
     box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.mob-hero-header {
+.mob-hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -45,12 +53,12 @@
 .mob-hero-title {
     font-size: 13.5px;
     font-weight: 800;
+    line-height: 1.2;
     color: #ffffff;
     display: flex;
     align-items: center;
     gap: 6px;
     margin: 0;
-    line-height: 1.2;
 }
 .mob-session-pill {
     font-size: 9.5px;
@@ -62,52 +70,52 @@
     font-weight: 700;
 }
 
-/* Hero KPI Grid */
-.mob-kpi-grid {
+/* Dual / Quad Metrics Glance Grid */
+.mob-dual-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
     margin-bottom: 8px;
 }
-.mob-kpi-col {
+.mob-radar-col {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 3px;
-    padding: 5px 4px;
-    text-align: center;
+    border-radius: 4px;
+    padding: 6px 8px;
 }
-.mob-kpi-tag {
-    font-size: 8.5px;
+.mob-radar-tag {
+    font-size: 9px;
     font-weight: 700;
-    text-transform: uppercase;
     color: #94a3b8;
-    line-height: 1.1;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
-.mob-kpi-val {
-    font-size: 13.5px;
-    font-weight: 900;
+.mob-radar-val {
+    font-size: 16px;
+    font-weight: 800;
     color: #ffffff;
-    line-height: 1;
+    line-height: 1.2;
+    margin: 1px 0;
 }
-.val-green { color: #4ade80 !important; }
-.val-cyan { color: #38bdf8 !important; }
-.val-amber { color: #fbbf24 !important; }
+.mob-radar-meta {
+    font-size: 9px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
 
-/* Hero Action Buttons */
-.mob-hero-actions {
+/* Fast Action Bar in Hero */
+.mob-actions-bar {
     display: flex;
     gap: 6px;
 }
-.mob-hero-btn {
+.mob-act-btn {
     flex: 1;
-    height: 30px;
-    border-radius: 3px;
-    font-size: 11px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -118,42 +126,48 @@
     cursor: pointer;
     transition: all .12s ease;
 }
-.btn-hero-add {
+.mob-act-btn-add {
     background: #0284c7;
     color: #ffffff !important;
     flex: 1.5;
 }
-.btn-hero-outline {
-    background: rgba(255, 255, 255, 0.16);
+.mob-act-btn-filter {
+    background: rgba(255, 255, 255, 0.15);
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.mob-act-btn:active {
+    transform: scale(0.96);
 }
 
-/* 2. Search Toolbar & Horizontal Filter Chips */
-.mob-search-card {
+/* 2. Compact Search Toolbar (Exact match with admissionView) */
+.mob-search-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 6px 8px;
+    padding: 5px 6px;
     margin-bottom: 8px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
-.mob-search-wrap {
+.mob-search-input-wrap {
+    flex: 1;
     position: relative;
     display: flex;
     align-items: center;
-    margin-bottom: 6px;
 }
-.mob-search-wrap i.search-icon {
+.mob-search-input-wrap i {
     position: absolute;
-    left: 9px;
+    left: 8px;
     color: #94a3b8;
-    font-size: 12px;
+    font-size: 11px;
 }
 .mob-search-input {
     width: 100%;
-    height: 32px;
-    padding: 0 28px 0 28px;
+    height: 30px;
+    padding: 0 8px 0 26px;
     font-size: 11.5px;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
@@ -162,394 +176,559 @@
     outline: none;
 }
 .mob-search-input:focus {
-    border-color: #002C54;
+    border-color: #0284c7;
     background: #ffffff;
 }
-.mob-search-clear {
-    position: absolute;
-    right: 8px;
-    color: #94a3b8;
-    font-size: 13px;
+.mob-filter-btn {
+    height: 30px;
+    padding: 0 10px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
     cursor: pointer;
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.mob-filter-btn.active-filter {
+    background: #e0f2fe;
+    border-color: #0284c7;
+    color: #0284c7;
 }
 
-/* Horizontal Filter Chips */
-.mob-chips-strip {
+/* Horizontal Chip Filter Strip */
+.mob-chips-scroll {
     display: flex;
     gap: 5px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    padding: 2px 0 6px 0;
+    margin-bottom: 6px;
     -webkit-overflow-scrolling: touch;
 }
-.mob-chips-strip::-webkit-scrollbar {
+.mob-chips-scroll::-webkit-scrollbar {
     display: none;
 }
-.mob-chip-item {
+.mob-chip-pill {
     flex-shrink: 0;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
-    padding: 3px 8px;
+    padding: 3px 9px;
     border-radius: 12px;
-    background: #f1f5f9;
+    background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #475569;
     cursor: pointer;
     transition: all .12s ease;
 }
-.mob-chip-item.active {
+.mob-chip-pill.active {
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
 }
 
-/* 3. Cards Feed List */
-.mob-cards-feed {
+/* 3. Feed Cards List (Exact match with student-mob-card in admissionView) */
+.fg-feed-list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
     margin-bottom: 12px;
 }
-.mob-group-card {
+.fg-mob-card {
     background: #ffffff;
-    border-radius: 4px;
     border: 1px solid #cbd5e1;
-    padding: 9px 11px;
+    border-radius: 4px;
+    padding: 9px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
+    transition: transform .1s ease, border-color .1s ease;
 }
-.mob-group-card-top {
+.fg-mob-card:active {
+    border-color: #94a3b8;
+}
+
+.fg-card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.fg-avatar-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1.5px solid #cbd5e1;
+}
+.fg-header-info {
+    flex: 1;
+    overflow: hidden;
+}
+.fg-name-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 6px;
+    gap: 4px;
 }
-.mob-group-name {
-    font-size: 13px;
+.fg-mob-name {
+    font-size: 12.5px;
     font-weight: 800;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    color: #002C54;
+    text-decoration: none !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none; /* Exact match with admissionView: No uppercase! */
 }
-.mob-status-tag {
-    font-size: 9.5px;
-    font-weight: 700;
-    padding: 2px 6px;
+.fg-status-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 1px 5px;
     border-radius: 2px;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
     text-transform: uppercase;
 }
-.status-tag-refund { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-.status-tag-std { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-.status-tag-inuse { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.status-badge-refundable {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.status-badge-standard {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
 
-.mob-group-card-mid {
+/* Sub-pills row */
+.fg-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+.fg-adm-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+}
+.fg-class-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #e0f2fe;
+    color: #0284c7;
+    padding: 1px 5px;
+    border-radius: 2px;
+}
+.fg-usage-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+.usage-badge-inuse {
+    background: #fef3c7;
+    color: #b45309;
+}
+.usage-badge-unlinked {
+    background: #f8fafc;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+}
+
+/* 2-Column Meta Grid (Exact match with student-meta-grid in admissionView) */
+.fg-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    font-size: 10.5px;
+    color: #334155;
+    margin-bottom: 8px;
+}
+.fg-meta-item {
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.mob-group-card-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.mob-group-id-info {
-    font-size: 10px;
+.fg-meta-item > i {
+    width: 13px;
+    font-size: 10.5px;
     color: #64748b;
-    font-weight: 600;
+    flex-shrink: 0;
+    text-align: center;
 }
-.mob-group-actions {
+
+/* Card Actions Row (Exact match with student-card-actions in admissionView) */
+.fg-card-actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    gap: 5px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
 }
-.mob-btn-edit {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 10.5px;
+.mob-btn-action {
+    flex: 1;
+    height: 29px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 11px;
     font-weight: 700;
-    background: #0284c7;
-    color: #ffffff !important;
+    text-align: center;
     text-decoration: none !important;
-}
-.mob-btn-delete {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 10.5px;
-    font-weight: 700;
-    background: #dc2626;
-    color: #ffffff !important;
-    border: none;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid transparent;
     cursor: pointer;
-    text-decoration: none !important;
 }
-.mob-btn-locked {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-size: 10.5px;
-    font-weight: 700;
+.btn-act-edit {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #334155 !important;
+}
+.btn-act-edit:active {
+    background: #e2e8f0;
+}
+.btn-act-delete {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626 !important;
+}
+.btn-act-delete:active {
+    background: #fca5a5;
+}
+.btn-act-locked {
     background: #f1f5f9;
-    color: #94a3b8;
-    border: 1px solid #cbd5e1;
+    border-color: #e2e8f0;
+    color: #94a3b8 !important;
     cursor: not-allowed;
 }
 
-/* 4. Strict Modal Rules (Prevent inline rendering at all costs) */
-.modal {
-    display: none !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 2050 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    background: rgba(0, 15, 30, 0.65) !important;
-    backdrop-filter: blur(3px) !important;
+/* 4. Native Slide-Up Bottom Sheet (Exact match with mob-filter-sheet in admissionView) */
+.mob-filter-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
+    z-index: 2050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
-.modal.show {
-    display: block !important;
+.mob-filter-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
 }
-.modal-dialog {
-    position: relative !important;
-    width: auto !important;
-    margin: 1.75rem auto !important;
-    max-width: 460px !important;
-    padding: 0 10px !important;
-    z-index: 2060 !important;
+.mob-filter-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-radius: 4px 4px 0 0;
+    border-top: 1px solid #002C54;
+    z-index: 2051;
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
 }
-.modal-content {
-    background: #ffffff !important;
-    border-radius: 4px !important;
-    overflow: hidden !important;
-    border: none !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+.mob-filter-sheet.show {
+    bottom: 0;
 }
-.modal-header {
-    padding: 9px 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+.mob-sheet-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    padding: 10px 12px;
+    border-radius: 4px 4px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.modal-header.bg-primary {
-    background: #002C54 !important;
-    color: #ffffff !important;
+.mob-sheet-header.bg-danger-header {
+    background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
 }
-.modal-header.bg-danger {
-    background: #dc2626 !important;
-    color: #ffffff !important;
+.mob-sheet-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: #ffffff;
 }
-.modal-title {
-    font-size: 13.5px !important;
-    font-weight: 700 !important;
-    margin: 0 !important;
-    color: #ffffff !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
+.mob-sheet-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
 }
-.modal-close-btn {
-    background: transparent !important;
-    border: none !important;
-    color: #ffffff !important;
-    font-size: 22px !important;
-    line-height: 1 !important;
-    font-weight: 700 !important;
-    opacity: 0.85 !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    margin: 0 !important;
+.mob-sheet-body {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
 }
-.modal-close-btn:hover {
-    opacity: 1 !important;
+.mob-form-group {
+    margin-bottom: 9px;
 }
-.modal-body {
-    padding: 14px !important;
-    background: #ffffff !important;
+.mob-form-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 3px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: .03em;
 }
-.modal-footer {
-    padding: 8px 12px !important;
-    background: #f8fafc !important;
-    border-top: 1px solid #e2e8f0 !important;
-    display: flex !important;
-    align-items: center !important;
+.mob-form-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+}
+.mob-form-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+.mob-sheet-footer {
+    padding: 9px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+}
+.btn-sheet-reset {
+    flex: 1;
+    height: 33px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    cursor: pointer;
+}
+.btn-sheet-apply {
+    flex: 2;
+    height: 33px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.btn-sheet-delete {
+    flex: 2;
+    height: 33px;
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 </style>
 @endsection
 
 @section('content')
-<div class="mob-fg-wrapper">
+<div class="fg-mob-container">
 
-    {{-- 1. Dark Navy Hero Banner --}}
+    {{-- 1. Hero Card (Exact match with admissionView) --}}
     <div class="mob-hero-card">
-        <div class="mob-hero-header">
-            <h1 class="mob-hero-title">
-                <i class="fa fa-folder-open text-info"></i> {{ __('fees.Fees Group') }}
-            </h1>
-            <span class="mob-session-pill">Session: {{ $currentSessionName }}</span>
-        </div>
-
-        {{-- 4 Metric Grid --}}
-        <div class="mob-kpi-grid">
-            <div class="mob-kpi-col">
-                <span class="mob-kpi-tag">Total</span>
-                <span class="mob-kpi-val">{{ $stats['total'] ?? 0 }}</span>
+        <div class="mob-hero-top">
+            <div class="mob-hero-title">
+                <i class="fa fa-folder-open text-primary"></i> {{ __('fees.Fees Group') }}
             </div>
-            <div class="mob-kpi-col">
-                <span class="mob-kpi-tag">Refund</span>
-                <span class="mob-kpi-val val-green">{{ $stats['refundable'] ?? 0 }}</span>
-            </div>
-            <div class="mob-kpi-col">
-                <span class="mob-kpi-tag">Standard</span>
-                <span class="mob-kpi-val val-cyan">{{ $stats['non_refundable'] ?? 0 }}</span>
-            </div>
-            <div class="mob-kpi-col">
-                <span class="mob-kpi-tag">In-Use</span>
-                <span class="mob-kpi-val val-amber">{{ $stats['in_use'] ?? 0 }}</span>
+            <div class="mob-session-pill">
+                Session {{ $currentSessionName }}
             </div>
         </div>
 
-        {{-- Action Buttons in Hero --}}
-        <div class="mob-hero-actions">
-            <button type="button" class="mob-hero-btn btn-hero-add" id="btnOpenAddModal">
-                <i class="fa fa-plus-circle"></i> {{ __('fees.Add Fees Group') }}
-            </button>
-            <a href="{{ url('feesMaster') }}" class="mob-hero-btn btn-hero-outline">
-                <i class="fa fa-sliders"></i> Fees Master
-            </a>
-            <a href="{{ url('fee_dashboard') }}" class="mob-hero-btn btn-hero-outline" style="max-width: 42px;" title="Back">
-                <i class="fa fa-arrow-left"></i>
-            </a>
-        </div>
-    </div>
-
-    {{-- 2. Compact Search & Horizontal Filter Chips --}}
-    <div class="mob-search-card">
-        <div class="mob-search-wrap">
-            <i class="fa fa-search search-icon"></i>
-            <input type="text" id="mobSearchInput" class="mob-search-input" placeholder="Search fee groups...">
-            <i class="fa fa-times-circle mob-search-clear" id="mobSearchClear"></i>
-        </div>
-
-        <div class="mob-chips-strip">
-            <div class="mob-chip-item active" data-filter="all">All ({{ $stats['total'] ?? 0 }})</div>
-            <div class="mob-chip-item" data-filter="refundable"><i class="fa fa-check-circle text-success mr-1"></i>Refundable ({{ $stats['refundable'] ?? 0 }})</div>
-            <div class="mob-chip-item" data-filter="non-refundable"><i class="fa fa-minus-circle text-info mr-1"></i>Standard ({{ $stats['non_refundable'] ?? 0 }})</div>
-            <div class="mob-chip-item" data-filter="in-use"><i class="fa fa-link text-warning mr-1"></i>In-Use ({{ $stats['in_use'] ?? 0 }})</div>
-        </div>
-    </div>
-
-    {{-- 3. Cards Feed List --}}
-    <div class="mob-cards-feed" id="mobCardsFeed">
-        @if(!empty($dataview) && count($dataview) > 0)
-            @php $srNo = 1; @endphp
-            @foreach ($dataview as $item)
-                @php
-                    $isRefundable = strtolower($item->fees_refund ?? '') === 'yes';
-                    $isInUse = in_array($item->id, $inUseGroupIds);
-                    $nameLower = strtolower($item->name ?? '');
-                    $filterType = $isRefundable ? 'refundable' : 'non-refundable';
-                @endphp
-                <div class="mob-group-card" 
-                     data-name="{{ $nameLower }}" 
-                     data-type="{{ $filterType }}"
-                     data-inuse="{{ $isInUse ? 'yes' : 'no' }}">
-                    
-                    {{-- Top Row: Name & Refundable Tag --}}
-                    <div class="mob-group-card-top">
-                        <div class="mob-group-name">
-                            <i class="fa fa-money text-primary"></i>
-                            <span>{{ $item->name ?? '' }}</span>
-                        </div>
-                        <div>
-                            @if($isRefundable)
-                                <span class="mob-status-tag status-tag-refund">
-                                    <i class="fa fa-check-circle"></i> Refundable
-                                </span>
-                            @else
-                                <span class="mob-status-tag status-tag-std">
-                                    <i class="fa fa-minus-circle"></i> Standard
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Middle Row: In-Use & Payment Tag --}}
-                    <div class="mob-group-card-mid">
-                        @if($isInUse)
-                            <span class="mob-status-tag status-tag-inuse" title="Assigned in Fees Master / Receipts">
-                                <i class="fa fa-link"></i> In-Use
-                            </span>
-                        @else
-                            <span class="mob-status-tag status-tag-std" title="Unassigned">
-                                <i class="fa fa-circle-o"></i> Unlinked
-                            </span>
-                        @endif
-
-                        @if($item->fees_type === 'installment')
-                            <span class="badge bg-light text-dark border" style="font-size:9.5px;">Installment</span>
-                        @else
-                            <span class="badge bg-light text-dark border" style="font-size:9.5px;">Full Payment</span>
-                        @endif
-                    </div>
-
-                    {{-- Bottom Row: ID & Styled Actions --}}
-                    <div class="mob-group-card-bottom">
-                        <span class="mob-group-id-info">#{{ $srNo++ }} (ID: {{ $item->id }})</span>
-
-                        <div class="mob-group-actions">
-                            {{-- Edit Action --}}
-                            <a href="{{ url('feesGroupEdit') }}/{{ $item->id }}" 
-                               class="mob-btn-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
-                               title="Edit">
-                                <i class="fa fa-edit"></i> Edit
-                            </a>
-
-                            {{-- Delete Action --}}
-                            @if(!$isInUse)
-                                <button type="button" 
-                                        class="mob-btn-delete btn-open-delete-modal {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}" 
-                                        data-id="{{ $item->id }}" 
-                                        data-name="{{ $item->name }}" 
-                                        title="Delete">
-                                    <i class="fa fa-trash-o"></i> Delete
-                                </button>
-                            @else
-                                <span class="mob-btn-locked" title="In Use">
-                                    <i class="fa fa-lock"></i> Locked
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-
+        {{-- Symmetrical Metrics Grid --}}
+        <div class="mob-dual-grid">
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-folder text-primary"></i> Total Groups
+                </span>
+                <div class="mob-radar-val">{{ $stats['total'] ?? 0 }}</div>
+                <span class="mob-radar-meta">{{ $stats['refundable'] ?? 0 }} Refundable &bull; {{ $stats['non_refundable'] ?? 0 }} Standard</span>
+            </div>
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-link text-warning"></i> Active In-Use
+                </span>
+                <div class="mob-radar-val" style="color: #38bdf8;">
+                    {{ $stats['in_use'] ?? 0 }} <span style="font-size: 11px; color: #94a3b8;">Linked</span>
                 </div>
-            @endforeach
-        @else
-            <div class="text-center py-4 text-muted bg-white rounded border" style="font-size:12px;">
-                <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
-                No fee groups found. Tap "+ Add Fees Group" to create one.
+                <span class="mob-radar-meta">{{ max(0, ($stats['total'] ?? 0) - ($stats['in_use'] ?? 0)) }} Unlinked / Available</span>
             </div>
-        @endif
+        </div>
+
+        {{-- Fast Action Buttons in Hero --}}
+        <div class="mob-actions-bar">
+            <button type="button" class="mob-act-btn mob-act-btn-add" id="btnOpenAddSheet">
+                <i class="fa fa-plus mr-1"></i> + New Fee Group
+            </button>
+            <a href="{{ url('feesMaster') }}" class="mob-act-btn mob-act-btn-filter">
+                <i class="fa fa-sliders mr-1"></i> Fees Master
+            </a>
+        </div>
     </div>
 
-    {{-- No Results Search Fallback --}}
-    <div id="mobNoResults" class="text-center py-4 text-muted bg-white rounded border d-none" style="font-size:12px;">
+    {{-- 2. Compact Search Toolbar (Exact match with admissionView) --}}
+    <div class="mob-search-toolbar">
+        <div class="mob-search-input-wrap">
+            <i class="fa fa-search"></i>
+            <input type="text" id="mobQuickSearchInput" class="mob-search-input" placeholder="Search by group name...">
+        </div>
+        <button type="button" class="mob-filter-btn" id="btnResetFilter" title="Reset Filters">
+            <i class="fa fa-refresh"></i> Reset
+        </button>
+    </div>
+
+    {{-- Horizontal Chips Strip --}}
+    <div class="mob-chips-scroll">
+        <div class="mob-chip-pill active" data-filter="all">All ({{ $stats['total'] ?? 0 }})</div>
+        <div class="mob-chip-pill" data-filter="refundable"><i class="fa fa-check-circle text-success mr-1"></i>Refundable ({{ $stats['refundable'] ?? 0 }})</div>
+        <div class="mob-chip-pill" data-filter="non-refundable"><i class="fa fa-minus-circle text-info mr-1"></i>Standard ({{ $stats['non_refundable'] ?? 0 }})</div>
+        <div class="mob-chip-pill" data-filter="in-use"><i class="fa fa-link text-warning mr-1"></i>In-Use ({{ $stats['in_use'] ?? 0 }})</div>
+    </div>
+
+    {{-- 3. Fee Groups Feed List (Exact match with student-mob-card in admissionView) --}}
+    <div class="fg-feed-list" id="fgFeedContainer">
+        @forelse($dataview ?? [] as $index => $item)
+            @php
+                $isRefundable = strtolower($item->fees_refund ?? '') === 'yes';
+                $isInUse = in_array($item->id, $inUseGroupIds);
+                $nameLower = strtolower($item->name ?? '');
+                $filterType = $isRefundable ? 'refundable' : 'non-refundable';
+            @endphp
+
+            <div class="fg-mob-card" 
+                 data-name="{{ $nameLower }}" 
+                 data-type="{{ $filterType }}"
+                 data-inuse="{{ $isInUse ? 'yes' : 'no' }}">
+                
+                {{-- Header Row --}}
+                <div class="fg-card-header">
+                    <div class="fg-avatar-box">
+                        <i class="fa {{ $isRefundable ? 'fa-refresh' : 'fa-money' }}"></i>
+                    </div>
+                    <div class="fg-header-info">
+                        <div class="fg-name-row">
+                            <span class="fg-mob-name">{{ $item->name ?? '' }}</span>
+                            <span class="fg-status-badge {{ $isRefundable ? 'status-badge-refundable' : 'status-badge-standard' }}">
+                                {{ $isRefundable ? 'Refundable' : 'Standard' }}
+                            </span>
+                        </div>
+                        <div class="fg-pills-wrap">
+                            <span class="fg-adm-badge">#{{ $index + 1 }} (ID: {{ $item->id }})</span>
+                            <span class="fg-class-badge">
+                                {{ $item->fees_type === 'installment' ? 'Installment' : 'Full Payment' }}
+                            </span>
+                            <span class="fg-usage-badge {{ $isInUse ? 'usage-badge-inuse' : 'usage-badge-unlinked' }}">
+                                &bull; {{ $isInUse ? 'In-Use' : 'Unlinked' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2-Column Meta Grid --}}
+                <div class="fg-meta-grid">
+                    <div class="fg-meta-item">
+                        <i class="fa fa-folder-o"></i>
+                        <span>Fee Head: <b>{{ $item->fees_type === 'installment' ? 'Installment' : 'Full Pay' }}</b></span>
+                    </div>
+                    <div class="fg-meta-item">
+                        <i class="fa fa-undo"></i>
+                        <span>Refund Policy: <b class="{{ $isRefundable ? 'text-success' : 'text-muted' }}">{{ $isRefundable ? 'Eligible' : 'Non-Refund' }}</b></span>
+                    </div>
+                </div>
+
+                {{-- Action Row (Exact match with student-card-actions in admissionView) --}}
+                <div class="fg-card-actions">
+                    {{-- Edit Action --}}
+                    <a href="{{ url('feesGroupEdit/'.$item->id) }}" 
+                       class="mob-btn-action btn-act-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}">
+                        <i class="fa fa-edit"></i> Edit
+                    </a>
+
+                    {{-- Delete Action --}}
+                    @if(!$isInUse)
+                        <button type="button" 
+                                class="mob-btn-action btn-act-delete btn-trigger-delete {{ Helper::permissioncheck(11)->delete ? '' : 'd-none' }}" 
+                                data-id="{{ $item->id }}" 
+                                data-name="{{ $item->name }}">
+                            <i class="fa fa-trash-o"></i> Delete
+                        </button>
+                    @else
+                        <button type="button" class="mob-btn-action btn-act-locked" disabled title="In Use">
+                            <i class="fa fa-lock"></i> In-Use
+                        </button>
+                    @endif
+                </div>
+
+            </div>
+        @empty
+            <div class="text-center py-4 text-muted bg-white rounded border" style="font-size: 11.5px;">
+                <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary d-block"></i>
+                No fee groups found. Tap "+ New Fee Group" above to create one.
+            </div>
+        @endforelse
+    </div>
+
+    {{-- Empty State on Search --}}
+    <div id="fgEmptyState" class="text-center py-4 text-muted bg-white rounded border d-none" style="font-size: 11.5px;">
         <i class="fa fa-search fa-2x mb-2 text-secondary d-block"></i>
         No matching fee groups found.
     </div>
@@ -557,167 +736,151 @@
 </div>
 
 {{-- =========================================================================
-   1. ADD FEES GROUP MODAL (STRICT POPUP - HIDDEN BY DEFAULT)
+   4. NATIVE BOTTOM SHEET: ADD FEE GROUP (Exact match with admissionView sheet)
    ========================================================================= --}}
-<div class="modal fade" id="addFeesGroupModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fa fa-plus-circle"></i> {{ __('fees.Add Fees Group') }}
-                </h5>
-                <button type="button" class="modal-close-btn btn-close-modal" aria-label="Close">&times;</button>
-            </div>
-            <form id="quickForm" action="{{ url('feesGroup') }}" method="post">
-                @csrf
-                <div class="modal-body">
-                    
-                    {{-- Name Input --}}
-                    <div style="margin-bottom: 12px;">
-                        <label style="display:block; font-size:11.5px; font-weight:700; color:#dc2626; margin-bottom:4px;">
-                            {{ __('messages.Name') }}*
-                        </label>
-                        <input type="text" 
-                               class="form-control @error('name') is-invalid @enderror" 
-                               name="name" 
-                               id="name" 
-                               placeholder="e.g. Tuition Fee, Exam Fee" 
-                               value="{{ old('name') }}" 
-                               required 
-                               style="height:34px; font-size:12px; border-radius:3px;">
-                        @error('name')
-                            <span class="text-danger font-weight-bold d-block mt-1" style="font-size:11px;">
-                                {{ $message }}
-                            </span>
-                        @enderror
-                    </div>
-
-                    {{-- Refund Fees Toggle Card --}}
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                        <div>
-                            <div style="font-weight:700; font-size:12px; color:#0f172a;">{{ __('Fees Refund') }}</div>
-                            <small style="font-size:10px; color:#64748b;">Eligible for refund on admission cancellation?</small>
-                        </div>
-                        <input type="checkbox" id="mob_refund_fees_check" value="yes" onchange="updateMobRefund(this)" style="width:18px; height:18px; cursor:pointer;">
-                        <input type="hidden" id="mob_fees_refund_input" name="fees_refund" value="no">
-                    </div>
-
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary btn-sm btn-close-modal" style="padding:6px 14px;">
-                        {{ __('messages.Close') }}
-                    </button>
-                    <button type="submit" class="btn btn-primary btn-sm" style="padding:6px 16px; background:#002C54; border-color:#002C54;">
-                        {{ __('messages.submit') }}
-                    </button>
-                </div>
-            </form>
+<div class="mob-filter-modal-backdrop" id="mobAddBackdrop"></div>
+<div class="mob-filter-sheet" id="mobAddSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-plus-circle text-primary"></i> Add Fees Group
+        </div>
+        <div class="mob-sheet-close" id="btnCloseAddSheet">
+            <i class="fa fa-times"></i>
         </div>
     </div>
+
+    <form action="{{ url('feesGroup') }}" method="post">
+        @csrf
+        <div class="mob-sheet-body">
+            <div class="mob-form-group">
+                <label class="mob-form-label">Group Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="mob-form-input" placeholder="e.g. Tuition Fee, Exam Fee, Hostel Fee" required autofocus>
+            </div>
+
+            <div class="mob-form-group mt-3">
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:3px; padding:10px; display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <div style="font-size:11.5px; font-weight:700; color:#0f172a;">Refundable Fee</div>
+                        <small style="font-size:9.5px; color:#64748b;">Eligible for refund on admission cancellation?</small>
+                    </div>
+                    <input type="checkbox" id="sheet_refund_cb" value="yes" onchange="document.getElementById('sheet_refund_input').value = this.checked ? 'yes' : 'no';" style="width:18px; height:18px; cursor:pointer;">
+                </div>
+                <input type="hidden" id="sheet_refund_input" name="fees_refund" value="no">
+            </div>
+        </div>
+
+        <div class="mob-sheet-footer">
+            <button type="button" class="btn-sheet-reset" id="btnCancelAddSheet">
+                Cancel
+            </button>
+            <button type="submit" class="btn-sheet-apply">
+                <i class="fa fa-check mr-1"></i> Save Fee Group
+            </button>
+        </div>
+    </form>
 </div>
 
 {{-- =========================================================================
-   2. DELETE CONFIRMATION MODAL (STRICT POPUP - HIDDEN BY DEFAULT)
+   5. NATIVE BOTTOM SHEET: DELETE CONFIRMATION
    ========================================================================= --}}
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fa fa-trash-o"></i> {{ __('messages.Delete Confirmation') }}
-                </h5>
-                <button type="button" class="modal-close-btn btn-close-modal" aria-label="Close">&times;</button>
-            </div>
-            <form action="{{ url('feesGroupDelete') }}" method="post">
-                @csrf
-                <div class="modal-body text-center" style="padding: 18px 14px;">
-                    <input type="hidden" id="mob_del_id" name="delete_id">
-                    <div style="width:46px; height:46px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:20px; margin:0 auto 10px auto;">
-                        <i class="fa fa-trash"></i>
-                    </div>
-                    <p style="color:#64748b; font-size:11.5px; margin-bottom:4px;">{{ __('messages.Are you sure you want to delete') }}?</p>
-                    <h6 style="font-size:13.5px; font-weight:800; color:#0f172a; margin:0;" id="mob_del_name_text"></h6>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary btn-sm btn-close-modal" style="padding:6px 14px;">
-                        {{ __('messages.Close') }}
-                    </button>
-                    <button type="submit" class="btn btn-danger btn-sm" style="padding:6px 18px; font-weight:700;">
-                        {{ __('messages.Delete') }}
-                    </button>
-                </div>
-            </form>
+<div class="mob-filter-modal-backdrop" id="mobDeleteBackdrop"></div>
+<div class="mob-filter-sheet" id="mobDeleteSheet">
+    <div class="mob-sheet-header bg-danger-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-trash-o"></i> Delete Confirmation
+        </div>
+        <div class="mob-sheet-close" id="btnCloseDeleteSheet">
+            <i class="fa fa-times"></i>
         </div>
     </div>
+
+    <form action="{{ url('feesGroupDelete') }}" method="post">
+        @csrf
+        <div class="mob-sheet-body text-center" style="padding: 16px 12px;">
+            <input type="hidden" id="delete_target_id" name="delete_id">
+            <div style="width:42px; height:42px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:18px; margin:0 auto 8px auto;">
+                <i class="fa fa-trash"></i>
+            </div>
+            <p style="font-size:11px; color:#64748b; margin-bottom:3px;">Are you sure you want to permanently delete:</p>
+            <h6 style="font-size:13px; font-weight:800; color:#002C54; margin:0;" id="delete_target_name_display"></h6>
+        </div>
+
+        <div class="mob-sheet-footer">
+            <button type="button" class="btn-sheet-reset" id="btnCancelDeleteSheet">
+                Cancel
+            </button>
+            <button type="submit" class="btn-sheet-delete">
+                <i class="fa fa-trash-o mr-1"></i> Yes, Delete
+            </button>
+        </div>
+    </form>
 </div>
 @endsection
 
 @section('scripts')
 <script>
-function updateMobRefund(checkbox) {
-    document.getElementById('mob_fees_refund_input').value = checkbox.checked ? 'yes' : 'no';
-}
-
 $(document).ready(function() {
-    // 1. Open Add Modal
-    $('#btnOpenAddModal').on('click', function(e) {
-        e.preventDefault();
-        $('#addFeesGroupModal').addClass('show').fadeIn(150);
+    // 1. Add Bottom Sheet Handlers
+    function openAddSheet() {
+        $('#mobAddBackdrop').addClass('show');
+        $('#mobAddSheet').addClass('show');
         $('body').css('overflow', 'hidden');
-    });
+    }
+    function closeAddSheet() {
+        $('#mobAddBackdrop').removeClass('show');
+        $('#mobAddSheet').removeClass('show');
+        $('body').css('overflow', '');
+    }
 
-    // 2. Open Delete Modal
-    $(document).on('click', '.btn-open-delete-modal', function(e) {
-        e.preventDefault();
+    $('#btnOpenAddSheet').on('click', openAddSheet);
+    $('#btnCloseAddSheet, #btnCancelAddSheet, #mobAddBackdrop').on('click', closeAddSheet);
+
+    // 2. Delete Bottom Sheet Handlers
+    function openDeleteSheet(id, name) {
+        $('#delete_target_id').val(id);
+        $('#delete_target_name_display').text('"' + name + '"');
+        $('#mobDeleteBackdrop').addClass('show');
+        $('#mobDeleteSheet').addClass('show');
+        $('body').css('overflow', 'hidden');
+    }
+    function closeDeleteSheet() {
+        $('#mobDeleteBackdrop').removeClass('show');
+        $('#mobDeleteSheet').removeClass('show');
+        $('body').css('overflow', '');
+    }
+
+    $(document).on('click', '.btn-trigger-delete', function() {
         var id = $(this).data('id');
         var name = $(this).data('name');
-        $('#mob_del_id').val(id);
-        $('#mob_del_name_text').text('"' + name + '"');
-        $('#deleteModal').addClass('show').fadeIn(150);
-        $('body').css('overflow', 'hidden');
+        openDeleteSheet(id, name);
     });
 
-    // 3. Close Modal Handler (Works unconditionally across BS4/BS5/Pure jQuery)
-    $(document).on('click', '.btn-close-modal, .modal', function(e) {
-        if ($(e.target).hasClass('modal') || $(e.target).hasClass('btn-close-modal')) {
-            $('.modal').removeClass('show').fadeOut(120);
-            $('body').css('overflow', 'auto');
-        }
-    });
-    $('.modal-content').on('click', function(e) {
-        e.stopPropagation();
-    });
+    $('#btnCloseDeleteSheet, #btnCancelDeleteSheet, #mobDeleteBackdrop').on('click', closeDeleteSheet);
 
-    // 4. Real-time Search & Filter Chips
-    var activeFilter = 'all';
+    // 3. Search & Filter Chips (Exact match with admissionView)
+    var activeFilterChip = 'all';
 
-    function filterMobItems() {
-        var q = $('#mobSearchInput').val().toLowerCase().trim();
+    function runSearchFilter() {
+        var query = $('#mobQuickSearchInput').val().toLowerCase().trim();
         var matchCount = 0;
 
-        if (q.length > 0) {
-            $('#mobSearchClear').show();
-        } else {
-            $('#mobSearchClear').hide();
-        }
+        $('.fg-mob-card').each(function() {
+            var name = $(this).data('name') || '';
+            var type = $(this).data('type') || '';
+            var inuse = $(this).data('inuse') || '';
 
-        $('#mobCardsFeed .mob-group-card').each(function() {
-            var rowName = $(this).data('name') || '';
-            var rowType = $(this).data('type') || '';
-            var rowInUse = $(this).data('inuse') || '';
+            var matchSearch = !query || name.indexOf(query) !== -1;
+            var matchChip = true;
 
-            var matchesSearch = !q || rowName.indexOf(q) !== -1;
-            var matchesChip = true;
-
-            if (activeFilter === 'refundable') {
-                matchesChip = rowType === 'refundable';
-            } else if (activeFilter === 'non-refundable') {
-                matchesChip = rowType === 'non-refundable';
-            } else if (activeFilter === 'in-use') {
-                matchesChip = rowInUse === 'yes';
+            if (activeFilterChip === 'refundable') {
+                matchChip = type === 'refundable';
+            } else if (activeFilterChip === 'non-refundable') {
+                matchChip = type === 'non-refundable';
+            } else if (activeFilterChip === 'in-use') {
+                matchChip = inuse === 'yes';
             }
 
-            if (matchesSearch && matchesChip) {
+            if (matchSearch && matchChip) {
                 $(this).show();
                 matchCount++;
             } else {
@@ -726,24 +889,27 @@ $(document).ready(function() {
         });
 
         if (matchCount === 0) {
-            $('#mobNoResults').removeClass('d-none');
+            $('#fgEmptyState').removeClass('d-none');
         } else {
-            $('#mobNoResults').addClass('d-none');
+            $('#fgEmptyState').addClass('d-none');
         }
     }
 
-    $('#mobSearchInput').on('keyup input', filterMobItems);
+    $('#mobQuickSearchInput').on('keyup input', runSearchFilter);
 
-    $('#mobSearchClear').on('click', function() {
-        $('#mobSearchInput').val('');
-        filterMobItems();
+    $('#btnResetFilter').on('click', function() {
+        $('#mobQuickSearchInput').val('');
+        $('.mob-chip-pill').removeClass('active');
+        $('.mob-chip-pill[data-filter="all"]').addClass('active');
+        activeFilterChip = 'all';
+        runSearchFilter();
     });
 
-    $('.mob-chip-item').on('click', function() {
-        $('.mob-chip-item').removeClass('active');
+    $('.mob-chip-pill').on('click', function() {
+        $('.mob-chip-pill').removeClass('active');
         $(this).addClass('active');
-        activeFilter = $(this).data('filter');
-        filterMobItems();
+        activeFilterChip = $(this).data('filter');
+        runSearchFilter();
     });
 });
 </script>
