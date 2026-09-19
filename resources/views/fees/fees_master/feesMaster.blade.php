@@ -27,12 +27,12 @@
 .fg-viewport-wrapper {
     background: #eef2f6 !important;
     color: #0f172a;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 12px;
-    padding: 6px 10px 8px 10px !important;
-    height: calc(100vh - 56px) !important;
-    max-height: calc(100vh - 56px) !important;
-    min-height: calc(100vh - 56px) !important;
+    padding: 5px 8px 6px 8px !important;
+    height: calc(100vh - 57px) !important;
+    max-height: calc(100vh - 57px) !important;
+    min-height: calc(100vh - 57px) !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
@@ -47,27 +47,27 @@
     display: none !important;
 }
 
-/* 1. Top Hero Banner (1:1 with user-hero & admission-hero) */
+/* 1. Top Hero Banner (Compact single/dual row header) */
 .dash-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #fff;
     border-radius: 2px;
-    padding: 6px 10px;
+    padding: 4px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px 8px;
     box-shadow: 0 1px 3px rgba(0,44,84,.12);
-    margin-bottom: 6px;
-    flex-shrink: 0;
+    margin-bottom: 5px;
+    flex: 0 0 auto !important;
 }
 .dash-hero-text {
     display: flex;
     flex-direction: column;
 }
 .dash-kicker {
-    font-size: 9.5px;
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: .06em;
     opacity: .85;
@@ -77,7 +77,7 @@
     font-weight: 600;
 }
 .dash-hero-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
@@ -87,7 +87,7 @@
     gap: 6px;
 }
 .dash-hero-subtitle {
-    font-size: 10.5px;
+    font-size: 10px;
     margin: 1px 0 0;
     opacity: .85;
     color: #cbd5e1;
@@ -104,8 +104,8 @@
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 2px;
-    padding: 2px 7px;
-    font-size: 10.5px;
+    padding: 1px 6px;
+    font-size: 10px;
     color: #e2e8f0;
     display: inline-flex;
     align-items: center;
@@ -122,7 +122,7 @@
     color: #38bdf8;
 }
 
-/* Hero Action Buttons (1:1 with dash-btn from addUser / admissionView) */
+/* Hero Action Buttons */
 .dash-hero-actions {
     display: flex;
     align-items: center;
@@ -133,9 +133,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    height: 27px;
-    padding: 0 10px;
+    gap: 4px;
+    height: 25px;
+    padding: 0 9px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
@@ -183,62 +183,61 @@
     background: #031426;
 }
 
-/* 2. Equal Height Columns Workspace - Fits exactly in available screen */
+/* 2. Equal Height Columns Workspace - CSS Grid forces 100% Identical Height */
 .dash-split-wrap {
-    flex: 1 1 0%;
-    min-height: 0;
-    height: 100%;
-    display: flex;
-    gap: 10px;
-    overflow: hidden;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 440px 1fr !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+    align-items: stretch !important;
 }
 .fg-col-form {
-    flex: 0 0 440px;
-    width: 440px;
-    max-width: 440px;
-    height: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 .fg-col-table {
-    flex: 1 1 0%;
-    min-width: 0;
-    height: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 
 /* 3. Equal-Height Unified Cards */
 .equal-card {
-    height: 100%;
-    min-height: 0;
-    max-height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06) !important;
 }
 
-/* Identical 34px Header in both cards */
+/* Identical 32px Header in both cards */
 .dash-card-header {
-    height: 34px;
-    min-height: 34px;
-    max-height: 34px;
-    padding: 6px 10px;
-    border-bottom: 1px solid rgba(255,255,255,.12);
-    background: #002342;
-    color: #ffffff;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex: 0 0 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 10px !important;
+    border-bottom: 1px solid rgba(255,255,255,.12) !important;
+    background: #002342 !important;
+    color: #ffffff !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
 }
 .dash-card-title {
     font-size: 12px;
@@ -260,54 +259,55 @@
     border: 1px solid rgba(255,255,255,.15);
 }
 
-/* Form Container inside Left Card */
+/* Form Container inside Left Card - Fills exactly 100% */
 .card-form-wrapper {
-    flex: 1 1 0%;
-    min-height: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin: 0;
-    background: #ffffff;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    background: #ffffff !important;
 }
 
 /* Scroll Containers - Both Left Form & Right Table Scroll Internally */
 .form-scroll-container {
-    flex: 1 1 0%;
-    min-height: 0;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 10px;
-    background: #ffffff;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 10px !important;
+    background: #ffffff !important;
 }
 .table-scroll-container {
-    flex: 1 1 0%;
-    min-height: 0;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: auto;
-    position: relative;
-    background: #eef2f6;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    position: relative !important;
+    background: #eef2f6 !important;
 }
 
-/* Identical 34px Action Footers */
+/* Identical 32px Action Footers pinned at the very bottom */
 .card-action-footer {
-    height: 34px;
-    min-height: 34px;
-    max-height: 34px;
-    padding: 3px 10px;
-    background: #002342;
-    border-top: 1px solid rgba(255,255,255,.12);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
+    flex: 0 0 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 3px 8px !important;
+    background: #002342 !important;
+    border-top: 1px solid rgba(255,255,255,.12) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
 }
 .table-pagination-bar {
-    justify-content: space-between;
-    font-size: 11px;
-    color: #cbd5e1;
+    justify-content: space-between !important;
+    font-size: 11px !important;
+    color: #cbd5e1 !important;
 }
 
 /* Form Controls (Compact 29px inputs from addUser) */
