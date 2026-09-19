@@ -25,18 +25,26 @@
    ========================================================================== */
 
 .fg-viewport-wrapper {
-    background: #eef2f6;
+    background: #eef2f6 !important;
     color: #0f172a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 12px;
-    padding: 6px 10px 10px;
-    height: calc(100vh - 56px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    padding: 6px 10px 8px 10px !important;
+    height: calc(100vh - 56px) !important;
+    max-height: calc(100vh - 56px) !important;
+    min-height: calc(100vh - 56px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 .fg-viewport-wrapper * {
     box-sizing: border-box;
+}
+
+/* Hide main footer on this full-viewport screen */
+.main-footer {
+    display: none !important;
 }
 
 /* 1. Top Hero Banner (1:1 with user-hero & admission-hero) */
@@ -175,74 +183,131 @@
     background: #031426;
 }
 
-/* 2. Equal Height Columns Workspace */
+/* 2. Equal Height Columns Workspace - Fits exactly in available screen */
 .dash-split-wrap {
-    flex: 1;
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
     display: flex;
     gap: 10px;
-    min-height: 0;
     overflow: hidden;
 }
 .fg-col-form {
+    flex: 0 0 440px;
     width: 440px;
+    max-width: 440px;
+    height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    flex-shrink: 0;
+    overflow: hidden;
 }
 .fg-col-table {
-    flex: 1;
+    flex: 1 1 0%;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    min-height: 0;
     overflow: hidden;
 }
 
-/* 3. Left Form Card (1:1 with user-card from addUser) */
-.user-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 2px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.02);
-    display: flex;
-    flex-direction: column;
+/* 3. Equal-Height Unified Cards */
+.equal-card {
     height: 100%;
     min-height: 0;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
-.user-card-header {
+
+/* Identical 34px Header in both cards */
+.dash-card-header {
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #fafbfc;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    background: #002342;
+    color: #ffffff;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
 }
-.user-card-title {
+.dash-card-title {
     font-size: 12px;
     font-weight: 700;
     margin: 0;
-    color: #002C54;
+    color: #ffffff;
     line-height: 1.2;
     display: flex;
     align-items: center;
     gap: 6px;
 }
-.card-step-badge {
-    background: #002C54;
-    color: #ffffff;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 1px 5px;
+.badge-total-records {
+    font-size: 10.5px;
+    font-weight: 600;
+    background: rgba(255,255,255,.12);
+    color: #f1f5f9;
+    padding: 2px 7px;
     border-radius: 2px;
-    display: inline-block;
+    border: 1px solid rgba(255,255,255,.15);
 }
-.form-scroll-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
+
+/* Form Container inside Left Card */
+.card-form-wrapper {
+    flex: 1 1 0%;
     min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    background: #ffffff;
+}
+
+/* Scroll Containers - Both Left Form & Right Table Scroll Internally */
+.form-scroll-container {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    background: #ffffff;
+}
+.table-scroll-container {
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    background: #eef2f6;
+}
+
+/* Identical 34px Action Footers */
+.card-action-footer {
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    padding: 3px 10px;
+    background: #002342;
+    border-top: 1px solid rgba(255,255,255,.12);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+.table-pagination-bar {
+    justify-content: space-between;
+    font-size: 11px;
+    color: #cbd5e1;
 }
 
 /* Form Controls (Compact 29px inputs from addUser) */
@@ -741,21 +806,21 @@ input:checked + .matrix-switch-slider:before {
     {{-- 2. Equal-Height Split Workspace --}}
     <div class="dash-split-wrap">
 
-        {{-- Left Form Column (Assign Fee Structure to Class - 1:1 with addUser card) --}}
+        {{-- Left Form Column (Assign Fee Structure to Class - Equal Height Card) --}}
         <div class="fg-col-form">
-            <div class="user-card">
-                <div class="user-card-header">
-                    <h3 class="user-card-title">
-                        <i class="fa fa-plus-circle text-primary"></i>
+            <div class="equal-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-plus-circle text-info"></i>
                         <span>Assign Fee Structure</span>
                     </h3>
-                    <span class="card-step-badge">Configuration</span>
+                    <span class="badge-total-records">Configuration</span>
                 </div>
 
-                <div class="form-scroll-container">
-                    <form id="quickForm" action="{{ url('feesMasterAdd') }}" method="post">
-                        @csrf
+                <form id="quickForm" action="{{ url('feesMasterAdd') }}" method="post" class="card-form-wrapper">
+                    @csrf
 
+                    <div class="form-scroll-container">
                         {{-- Select Class --}}
                         <div class="form-group-compact">
                             <label class="form-label-compact">
@@ -776,7 +841,7 @@ input:checked + .matrix-switch-slider:before {
                         </div>
 
                         {{-- Fee Group Matrix --}}
-                        <div class="form-group-compact">
+                        <div class="form-group-compact mb-0">
                             <label class="form-label-compact">
                                 <span>{{ __('fees.Fees Group') }} Matrix <span class="req-star">*</span></span>
                                 <span class="label-note">Toggle heads to assign</span>
@@ -839,21 +904,21 @@ input:checked + .matrix-switch-slider:before {
                                 </table>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Submit Button --}}
-                        <div class="pt-2 mt-2 border-top">
-                            <button type="submit" class="dash-btn dash-btn-primary w-100" style="height:30px; font-size:11.5px;">
-                                <i class="fa fa-check-circle mr-1"></i> Save Fee Structure
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    {{-- Pinned Action Footer (Matching right table footer) --}}
+                    <div class="card-action-footer">
+                        <button type="submit" class="dash-btn dash-btn-light w-100" style="height:26px; font-size:11px; font-weight:700;">
+                            <i class="fa fa-check-circle mr-1"></i> Save Fee Structure
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        {{-- Right Table Column (Configured Class Directory - 1:1 with admission-table-card) --}}
+        {{-- Right Table Column (Configured Class Directory - Equal Height Card) --}}
         <div class="fg-col-table">
-            <div class="admission-table-card">
+            <div class="equal-card">
                 <div class="dash-card-header">
                     <h3 class="dash-card-title">
                         <i class="fa fa-list text-info"></i> Class Fee Master Directory
@@ -996,11 +1061,11 @@ input:checked + .matrix-switch-slider:before {
                 </div>
 
                 {{-- Table Bottom Toolbar (1:1 with admissionView) --}}
-                <div class="table-pagination-bar">
+                <div class="table-pagination-bar card-action-footer">
                     <span class="pagination-info">
                         <i class="fa fa-shield text-warning mr-1"></i> <b>Safety Guard:</b> Active fee heads assigned to students or with payments are locked from deletion.
                     </span>
-                    <span class="font-weight-bold">
+                    <span class="font-weight-bold text-white">
                         Showing {{ count($groupedByClass ?? []) }} classes
                     </span>
                 </div>
