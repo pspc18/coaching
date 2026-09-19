@@ -751,6 +751,219 @@ input:checked + .matrix-switch-slider:before {
     white-space: nowrap;
     display: inline-block;
 }
+
+/* ==========================================================================
+   ARISE ERP - SIGNATURE UNIFIED MODAL SYSTEM
+   Guarantees zero text-overlapping, crisp typography, and responsive alignment
+   ========================================================================== */
+.theme-modal-dialog {
+    margin: 1.5rem auto !important;
+}
+.theme-modal-content {
+    border: none !important;
+    border-radius: 3px !important;
+    overflow: hidden !important;
+    box-shadow: 0 20px 45px -8px rgba(0, 44, 84, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    background: #ffffff !important;
+}
+.theme-modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 8px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 48px !important;
+    border-top-left-radius: 3px !important;
+    border-top-right-radius: 3px !important;
+}
+.theme-modal-header-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+.theme-modal-title-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.theme-modal-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    background: rgba(56, 189, 248, 0.18) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 3px !important;
+    color: #38bdf8 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    flex-shrink: 0 !important;
+}
+.theme-modal-icon-danger {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+}
+.theme-modal-headings {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+}
+.theme-modal-headings .theme-modal-title,
+.theme-modal-headings h5.modal-title,
+.theme-modal-headings h5 {
+    display: block !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+}
+.theme-modal-subtitle {
+    display: block !important;
+    font-size: 10.5px !important;
+    color: #93c5fd !important;
+    margin: 2px 0 0 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+}
+.theme-modal-close {
+    color: #ffffff !important;
+    opacity: 0.85 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 3px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: all 0.15s ease !important;
+    padding: 0 !important;
+    outline: none !important;
+    line-height: 1 !important;
+}
+.theme-modal-close:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+}
+.theme-modal-body {
+    padding: 10px 14px !important;
+    background: #ffffff !important;
+}
+.theme-filter-card {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 3px !important;
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+}
+.theme-filter-label {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin-bottom: 3px !important;
+    display: block !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+}
+.theme-modal-alert {
+    padding: 6px 10px !important;
+    border-radius: 2px !important;
+    font-size: 11px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.35 !important;
+}
+.theme-modal-alert-info {
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    border-left: 3px solid #3b82f6 !important;
+    color: #1e3a8a !important;
+}
+.theme-modal-alert-warning {
+    background: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+    border-left: 3px solid #f59e0b !important;
+    color: #78350f !important;
+}
+.theme-modal-table-wrap {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+}
+.theme-modal-table-wrap table thead th {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 6px 8px !important;
+    vertical-align: middle !important;
+    border-color: #001f3d !important;
+    white-space: nowrap !important;
+}
+.theme-modal-table-wrap table tbody td {
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+    vertical-align: middle !important;
+    border-color: #e2e8f0 !important;
+}
+.theme-modal-table-wrap table tbody tr:nth-of-type(even) {
+    background-color: #f8fafc !important;
+}
+.theme-modal-table-wrap table tbody tr:hover {
+    background-color: #f1f5f9 !important;
+}
+.theme-modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 7px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 42px !important;
+}
+.theme-modal-body .select2-container--default .select2-selection--multiple {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    min-height: 28px !important;
+    padding: 1px 4px !important;
+    font-size: 11px !important;
+}
+.theme-modal-body .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.15) !important;
+}
+.theme-modal-body .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    color: #1d4ed8 !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    border-radius: 2px !important;
+    padding: 0 4px !important;
+    margin-top: 2px !important;
+}
+.theme-modal-body .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #1d4ed8 !important;
+    margin-right: 3px !important;
+}
 </style>
 @endsection
 
@@ -1077,29 +1290,36 @@ input:checked + .matrix-switch-slider:before {
 
 {{-- 1. Fee Head Delete Confirmation Modal --}}
 <div class="modal fade" id="Modal_id" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content" style="border:none; border-radius:2px; overflow:hidden; box-shadow:0 15px 35px -5px rgba(0,0,0,0.3);">
-            <div class="modal-header" style="background:linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color:#ffffff; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:space-between;">
-                <h5 class="modal-title" style="font-size:12.5px; font-weight:700; color:#ffffff; display:flex; align-items:center; gap:6px; margin:0;">
-                    <i class="fa fa-trash-o"></i> {{ __('messages.Delete Confirmation') }}
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity:0.85; background:none; border:none; font-size:18px; line-height:1; cursor:pointer;">
-                    <span aria-hidden="true">&times;</span>
+    <div class="modal-dialog modal-dialog-centered modal-sm theme-modal-dialog" role="document">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header theme-modal-header theme-modal-header-danger">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon theme-modal-icon-danger">
+                        <i class="fa fa-trash-o"></i>
+                    </div>
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title">
+                            {{ __('messages.Delete Confirmation') }}
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa fa-times"></i>
                 </button>
             </div>
             <form action="{{ url('feesMasterDelete') }}" method="post">
                 @csrf
-                <div class="modal-body text-center" style="padding:16px 14px; background:#fff;">
+                <div class="modal-body text-center" style="padding:18px 14px; background:#fff;">
                     <input type="hidden" id="delete_id" name="delete_id">
-                    <div style="width:42px; height:42px; border-radius:2px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:18px; margin:0 auto 10px auto;">
+                    <div style="width:44px; height:44px; border-radius:3px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:18px; margin:0 auto 10px auto; border:1px solid #fecaca;">
                         <i class="fa fa-trash"></i>
                     </div>
                     <p style="font-size:11.5px; color:#475569; margin-bottom:4px;">Are you sure you want to delete this fee head:</p>
                     <h6 style="font-size:13px; font-weight:700; color:#002C54; margin:0;" id="delete_head_label"></h6>
                 </div>
-                <div class="modal-footer justify-content-center" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:6px 10px; display:flex; gap:6px;">
-                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height:27px; font-size:11px;">{{ __('messages.Close') }}</button>
-                    <button type="submit" class="dash-btn" style="height:27px; padding:0 14px; font-size:11px; background:#dc2626; color:#fff; border-color:#dc2626;"><i class="fa fa-trash mr-1"></i> {{ __('messages.Delete') }}</button>
+                <div class="modal-footer justify-content-center" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:8px 12px; display:flex; gap:8px;">
+                    <button type="button" class="dash-btn dash-btn-outline" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; font-size:11px; padding:0 12px;">{{ __('messages.Close') }}</button>
+                    <button type="submit" class="dash-btn" style="height:28px; padding:0 16px; font-size:11px; background:#dc2626; color:#fff; border-color:#dc2626;"><i class="fa fa-trash mr-1"></i> {{ __('messages.Delete') }}</button>
                 </div>
             </form>
         </div>
@@ -1108,66 +1328,68 @@ input:checked + .matrix-switch-slider:before {
 
 {{-- 2. Student Fee Assign Modal --}}
 <div class="modal fade" id="students_list_modal" tabindex="-1" role="dialog" aria-labelledby="studentsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content" style="border:none; border-radius:2px; overflow:hidden; box-shadow:0 20px 45px -8px rgba(0,44,84,0.35);">
-            <div class="modal-header" style="background:linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:space-between;">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width:28px; height:28px; background:rgba(56,189,248,0.18); border:1px solid rgba(56,189,248,0.35); border-radius:2px; color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:13px;">
+    <div class="modal-dialog modal-dialog-centered modal-lg theme-modal-dialog" role="document">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header theme-modal-header">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon">
                         <i class="fa fa-user-plus"></i>
                     </div>
-                    <div>
-                        <h5 class="modal-title" id="studentsModalLabel" style="font-size:13px; font-weight:700; color:#fff; margin:0; line-height:1.2;">
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title" id="studentsModalLabel">
                             Bulk Assign Fees to Students
                         </h5>
-                        <div style="font-size:10px; color:#93c5fd; line-height:1.2; margin-top:1px;">
+                        <div class="theme-modal-subtitle">
                             Select class and assign fee heads in bulk to enrolled students
                         </div>
                     </div>
                 </div>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity:0.85; background:none; border:none; font-size:18px; line-height:1; cursor:pointer;">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
                 </button>
             </div>
             
             <form id="assignFeesMultiple" action="{{ url('assignFeesMultipleStudents') }}" method="POST">
                 @csrf
-                <div class="modal-body" style="padding:10px 12px; background:#ffffff;">
+                <div class="modal-body theme-modal-body">
                     {{-- Filter Row --}}
-                    <div class="row g-2 mb-2 align-items-end" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:2px; padding:8px;">
-                        <div class="col-md-4">
-                            <label class="font-weight-bold text-dark mb-1" style="font-size:11px;">Select Class <span class="text-danger">*</span></label>
-                            <select class="form-control-compact" id="bulk_class_type_id" name="class_type_id" required style="height:28px; font-size:11.5px; border-radius:2px;">
-                                <option value="">-- Choose Class --</option>
-                                @if(!empty($classType))
-                                    @foreach($classType as $type)
-                                        <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="font-weight-bold text-dark mb-1" style="font-size:11px;">Admission No (Optional)</label>
-                            <input type="text" class="form-control-compact" placeholder="Search by Adm No" name="admissionNo" id="bulk_admission_no" style="height:28px; font-size:11.5px; border-radius:2px;">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="font-weight-bold text-dark mb-1" style="font-size:11px;">Fee Heads <span class="text-danger">*</span></label>
-                            <select class="form-control-compact select2" multiple id="bulk_fees_master_ids" name="fees_master_ids[]" required style="width:100%; min-height:28px; font-size:11.5px;">
-                            </select>
+                    <div class="theme-filter-card">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="theme-filter-label">Select Class <span class="text-danger">*</span></label>
+                                <select class="form-control-compact w-100" id="bulk_class_type_id" name="class_type_id" required style="height:28px; font-size:11.5px; border-radius:2px;">
+                                    <option value="">-- Choose Class --</option>
+                                    @if(!empty($classType))
+                                        @foreach($classType as $type)
+                                            <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="theme-filter-label">Admission No (Optional)</label>
+                                <input type="text" class="form-control-compact w-100" placeholder="Search by Adm No" name="admissionNo" id="bulk_admission_no" style="height:28px; font-size:11.5px; border-radius:2px;">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="theme-filter-label">Fee Heads <span class="text-danger">*</span></label>
+                                <select class="form-control-compact select2 w-100" multiple id="bulk_fees_master_ids" name="fees_master_ids[]" required data-placeholder="Choose fee head(s)..." style="width:100%; min-height:28px; font-size:11.5px;">
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     {{-- Students Table Container --}}
-                    <div style="border:1px solid #cbd5e1; border-radius:2px; overflow:hidden; margin-bottom:8px;">
-                        <div style="max-height:250px; overflow-y:auto;">
+                    <div class="theme-modal-table-wrap mb-2">
+                        <div style="max-height:260px; overflow-y:auto;">
                             <table class="table table-sm table-bordered table-hover mb-0 text-center" style="font-size:11.5px;">
                                 <thead style="position:sticky; top:0; background:#002C54; color:#ffffff; z-index:2;">
                                     <tr>
-                                        <th style="width:34px; padding:5px;"><input type="checkbox" id="all_students" style="cursor:pointer;"></th>
-                                        <th style="min-width:140px; padding:5px;">Student Name</th>
-                                        <th style="min-width:90px; padding:5px;">Admission No</th>
-                                        <th style="min-width:95px; padding:5px;">Mobile</th>
-                                        <th style="min-width:120px; padding:5px;">Father's Name</th>
-                                        <th style="min-width:100px; padding:5px;">Current Heads</th>
+                                        <th style="width:36px; padding:6px 4px;"><input type="checkbox" id="all_students" style="cursor:pointer;"></th>
+                                        <th style="min-width:140px; padding:6px 8px;" class="text-left">Student Name</th>
+                                        <th style="min-width:90px; padding:6px 8px;">Admission No</th>
+                                        <th style="min-width:95px; padding:6px 8px;">Mobile</th>
+                                        <th style="min-width:120px; padding:6px 8px;" class="text-left">Father's Name</th>
+                                        <th style="min-width:110px; padding:6px 8px;" class="text-left">Current Heads</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody_students_list">
@@ -1182,23 +1404,23 @@ input:checked + .matrix-switch-slider:before {
                     </div>
 
                     {{-- Note Box --}}
-                    <div class="d-flex align-items-center gap-2 p-2" style="background:#eff6ff; border:1px solid #bfdbfe; border-left:3px solid #3b82f6; border-radius:2px; font-size:10.5px; color:#1e293b;">
-                        <i class="fa fa-info-circle text-primary" style="font-size:13px;"></i>
+                    <div class="theme-modal-alert theme-modal-alert-info mb-0">
+                        <i class="fa fa-shield text-primary" style="font-size:13px; margin-top:1px;"></i>
                         <div>
                             <b>Safe Assignment:</b> Already assigned fee heads will be skipped automatically to prevent duplicate fees.
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:6px 12px; display:flex; align-items:center; justify-content:space-between;">
-                    <div style="font-size:11px; color:#64748b;">
-                        Selected: <b id="students_selected_counter" class="text-primary">0</b> student(s)
+                <div class="modal-footer theme-modal-footer">
+                    <div style="font-size:11.5px; color:#475569;">
+                        <i class="fa fa-users text-muted mr-1"></i> Selected: <b id="students_selected_counter" class="text-primary font-weight-bold">0</b> student(s)
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height:27px; font-size:11px;">
+                        <button type="button" class="dash-btn dash-btn-outline" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; font-size:11px; padding:0 12px;">
                             <i class="fa fa-times mr-1"></i> Cancel
                         </button>
-                        <button type="submit" class="dash-btn" style="height:27px; padding:0 12px; font-size:11px; background:#002C54; color:#fff; border-color:#002C54;">
+                        <button type="submit" class="dash-btn dash-btn-primary" style="height:28px; padding:0 14px; font-size:11px; background:#002C54; color:#fff; border-color:#002C54;">
                             <i class="fa fa-check mr-1"></i> Assign Selected Fees
                         </button>
                     </div>
@@ -1210,75 +1432,77 @@ input:checked + .matrix-switch-slider:before {
 
 {{-- 3. Modify Student Fees Modal --}}
 <div class="modal fade" id="fees_modification" tabindex="-1" aria-labelledby="feesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-        <div class="modal-content" style="border:none; border-radius:2px; overflow:hidden; box-shadow:0 20px 45px -8px rgba(0,44,84,0.35);">
-            <div class="modal-header" style="background:linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:space-between;">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width:28px; height:28px; background:rgba(56,189,248,0.18); border:1px solid rgba(56,189,248,0.35); border-radius:2px; color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:13px;">
+    <div class="modal-dialog modal-dialog-centered modal-xl theme-modal-dialog" role="document">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header theme-modal-header">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon">
                         <i class="fa fa-pencil-square-o"></i>
                     </div>
-                    <div>
-                        <h5 class="modal-title" id="feesModalLabel" style="font-size:13px; font-weight:700; color:#fff; margin:0; line-height:1.2;">
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title" id="feesModalLabel">
                             Modify Student Fee Assignments
                         </h5>
-                        <div style="font-size:10px; color:#93c5fd; line-height:1.2; margin-top:1px;">
+                        <div class="theme-modal-subtitle">
                             Search student to adjust discounts, due dates, refund flags, or remove uncollected heads
                         </div>
                     </div>
                 </div>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity:0.85; background:none; border:none; font-size:18px; line-height:1; cursor:pointer;">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
                 </button>
             </div>
 
-            <div class="modal-body" style="padding:10px 12px; background:#ffffff;">
+            <div class="modal-body theme-modal-body">
                 {{-- Search Filter Form --}}
-                <div class="row g-2 mb-2 align-items-end" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:2px; padding:8px;">
-                    <div class="col-md-3">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px;">Class</label>
-                        <select class="form-control-compact" id="class_modification" name="class_type_id" style="height:28px; font-size:11.5px; border-radius:2px;">
-                            <option value="">-- All Classes --</option>
-                            @if(!empty($classType))
-                                @foreach($classType as $type)
-                                    <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px;">Admission No / Student</label>
-                        <input type="text" class="form-control-compact" id="admission_modification" placeholder="Enter Admission No or Student Name" style="height:28px; font-size:11.5px; border-radius:2px;">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="dash-btn" id="searchButton" style="height:28px; width:100%; font-size:11px; background:#002C54; color:#fff; border-color:#002C54;">
-                            <i class="fa fa-search mr-1"></i> Search
-                        </button>
+                <div class="theme-filter-card">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="theme-filter-label">Class Filter</label>
+                            <select class="form-control-compact w-100" id="class_modification" name="class_type_id" style="height:28px; font-size:11.5px; border-radius:2px;">
+                                <option value="">-- All Classes --</option>
+                                @if(!empty($classType))
+                                    @foreach($classType as $type)
+                                        <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="theme-filter-label">Admission No / Student Name</label>
+                            <input type="text" class="form-control-compact w-100" id="admission_modification" placeholder="Enter Admission No or Student Name" style="height:28px; font-size:11.5px; border-radius:2px;">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="dash-btn dash-btn-primary w-100" id="searchButton" style="height:28px; font-size:11px; background:#002C54; color:#fff; border-color:#002C54; display:flex; align-items:center; justify-content:center; gap:5px;">
+                                <i class="fa fa-search"></i> <span>Search Records</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 {{-- Alert Notice --}}
-                <div class="d-flex align-items-start gap-2 p-2 mb-2" style="background:#fffbeb; border:1px solid #fde68a; border-left:3px solid #f59e0b; border-radius:2px; font-size:10.5px; color:#92400e; line-height:1.4;">
-                    <i class="fa fa-exclamation-circle text-warning mt-1" style="font-size:12px;"></i>
+                <div class="theme-modal-alert theme-modal-alert-warning">
+                    <i class="fa fa-exclamation-triangle text-warning" style="font-size:13px; margin-top:1px;"></i>
                     <div>
-                        <b>Important:</b> If payments have already been collected for a fee head, the amount cannot be lowered below the paid sum. Changes to discount, due date, and fine auto-save upon leaving the field.
+                        <b>Important Guard:</b> If payments have already been collected for a fee head, the amount cannot be lowered below the paid sum. Changes to discount, due date, fine %, and refund status auto-save immediately.
                     </div>
                 </div>
 
                 {{-- Table Wrap --}}
-                <div style="border:1px solid #cbd5e1; border-radius:2px; overflow:hidden;">
-                    <div style="max-height:260px; overflow-y:auto;">
+                <div class="theme-modal-table-wrap">
+                    <div style="max-height:280px; overflow-y:auto;">
                         <table class="table table-sm table-bordered table-hover mb-0 text-center" style="font-size:11.5px;">
                             <thead style="position:sticky; top:0; background:#002C54; color:#ffffff; z-index:2;">
                                 <tr>
-                                    <th style="min-width:130px; padding:5px;">Student Name</th>
-                                    <th style="min-width:85px; padding:5px;">Adm No</th>
-                                    <th style="min-width:95px; padding:5px;">Mobile</th>
-                                    <th style="min-width:150px; padding:5px;">Fee Head</th>
-                                    <th style="width:85px; padding:5px;">Discount (₹)</th>
-                                    <th style="min-width:115px; padding:5px;">Due Date</th>
-                                    <th style="width:75px; padding:5px;">Fine %</th>
-                                    <th style="width:75px; padding:5px;">Refundable</th>
-                                    <th style="width:65px; padding:5px;">Action</th>
+                                    <th style="min-width:140px; padding:6px 8px;" class="text-left">Student Name</th>
+                                    <th style="min-width:85px; padding:6px 8px;">Adm No</th>
+                                    <th style="min-width:95px; padding:6px 8px;">Mobile</th>
+                                    <th style="min-width:170px; padding:6px 8px;" class="text-left">Fee Head & Amount</th>
+                                    <th style="width:90px; padding:6px 8px;">Discount (₹)</th>
+                                    <th style="min-width:125px; padding:6px 8px;">Due Date</th>
+                                    <th style="width:75px; padding:6px 8px;">Fine %</th>
+                                    <th style="width:80px; padding:6px 8px;">Refundable</th>
+                                    <th style="width:60px; padding:6px 8px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody_modification">
@@ -1293,8 +1517,11 @@ input:checked + .matrix-switch-slider:before {
                 </div>
             </div>
 
-            <div class="modal-footer" style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:6px 12px; display:flex; justify-content:flex-end;">
-                <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height:27px; padding:0 12px; font-size:11px;">
+            <div class="modal-footer theme-modal-footer">
+                <div style="font-size:11px; color:#64748b;">
+                    <i class="fa fa-info-circle mr-1"></i> Changes auto-save when you edit a field and click outside
+                </div>
+                <button type="button" class="dash-btn dash-btn-outline" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; padding:0 14px; font-size:11px;">
                     <i class="fa fa-times mr-1"></i> Close
                 </button>
             </div>
@@ -1367,6 +1594,23 @@ $(document).ready(function() {
     });
 
     // 5. Bulk Assign Students Modal Logic
+    if ($.fn.select2) {
+        $('#bulk_fees_master_ids').select2({
+            dropdownParent: $('#students_list_modal'),
+            placeholder: 'Choose fee head(s)...',
+            width: '100%'
+        });
+    }
+    $('#students_list_modal').on('shown.bs.modal', function() {
+        if ($.fn.select2) {
+            $('#bulk_fees_master_ids').select2({
+                dropdownParent: $('#students_list_modal'),
+                placeholder: 'Choose fee head(s)...',
+                width: '100%'
+            });
+        }
+    });
+
     $('#all_students').on('click', function() {
         $('.student_select_checkbox').prop('checked', this.checked);
         updateStudentsCount();
@@ -1390,7 +1634,7 @@ $(document).ready(function() {
 
         if (!class_type_id) {
             $('#tbody_students_list').html('<tr><td colspan="6" class="text-center py-4 text-muted" style="font-size:11.5px;"><i class="fa fa-info-circle text-info mr-1"></i> Please select a class above to load enrolled students.</td></tr>');
-            $('#bulk_fees_master_ids').html('');
+            $('#bulk_fees_master_ids').html('').trigger('change');
             $('#students_selected_counter').text('0');
             return;
         }
@@ -1449,9 +1693,9 @@ $(document).ready(function() {
                         var name = response[i].fees_group_name || ('Head #' + response[i].id);
                         options.push('<option value="' + response[i].id + '">' + name + '</option>');
                     }
-                    $('#bulk_fees_master_ids').html(options.join(''));
+                    $('#bulk_fees_master_ids').html(options.join('')).trigger('change');
                 } else {
-                    $('#bulk_fees_master_ids').html('');
+                    $('#bulk_fees_master_ids').html('').trigger('change');
                 }
             },
             error: function(xhr) {
