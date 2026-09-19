@@ -668,48 +668,315 @@ select.excel-col-filter option {
     color: #f1f5f9;
 }
 
-/* Generator Modal Theme */
-.generator-modal-content {
+/* ==========================================================================
+   ARISE ERP - GENERATE CREDENTIALS MODAL THEME
+   ========================================================================== */
+.gen-modal-dialog {
+    max-width: 470px;
+    margin: 1.75rem auto;
+}
+.gen-modal-content {
+    background: #ffffff !important;
+    border-radius: 3px !important;
+    border: 1px solid rgba(0, 44, 84, 0.2) !important;
+    box-shadow: 0 15px 35px -5px rgba(0, 44, 84, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    overflow: hidden !important;
+}
+
+/* Modal Header */
+.gen-modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 52px;
+}
+.gen-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.gen-header-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.35);
     border-radius: 3px;
-    overflow: hidden;
-    border: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,.2);
-}
-.generator-modal-header {
-    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
-    color: #ffffff;
-    padding: 10px 14px;
-}
-.generator-modal-header .modal-title {
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
-    font-weight: 700;
+    flex-shrink: 0;
 }
-.preview-formula-card {
+.gen-kicker {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #38bdf8;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+.gen-modal-header .modal-title {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    display: block !important;
+    letter-spacing: .015em !important;
+}
+.gen-close-btn {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+    width: 28px;
+    height: 28px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s ease;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none !important;
+    text-shadow: none !important;
+}
+.gen-close-btn:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+}
+
+/* Modal Body */
+.gen-modal-body {
+    padding: 14px 16px !important;
+    background: #ffffff !important;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+/* Info Banner */
+.gen-info-banner {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 3px solid #10b981;
+    border-radius: 2px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.gen-info-icon {
+    color: #059669;
+    font-size: 13px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+.gen-info-text {
+    font-size: 11px;
+    color: #1e293b;
+    line-height: 1.4;
+}
+.gen-info-text strong {
+    color: #065f46;
+    display: block;
+    margin-bottom: 1px;
+    font-size: 11px;
+}
+
+/* Pattern Card */
+.gen-pattern-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 3px;
-    padding: 10px;
-    margin-bottom: 12px;
+    overflow: hidden;
 }
-.formula-item {
+.gen-pattern-head {
+    background: #edf2f7;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 5px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: .04em;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 4px 0;
+}
+.gen-pattern-body {
+    padding: 7px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.gen-pattern-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 0;
     border-bottom: 1px dashed #e2e8f0;
+    gap: 8px;
 }
-.formula-item:last-child {
+.gen-pattern-row:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
-.formula-label {
+.gen-row-label {
     font-size: 11px;
-    color: #64748b;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
 }
-.formula-val {
-    font-family: ui-monospace, monospace;
+.gen-rule-pill {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.gen-rule-pill.pill-cyan {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+.gen-rule-pill.pill-slate {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+/* Target Student Selection Counter Panel */
+.gen-target-box {
+    background: linear-gradient(135deg, #002C54 0%, #0c3b6d 100%);
+    border: 1px solid #001f3d;
+    border-radius: 3px;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ffffff;
+}
+.gen-target-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #38bdf8;
+    flex-shrink: 0;
+}
+.gen-target-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+}
+.gen-target-desc {
+    font-size: 9.5px;
+    color: #93c5fd;
+    line-height: 1.2;
+    margin-top: 1px;
+}
+.gen-target-count-badge {
+    background: #0284c7;
+    color: #ffffff;
     font-size: 12px;
     font-weight: 700;
-    color: #0284c7;
+    padding: 3px 10px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    letter-spacing: .02em;
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Modal Footer */
+.gen-modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+}
+.gen-btn-cancel {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 11.5px;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .15s;
+}
+.gen-btn-cancel:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+    border-color: #94a3b8 !important;
+}
+.gen-btn-submit {
+    height: 28px;
+    padding: 0 14px;
+    font-size: 11.5px;
+    background: #0284c7 !important;
+    border: 1px solid #0284c7 !important;
+    color: #ffffff !important;
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.3);
+    transition: all .15s;
+}
+.gen-btn-submit:hover {
+    background: #0369a1 !important;
+    border-color: #0369a1 !important;
+}
+.gen-btn-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+@media (max-width: 576px) {
+    .gen-modal-dialog {
+        width: calc(100% - 16px) !important;
+        margin: 0.5rem auto !important;
+    }
+    .gen-modal-body {
+        padding: 12px !important;
+    }
+    .gen-pattern-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+    .gen-rule-pill {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 @media(max-width:768px) {
@@ -893,9 +1160,9 @@ select.excel-col-filter option {
 </div>
 
 {{-- Credential Generation Modal --}}
-<div class="modal fade" id="generateModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
-        <form id="generateForm" action="{{ url('studentUserNameCreate') }}" method="POST" class="modal-content generator-modal-content">
+<div class="modal fade" id="generateModal" tabindex="-1" role="dialog" aria-labelledby="generateModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered gen-modal-dialog" role="document">
+        <form id="generateForm" action="{{ url('studentUserNameCreate') }}" method="POST" class="modal-content gen-modal-content">
             @csrf
             <input type="hidden" name="class_type_id" id="hiddenClassTypeId" value="{{ $selectedClassId }}">
             <input type="hidden" name="student_ids" id="hiddenStudentIds">
@@ -904,44 +1171,84 @@ select.excel-col-filter option {
             <input type="hidden" name="name_letters" value="4">
             <input type="hidden" name="mobile_digits" value="4">
 
-            <div class="modal-header generator-modal-header">
-                <div>
-                    <span class="text-info font-size-10 text-uppercase letter-spacing-1 font-weight-bold">Batch Tool</span>
-                    <h5 class="modal-title text-white mt-1"><i class="fa fa-magic mr-1"></i> Generate Login Credentials</h5>
+            {{-- Modal Header --}}
+            <div class="modal-header gen-modal-header">
+                <div class="gen-header-content">
+                    <div class="gen-header-icon">
+                        <i class="fa fa-magic"></i>
+                    </div>
+                    <div>
+                        <div class="gen-kicker">Batch Processing Tool</div>
+                        <h5 class="modal-title" id="generateModalTitle">Generate Login Credentials</h5>
+                    </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="close gen-close-btn" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
 
-            <div class="modal-body p-3">
-                <div class="alert alert-info py-2 px-3 font-size-11 mb-3">
-                    <strong>Standard Rule:</strong> Username &amp; Password will be generated consistently from student name and mobile number.
-                </div>
-
-                <div class="preview-formula-card">
-                    <div class="formula-item">
-                        <span class="formula-label">Username Formula</span>
-                        <span class="formula-val">Name (4) + Mobile (Last 4)</span>
-                    </div>
-                    <div class="formula-item">
-                        <span class="formula-label">Password Formula</span>
-                        <span class="formula-val">Mobile (Last 4 digits)</span>
-                    </div>
-                    <div class="formula-item">
-                        <span class="formula-label">Example Output</span>
-                        <span class="formula-val text-success">ravi3210 / 3210</span>
+            {{-- Modal Body --}}
+            <div class="modal-body gen-modal-body">
+                
+                {{-- 1. Standard Rule Banner --}}
+                <div class="gen-info-banner">
+                    <i class="fa fa-shield gen-info-icon"></i>
+                    <div class="gen-info-text">
+                        <strong>Standard Credential Rule:</strong>
+                        Usernames and passwords will be generated consistently based on each student's registered first name and mobile number.
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between p-2 bg-light border rounded">
-                    <span class="font-size-12 text-muted">Selected Students to Update:</span>
-                    <span class="badge bg-primary font-size-13 px-2 py-1" id="modal-selected-count">0</span>
+                {{-- 2. Credential Pattern Card --}}
+                <div class="gen-pattern-card">
+                    <div class="gen-pattern-head">
+                        <i class="fa fa-sliders text-info mr-1"></i> Pattern Configuration
+                    </div>
+                    <div class="gen-pattern-body">
+                        <div class="gen-pattern-row">
+                            <span class="gen-row-label"><i class="fa fa-user-circle-o mr-1 text-muted"></i> Username Formula:</span>
+                            <span class="gen-rule-pill pill-cyan">First Name (4 chars) + Mobile (Last 4)</span>
+                        </div>
+                        <div class="gen-pattern-row">
+                            <span class="gen-row-label"><i class="fa fa-key mr-1 text-muted"></i> Password Formula:</span>
+                            <span class="gen-rule-pill pill-slate">Mobile (Last 4 digits)</span>
+                        </div>
+                        <div class="gen-pattern-row">
+                            <span class="gen-row-label"><i class="fa fa-check-circle mr-1 text-success"></i> Example Output:</span>
+                            <div class="d-inline-flex align-items-center" style="gap: 4px;">
+                                <span class="cred-pill cred-pill-user">ravi3210</span>
+                                <span class="text-muted font-weight-bold" style="font-size: 11px;">/</span>
+                                <span class="cred-pill cred-pill-pass">3210</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                {{-- 3. Selection Counter Panel --}}
+                <div class="gen-target-box">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="gen-target-icon">
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="gen-target-title">Target Students Selected</div>
+                            <div class="gen-target-desc">Credentials will be generated for these records</div>
+                        </div>
+                    </div>
+                    <span class="gen-target-count-badge" title="Number of selected students">
+                        <span id="modal-selected-count">0</span>
+                    </span>
+                </div>
+
             </div>
 
-            <div class="modal-footer py-2 bg-light justify-content-end">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" data-dismiss="modal">Cancel</button>
-                <button type="submit" id="btn-submit-generation" class="btn btn-primary btn-sm font-weight-bold">
-                    <i class="fa fa-check mr-1"></i> Confirm &amp; Generate
+            {{-- Modal Footer --}}
+            <div class="modal-footer gen-modal-footer">
+                <button type="button" class="dash-btn gen-btn-cancel" data-dismiss="modal" data-bs-dismiss="modal">
+                    <i class="fa fa-times mr-1"></i> Cancel
+                </button>
+                <button type="submit" id="btn-submit-generation" class="dash-btn gen-btn-submit">
+                    <i class="fa fa-magic mr-1"></i> Confirm &amp; Generate
                 </button>
             </div>
         </form>
@@ -1211,7 +1518,18 @@ $(document).ready(function() {
         $('#hiddenStudentIds').val(selectedIds.join(','));
         $('#hiddenClassTypeId').val($('#filter-class').val() || '');
         $('#modal-selected-count').text(selectedIds.length);
+        $('#btn-submit-generation').prop('disabled', false).html('<i class="fa fa-magic mr-1"></i> Confirm &amp; Generate');
         $('#generateModal').modal('show');
+    });
+
+    // Form submission state
+    $('#generateForm').on('submit', function() {
+        var $btn = $('#btn-submit-generation');
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Generating...');
+    });
+
+    $('#generateModal').on('hidden.bs.modal', function() {
+        $('#btn-submit-generation').prop('disabled', false).html('<i class="fa fa-magic mr-1"></i> Confirm &amp; Generate');
     });
 
     updateExportLinks();
