@@ -473,6 +473,183 @@ select.excel-col-filter option {
     gap: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,.3);
 }
+
+/* ==========================================================================
+   ARISE ERP - UNIFIED SIGNATURE MODALS (Always Centered & Theme Aligned)
+   ========================================================================== */
+.modal.fade .theme-modal-dialog {
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out !important;
+    transform: scale(0.96) !important;
+}
+.modal.show .theme-modal-dialog {
+    transform: scale(1) !important;
+}
+.theme-modal-dialog {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: calc(100vh - 40px) !important;
+    margin: 20px auto !important;
+    max-width: 500px !important;
+    width: 95% !important;
+}
+.theme-modal-content {
+    border: none !important;
+    border-radius: 3px !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 44, 84, 0.45), 0 0 0 1px rgba(0, 44, 84, 0.1) !important;
+    background: #ffffff !important;
+    width: 100% !important;
+}
+.theme-modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 9px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 48px !important;
+    border-top-left-radius: 3px !important;
+    border-top-right-radius: 3px !important;
+}
+.theme-modal-title-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.theme-modal-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    background: rgba(56, 189, 248, 0.18) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 3px !important;
+    color: #38bdf8 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    flex-shrink: 0 !important;
+}
+.theme-modal-headings {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+}
+.theme-modal-headings .theme-modal-title,
+.theme-modal-headings h5.modal-title,
+.theme-modal-headings h5 {
+    display: block !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+}
+.theme-modal-subtitle {
+    display: block !important;
+    font-size: 10.5px !important;
+    color: #93c5fd !important;
+    margin: 2px 0 0 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+}
+.theme-modal-close {
+    color: #ffffff !important;
+    opacity: 0.85 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 3px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: all 0.15s ease !important;
+    padding: 0 !important;
+    outline: none !important;
+    line-height: 1 !important;
+}
+.theme-modal-close:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+}
+.theme-modal-body {
+    padding: 16px 18px !important;
+    background: #ffffff !important;
+}
+.theme-modal-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+}
+.theme-modal-input {
+    width: 100% !important;
+    height: 34px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    padding: 6px 10px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    outline: none !important;
+}
+.theme-modal-input:focus {
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.15) !important;
+}
+.theme-modal-alert {
+    padding: 8px 12px !important;
+    border-radius: 2px !important;
+    font-size: 11px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    line-height: 1.4 !important;
+}
+.theme-modal-alert-info {
+    background: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+    border-left: 3px solid #3b82f6 !important;
+    color: #1e3a8a !important;
+}
+.theme-modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 9px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-height: 46px !important;
+}
+.dash-btn-primary {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+}
+.dash-btn-primary:hover {
+    background: #001f3d !important;
+    border-color: #001f3d !important;
+    color: #ffffff !important;
+}
 </style>
 @endsection
 
@@ -602,30 +779,47 @@ select.excel-col-filter option {
 </div>
 
 <!-- Add Role Modal -->
-<div class="modal fade" id="addRoleModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54;">
-            <div class="modal-header" style="background:#002C54; color:#fff; padding:8px 12px;">
-                <h5 class="modal-title font-weight-bold" style="font-size:13px;">
-                    <i class="fa fa-plus-circle mr-1 text-info"></i> Add New Role
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+<div class="modal fade" id="addRoleModal" tabindex="-1" role="dialog" aria-labelledby="addRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md theme-modal-dialog" role="document">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header theme-modal-header">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon">
+                        <i class="fa fa-plus-circle"></i>
+                    </div>
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title" id="addRoleModalLabel">
+                            Add New Role
+                        </h5>
+                        <div class="theme-modal-subtitle">
+                            Define a new system or staff role for access control
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
+                </button>
             </div>
             <form id="formAddRole" action="{{ url('role_add') }}" method="post">
                 @csrf
-                <div class="modal-body" style="font-size:12px; padding:14px;">
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Role Name <span class="text-danger">*</span></label>
-                        <input type="text" name="role" class="form-control form-control-sm" placeholder="e.g. Academic Coordinator, Accountant, Librarian" required style="border-radius:2px; font-size:12px;">
+                <div class="modal-body theme-modal-body">
+                    <div class="form-group mb-3">
+                        <label class="theme-modal-label">Role Name <span class="text-danger">*</span></label>
+                        <input type="text" name="role" id="addRoleInput" class="theme-modal-input" placeholder="e.g. Academic Coordinator, Accountant, Librarian" required autocomplete="off">
                     </div>
-                    <div class="p-2 border rounded small text-muted mt-3" style="background:#f0f9ff; border-color:#bae6fd; font-size:11px;">
-                        <i class="fa fa-info-circle text-info mr-1"></i> Once created, click <strong>Permissions</strong> in the table to assign module-level access permissions.
+                    <div class="theme-modal-alert theme-modal-alert-info">
+                        <i class="fa fa-shield text-primary" style="font-size:14px; margin-top:2px;"></i>
+                        <div>
+                            <strong>Access Guard:</strong> Once created, click <strong>Permissions</strong> in the directory table to assign module-level read, write, and delete privileges.
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0;">
-                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#334155;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff; border-color:#002C54;">
-                        <i class="fa fa-save mr-1"></i> Save Role
+                <div class="modal-footer theme-modal-footer">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; padding:0 14px; font-size:11px;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" id="btnAddRoleSubmit" class="dash-btn dash-btn-primary" style="height:28px; padding:0 16px; font-size:11px;">
+                        <i class="fa fa-check mr-1"></i> Save Role
                     </button>
                 </div>
             </form>
@@ -634,27 +828,41 @@ select.excel-col-filter option {
 </div>
 
 <!-- Edit Role Modal -->
-<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54;">
-            <div class="modal-header" style="background:#002C54; color:#fff; padding:8px 12px;">
-                <h5 class="modal-title font-weight-bold" style="font-size:13px;">
-                    <i class="fa fa-edit mr-1 text-info"></i> Edit Role Name
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+<div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-labelledby="editRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md theme-modal-dialog" role="document">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header theme-modal-header">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon">
+                        <i class="fa fa-pencil-square-o"></i>
+                    </div>
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title" id="editRoleModalLabel">
+                            Edit Role Name
+                        </h5>
+                        <div class="theme-modal-subtitle">
+                            Update role title and identifier across the system
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
+                </button>
             </div>
             <form id="formEditRole" method="post">
                 @csrf
-                <div class="modal-body" style="font-size:12px; padding:14px;">
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Role Name <span class="text-danger">*</span></label>
-                        <input type="text" name="role" id="editRoleName" class="form-control form-control-sm" required style="border-radius:2px; font-size:12px;">
+                <div class="modal-body theme-modal-body">
+                    <div class="form-group mb-0">
+                        <label class="theme-modal-label">Role Name <span class="text-danger">*</span></label>
+                        <input type="text" name="role" id="editRoleName" class="theme-modal-input" placeholder="Enter role name" required autocomplete="off">
                     </div>
                 </div>
-                <div class="modal-footer" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0;">
-                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#334155;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff; border-color:#002C54;">
-                        <i class="fa fa-save mr-1"></i> Update Role
+                <div class="modal-footer theme-modal-footer">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; padding:0 14px; font-size:11px;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" id="btnEditRoleSubmit" class="dash-btn dash-btn-primary" style="height:28px; padding:0 16px; font-size:11px;">
+                        <i class="fa fa-check mr-1"></i> Update Role
                     </button>
                 </div>
             </form>
@@ -777,6 +985,105 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('formEditRole').action = `{{ url('role_edit') }}/${id}`;
         }
     });
+
+    // AJAX submit for Add Role Form
+    const formAddRole = document.getElementById('formAddRole');
+    if (formAddRole) {
+        formAddRole.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnAddRoleSubmit');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Saving...';
+
+            const formData = new FormData(formAddRole);
+
+            fetch(formAddRole.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+                if (data.status === 'success') {
+                    $('#addRoleModal').modal('hide');
+                    formAddRole.reset();
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(data.message || 'Role added successfully.');
+                    }
+                    fetchRoles(1);
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(data.message || 'Failed to add role.');
+                    } else {
+                        alert(data.message || 'Failed to add role.');
+                    }
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+                console.error('Error adding role:', err);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('An error occurred while saving role.');
+                }
+            });
+        });
+    }
+
+    // AJAX submit for Edit Role Form
+    const formEditRole = document.getElementById('formEditRole');
+    if (formEditRole) {
+        formEditRole.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnEditRoleSubmit');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Updating...';
+
+            const formData = new FormData(formEditRole);
+
+            fetch(formEditRole.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+                if (data.status === 'success') {
+                    $('#editRoleModal').modal('hide');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success(data.message || 'Role edited successfully.');
+                    }
+                    fetchRoles(currentPage);
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(data.message || 'Failed to update role.');
+                    } else {
+                        alert(data.message || 'Failed to update role.');
+                    }
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+                console.error('Error updating role:', err);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('An error occurred while updating role.');
+                }
+            });
+        });
+    }
 });
 </script>
 
