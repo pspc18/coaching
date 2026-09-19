@@ -63,34 +63,40 @@
 .dash-btn {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
     text-decoration: none !important;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all .15s;
-    line-height: 1.4;
+    transition: all .15s ease;
+    line-height: 1;
+    gap: 5px;
+    white-space: nowrap;
 }
 .dash-btn-light {
-    background: #fff;
+    background: #ffffff;
     color: #002C54;
-    border-color: #fff;
+    border-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 .dash-btn-light:hover {
     background: #f1f5f9;
     color: #001f3d;
+    border-color: #f1f5f9;
 }
 .dash-btn-outline {
     background: transparent;
-    color: #fff;
-    border-color: rgba(255,255,255,.4);
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.4);
 }
 .dash-btn-outline:hover {
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    border-color: #fff;
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border-color: #ffffff;
 }
 
 /* Table Card & Header - Dark Navy Unified */
@@ -121,13 +127,19 @@
     line-height: 1.2;
 }
 .badge-total-records {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
     font-size: 10.5px;
     font-weight: 600;
-    background: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.14);
     color: #f1f5f9;
-    padding: 3px 8px;
+    padding: 0 8px;
     border-radius: 2px;
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.18);
+    white-space: nowrap;
+    line-height: 1;
 }
 
 /* Scrollable Table Viewport */
@@ -291,29 +303,22 @@ select.excel-col-filter option {
     background: #e2e8f0;
 }
 
-/* Action Buttons */
+/* Action Buttons & Badges (Standardized ERP Theme) */
 .btn-action-icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 2px;
-    font-size: 10.5px;
+    font-size: 11px;
     border: 1px solid transparent;
     cursor: pointer;
     text-decoration: none !important;
-    transition: all .15s;
+    transition: all .15s ease;
     line-height: 1;
-}
-.btn-action-view {
-    background: #faf5ff;
-    color: #7c3aed;
-    border: 1px solid #e9d5ff;
-}
-.btn-action-view:hover {
-    background: #7c3aed;
-    color: #fff;
+    padding: 0;
 }
 .btn-action-edit {
     background: #eff6ff;
@@ -322,7 +327,8 @@ select.excel-col-filter option {
 }
 .btn-action-edit:hover {
     background: #2563eb;
-    color: #fff;
+    color: #ffffff;
+    border-color: #2563eb;
 }
 .btn-action-delete {
     background: #fef2f2;
@@ -331,7 +337,107 @@ select.excel-col-filter option {
 }
 .btn-action-delete:hover {
     background: #dc2626;
-    color: #fff;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+.btn-action-disabled {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+}
+.btn-role-permissions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none !important;
+    background: #faf5ff;
+    color: #7c3aed;
+    border: 1px solid #e9d5ff;
+    transition: all .15s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: 1;
+}
+.btn-role-permissions:hover {
+    background: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+}
+.badge-role-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    background: #e2e8f0;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+    line-height: 1;
+}
+.badge-role-system {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    white-space: nowrap;
+    line-height: 1;
+}
+.badge-role-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    white-space: nowrap;
+    line-height: 1;
+}
+.badge-staff-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+    line-height: 1;
+}
+.badge-staff-count.has-users {
+    background: #eff6ff;
+    color: #0369a1;
+    border-color: #bae6fd;
 }
 
 /* Bottom Pagination Toolbar - Dark Navy */
@@ -367,14 +473,16 @@ select.excel-col-filter option {
     color: #cbd5e1;
 }
 .rows-per-page-selector select {
+    height: 24px;
     background: #051e38;
     color: #ffffff;
     border: 1px solid rgba(255,255,255,.25);
     border-radius: 2px;
-    padding: 2px 5px;
+    padding: 0 6px;
     font-size: 11px;
     outline: none;
     cursor: pointer;
+    line-height: 22px;
 }
 .pagination-nav {
     display: flex;
@@ -382,7 +490,7 @@ select.excel-col-filter option {
     gap: 3px;
 }
 .page-btn {
-    width: 26px;
+    width: 24px;
     height: 24px;
     display: inline-flex;
     align-items: center;
@@ -392,8 +500,10 @@ select.excel-col-filter option {
     border: 1px solid rgba(255,255,255,.25);
     border-radius: 2px;
     cursor: pointer;
-    font-size: 12px;
-    transition: all .15s;
+    font-size: 11px;
+    transition: all .15s ease;
+    padding: 0;
+    line-height: 1;
 }
 .page-btn:hover:not(:disabled) {
     background: #0284c7;
