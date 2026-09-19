@@ -159,6 +159,7 @@ class RoleController extends Controller
         if ($request->isMethod('post')) {
             $modules = $request->modules ?? [];
             $subModules = $request->sub_modules ?? [];
+            $syncToUsers = $request->input('sync_to_users', 1);
 
             foreach ($modules as $moduleId => $permTypes) {
                 $data = [
@@ -181,13 +182,139 @@ class RoleController extends Controller
                 );
             }
 
-            return response()->json(['status' => 'success', 'message' => 'Role Permissions saved successfully!']);
+            // Sync to existing users assigned to this role based on sync_mode
+            $syncMode = $request->input('sync_mode', $request->input('sync_to_users') ? 'default_only' : 'none');
+            $syncedCount = 0;
+            $skippedCount = 0;
+
+            if ($syncMode !== 'none') {
+                $allRoleUserIds = DB::table('users')->where('role_id', $role_id)->whereNull('deleted_at')->pluck('id')->toArray();
+
+                $customUserIds = DB::table('user_permission')
+                    ->whereIn('user_id', $allRoleUserIds)
+                    ->pluck('user_id')
+                    ->unique()
+                    ->toArray();
+
+                if ($syncMode === 'default_only') {
+                    $targetUserIds = array_values(array_diff($allRoleUserIds, $customUserIds));
+                    $skippedCount = count($customUserIds);
+                } else {
+                    $targetUserIds = $allRoleUserIds;
+                }
+
+                $syncedCount = count($targetUserIds);
+
+                foreach ($targetUserIds as $uid) {
+                    foreach ($modules as $moduleId => $permTypes) {
+                        $userRow = [
+                            'sidebar_name'   => DB::table('sidebars')->where('id', $moduleId)->value('name') ?? '',
+                            'updated_at'     => now(),
+                            'deleted_at'     => null,
+                            'sub_sidebar_id' => !empty($subModules[$moduleId] ?? []) ? implode(',', $subModules[$moduleId]) : null
+                        ];
+
+                        foreach ($permissionTypes as $type) {
+                            $userRow[$type] = in_array($type, $permTypes) ? 1 : 0;
+                        }
+
+                        DB::table('user_permission')->updateOrInsert(
+                            ['user_id' => $uid, 'sidebar_id' => $moduleId],
+                            $userRow
+                        );
+                    }
+                }
+            }
+
+            $successMsg = 'Role permissions saved successfully!';
+            if ($syncMode === 'default_only' && $syncedCount > 0) {
+                $successMsg .= " Synced to {$syncedCount} default staff" . ($skippedCount > 0 ? " (skipped {$skippedCount} staff with custom permissions)." : ".");
+            } elseif ($syncMode === 'all' && $syncedCount > 0) {
+                $successMsg .= " Synced to all {$syncedCount} staff members.";
+            }
+
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => $successMsg]);
+            }
+
+            return redirect()->back()->with('message', $successMsg);
         }
+
+        $role = DB::table('role')->where('id', $role_id)->first();
+        $users = DB::table('users')
+            ->where('role_id', $role_id)
+            ->whereNull('deleted_at')
+            ->select('id', 'first_name', 'userName', 'mobile')
+            ->orderBy('first_name', 'ASC')
+            ->get();
+
+        $customUserIds = DB::table('user_permission')
+            ->whereIn('user_id', $users->pluck('id'))
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
 
         $modules = DB::table('sidebars')->whereNull('deleted_at')->get();
         $subs = DB::table('sidebar_sub')->whereNull('deleted_at')->get()->groupBy('sidebar_id');
         $rolePermissions = DB::table('role_permissions')->where('role_id', $role_id)->get()->keyBy('sidebar_id');
 
-        return view('master.role.permissions', compact('modules', 'subs', 'rolePermissions', 'role_id'));
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'role' => $role,
+                'html' => view('master.role.permissions_partial', compact('role', 'users', 'modules', 'subs', 'rolePermissions', 'role_id', 'permissionTypes', 'customUserIds'))->render()
+            ]);
+        }
+
+        return view('master.role.permissions', compact('role', 'users', 'modules', 'subs', 'rolePermissions', 'role_id', 'permissionTypes', 'customUserIds'));
+    }
+
+    public function user_permission_data(Request $request, $user_id)
+    {
+        $user = DB::table('users')->where('id', $user_id)->first();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
+        }
+
+        $permissions = DB::table('user_permission')->where('user_id', $user_id)->get()->keyBy('sidebar_id');
+        $rolePermissions = DB::table('role_permissions')->where('role_id', $user->role_id)->get()->keyBy('sidebar_id');
+
+        return response()->json([
+            'status' => 'success',
+            'user' => $user,
+            'permissions' => $permissions,
+            'role_permissions' => $rolePermissions
+        ]);
+    }
+
+    public function user_permission_save(Request $request, $user_id)
+    {
+        $permissionTypes = ['add', 'edit', 'view', 'delete', 'status', 'print'];
+        $modules = $request->modules ?? [];
+        $subModules = $request->sub_modules ?? [];
+
+        foreach ($modules as $moduleId => $permTypes) {
+            $data = [
+                'sidebar_name' => DB::table('sidebars')->where('id', $moduleId)->value('name') ?? '',
+                'updated_at' => now(),
+                'user_id' => $user_id,
+                'sidebar_id' => $moduleId,
+                'deleted_at' => null
+            ];
+
+            foreach ($permissionTypes as $type) {
+                $data[$type] = in_array($type, $permTypes) ? 1 : 0;
+            }
+
+            $subSelected = $subModules[$moduleId] ?? [];
+            $data['sub_sidebar_id'] = !empty($subSelected) ? implode(',', $subSelected) : null;
+
+            DB::table('user_permission')->updateOrInsert(
+                ['user_id' => $user_id, 'sidebar_id' => $moduleId],
+                $data
+            );
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'User-specific permissions saved successfully!']);
     }
 }

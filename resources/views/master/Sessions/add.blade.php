@@ -63,24 +63,50 @@
 .dash-btn {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
     text-decoration: none !important;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all .15s;
-    line-height: 1.4;
+    transition: all .15s ease;
+    line-height: 1;
+    gap: 5px;
+    white-space: nowrap;
 }
 .dash-btn-light {
-    background: #fff;
+    background: #ffffff;
     color: #002C54;
-    border-color: #fff;
+    border-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 .dash-btn-light:hover {
     background: #f1f5f9;
     color: #001f3d;
+    border-color: #f1f5f9;
+}
+.dash-btn-outline {
+    background: transparent;
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.4);
+}
+.dash-btn-outline:hover {
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border-color: #ffffff;
+}
+.dash-btn-primary {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+.dash-btn-primary:hover {
+    background: #001f3d;
+    color: #ffffff;
+    border-color: #001f3d;
 }
 
 /* Table Card & Header - Dark Navy Unified */
@@ -111,13 +137,113 @@
     line-height: 1.2;
 }
 .badge-total-records {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
     font-size: 10.5px;
     font-weight: 600;
-    background: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.14);
     color: #f1f5f9;
-    padding: 3px 8px;
+    padding: 0 8px;
     border-radius: 2px;
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.18);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Badges for Table Rows */
+.badge-session-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    background: #e2e8f0;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    line-height: 1;
+}
+.badge-session-active {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    border-radius: 2px;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-session-standard {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-session-active-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 2px;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.badge-session-year {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e293b;
+    background: #f1f5f9;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+}
+
+#deleteSessionModal .modal-header,
+#addSessionModal .modal-header,
+#editSessionModal .modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+}
+#deleteSessionModal .modal-body {
+    text-align: left !important;
+    padding: 16px 18px !important;
+}
+#deleteSessionModal .modal-body p {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
 }
 
 /* Scrollable Table Viewport */
@@ -234,8 +360,9 @@
 }
 
 .btn-clear-filters {
-    width: 26px;
-    height: 26px;
+    width: 27px;
+    height: 27px;
+    min-width: 27px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -245,6 +372,8 @@
     color: #ffffff;
     cursor: pointer;
     font-size: 11px;
+    line-height: 1;
+    padding: 0;
     transition: all .15s;
 }
 .btn-clear-filters:hover {
@@ -276,16 +405,18 @@
 .btn-action-icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 2px;
-    font-size: 10.5px;
+    font-size: 11px;
     border: 1px solid transparent;
     cursor: pointer;
     text-decoration: none !important;
     transition: all .15s;
     line-height: 1;
+    padding: 0;
 }
 .btn-action-edit {
     background: #eff6ff;
@@ -356,6 +487,7 @@
 .page-btn {
     width: 26px;
     height: 24px;
+    min-width: 26px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -364,7 +496,9 @@
     border: 1px solid rgba(255,255,255,.25);
     border-radius: 2px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1;
+    padding: 0;
     transition: all .15s;
 }
 .page-btn:hover:not(:disabled) {
@@ -568,31 +702,40 @@
 
 <!-- Modal: Add Session -->
 <div class="modal fade" id="addSessionModal" tabindex="-1" role="dialog" aria-labelledby="addSessionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="addSessionModalLabel" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-plus-circle mr-1"></i> Add Academic Session
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9; outline: none;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px !important; width: 95% !important;">
+        <div class="modal-content" style="border-radius: 3px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 16px 36px rgba(0,44,84,.35); background: #ffffff;">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #fff; padding: 8px 14px; min-height: 42px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-plus-circle"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold" id="addSessionModalLabel" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Add Academic Session
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -6px -10px -6px auto; padding: 6px 10px; opacity: .85; outline: none; font-size: 18px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form id="addSessionForm" action="{{ url('session_add') }}" method="post">
                 @csrf
-                <div class="modal-body" style="padding: 14px; font-size: 12px; background: #fff;">
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">From Year <span class="text-danger">*</span></label>
-                        <input type="text" name="from_year" class="form-control form-control-sm" placeholder="e.g. 2026" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off">
+                <div class="modal-body" style="padding: 16px 18px; font-size: 12px; background: #ffffff;">
+                    <div class="form-group mb-3">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">From Year <span class="text-danger">*</span></label>
+                        <input type="text" name="from_year" class="form-control form-control-sm" placeholder="e.g. 2026" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off" style="border-radius: 2px; font-size: 12px; height: 32px;">
                     </div>
-                    <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">To Year <span class="text-danger">*</span></label>
-                        <input type="text" name="to_year" class="form-control form-control-sm" placeholder="e.g. 27 or 2027" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off">
+                    <div class="form-group mb-1">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">To Year <span class="text-danger">*</span></label>
+                        <input type="text" name="to_year" class="form-control form-control-sm" placeholder="e.g. 27 or 2027" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off" style="border-radius: 2px; font-size: 12px; height: 32px;">
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="btnSubmitAddSession" style="font-size: 11px; padding: 4px 12px; background: #002C54; border-color: #002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 8px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary" id="btnSubmitAddSession" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px;">
                         <i class="fa fa-save mr-1"></i> Save Session
                     </button>
                 </div>
@@ -603,32 +746,41 @@
 
 <!-- Modal: Edit Session -->
 <div class="modal fade" id="editSessionModal" tabindex="-1" role="dialog" aria-labelledby="editSessionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="editSessionModalLabel" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-edit mr-1"></i> Edit Academic Session
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9; outline: none;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px !important; width: 95% !important;">
+        <div class="modal-content" style="border-radius: 3px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 16px 36px rgba(0,44,84,.35); background: #ffffff;">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #fff; padding: 8px 14px; min-height: 42px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-edit"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold" id="editSessionModalLabel" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Edit Academic Session
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -6px -10px -6px auto; padding: 6px 10px; opacity: .85; outline: none; font-size: 18px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form id="editSessionForm" method="post">
                 @csrf
                 <input type="hidden" id="edit_session_id" name="id" value="">
-                <div class="modal-body" style="padding: 14px; font-size: 12px; background: #fff;">
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">From Year <span class="text-danger">*</span></label>
-                        <input type="text" id="edit_from_year" name="from_year" class="form-control form-control-sm" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off">
+                <div class="modal-body" style="padding: 16px 18px; font-size: 12px; background: #ffffff;">
+                    <div class="form-group mb-3">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">From Year <span class="text-danger">*</span></label>
+                        <input type="text" id="edit_from_year" name="from_year" class="form-control form-control-sm" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off" style="border-radius: 2px; font-size: 12px; height: 32px;">
                     </div>
-                    <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">To Year <span class="text-danger">*</span></label>
-                        <input type="text" id="edit_to_year" name="to_year" class="form-control form-control-sm" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off">
+                    <div class="form-group mb-1">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">To Year <span class="text-danger">*</span></label>
+                        <input type="text" id="edit_to_year" name="to_year" class="form-control form-control-sm" maxlength="4" required onkeypress="return isNumber(event)" autocomplete="off" style="border-radius: 2px; font-size: 12px; height: 32px;">
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="btnSubmitEditSession" style="font-size: 11px; padding: 4px 12px; background: #002C54; border-color: #002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 8px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary" id="btnSubmitEditSession" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px;">
                         <i class="fa fa-check mr-1"></i> Update Session
                     </button>
                 </div>
@@ -637,30 +789,55 @@
     </div>
 </div>
 
-<!-- Modal: Delete Confirmation -->
+<!-- Modal: Delete Confirmation (Theme-Based Horizontal Rectangle) -->
 <div class="modal fade" id="deleteSessionModal" tabindex="-1" role="dialog" aria-labelledby="deleteSessionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden;">
-            <div class="modal-header" style="background: #dc2626; color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="deleteSessionModalLabel" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-trash mr-1"></i> Delete Academic Session
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px !important; width: 95% !important;">
+        <div class="modal-content" style="border: 1px solid #002C54; border-radius: 3px; overflow: hidden; box-shadow: 0 16px 36px rgba(0,44,84,.35); background: #ffffff;">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #fff; padding: 8px 14px; min-height: 42px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); color: #f87171; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-trash"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold" id="deleteSessionModalLabel" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Delete Session Confirmation
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -6px -10px -6px auto; padding: 6px 10px; opacity: .85; outline: none; font-size: 18px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form id="deleteSessionForm" action="{{ url('sessions_delete') }}" method="post">
                 @csrf
                 <input type="hidden" id="delete_session_id" name="delete_id" value="">
-                <div class="modal-body text-center" style="padding: 16px; font-size: 12px;">
-                    <p class="mb-1 text-dark">Are you sure you want to delete this session?</p>
-                    <p class="font-weight-bold text-danger mb-0" id="delete_session_label" style="font-size: 13px;"></p>
-                    <small class="text-muted d-block mt-2 font-italic">This will permanently delete related session references.</small>
+                <div class="modal-body" style="padding: 16px 18px !important; background: #ffffff !important; text-align: left !important;">
+                    <div class="d-flex align-items-start" style="gap: 14px;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 3px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #fecaca; margin-top: 2px;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                                Are you sure you want to delete this session?
+                            </div>
+                            <div class="mb-2">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; background: #eff6ff; color: #002C54; border: 1px solid #bfdbfe; border-radius: 2px; font-size: 12px; font-weight: 700;">
+                                    <i class="fa fa-calendar-check-o text-primary" style="font-size: 11px;"></i>
+                                    <span id="delete_session_label">Academic Session</span>
+                                </span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                                <i class="fa fa-info-circle mr-1 text-muted"></i> This action cannot be undone. Any references linked to this academic session will be permanently affected.
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-danger" style="font-size: 11px; padding: 4px 12px;">
-                        <i class="fa fa-trash-o mr-1"></i> Delete
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 8px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn btn-danger" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;">
+                        <i class="fa fa-trash mr-1"></i> Delete Session
                     </button>
                 </div>
             </form>

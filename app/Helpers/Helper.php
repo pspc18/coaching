@@ -995,6 +995,12 @@ class Helper{
                 }
             }
             $mainPermisn = array_unique($mainPermisn);
+        } else {
+            $roleId = Session::get('role_id');
+            if ($roleId) {
+                $rolePerm = DB::table('role_permissions')->where('role_id', $roleId)->where('view', 1)->pluck('sidebar_id')->toArray();
+                $mainPermisn = array_unique($rolePerm);
+            }
         }
 
         return $mainPermisn;
@@ -2240,6 +2246,16 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
                     ->where('sidebar_id', $sidebar_id)
                     ->whereNull('deleted_at')
                     ->first();
+
+                if (!$perm) {
+                    $roleId = Session::get('role_id');
+                    if ($roleId) {
+                        $perm = DB::table('role_permissions')
+                            ->where('role_id', $roleId)
+                            ->where('sidebar_id', $sidebar_id)
+                            ->first();
+                    }
+                }
             
                 return (object)[
                     'add' => $perm && $perm->add == 1,

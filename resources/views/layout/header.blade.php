@@ -32,6 +32,71 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
           display:inline !important;
       }
   }
+
+  /* ==========================================================================
+     Birthday Pill Badge with Animated Celebration Icon (Sharp Edges)
+     ========================================================================== */
+  .header-birthday-pill {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      height: 32px !important;
+      padding: 0 10px 0 6px !important;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
+      border: 1px solid #fecdd3 !important;
+      border-radius: 2px !important;
+      color: #e11d48 !important;
+      font-weight: 700 !important;
+      font-size: 11.5px !important;
+      box-shadow: 0 1px 2px rgba(225, 29, 72, 0.12) !important;
+      transition: all 0.2s ease !important;
+      text-decoration: none !important;
+      cursor: pointer;
+      line-height: 1;
+      margin: 0 !important;
+  }
+  .header-birthday-pill:hover {
+      background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%) !important;
+      box-shadow: 0 2px 5px rgba(225, 29, 72, 0.22) !important;
+      color: #be123c !important;
+      text-decoration: none !important;
+  }
+  .header-birthday-pill .bday-icon-bubble {
+      width: 22px;
+      height: 22px;
+      border-radius: 2px;
+      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      box-shadow: 0 1px 2px rgba(225, 29, 72, 0.25);
+      animation: bdayWiggle 2.8s ease-in-out infinite;
+  }
+  .header-birthday-pill .bday-text {
+      font-weight: 700;
+      letter-spacing: .02em;
+  }
+  .header-birthday-pill .bday-count-badge {
+      background: #e11d48;
+      color: #ffffff;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 2px;
+      min-width: 16px;
+      text-align: center;
+      line-height: 1.2;
+  }
+  @keyframes bdayWiggle {
+      0%, 100% { transform: rotate(0deg); }
+      10% { transform: rotate(14deg) scale(1.1); }
+      20% { transform: rotate(-12deg) scale(1.1); }
+      30% { transform: rotate(10deg); }
+      40% { transform: rotate(-6deg); }
+      50% { transform: rotate(0deg); }
+  }
 </style>
 
 <!--<div class="marquee">-->
@@ -156,14 +221,12 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
     </li>
     @endif
 @if(Session::get('sibling_active') == 'yes')
-            <li title='Switch Accounts' class="nav-item dropdown mr-2" style='background: #7c3aed;
-              padding: 4px 8px;
-              border-radius: 2px;'>
-                        <div class="">
-                        <a href="{{ url('siblingList') }}" class="text-white" style='display: flex;
-              align-items: center;
-            }'><i class="fa fa-users"></i><strong style='font-size:12px'>&nbsp;Switch</strong></a>
-                        </div>
+            <li title='Switch Accounts' class="nav-item dropdown mr-2" style='background: #7c3aed; padding: 4px 8px; border-radius: 2px;'>
+                <div>
+                    <a href="{{ url('siblingList') }}" class="text-white" style='display: flex; align-items: center;'>
+                        <i class="fa fa-users mr-1"></i><strong style='font-size:12px'>Switch</strong>
+                    </a>
+                </div>
             </li> 
          @endif
   </ul>
@@ -203,22 +266,21 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
             : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
     @endphp
 
+    @php
+        $totalBirthdaysCount = count($getstudentbirthday ?? []) + count($getUsersBirthday ?? []);
+    @endphp
     @if(Session::get('role_id') == 1)
-    @if(count($getstudentbirthday) > 0 || count($getUsersBirthday) > 0)
-
-    
+    @if($totalBirthdaysCount > 0)
     <li class="nav-item">
-      <a class="nav-link header-gap-item" href="{{url('happy_birthday')}}">
-        <img width="40px" style="margin-top:-8px" src="{{ env('IMAGE_SHOW_PATH').'default/birthday.webp' }}">
+      <a class="nav-link header-birthday-pill mr-2" href="{{url('happy_birthday')}}" title="Today's Birthdays ({{ $totalBirthdaysCount }}) - Click to send wishes">
+        <span class="bday-icon-bubble">
+          <i class="fa fa-birthday-cake"></i>
+        </span>
+        <span class="bday-text d-none d-md-inline">Birthdays</span>
+        <span class="bday-count-badge">{{ $totalBirthdaysCount }}</span>
       </a>
     </li>
-
     @endif
-    <!-- <li class="nav-item">
-      <a class="nav-link" data-widget="navbar-search" href="#" data-toggle="modal" data-target="#subModules" role="button">
-        <i class="fa fa-search"></i>
-      </a>
-    </li> -->
     @endif
 
 

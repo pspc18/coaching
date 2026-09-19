@@ -20,7 +20,6 @@ Route::match(['get'],'master_dashboard', 'master\DashboardController@dashboard')
  Route::match(['get','post'],'create_subject', 'master\SubjectController@createSubjects');
  Route::match(['get','post'],'add_subject', 'master\SubjectController@add');
  Route::match(['get','post'],'multi_edit_subject', 'master\SubjectController@multiEditSubjects');
- Route::match(['get','post'],'save-selected-subjects', 'master\SubjectController@saveSelectedSubjects');
 
 //Book uniform controller
 Route::match(['get','post'],'books_uniform_view', 'master\BooksUniformController@view');
@@ -131,6 +130,9 @@ Route::match(['get','post'],'role_add', 'master\RoleController@add');
 Route::match(['get','post'],'role_Edit/{id}', 'master\RoleController@edit');
 Route::match(['get','post'],'role_delete', 'master\RoleController@delete');
 Route::match(['get','post'],'role/permission/{role_id}', 'master\RoleController@role_permission');
+Route::match(['get','post'],'role_permission/{role_id}', 'master\RoleController@role_permission');
+Route::match(['get','post'],'role/user_permission/{user_id}', 'master\RoleController@user_permission_data');
+Route::match(['get','post'],'role/user_permission_save/{user_id}', 'master\RoleController@user_permission_save');
 Route::match(['get','post'],'user/permissions/{id}', 'UserController@user_permission');
 Route::match(['get','post'],'user/module_status', 'UserController@module_status');
 

@@ -462,27 +462,4 @@ class SubjectController extends Controller
             }
         }
     }
-
-    public function saveSelectedSubjects(Request $request)
-    {
-        $Allsubjects_id = $request->input('Allsubjects_id', []);
-        $sub_names = $request->input('subjects', []);
-
-        if (!empty($Allsubjects_id)) {
-            foreach ($Allsubjects_id as $Sub_id) {
-                $sub_name = $sub_names[$Sub_id] ?? '';
-                if (trim($sub_name) !== '') {
-                    $subject = new AllSubjects;
-                    $subject->user_id = Session::get('id');
-                    $subject->session_id = Session::get('session_id');
-                    $subject->branch_id = Session::get('branch_id');
-                    $subject->name = trim($sub_name);
-                    $subject->other_subject = $request->other_subject ?? 0;
-                    $subject->save();
-                }
-            }
-        }
-
-        return back()->with('message', 'Selected subjects saved successfully.');
-    }
 }

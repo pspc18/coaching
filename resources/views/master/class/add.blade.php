@@ -63,34 +63,164 @@
 .dash-btn {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
     text-decoration: none !important;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all .15s;
-    line-height: 1.4;
+    transition: all .15s ease;
+    line-height: 1;
+    gap: 5px;
+    white-space: nowrap;
 }
 .dash-btn-light {
-    background: #fff;
+    background: #ffffff;
     color: #002C54;
-    border-color: #fff;
+    border-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 .dash-btn-light:hover {
     background: #f1f5f9;
     color: #001f3d;
+    border-color: #f1f5f9;
 }
 .dash-btn-outline {
     background: transparent;
-    color: #fff;
-    border-color: rgba(255,255,255,.4);
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.4);
 }
 .dash-btn-outline:hover {
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    border-color: #fff;
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border-color: #ffffff;
+}
+.dash-btn-primary {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+.dash-btn-primary:hover {
+    background: #001f3d;
+    color: #ffffff;
+    border-color: #001f3d;
+}
+
+#deleteClassModal .modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+}
+#deleteClassModal .modal-body {
+    text-align: left !important;
+    padding: 16px 18px !important;
+}
+#deleteClassModal .modal-body p {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+}
+
+/* Badges for Table Rows */
+.badge-class-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    background: #e2e8f0;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    line-height: 1;
+}
+.badge-class-order {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+}
+.badge-class-students {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 7px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-class-students.has-students {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+.badge-class-fees {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 7px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-class-fees.has-fees {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+.badge-class-subjects {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 7px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none !important;
+    transition: all .15s ease;
+}
+.badge-class-subjects.has-subjects {
+    background: #f0fdfa;
+    color: #0d9488;
+    border-color: #99f6e4;
+}
+.badge-class-subjects:hover {
+    border-color: #0d9488;
+    color: #0f766e;
 }
 
 /* Table Card & Header - Dark Navy Unified */
@@ -121,13 +251,19 @@
     line-height: 1.2;
 }
 .badge-total-records {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
     font-size: 10.5px;
     font-weight: 600;
-    background: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.14);
     color: #f1f5f9;
-    padding: 3px 8px;
+    padding: 0 8px;
     border-radius: 2px;
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.18);
+    white-space: nowrap;
+    line-height: 1;
 }
 
 /* Scrollable Table Viewport */
@@ -244,8 +380,10 @@
 }
 
 .btn-clear-filters {
-    width: 26px;
-    height: 26px;
+    width: 27px;
+    height: 27px;
+    min-width: 27px;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -255,6 +393,7 @@
     color: #ffffff;
     cursor: pointer;
     font-size: 11px;
+    line-height: 1;
     transition: all .15s;
 }
 .btn-clear-filters:hover {
@@ -286,11 +425,13 @@
 .btn-action-icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 2px;
-    font-size: 10.5px;
+    font-size: 11px;
     border: 1px solid transparent;
     cursor: pointer;
     text-decoration: none !important;
@@ -314,6 +455,12 @@
 .btn-action-delete:hover {
     background: #dc2626;
     color: #fff;
+}
+.btn-action-locked {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
 }
 
 /* Bottom Pagination Toolbar - Dark Navy */
@@ -366,6 +513,8 @@
 .page-btn {
     width: 26px;
     height: 24px;
+    min-width: 26px;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -374,7 +523,8 @@
     border: 1px solid rgba(255,255,255,.25);
     border-radius: 2px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1;
     transition: all .15s;
 }
 .page-btn:hover:not(:disabled) {
@@ -586,28 +736,30 @@
 
 <!-- Modal: Add Class -->
 <div class="modal fade" id="addClassModal" tabindex="-1" role="dialog" aria-labelledby="addClassModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="addClassModalLabel" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-plus-circle mr-1"></i> Add New Class
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px !important; width: 95% !important;">
+        <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title font-weight-bold" id="addClassModalLabel" style="font-size: 13px; margin: 0;">
+                    <i class="fa fa-plus-circle mr-1 text-info"></i> Add New Class
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9; outline: none;">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -8px -12px -8px auto; padding: 8px 12px; opacity: .85; outline: none;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form id="addClassForm" action="{{ url('add_class') }}" method="post">
                 @csrf
-                <div class="modal-body" style="padding: 14px; font-size: 12px; background: #fff;">
+                <div class="modal-body" style="padding: 16px; font-size: 12px; background: #fff;">
                     <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">Class / Grade Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. 1st, 2nd, Nursery, 10th" required autocomplete="off">
-                        <small class="text-muted mt-1 d-block">Sort order will be calculated automatically.</small>
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">Class / Grade Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. 1st, 2nd, Nursery, 10th" required autocomplete="off" style="border-radius: 2px; height: 32px; font-size: 12px;">
+                        <small class="text-muted mt-1 d-block"><i class="fa fa-info-circle mr-1"></i> Sort order will be calculated automatically.</small>
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="btnSubmitAddClass" style="font-size: 11px; padding: 4px 12px; background: #002C54; border-color: #002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 6px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="background: #ffffff; height: 28px; padding: 0 14px;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary" id="btnSubmitAddClass">
                         <i class="fa fa-save mr-1"></i> Save Class
                     </button>
                 </div>
@@ -618,28 +770,30 @@
 
 <!-- Modal: Edit Class -->
 <div class="modal fade" id="editClassModal" tabindex="-1" role="dialog" aria-labelledby="editClassModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="editClassModalLabel" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-edit mr-1"></i> Edit Class
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px !important; width: 95% !important;">
+        <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title font-weight-bold" id="editClassModalLabel" style="font-size: 13px; margin: 0;">
+                    <i class="fa fa-edit mr-1 text-info"></i> Edit Class
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9; outline: none;">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -8px -12px -8px auto; padding: 8px 12px; opacity: .85; outline: none;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form id="editClassForm" method="post">
                 @csrf
                 <input type="hidden" id="edit_class_id" name="id" value="">
-                <div class="modal-body" style="padding: 14px; font-size: 12px; background: #fff;">
+                <div class="modal-body" style="padding: 16px; font-size: 12px; background: #fff;">
                     <div class="form-group mb-0">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11.5px;">Class / Grade Name <span class="text-danger">*</span></label>
-                        <input type="text" id="edit_class_name" name="name" class="form-control form-control-sm" required autocomplete="off">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: .02em;">Class / Grade Name <span class="text-danger">*</span></label>
+                        <input type="text" id="edit_class_name" name="name" class="form-control form-control-sm" required autocomplete="off" style="border-radius: 2px; height: 32px; font-size: 12px;">
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="btnSubmitEditClass" style="font-size: 11px; padding: 4px 12px; background: #002C54; border-color: #002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; gap: 6px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="background: #ffffff; height: 28px; padding: 0 14px;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary" id="btnSubmitEditClass">
                         <i class="fa fa-check mr-1"></i> Update Class
                     </button>
                 </div>
@@ -651,19 +805,19 @@
 <!-- Modal: Quick Bulk Import Classes -->
 <div class="modal fade" id="quickBulkClassModal" tabindex="-1" role="dialog" aria-labelledby="quickBulkClassModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 10px 14px;">
-                <h5 class="modal-title" id="quickBulkClassModalLabel" style="font-size: 13px; font-weight: 700;">
+        <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54; box-shadow: 0 10px 25px rgba(0,0,0,.2);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #fff; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title font-weight-bold" id="quickBulkClassModalLabel" style="font-size: 13px; margin: 0;">
                     <i class="fa fa-bolt text-warning mr-1"></i> Quick Bulk Import Standard Classes
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: .9; outline: none;">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin: -8px -12px -8px auto; padding: 8px 12px; opacity: .85; outline: none;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form action="{{ url('save_selected_classes') }}" method="post">
                 @csrf
                 <div class="modal-body" style="padding: 16px; font-size: 12px; background: #fff;">
-                    <p class="text-muted mb-3 font-italic">Select the standard school classes to create automatically for the current academic session:</p>
+                    <p class="text-muted mb-3 font-italic" style="font-size: 11.5px;">Select the standard school classes to create automatically for the current academic session:</p>
                     @php
                         $presetClasses = [
                             1 => 'Play Group',
@@ -687,7 +841,7 @@
                     <div class="row">
                         @foreach($presetClasses as $cId => $cName)
                             <div class="col-6 col-md-3 mb-2">
-                                <div class="custom-control custom-checkbox p-2 border rounded" style="background:#f8fafc;">
+                                <div class="custom-control custom-checkbox p-2 border rounded" style="background:#f8fafc; border-radius: 2px;">
                                     <input type="checkbox" class="custom-control-input" id="class_chk_{{ $cId }}" name="class_id[]" value="{{ $cId }}">
                                     <input type="hidden" name="class[{{ $cId }}]" value="{{ $cName }}">
                                     <label class="custom-control-label font-weight-bold text-dark" for="class_chk_{{ $cId }}" style="font-size: 12px; cursor: pointer;">
@@ -698,14 +852,72 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                    <button type="button" class="btn btn-xs btn-outline-secondary" id="btnSelectAllBulkClasses">Select All</button>
+                <div class="modal-footer d-flex align-items-center justify-content-between" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" id="btnSelectAllBulkClasses" style="background: #ffffff; height: 28px; padding: 0 12px;">
+                        <i class="fa fa-check-square-o mr-1"></i> Select All
+                    </button>
                     <div style="display:flex; gap:6px;">
-                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px; padding: 4px 10px;">Cancel</button>
-                        <button type="submit" class="btn btn-sm btn-primary" style="font-size: 11px; padding: 4px 12px; background: #002C54; border-color: #002C54;">
+                        <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="background: #ffffff; height: 28px; padding: 0 14px;">
+                            <i class="fa fa-times mr-1"></i> Cancel
+                        </button>
+                        <button type="submit" class="dash-btn dash-btn-primary">
                             <i class="fa fa-download mr-1"></i> Import Selected Classes
                         </button>
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Class Confirmation Modal -->
+<div class="modal fade" id="deleteClassModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px !important; width: 95% !important;">
+        <div class="modal-content" style="border: 1px solid #002C54; border-radius: 3px; overflow: hidden; box-shadow: 0 16px 36px rgba(0, 44, 84, 0.35); background: #ffffff;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #ffffff !important; padding: 8px 14px !important; border-bottom: 1px solid rgba(255,255,255,0.12) !important; min-height: 42px !important; display: flex; align-items: center; justify-content: space-between;">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); color: #f87171; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-trash"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Delete Class Confirmation
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" style="margin: -6px -10px -6px auto; padding: 6px 10px; opacity: .85; outline: none; font-size: 18px;">&times;</button>
+            </div>
+            <form id="formDeleteClass" action="{{ url('class_delete') }}" method="post">
+                @csrf
+                <input type="hidden" name="delete_id" id="deleteClassId">
+                <div class="modal-body" style="padding: 16px 18px !important; background: #ffffff !important; text-align: left !important;">
+                    <div class="d-flex align-items-start" style="gap: 14px;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 3px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #fecaca; margin-top: 2px;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                                Are you sure you want to delete this class?
+                            </div>
+                            <div class="mb-2">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; background: #eff6ff; color: #002C54; border: 1px solid #bfdbfe; border-radius: 2px; font-size: 12px; font-weight: 700;">
+                                    <i class="fa fa-graduation-cap text-primary" style="font-size: 11px;"></i>
+                                    <span id="deleteClassNameLabel">Class Name</span>
+                                </span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                                <i class="fa fa-info-circle mr-1 text-muted"></i> This action cannot be undone and will remove this academic grade level from the directory.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #f8fafc !important; padding: 8px 14px !important; border-top: 1px solid #e2e8f0 !important; display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 8px !important;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn btn-danger" id="btnSubmitDeleteClass" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;">
+                        <i class="fa fa-trash mr-1"></i> Delete Class
+                    </button>
                 </div>
             </form>
         </div>
@@ -977,15 +1189,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Delete Class AJAX Form handling
-    document.addEventListener('submit', function(e) {
-        const delForm = e.target.closest('.js-delete-class-form');
-        if (delForm) {
-            e.preventDefault();
-            if (!confirm('Are you sure you want to delete this class?')) return;
+    // Delete Class Modal Trigger
+    document.addEventListener('click', function(e) {
+        const delBtn = e.target.closest('.js-delete-class-btn');
+        if (delBtn) {
+            const id = delBtn.dataset.id;
+            const name = delBtn.dataset.name;
+            const idInput = document.getElementById('deleteClassId');
+            const nameLabel = document.getElementById('deleteClassNameLabel');
+            if (idInput) idInput.value = id;
+            if (nameLabel) nameLabel.textContent = name || ('#' + id);
+            $('#deleteClassModal').modal('show');
+        }
+    });
 
-            const formData = new FormData(delForm);
-            fetch(delForm.action, {
+    // Delete Class Form AJAX Submit
+    const formDeleteClass = document.getElementById('formDeleteClass');
+    if (formDeleteClass) {
+        formDeleteClass.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnSubmitDeleteClass');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Deleting...';
+            }
+
+            const formData = new FormData(formDeleteClass);
+            fetch(formDeleteClass.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -995,6 +1225,11 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(res => res.json())
             .then(data => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa fa-trash mr-1"></i> Delete Class';
+                }
+                $('#deleteClassModal').modal('hide');
                 if (data.status === 'success') {
                     if (typeof toastr !== 'undefined') {
                         toastr.success(data.message || 'Class deleted successfully.');
@@ -1011,14 +1246,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(err => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa fa-trash mr-1"></i> Delete Class';
+                }
+                $('#deleteClassModal').modal('hide');
                 if (typeof toastr !== 'undefined') {
                     toastr.error('An error occurred while deleting.');
                 } else {
                     alert('An error occurred while deleting.');
                 }
             });
-        }
-    });
+        });
+    }
 });
 </script>
 @endsection

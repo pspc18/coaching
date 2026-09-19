@@ -623,6 +623,19 @@ select.excel-col-filter option {
     border-top-left-radius: 3px !important;
     border-top-right-radius: 3px !important;
 }
+#deleteRoleModal .modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+}
+#deleteRoleModal .modal-body {
+    text-align: left !important;
+    padding: 16px 18px !important;
+}
+#deleteRoleModal .modal-body p {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+}
 .theme-modal-title-box {
     display: flex !important;
     align-items: center !important;
@@ -980,6 +993,94 @@ select.excel-col-filter option {
     </div>
 </div>
 
+<!-- Delete Role Confirmation Modal -->
+<div class="modal fade" id="deleteRoleModal" tabindex="-1" role="dialog" aria-labelledby="deleteRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered theme-modal-dialog" role="document" style="max-width: 500px !important; width: 95% !important;">
+        <div class="modal-content theme-modal-content" style="border: 1px solid #002C54; border-radius: 3px; overflow: hidden; box-shadow: 0 16px 36px rgba(0, 44, 84, 0.35); background: #ffffff;">
+            <div class="modal-header theme-modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #ffffff !important; padding: 8px 14px !important; border-bottom: 1px solid rgba(255,255,255,0.12) !important; min-height: 42px !important; display: flex !important; align-items: center !important; justify-content: space-between !important;">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); color: #f87171; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-trash"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Delete Role Confirmation
+                        </h5>
+                    </div>
+                </div>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <form id="formDeleteRole" action="{{ url('role_delete') }}" method="post">
+                @csrf
+                <input type="hidden" name="delete_id" id="deleteRoleId">
+                <div class="modal-body" style="padding: 16px 18px !important; background: #ffffff !important; text-align: left !important;">
+                    <div class="d-flex align-items-start" style="gap: 14px;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 3px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #fecaca; margin-top: 2px;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                                Are you sure you want to delete this custom role?
+                            </div>
+                            <div class="mb-2">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; background: #eff6ff; color: #002C54; border: 1px solid #bfdbfe; border-radius: 2px; font-size: 12px; font-weight: 700;">
+                                    <i class="fa fa-tag text-primary" style="font-size: 11px;"></i>
+                                    <span id="deleteRoleNameLabel">Role Name</span>
+                                </span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                                <i class="fa fa-info-circle mr-1 text-muted"></i> This action cannot be undone. Any staff members assigned to this role will lose their custom role privileges.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #f8fafc !important; padding: 8px 14px !important; border-top: 1px solid #e2e8f0 !important; display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 8px !important;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" data-bs-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn btn-danger" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;">
+                        <i class="fa fa-trash mr-1"></i> Delete Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Role & User Permissions Modal -->
+<div class="modal fade" id="rolePermissionModal" tabindex="-1" role="dialog" aria-labelledby="rolePermissionModalLabel" aria-hidden="true" data-backdrop="static" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered theme-modal-dialog" role="document" style="max-width: 860px !important; width: 94% !important;">
+        <div class="modal-content theme-modal-content" style="border-radius: 3px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 44, 84, 0.45);">
+            <div class="modal-header theme-modal-header">
+                <div class="theme-modal-title-box">
+                    <div class="theme-modal-icon">
+                        <i class="fa fa-key"></i>
+                    </div>
+                    <div class="theme-modal-headings">
+                        <h5 class="modal-title theme-modal-title" id="rolePermissionModalLabel">
+                            Permissions: <span id="permModalRoleName">Role</span>
+                        </h5>
+                        <div class="theme-modal-subtitle">
+                            Configure module privileges & staff member custom overrides
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div id="rolePermissionModalLoading" class="p-4 text-center my-auto">
+                <i class="fa fa-spinner fa-spin fa-2x text-primary"></i>
+                <div class="mt-2 font-weight-bold" style="font-size: 12px; color: #002C54;">Loading Permission Matrix...</div>
+                <div class="text-muted" style="font-size: 10.5px;">Fetching modules, sub-modules, and user privileges</div>
+            </div>
+            <div id="rolePermissionModalContent" style="display: none; flex-direction: column;"></div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     let currentPage = {{ $pagination['current_page'] ?? 1 }};
@@ -1194,7 +1295,66 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // Permissions Modal Handler
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.js-btn-permissions');
+        if (btn) {
+            e.preventDefault();
+            const roleId = btn.dataset.roleId;
+            const roleName = btn.dataset.roleName || 'Role';
+
+            const modal = $('#rolePermissionModal');
+            const loading = document.getElementById('rolePermissionModalLoading');
+            const content = document.getElementById('rolePermissionModalContent');
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            content.innerHTML = '';
+            const titleRole = document.getElementById('permModalRoleName');
+            if (titleRole) titleRole.textContent = roleName;
+            modal.modal('show');
+
+            fetch(`{{ url('role_permission') }}/${roleId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.html) {
+                    loading.style.display = 'none';
+                    content.innerHTML = data.html;
+                    content.style.display = 'flex';
+
+                    const permWrapper = content.querySelector('.perm-compact-wrapper, .perm-component-wrapper');
+                    if (permWrapper && typeof initPermissionsComponent === 'function') {
+                        initPermissionsComponent(permWrapper);
+                    }
+                } else {
+                    loading.innerHTML = '<div class="alert alert-danger m-3 font-size-12">Failed to load permissions: ' + (data.message || 'Unknown error') + '</div>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading permissions:', err);
+                loading.innerHTML = '<div class="alert alert-danger m-3 font-size-12">An error occurred while loading permissions.</div>';
+            });
+        }
+    });
+
+    // Delete Role Modal Handler
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.js-delete-role');
+        if (btn) {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            document.getElementById('deleteRoleId').value = id;
+            document.getElementById('deleteRoleNameLabel').textContent = name || ('Role #' + id);
+        }
+    });
 });
 </script>
 
+@include('master.role.permissions_script')
 @endsection

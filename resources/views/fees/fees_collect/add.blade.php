@@ -2,329 +2,722 @@
 $getstudents = Helper::getstudents();
 $classType = Helper::classType();
 $getPaymentMode = Helper::getPaymentMode();
-
-  $array = [];
+$array = [];
 @endphp
 @extends('layout.app')
+
+@section('styles')
+<style>
+/* ==========================================================================
+   Arise ERP - Fee Collection Desk (Screen-Height Fitted & Zero Window Scroll)
+   Strictly aligned with admissionView design system
+   ========================================================================== */
+.admission-page {
+    background: #eef2f6;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+}
+.admission-page * {
+    box-sizing: border-box;
+}
+.admission-page-layout {
+    height: calc(100vh - 62px);
+    max-height: calc(100vh - 62px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Top Hero Banner - High Contrast Light Text on Dark Background */
+.admission-hero {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(0,44,84,.15);
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+.admission-kicker {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #93c5fd !important;
+    font-weight: 700;
+    display: block;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+.admission-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    color: #ffffff !important;
+}
+.admission-subtitle {
+    font-size: 10.5px;
+    color: #e2e8f0 !important;
+    margin: 2px 0 0 0;
+    line-height: 1.2;
+}
+
+/* Hotkey Hints & Badges */
+.kbd-hint {
+    font-size: 9px;
+    background: rgba(0,44,84,.6);
+    border: 1px solid rgba(255,255,255,.3);
+    color: #ffffff !important;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    margin-left: 4px;
+}
+
+/* Unified Dark Navy Cards */
+.dash-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    overflow: hidden;
+}
+.dash-card-header {
+    padding: 6px 10px;
+    background: #002342;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255,255,255,.14);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    height: 34px;
+}
+.dash-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff !important;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.badge-total-records {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(255,255,255,.16);
+    color: #ffffff !important;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,.22);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ==========================================================================
+   Fixed Header (thead) & Scrolling tbody for Student Directory Table
+   ========================================================================== */
+.table-scroll-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    background: #ffffff;
+}
+
+.dash-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 11.5px;
+}
+
+/* Sticky thead container */
+.dash-table thead.sticky-thead {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+/* Row 1: Header Titles - Locked at top: 0 */
+.header-titles-row {
+    height: 28px;
+}
+.header-titles-row th {
+    position: sticky;
+    top: 0;
+    z-index: 32;
+    height: 28px;
+    background: #002C54 !important;
+    color: #ffffff !important;
+    padding: 5px 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border-right: 1px solid rgba(255,255,255,.15);
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    white-space: nowrap;
+    vertical-align: middle;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.1);
+}
+
+/* Row 2: In-Column Excel Filters - Locked at top: 28px */
+.excel-filter-row {
+    height: 32px;
+}
+.excel-filter-row th {
+    position: sticky;
+    top: 28px;
+    z-index: 31;
+    height: 32px;
+    background: #08335c !important;
+    padding: 3px 6px !important;
+    border-right: 1px solid rgba(255,255,255,.12) !important;
+    border-bottom: 2px solid #001f3d !important;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.22) !important;
+    vertical-align: middle;
+}
+
+/* Table Body Rows */
+.dash-table tbody td {
+    padding: 6px 8px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+    vertical-align: middle;
+    color: #1e293b;
+    font-size: 11px;
+}
+.dash-table tbody tr:nth-child(odd) td {
+    background: #f8fafc;
+}
+.dash-table tbody tr:nth-child(even) td {
+    background: #edf2f7;
+}
+.dash-table tbody tr:hover td {
+    background: #e2e8f0 !important;
+}
+.dash-table tbody tr.active-row td {
+    background: #e0f2fe !important;
+    border-bottom-color: #38bdf8;
+    color: #0369a1 !important;
+    font-weight: 600;
+}
+.dash-table tbody tr.active-row {
+    outline: 2px solid #0284c7;
+    outline-offset: -2px;
+}
+
+/* In-Table Column Filters - Light Text on High-Contrast Navy Background */
+.excel-col-filter {
+    width: 100%;
+    height: 24px;
+    padding: 2px 6px;
+    font-size: 10.5px;
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,.3);
+    background: #04182e !important;
+    color: #ffffff !important;
+    border-radius: 3px;
+    outline: none;
+    transition: all .15s ease;
+    color-scheme: dark;
+}
+.excel-col-filter::placeholder {
+    color: rgba(226, 232, 240, 0.75) !important;
+}
+.excel-col-filter:focus {
+    background: #020f1e !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3) !important;
+}
+select.excel-col-filter {
+    background-color: #04182e !important;
+    color: #ffffff !important;
+    cursor: pointer;
+}
+select.excel-col-filter option {
+    background-color: #002C54 !important;
+    color: #ffffff !important;
+}
+
+/* Filter Reset Button */
+.btn-clear-filters {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,.3);
+    background: #04182e;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all .15s ease;
+    padding: 0;
+}
+.btn-clear-filters:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+/* Student Badges with Proper Padding & Margins */
+.badge-adm-no {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 3px;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    white-space: nowrap;
+}
+.badge-class {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 9.5px;
+    font-weight: 600;
+    border-radius: 3px;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+}
+
+/* Empty State */
+.dash-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 36px 20px;
+    text-align: center;
+    color: #475569;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+}
+.dash-empty-state .empty-icon {
+    font-size: 46px;
+    color: #002C54;
+    margin-bottom: 12px;
+    line-height: 1;
+}
+.dash-empty-state .empty-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+.dash-empty-state .empty-desc {
+    font-size: 11.5px;
+    color: #64748b;
+    max-width: 400px;
+    line-height: 1.5;
+    margin: 0;
+}
+</style>
+@endsection
+
 @section('content')
 
-<style>
-    .padding_table thead tr{
-        background: #002c54;
-        position: sticky;
-        top: 0;
-        color: white;
-        /*box-shadow: 0px 4px 6px #a8a8a8;*/
-    }
-    
-    .padding_table thead tr th{
-        padding:5px !important;
-    }
-    
-    .padding_table tr th, .padding_table tr td{
-        font-size:14px;
-    }
-</style>
-<div class="content-wrapper">
-    
-    <section class="content pt-3">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12 col-md-12">
-                    <div class="card card-outline card-orange mb-0">
-                        <div class="card-header bg-primary">
-                            <h3 class="card-title"><i class="fa fa-money"></i> &nbsp;{{ __('fees.Collect Student Fees') }}</h3>
-                            <div class="card-tools">
-                                <a href="{{url('fees/index')}}" class="btn btn-primary  btn-sm {{ Helper::permissioncheck(11)->view ? '' : 'd-none' }}" title="View Fees"><i class="fa fa-eye"></i>{{ __('common.View') }} </a>
-                                <a href="{{url('fee_dashboard')}}" class="btn btn-primary  btn-sm" title="Back"><i class="fa fa-arrow-left"></i>{{ __('common.Back') }} </a>
+<div class="content-wrapper admission-page">
+    <section class="content p-1">
+        <div class="container-fluid p-0">
+            <div class="admission-page-layout">
+
+                <!-- Top Hero Banner (High Contrast Light Text on Dark Navy) -->
+                <div class="admission-hero">
+                    <div class="admission-hero-text">
+                        <span class="admission-kicker">
+                            <i class="fa fa-calculator mr-1"></i> Fee Collection Terminal
+                        </span>
+                        <h1 class="admission-title">{{ __('fees.Collect Student Fees') }}</h1>
+                        <p class="admission-subtitle">Fast keyboard-enabled settlement, instant receipts &amp; smart ledger</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge-total-records">
+                            <i class="fa fa-keyboard-o mr-1"></i> Shortcuts: <span class="kbd-hint">Alt+P Print</span> <span class="kbd-hint">Alt+F Full Due</span> <span class="kbd-hint">/ Search</span>
+                        </span>
+                        <span class="badge-total-records">
+                            <i class="fa fa-calendar-check-o mr-1"></i> Session: #{{ Session::get('session_id') }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Hidden Form for Legacy Fallback -->
+                <form id="quickForm" method="post" action="{{ url('Fees/add') }}" style="display: none;">
+                    @csrf
+                    <input type="hidden" id="admission_type_id" name="admission_type_id" value="{{ $search['admission_type_id'] ?? '' }}">
+                    <input type="hidden" id="class_type_id" name="class_type_id" value="{{ $search['class_type_id'] ?? '' }}">
+                    <input type="hidden" id="search_type" name="search_type" value="{{ $search['search_type'] ?? '' }}">
+                    <input type="text" id="name" name="name" value="{{ $search['name'] ?? '' }}">
+                </form>
+
+                <!-- Main Split Terminal Screen (Fits exact remaining available height) -->
+                <div class="row terminal-grid" style="flex: 1; min-height: 0; margin: 0 -3px; overflow: hidden;">
+                    <!-- Left Split: Student Directory (Col 12 / Col lg 4) -->
+                    <div class="col-12 col-lg-4 px-1" style="height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
+                        <div class="dash-card d-flex flex-column" style="height: 100%; min-height: 0; margin-bottom: 0; overflow: hidden;">
+                            <div class="dash-card-header">
+                                <h3 class="dash-card-title">
+                                    <i class="fa fa-users text-info mr-1"></i> Students Directory
+                                </h3>
+                                <span class="badge-total-records" id="student_count_badge">
+                                    <i class="fa fa-user-circle mr-1"></i> {{ count($data ?? []) }} Students
+                                </span>
                             </div>
 
-                        </div>
-                        <div class="card-body">
-                            <form id="quickForm" method="post" action="{{ url('Fees/add') }}">
-                                @csrf
-                                <div class="row m-2">
-                                            <div class="col-md-2">
-									<div class="form-group">
-										<label>Admission Type(Non RTE)</label>
-										<select class="form-control invalid" id="admission_type_id" name="admission_type_id">
-											<option value="">All Students</option>
-										    <option value="1" {{ old('admission_type_id', $search['admission_type_id'] ?? '') == 1 ? 'selected' : '' }}>Yes</option>
-                                            <option value="2" {{ old('admission_type_id', $search['admission_type_id'] ?? '') == 2 ? 'selected' : '' }}>No</option>
+                            <!-- Scrollable Student Table with Locked Fixed Header (thead) -->
+                            <div class="table-scroll-wrap">
+                                <table class="dash-table" id="student_directory_table">
+                                    <thead class="sticky-thead">
+                                        <!-- Row 1: Header Titles (Locked top: 0) -->
+                                        <tr class="header-titles-row">
+                                            <th style="width: 58px;" class="text-center">Adm No</th>
+                                            <th>Student Details</th>
+                                            <th style="width: 75px;" class="text-center">Class</th>
+                                            <th style="width: 65px;" class="text-center">Type</th>
+                                            <th style="width: 32px;" class="text-center"><i class="fa fa-filter"></i></th>
+                                        </tr>
 
-										</select>
-									  
-									</div>
-								</div>
-                            
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>{{ __('common.Class') }}</label>
-                                            <select class="form-control select2 @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id">
-                                                <option value="">All Classes</option>
-                                                @if(!empty($classType))
-                                                @foreach($classType as $type)
-                                                        <option value="{{ $type->id ?? '' }}" {{ (string) old('class_type_id', $search['class_type_id'] ?? '') === (string) $type->id ? 'selected' : '' }}>{{ $type->name ?? '' }}</option>
-                                                @endforeach
-                                                @endif
-                                            </select>
-                                @error('class_type_id')
-                					<span class="invalid-feedback" role="alert">
-                						<strong>{{ $message }}</strong>
-                					</span>
-                				@enderror
-                                        </div>
-                                    </div>
-                                	<div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>Search Type</label>
-                                            <select class="form-control" id="search_type" name="search_type">
-                                                <option value="">All Fields</option>
-                                                <option value="first_name" {{ old('search_type', $search['search_type'] ?? '') == 'first_name' ? 'selected' : '' }}>Name</option>
-                                                <option value="admissionNo" {{ old('search_type', $search['search_type'] ?? '') == 'admissionNo' ? 'selected' : '' }}>Admission No</option>
-                                                <option value="father_name" {{ old('search_type', $search['search_type'] ?? '') == 'father_name' ? 'selected' : '' }}>Father Name</option>
-                                                <option value="mother_name" {{ old('search_type', $search['search_type'] ?? '') == 'mother_name' ? 'selected' : '' }}>Mother Name</option>
-                                                <option value="mobile" {{ old('search_type', $search['search_type'] ?? '') == 'mobile' ? 'selected' : '' }}>Mobile</option>
-                                                <option value="aadhaar" {{ old('search_type', $search['search_type'] ?? '') == 'aadhaar' ? 'selected' : '' }}>Aadhaar</option>
-                                                <option value="jan_aadhaar" {{ old('search_type', $search['search_type'] ?? '') == 'jan_aadhaar' ? 'selected' : '' }}>Jan Aadhaar</option>
-                                                <option value="address" {{ old('search_type', $search['search_type'] ?? '') == 'address' ? 'selected' : '' }}>Address</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>{{ __('common.Search By Keywords') }}</label>
-                                            <input type="text" class="form-control" value="{{old('name',$search['name']) ?? ''}}" id="name" name="name" placeholder="Admission no., name, mobile, ledger no.">
-                                            @error('name')
-                                                <span class="text-danger small" role="alert"><strong>{{ $message }}</strong></span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-1 ">
-                                        <div class="form-group">
-                                            <label class="text-white">{{ __('common.Search') }}</label>
-                                            <button type="submit" class="btn btn-primary">{{ __('common.Search') }}</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                            @if(!empty($data))
-                            
-                            <div class="row m-2" >
-                                
-                                <div class='col-12 col-md-7' style="max-height: 225px;overflow-y: scroll;">
-                                <table class="table table-bordered small_td padding_table" id="trColor">
-                                    <thead>
-                                        <tr>
-<!--                                            <th>RTE/Non RTE</th>
--->                                            <th>Ledger No.</th>
-                                            <!--<th>Image</th>-->
-                                            <th class="text-center">{{ __('student.Admission No.') }} </th>
-                                            <th>{{ __('common.Name') }}</th>
-                                            <th>{{ __('common.Class') }} </th>
-                                            <!--<th>{{ __('common.Fathers Name') }}</th>-->
-                                            <!--<th>{{ __('common.Mothers Name') }}</th>-->
-                                            @if(Session::get('role_id') == 1)
-                                            <!--<th>{{ __('common.Mobile') }}</th>-->
-                                        @endif
+                                        <!-- Row 2: In-Column Excel Filters (Locked top: 28px) -->
+                                        <tr class="excel-filter-row">
+                                            <th class="text-center">
+                                                <input type="text"
+                                                       id="filter_adm_no"
+                                                       class="excel-col-filter text-center"
+                                                       placeholder="Adm#"
+                                                       autocomplete="off" />
+                                            </th>
+                                            <th>
+                                                <input type="text"
+                                                       id="live_student_search"
+                                                       class="excel-col-filter"
+                                                       placeholder="Name, Mobile, Father..."
+                                                       autocomplete="off" />
+                                            </th>
+                                            <th>
+                                                <select class="excel-col-filter" id="filter_class_id">
+                                                    <option value="">All</option>
+                                                    @if(!empty($classType))
+                                                        @foreach($classType as $type)
+                                                            <option value="{{ $type->id ?? '' }}" {{ (string) old('class_type_id', $search['class_type_id'] ?? '') === (string) $type->id ? 'selected' : '' }}>
+                                                                {{ $type->name ?? '' }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                            </th>
+                                            <th>
+                                                <select class="excel-col-filter" id="filter_rte">
+                                                    <option value="">All</option>
+                                                    <option value="1">Non-RTE</option>
+                                                    <option value="2">RTE</option>
+                                                </select>
+                                            </th>
+                                            <th class="text-center">
+                                                <button type="button" id="btn_clear_filters" class="btn-clear-filters" title="Reset In-Table Filters">
+                                                    <i class="fa fa-refresh"></i>
+                                                </button>
+                                            </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @php
-                                        $i=1;
-                                      
-                                        @endphp
-                                        @foreach ($data as $item)
-                                        @php
-                                        $array[$item->id] =$item;
-                                @endphp
-                                            <tr  class="quickCollect" data-id='{{$item->id ?? ''}}'style="cursor:pointer; " onclick="showData('{{ $item['unique_system_id']  }}','{{ Session::get('session_id') }}')">
-<!--                                            <td>{{ $item->admission_type_id == 2 ? 'RTE' : 'Non RTE' }}</td>
--->                                            <td>{{ $item->ledger_no ?? 'NA' }}</td>
-                                            <!--<td class="text-center">-->
-                                            <!--    <img src="{{ env('IMAGE_SHOW_PATH').'profile/'.$item['image'] }}" -->
-                                            <!--        class="photo_img" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">-->
-                                            <!--</td>-->
-                                            <td class="text-center">{{ $item['admissionNo'] ?? '' }}</td>
-                                            <td>{{ $item['first_name'] ?? '' }} {{ $item['last_name'] ?? '' }}</td>
-                                            <td>{{ $item['ClassTypes']['name'] ?? '' }}</td>
-                                            <!--<td>{{ $item['father_name'] ?? '' }}</td>-->
-                                            <!--<td>{{ $item['mother_name'] ?? '' }}</td>-->
-                                             @if(Session::get('role_id') == 1)
-                                         <!--<td>{{ $item['mobile'] ?? '' }}</td>-->
+                                    <tbody id="student_tbody">
+                                        @if(!empty($data) && count($data) > 0)
+                                            @foreach ($data as $item)
+                                                @php
+                                                    $array[$item->id] = $item;
+                                                @endphp
+                                                <tr class="quickCollect pointer"
+                                                    data-id="{{ $item->id ?? '' }}"
+                                                    data-unique="{{ $item['unique_system_id'] ?? '' }}"
+                                                    onclick="selectStudentAndLoad({{ $item->id }}, '{{ $item['unique_system_id'] ?? '' }}', '{{ Session::get('session_id') }}', this)"
+                                                    title="Click to open fee desk for {{ $item['first_name'] ?? '' }}">
+                                                    <td class="text-center">
+                                                        <span class="badge-adm-no">{{ $item['admissionNo'] ?? '' }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="font-weight-bold" style="font-size: 11.5px; color: #002C54; margin-bottom: 2px;">
+                                                            {{ $item['first_name'] ?? '' }} {{ $item['last_name'] ?? '' }}
+                                                        </div>
+                                                        <div class="small text-muted" style="font-size: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                            <span><i class="fa fa-user mr-1 text-secondary"></i> F: {{ $item['father_name'] ?? '—' }}</span>
+                                                            @if(!empty($item['mobile']))
+                                                                <span><i class="fa fa-phone mr-1 text-success"></i> {{ $item['mobile'] }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge-class">{{ $item['ClassTypes']['name'] ?? '—' }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if(($item['admission_type_id'] ?? '') == 2)
+                                                            <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 9px; border-radius: 3px; padding: 2px 6px;">RTE</span>
+                                                        @else
+                                                            <span class="text-muted font-weight-bold" style="font-size: 9.5px;">Non-RTE</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center text-muted" style="font-size: 11px;">
+                                                        <i class="fa fa-chevron-right"></i>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="5" class="text-center py-4 text-muted">
+                                                    No matching students found
+                                                </td>
+                                            </tr>
                                         @endif
-                                            
-                                        </tr>                                            
-                                        @endforeach
                                     </tbody>
                                 </table>
-                                @if($data->isEmpty())
-                                    <div class="text-center text-muted py-3">No students found for the selected filters.</div>
-                                @endif
-                                </div>
-                                   <div class='col-12 col-md-5' id='show_details' style='display:none;position:relative'> 
-                                       
-                                   <table class='table table-bordered' style="font-size: 14px;">
-                                            <tr>
-                                                <th rowspan='6' style='text-center;padding:10px'>
-                                                    <img src='' width='150px' height='150px' id="student-image" />
-                                                </th>
-                                            </tr>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th id="student-name"></th>
-                                            </tr>
-                                            <tr>
-                                                <th>Mobile</th>
-                                                <th id="student-mobile"></th>
-                                            </tr>
-                                            <tr>
-                                                <th>Father</th>
-                                                <th id="father-name"></th>
-                                            </tr>
-                                            <tr>
-                                                <th>Mother</th>
-                                                <th id="mother-name"></th>
-                                            </tr>
-                                            <tr>
-                                                <th>Father Mobile</th>
-                                                <th id="father-mobile"></th>
-                                            </tr>
-                                        </table>
-                                       </div>
                             </div>
-                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Right Split: POS Fee Desk & Ledger Canvas (Col 12 / Col lg 8) -->
+                    <div class="col-12 col-lg-8 px-1" style="height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
+                        <div class="dash-card d-flex flex-column" style="height: 100%; min-height: 0; margin-bottom: 0; overflow: hidden;">
+                            <div class="dash-card-header">
+                                <h3 class="dash-card-title">
+                                    <i class="fa fa-calculator text-info mr-1"></i> Fee Collection Terminal &amp; Settlement
+                                </h3>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge-total-records">
+                                        <i class="fa fa-shield mr-1 text-success"></i> Fast POS Counter
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Injected Container (Full available height flex child) -->
+                            <div id="student_fees_detail" style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 4px;">
+                                <!-- Welcome Screen -->
+                                <div class="dash-empty-state">
+                                    <i class="fa fa-user-circle-o empty-icon"></i>
+                                    <div class="empty-title">Select a Student to Collect Fees</div>
+                                    <div class="empty-desc">
+                                        Click on any student from the left directory or search by Name, Mobile, Class, Adm No or RTE directly in the table header to open their fee desk.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="student_fees_detail"></div>
+
+            </div><!-- End .admission-page-layout -->
         </div>
     </section>
 </div>
 
+<script>
+var studentsStore = @json($array);
+var searchTimeout = null;
+var activeSearchAjax = null;
+var BASEURL = "{{ url('/') }}";
+var CURRENT_SESSION_ID = "{{ Session::get('session_id') }}";
+var IMAGE_SHOW_PATH = "{{ env('IMAGE_SHOW_PATH') }}";
 
-<style>
-    .photo_img{
-        border-radius: 10px;
-        padding: 2px;
-        width: 50px;
-        height: 50px;
+/* Select Student & Trigger Loading */
+function selectStudentAndLoad(admissionId, unique_system_id, session_id, element) {
+    if (element) {
+        $('#student_tbody tr').removeClass('active-row');
+        $(element).addClass('active-row');
     }
-    .blink2 {
- 
- animation: blink-animation 0.5s infinite step-start;
+    showData(admissionId, unique_system_id, session_id);
 }
 
-@keyframes  blink-animation {
- 0% {
-   opacity: 1;
- }
- 5% {
-   opacity: 0.1;
- }
+/* Show Data via AJAX to /student_fees_onclick */
+function showData(admissionId, unique_system_id, session_id) {
+    $('#student_fees_detail').html(`
+        <div class="p-4 text-center m-auto">
+            <i class="fa fa-spinner fa-spin fa-2x mb-2" style="color: #002C54 !important;"></i>
+            <h5 class="font-weight-bold" style="font-size: 13px; color: #002C54; margin-bottom: 4px;">Loading Student Fee Ledger...</h5>
+            <p class="text-muted small mb-0">Computing fee heads, outstanding balances &amp; receipt records</p>
+        </div>
+    `);
 
- 100% {
-   opacity: 1;
- }
-}   
-</style>
-
-<script>
-$(document).ready(function() {
-    $('#trColor tr').click(function() {
-        $(this).css('backgroundColor', '#002c54');
-        $(this).css('color', '#fff');
-        $( this ).siblings().css( "background-color", "white" );
-        $( this ).siblings().css( "color", "black" );
+    $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+        }, 
+        type: 'post',
+        url: BASEURL + '/student_fees_onclick',
+        data: {
+            admission_id: admissionId,
+            unique_system_id: (unique_system_id && unique_system_id !== 'null') ? unique_system_id : '',
+            session_id: session_id,
+        },
+        success: function(data) {
+            if (data == 0) {
+                toastr.warning('Please assign fee structure for this student in master settings.');
+                $('#student_fees_detail').html(`
+                    <div class="dash-empty-state">
+                        <i class="fa fa-exclamation-triangle text-warning empty-icon"></i>
+                        <div class="empty-title">No Fees Assigned for this Session</div>
+                        <div class="empty-desc">Please assign fee structure in settings before collecting payment.</div>
+                    </div>
+                `);
+            } else {
+                $('#student_fees_detail').html(data);
+            }
+        },
+        error: function() {
+            toastr.error('Failed to fetch fee ledger. Please try again.');
+            $('#student_fees_detail').html(`
+                <div class="dash-empty-state">
+                    <i class="fa fa-times-circle text-danger empty-icon"></i>
+                    <div class="empty-title">Error Loading Ledger</div>
+                    <div class="empty-desc">An error occurred while loading this student's fee details.</div>
+                </div>
+            `);
+        }
     });
+}
+
+/* Trigger search across all in-table column filters with debouncing */
+function triggerSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        var admNo = $('#filter_adm_no').val().trim();
+        var nameQuery = $('#live_student_search').val().trim();
+        var classId = $('#filter_class_id').val();
+        var rte = $('#filter_rte').val();
+
+        performLiveSearch(admNo, nameQuery, classId, rte);
+    }, 200);
+}
+
+/* Event Handlers for In-Table Column Filters */
+$('#filter_adm_no').on('input', triggerSearch);
+$('#live_student_search').on('input', triggerSearch);
+$('#filter_class_id').on('change', triggerSearch);
+$('#filter_rte').on('change', triggerSearch);
+
+/* Clear In-Table Filters */
+$('#btn_clear_filters').on('click', function() {
+    $('#filter_adm_no').val('');
+    $('#live_student_search').val('');
+    $('#filter_class_id').val('');
+    $('#filter_rte').val('');
+    performLiveSearch('', '', '', '');
 });
 
+/* Prevent form submit on Enter key inside filter inputs */
+$('#filter_adm_no, #live_student_search').on('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerSearch();
+    }
+});
 
+/* Global hotkey '/' to focus search */
+$(document).on('keydown', function(e) {
+    if (e.key === '/' && !$(e.target).is('input, textarea, select')) {
+        e.preventDefault();
+        $('#live_student_search').focus().select();
+    }
+});
 
+/* Perform AJAX Live Search */
+function performLiveSearch(admNo, nameQuery, classId, rte) {
+    if (activeSearchAjax) {
+        activeSearchAjax.abort();
+    }
 
-$(".quickCollect").on("click", function(){
- var array = @json($array);
- var id = $(this).data('id');
- 
- var student = array[id];
+    $('#student_count_badge').html('<i class="fa fa-spinner fa-spin mr-1"></i> Searching...');
 
-const IMAGE_SHOW_PATH = "{{ env('IMAGE_SHOW_PATH') }}";
-
-const path = student.image 
-    ? `${IMAGE_SHOW_PATH}profile/${student.image}` 
-    : `${IMAGE_SHOW_PATH}default/user_image.jpg`;
-
-        $("#student-image").attr("src",path );
-        $("#student-name").text(student.first_name + ' ' + (student.last_name ? student.last_name : ''));
-        $("#student-mobile").text(student.mobile);
-        $("#father-name").text(student.father_name);
-        $("#mother-name").text(student.mother_name);
-        $("#father-mobile").text(student.father_mobile);
-
-
-$('#show_details').show();
-}); 
-    function showData(unique_system_id,session_id) {
-         var basurl = "{{ url('/') }}";
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-            }, 
-            type: 'post',
-            url: basurl+'/student_fees_onclick',
-            data: {
-                unique_system_id: unique_system_id,
-                session_id: session_id,
-            },
-            // dataType: 'json',
-            success: function(data) {
-                // alert(JSON.stringify(data));
-                if (data == 0) {
-                    alert('Please Assign the Fees for this Student !');
-                    //window.location.href = "{{ url('feesMasterAdd') }}";
-                    var url = "{{ url('admissionEdit') }}/" + admission_id;
-                    var width = 1000; 
-                    var height = 500; 
-                    var leftPosition = (window.screen.width - width) / 2; 
-                    var topPosition = (window.screen.height - height) / 2; 
-                    var features = 'width=' + width + ',height=' + height + ',left=' + leftPosition + ',top=' + topPosition; 
-                    
-                } else {
-                    $('#student_fees_detail').html(data);
-                }
+    activeSearchAjax = $.ajax({
+        url: BASEURL + '/Fees/add',
+        type: 'GET',
+        data: {
+            ajax_search: 1,
+            admission_no: admNo,
+            name: nameQuery,
+            class_type_id: classId,
+            admission_type_id: rte,
+            search_type: ''
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response && response.status === 'success') {
+                renderStudentDirectory(response.students);
             }
-        });
-    };
-
-/*    function SearchValue() {
-         var basurl = "{{ url('/') }}";
-        var class_type_id = $('#class_type_id :selected').val();
-        var name = $('#name').val();
-        if (class_type_id > 0 || name != '') {
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                },
-                type: 'post',
-                url: basurl+'/SearchValueStd',
-                data: {
-                    class_type_id: class_type_id,
-                    name: name
-                },
-                //dataType: 'json',
-                success: function(data) {
-                    $('.student_list_show').html(data);
-                }
-            });
-        } else {
-            alert('Please put a value in minimum one column !');
+        },
+        error: function(xhr, status) {
+            if (status !== 'abort') {
+                $('#student_count_badge').text('0 Students');
+            }
         }
+    });
+}
 
-    };*/
-   
+/* Render Left Sidebar Directory */
+function renderStudentDirectory(students) {
+    var count = students ? students.length : 0;
+    $('#student_count_badge').html('<i class="fa fa-user-circle mr-1"></i> ' + count + ' Students');
+    var tbody = $('#student_tbody');
+    tbody.empty();
+
+    if (!students || students.length === 0) {
+        tbody.html('<tr><td colspan="5" class="text-center py-4 text-muted">No matching students found</td></tr>');
+        return;
+    }
+
+    students.forEach(function(item) {
+        studentsStore[item.id] = item;
+        var rteBadge = (item.admission_type_id == 2) 
+            ? '<span class="badge badge-warning text-dark font-weight-bold" style="font-size: 9px; border-radius: 3px; padding: 2px 6px;">RTE</span>'
+            : '<span class="text-muted font-weight-bold" style="font-size: 9.5px;">Non-RTE</span>';
+
+        var safeUnique = item.unique_system_id ? item.unique_system_id : '';
+
+        var rowHtml = `
+            <tr class="quickCollect pointer"
+                data-id="${item.id}"
+                data-unique="${safeUnique}"
+                onclick="selectStudentAndLoad(${item.id}, '${safeUnique}', '${CURRENT_SESSION_ID}', this)"
+                title="Click to open fee desk for ${item.first_name || ''}">
+                <td class="text-center">
+                    <span class="badge-adm-no">${item.admissionNo || ''}</span>
+                </td>
+                <td>
+                    <div class="font-weight-bold" style="font-size: 11.5px; color: #002C54; margin-bottom: 2px;">
+                        ${item.first_name || ''} ${item.last_name || ''}
+                    </div>
+                    <div class="small text-muted" style="font-size: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span><i class="fa fa-user mr-1 text-secondary"></i> F: ${item.father_name || '—'}</span>
+                        ${item.mobile && item.mobile !== '-' ? `<span><i class="fa fa-phone mr-1 text-success"></i> ${item.mobile}</span>` : ''}
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge-class">${item.class_name || '—'}</span>
+                </td>
+                <td class="text-center">
+                    ${rteBadge}
+                </td>
+                <td class="text-center text-muted" style="font-size: 11px;">
+                    <i class="fa fa-chevron-right"></i>
+                </td>
+            </tr>
+        `;
+        tbody.append(rowHtml);
+    });
+}
 </script>
-
 
 @endsection

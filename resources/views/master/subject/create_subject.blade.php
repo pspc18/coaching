@@ -63,34 +63,50 @@
 .dash-btn {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    justify-content: center;
+    height: 28px;
+    padding: 0 12px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
     text-decoration: none !important;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all .15s;
-    line-height: 1.4;
+    transition: all .15s ease;
+    line-height: 1;
+    gap: 5px;
+    white-space: nowrap;
 }
 .dash-btn-light {
-    background: #fff;
+    background: #ffffff;
     color: #002C54;
-    border-color: #fff;
+    border-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 .dash-btn-light:hover {
     background: #f1f5f9;
     color: #001f3d;
+    border-color: #f1f5f9;
 }
 .dash-btn-outline {
     background: transparent;
-    color: #fff;
-    border-color: rgba(255,255,255,.4);
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.4);
 }
 .dash-btn-outline:hover {
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    border-color: #fff;
+    background: rgba(255,255,255,0.15);
+    color: #ffffff;
+    border-color: #ffffff;
+}
+.dash-btn-primary {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+.dash-btn-primary:hover {
+    background: #001f3d;
+    color: #ffffff;
+    border-color: #001f3d;
 }
 
 /* Table Card & Header - Dark Navy Unified */
@@ -121,13 +137,102 @@
     line-height: 1.2;
 }
 .badge-total-records {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
     font-size: 10.5px;
     font-weight: 600;
-    background: rgba(255,255,255,.12);
+    background: rgba(255,255,255,.14);
     color: #f1f5f9;
-    padding: 3px 8px;
+    padding: 0 8px;
     border-radius: 2px;
-    border: 1px solid rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.18);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+#deleteSubjectModal .modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+}
+#deleteSubjectModal .modal-body {
+    text-align: left !important;
+    padding: 16px 18px !important;
+}
+#deleteSubjectModal .modal-body p {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+}
+
+/* Badges for Table Rows */
+.badge-subject-id {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    background: #e2e8f0;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    line-height: 1;
+}
+.badge-subject-main {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-subject-other {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-assigned-classes {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 2px;
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-assigned-classes.has-classes {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
 }
 
 /* Scrollable Table Viewport */
@@ -253,8 +358,9 @@ select.excel-col-filter option {
 }
 
 .btn-clear-filters {
-    width: 26px;
-    height: 26px;
+    width: 27px;
+    height: 27px;
+    min-width: 27px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -264,6 +370,8 @@ select.excel-col-filter option {
     color: #ffffff;
     cursor: pointer;
     font-size: 11px;
+    line-height: 1;
+    padding: 0;
     transition: all .15s;
 }
 .btn-clear-filters:hover {
@@ -295,16 +403,18 @@ select.excel-col-filter option {
 .btn-action-icon {
     width: 24px;
     height: 24px;
+    min-width: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 2px;
-    font-size: 10.5px;
+    font-size: 11px;
     border: 1px solid transparent;
     cursor: pointer;
     text-decoration: none !important;
     transition: all .15s;
     line-height: 1;
+    padding: 0;
 }
 .btn-action-edit {
     background: #eff6ff;
@@ -375,6 +485,7 @@ select.excel-col-filter option {
 .page-btn {
     width: 26px;
     height: 24px;
+    min-width: 26px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -383,7 +494,9 @@ select.excel-col-filter option {
     border: 1px solid rgba(255,255,255,.25);
     border-radius: 2px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1;
+    padding: 0;
     transition: all .15s;
 }
 .page-btn:hover:not(:disabled) {
@@ -497,9 +610,6 @@ select.excel-col-filter option {
                         <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#addSubjectModal">
                             <i class="fa fa-plus mr-1"></i> Add Subject
                         </button>
-                        <button type="button" class="dash-btn dash-btn-outline" data-toggle="modal" data-target="#bulkSubjectModal">
-                            <i class="fa fa-list-check mr-1"></i> Quick Bulk Add
-                        </button>
                         <a href="{{ url('add_subject') }}" class="dash-btn dash-btn-outline">
                             <i class="fa fa-leanpub mr-1"></i> Assign to Class
                         </a>
@@ -598,36 +708,40 @@ select.excel-col-filter option {
 
 <!-- Add Subject Modal -->
 <div class="modal fade" id="addSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54;">
-            <div class="modal-header" style="background:#002C54; color:#fff; padding:8px 12px;">
-                <h5 class="modal-title font-weight-bold" style="font-size:13px;">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54; box-shadow: 0 4px 16px rgba(0,0,0,.2);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background:#002C54; color:#fff; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title font-weight-bold" style="font-size:13px; margin:0;">
                     <i class="fa fa-plus-circle mr-1 text-info"></i> Add Master Subject
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal" style="margin: -8px -12px -8px auto; padding: 8px 12px; opacity: .85; outline: none;">&times;</button>
             </div>
             <form id="formAddSubject" action="{{ url('create_subject') }}" method="post">
                 @csrf
                 <div class="modal-body" style="font-size:12px; padding:14px;">
                     <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Subject Name <span class="text-danger">*</span></label>
-                        <input type="text" name="add_subject" class="form-control form-control-sm" placeholder="e.g. Mathematics, Science, English" required style="border-radius:2px; font-size:12px;">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.02em;">Subject Name <span class="text-danger">*</span></label>
+                        <input type="text" name="add_subject" class="form-control form-control-sm" placeholder="e.g. Mathematics, Science, English" required style="border-radius:2px; font-size:12px; height:32px;">
                     </div>
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Category</label>
-                        <div class="d-flex align-items-center" style="gap: 15px;">
-                            <label class="mb-0" style="cursor:pointer;">
-                                <input type="radio" name="other_subject" value="0" checked> Main Subject
+                    <div class="form-group mb-1">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.02em;">Category</label>
+                        <div class="d-flex align-items-center" style="gap: 16px;">
+                            <label class="mb-0 d-inline-flex align-items-center" style="cursor:pointer; font-size:12px; gap:5px;">
+                                <input type="radio" name="other_subject" value="0" checked>
+                                <span>Main Subject</span>
                             </label>
-                            <label class="mb-0" style="cursor:pointer;">
-                                <input type="radio" name="other_subject" value="1"> Other / Co-Curricular
+                            <label class="mb-0 d-inline-flex align-items-center" style="cursor:pointer; font-size:12px; gap:5px;">
+                                <input type="radio" name="other_subject" value="1">
+                                <span>Other / Co-Curricular</span>
                             </label>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0;">
-                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#334155;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff; border-color:#002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0; gap:6px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary">
                         <i class="fa fa-save mr-1"></i> Save Subject
                     </button>
                 </div>
@@ -638,37 +752,41 @@ select.excel-col-filter option {
 
 <!-- Edit Subject Modal -->
 <div class="modal fade" id="editSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54;">
-            <div class="modal-header" style="background:#002C54; color:#fff; padding:8px 12px;">
-                <h5 class="modal-title font-weight-bold" style="font-size:13px;">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54; box-shadow: 0 4px 16px rgba(0,0,0,.2);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background:#002C54; color:#fff; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title font-weight-bold" style="font-size:13px; margin:0;">
                     <i class="fa fa-edit mr-1 text-info"></i> Edit Subject
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal" style="margin: -8px -12px -8px auto; padding: 8px 12px; opacity: .85; outline: none;">&times;</button>
             </div>
             <form id="formEditSubject" action="{{ url('multi_edit_subject') }}" method="post">
                 @csrf
                 <input type="hidden" name="id[]" id="editSubjectId">
                 <div class="modal-body" style="font-size:12px; padding:14px;">
                     <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Subject Name <span class="text-danger">*</span></label>
-                        <input type="text" name="add_subject[]" id="editSubjectName" class="form-control form-control-sm" required style="border-radius:2px; font-size:12px;">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.02em;">Subject Name <span class="text-danger">*</span></label>
+                        <input type="text" name="add_subject[]" id="editSubjectName" class="form-control form-control-sm" required style="border-radius:2px; font-size:12px; height:32px;">
                     </div>
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase;">Category</label>
-                        <div class="d-flex align-items-center" style="gap: 15px;">
-                            <label class="mb-0" style="cursor:pointer;">
-                                <input type="radio" name="other_subject_custom" id="editRadioMain" value="0"> Main Subject
+                    <div class="form-group mb-1">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.02em;">Category</label>
+                        <div class="d-flex align-items-center" style="gap: 16px;">
+                            <label class="mb-0 d-inline-flex align-items-center" style="cursor:pointer; font-size:12px; gap:5px;">
+                                <input type="radio" name="other_subject_custom" id="editRadioMain" value="0">
+                                <span>Main Subject</span>
                             </label>
-                            <label class="mb-0" style="cursor:pointer;">
-                                <input type="radio" name="other_subject_custom" id="editRadioOther" value="1"> Other / Co-Curricular
+                            <label class="mb-0 d-inline-flex align-items-center" style="cursor:pointer; font-size:12px; gap:5px;">
+                                <input type="radio" name="other_subject_custom" id="editRadioOther" value="1">
+                                <span>Other / Co-Curricular</span>
                             </label>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0;">
-                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#334155;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff; border-color:#002C54;">
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0; gap:6px;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="dash-btn dash-btn-primary">
                         <i class="fa fa-save mr-1"></i> Update Subject
                     </button>
                 </div>
@@ -677,50 +795,55 @@ select.excel-col-filter option {
     </div>
 </div>
 
-<!-- Bulk Add Subject Modal -->
-@php
-    $defaultCatalogSubjects = [
-        'Hindi', 'English', 'Mathematics', 'Science', 'Social Studies', 'Physics', 'Chemistry',
-        'Biology', 'Computer Science', 'Environmental Studies', 'General Knowledge', 'Moral Science',
-        'Physical Education', 'Art & Craft', 'Music', 'Dance', 'Yoga', 'Sanskrit'
-    ];
-@endphp
-<div class="modal fade" id="bulkSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" style="border-radius:2px; overflow:hidden; border:1px solid #002C54;">
-            <div class="modal-header" style="background:#002C54; color:#fff; padding:8px 12px;">
-                <h5 class="modal-title font-weight-bold" style="font-size:13px;">
-                    <i class="fa fa-list-check mr-1 text-info"></i> Quick Bulk Import Standard Subjects
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-            </div>
-            <form action="{{ url('save-selected-subjects') }}" method="POST">
-                @csrf
-                <div class="modal-body" style="font-size:12px; max-height:400px; overflow-y:auto; padding:14px;">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="text-muted small">Select standard curriculum subjects to quickly add to your master catalog:</span>
-                        <label class="small font-weight-bold mb-0 text-dark" style="cursor:pointer;">
-                            <input type="checkbox" id="bulkSelectAll" checked> Select All
-                        </label>
+
+
+<!-- Delete Subject Confirmation Modal -->
+<div class="modal fade" id="deleteSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px !important; width: 95% !important;">
+        <div class="modal-content" style="border: 1px solid #002C54; border-radius: 3px; overflow: hidden; box-shadow: 0 16px 36px rgba(0, 44, 84, 0.35); background: #ffffff;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; color: #ffffff !important; padding: 8px 14px !important; border-bottom: 1px solid rgba(255,255,255,0.12) !important; min-height: 42px !important; display: flex; align-items: center; justify-content: space-between;">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div style="width: 26px; height: 26px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); color: #f87171; border: 1px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                        <i class="fa fa-trash"></i>
                     </div>
-                    <div class="row">
-                        @foreach($defaultCatalogSubjects as $idx => $dSub)
-                            <div class="col-md-6 mb-2">
-                                <div class="p-2 border rounded d-flex align-items-center justify-content-between bg-light" style="border-radius:2px;">
-                                    <label class="mb-0 font-weight-semibold" for="bulk_sub_{{ $idx }}" style="cursor:pointer;">
-                                        <input type="checkbox" class="bulk-sub-cb mr-2" id="bulk_sub_{{ $idx }}" name="Allsubjects_id[]" value="{{ $idx }}" checked>
-                                        {{ $dSub }}
-                                    </label>
-                                    <input type="hidden" name="subjects[{{ $idx }}]" value="{{ $dSub }}">
-                                </div>
-                            </div>
-                        @endforeach
+                    <div>
+                        <h5 class="modal-title font-weight-bold" style="font-size: 13px; margin: 0; color: #ffffff !important; line-height: 1.2;">
+                            Delete Subject Confirmation
+                        </h5>
                     </div>
                 </div>
-                <div class="modal-footer" style="background:#f8fafc; padding:8px 12px; border-top:1px solid #e2e8f0;">
-                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#334155;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff; border-color:#002C54;">
-                        <i class="fa fa-plus-circle mr-1"></i> Add Selected Subjects
+                <button type="button" class="close text-white" data-dismiss="modal" style="margin: -6px -10px -6px auto; padding: 6px 10px; opacity: .85; outline: none; font-size: 18px;">&times;</button>
+            </div>
+            <form id="formDeleteSubject" action="{{ url('delete_create_subject') }}" method="post">
+                @csrf
+                <input type="hidden" name="delete_id" id="deleteSubjectId">
+                <div class="modal-body" style="padding: 16px 18px !important; background: #ffffff !important; text-align: left !important;">
+                    <div class="d-flex align-items-start" style="gap: 14px;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; border-radius: 3px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #fecaca; margin-top: 2px;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">
+                                Are you sure you want to delete this subject?
+                            </div>
+                            <div class="mb-2">
+                                <span style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; background: #eff6ff; color: #002C54; border: 1px solid #bfdbfe; border-radius: 2px; font-size: 12px; font-weight: 700;">
+                                    <i class="fa fa-book text-primary" style="font-size: 11px;"></i>
+                                    <span id="deleteSubjectNameLabel">Subject Name</span>
+                                </span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                                <i class="fa fa-info-circle mr-1 text-muted"></i> This action cannot be undone and will remove this subject from the master curriculum catalog.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #f8fafc !important; padding: 8px 14px !important; border-top: 1px solid #e2e8f0 !important; display: flex !important; align-items: center !important; justify-content: flex-end !important; gap: 8px !important;">
+                    <button type="button" class="dash-btn dash-btn-outline text-dark border" data-dismiss="modal" style="height: 28px; padding: 0 14px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #ffffff;">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="dash-btn btn-danger" style="height: 28px; padding: 0 16px; font-size: 11px; font-weight: 600; border-radius: 2px; background: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important;">
+                        <i class="fa fa-trash mr-1"></i> Delete Subject
                     </button>
                 </div>
             </form>
@@ -856,13 +979,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Bulk Select All Checkbox
-    const bulkSelectAll = document.getElementById('bulkSelectAll');
-    if (bulkSelectAll) {
-        bulkSelectAll.addEventListener('change', function () {
-            document.querySelectorAll('.bulk-sub-cb').forEach(cb => cb.checked = bulkSelectAll.checked);
-        });
-    }
+    // Delete Subject Modal delegation
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.js-delete-subject');
+        if (btn) {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            document.getElementById('deleteSubjectId').value = id;
+            document.getElementById('deleteSubjectNameLabel').textContent = name || ('Subject #' + id);
+        }
+    });
 });
 </script>
 

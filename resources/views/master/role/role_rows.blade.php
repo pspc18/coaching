@@ -27,7 +27,7 @@
             </span>
         </td>
         <td class="text-center">
-            <a href="{{ url('role_permission/' . $row->id) }}" class="btn-role-permissions" title="Configure module access permissions">
+            <a href="{{ url('role_permission/' . $row->id) }}" class="btn-role-permissions js-btn-permissions" data-role-id="{{ $row->id }}" data-role-name="{{ $row->name }}" title="Configure module access permissions">
                 <i class="fa fa-key"></i> <span>Permissions</span>
             </a>
         </td>
@@ -41,13 +41,13 @@
                     <i class="fa fa-edit"></i>
                 </button>
                 @if(!$isSystem)
-                    <form action="{{ url('role_delete') }}" method="post" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this custom role?');">
-                        @csrf
-                        <input type="hidden" name="delete_id" value="{{ $row->id }}">
-                        <button type="submit" class="btn-action-icon btn-action-delete" title="Delete Role">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </form>
+                    <button type="button" class="btn-action-icon btn-action-delete js-delete-role"
+                            data-toggle="modal" data-target="#deleteRoleModal"
+                            data-id="{{ $row->id }}"
+                            data-name="{{ $row->name }}"
+                            title="Delete Role">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 @else
                     <button type="button" class="btn-action-icon btn-action-disabled" disabled title="Core system roles cannot be deleted">
                         <i class="fa fa-lock"></i>
