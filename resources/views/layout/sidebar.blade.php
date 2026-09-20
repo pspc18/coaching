@@ -28,6 +28,16 @@
         if ($academicCalendarSubmenu && !$subSidebar->contains('id', $academicCalendarSubmenu->id)) {
             $subSidebar->push($academicCalendarSubmenu);
         }
+
+        $feesSettingsSubmenu = DB::table('sidebar_sub')
+            ->where('sidebar_id', 11)
+            ->where('url', 'fees/settings')
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($feesSettingsSubmenu && !$subSidebar->contains('id', $feesSettingsSubmenu->id)) {
+            $subSidebar->push($feesSettingsSubmenu);
+        }
     }
 
 $getSetting = Helper::getSetting();
@@ -84,6 +94,14 @@ $getSetting = Helper::getSetting();
                                 ->id ?? null;
                             if ($academicCalendarId && !in_array((string) $academicCalendarId, array_map('strval', $submenus), true)) {
                                 $submenus[] = (string) $academicCalendarId;
+                            }
+                        }
+                        if ((int) Session::get('role_id') === 1 && (int) $data->id === 11) {
+                            $feesSettingsId = $subSidebar
+                                ->firstWhere('url', 'fees/settings')
+                                ->id ?? null;
+                            if ($feesSettingsId && !in_array((string) $feesSettingsId, array_map('strval', $submenus), true)) {
+                                $submenus[] = (string) $feesSettingsId;
                             }
                         }
                         $activeSub = false;

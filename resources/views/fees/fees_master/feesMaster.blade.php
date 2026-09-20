@@ -711,14 +711,12 @@ input:checked + .matrix-switch-slider:before {
     background: #2563eb;
     color: #ffffff;
 }
-.btn-action-assign {
-    background: #f0fdf4;
-    color: #16a34a;
-    border-color: #bbf7d0;
-}
-.btn-action-assign:hover {
-    background: #16a34a;
-    color: #ffffff;
+.btn-action-locked {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+    cursor: not-allowed;
+    opacity: 0.85;
 }
 
 /* Bottom Pagination Toolbar - Dark Navy (1:1 with admissionView) */
@@ -1004,9 +1002,6 @@ input:checked + .matrix-switch-slider:before {
             <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#students_list_modal" data-bs-toggle="modal" data-bs-target="#students_list_modal">
                 <i class="fa fa-user-plus"></i> Student Fee Assign
             </button>
-            <button type="button" class="dash-btn dash-btn-outline" id="fees_modification_btn" data-toggle="modal" data-target="#fees_modification" data-bs-toggle="modal" data-bs-target="#fees_modification">
-                <i class="fa fa-pencil-square-o"></i> Modify Student Fees
-            </button>
             <a href="{{ url('feesGroup') }}" class="dash-btn dash-btn-outline">
                 <i class="fa fa-folder-open"></i> Fees Group
             </a>
@@ -1191,7 +1186,9 @@ input:checked + .matrix-switch-slider:before {
                                         <div class="heads-pill-wrap">
                                             @foreach($classFeeMasters as $fm)
                                                 @php
-                                                    $isLocked = isset($usedDetailGroups[$fm->fees_group_id]) || isset($usedAssignPairs[$classTypeId . '_' . $fm->fees_group_id]);
+                                                    $classHasLinkedStudents = isset($classesWithAssignedStudents[$classTypeId]);
+                                                    $isHeadInUse = isset($usedDetailGroups[$fm->fees_group_id]) || isset($usedAssignPairs[$classTypeId . '_' . $fm->fees_group_id]);
+                                                    $isLocked = $classHasLinkedStudents || $isHeadInUse;
                                                     $headName = $fm->feesGroup->name ?? 'Group #' . $fm->fees_group_id;
                                                     $dueFormatted = !empty($fm->installment_due_date) ? date('d M Y', strtotime($fm->installment_due_date)) : '';
                                                 @endphp
@@ -1201,7 +1198,7 @@ input:checked + .matrix-switch-slider:before {
                                                         <span class="head-pill-date" title="Due Date"><i class="fa fa-calendar-o"></i> {{ $dueFormatted }}</span>
                                                     @endif
                                                     @if($isLocked)
-                                                        <span class="head-lock-badge" title="Active student records linked. Locked from deletion.">
+                                                        <span class="head-lock-badge" title="{{ $classHasLinkedStudents ? 'Student(s) are already linked to fees in this class. Locked from deletion.' : 'Active student records linked. Locked from deletion.' }}">
                                                             <i class="fa fa-lock"></i>
                                                         </span>
                                                     @else
@@ -1226,17 +1223,18 @@ input:checked + .matrix-switch-slider:before {
                                     </td>
                                     <td style="text-align: center;">
                                         <div class="table-actions">
-                                            <a href="{{ url('feesMasterEdit/' . $classTypeId) }}" 
-                                               class="table-btn btn-action-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
-                                               title="Edit Class Fee Structure">
-                                                <i class="fa fa-edit"></i>
-                                            </a>
-                                            <button type="button" 
-                                                    class="table-btn btn-action-assign btn-assign-class-students" 
-                                                    data-class-id="{{ $classTypeId }}" 
-                                                    title="Assign Fees to Students of {{ $className }}">
-                                                <i class="fa fa-user-plus"></i>
-                                            </button>
+                                            @if(isset($classesWithCollectedFees[$classTypeId]))
+                                                <span class="table-btn btn-action-locked" 
+                                                      title="Fees already collected for student(s) of this class. Fee structure cannot be edited.">
+                                                    <i class="fa fa-lock"></i>
+                                                </span>
+                                            @else
+                                                <a href="{{ url('feesMasterEdit/' . $classTypeId) }}" 
+                                                   class="table-btn btn-action-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
+                                                   title="Edit Class Fee Structure">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -1430,104 +1428,7 @@ input:checked + .matrix-switch-slider:before {
     </div>
 </div>
 
-{{-- 3. Modify Student Fees Modal --}}
-<div class="modal fade" id="fees_modification" tabindex="-1" aria-labelledby="feesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl theme-modal-dialog" role="document">
-        <div class="modal-content theme-modal-content">
-            <div class="modal-header theme-modal-header">
-                <div class="theme-modal-title-box">
-                    <div class="theme-modal-icon">
-                        <i class="fa fa-pencil-square-o"></i>
-                    </div>
-                    <div class="theme-modal-headings">
-                        <h5 class="modal-title theme-modal-title" id="feesModalLabel">
-                            Modify Student Fee Assignments
-                        </h5>
-                        <div class="theme-modal-subtitle">
-                            Search student to adjust discounts, due dates, refund flags, or remove uncollected heads
-                        </div>
-                    </div>
-                </div>
-                <button type="button" class="theme-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" title="Close Dialog">
-                    <i class="fa fa-times"></i>
-                </button>
-            </div>
 
-            <div class="modal-body theme-modal-body">
-                {{-- Search Filter Form --}}
-                <div class="theme-filter-card">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-4">
-                            <label class="theme-filter-label">Class Filter</label>
-                            <select class="form-control-compact w-100" id="class_modification" name="class_type_id" style="height:28px; font-size:11.5px; border-radius:2px;">
-                                <option value="">-- All Classes --</option>
-                                @if(!empty($classType))
-                                    @foreach($classType as $type)
-                                        <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="theme-filter-label">Admission No / Student Name</label>
-                            <input type="text" class="form-control-compact w-100" id="admission_modification" placeholder="Enter Admission No or Student Name" style="height:28px; font-size:11.5px; border-radius:2px;">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="button" class="dash-btn dash-btn-primary w-100" id="searchButton" style="height:28px; font-size:11px; background:#002C54; color:#fff; border-color:#002C54; display:flex; align-items:center; justify-content:center; gap:5px;">
-                                <i class="fa fa-search"></i> <span>Search Records</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Alert Notice --}}
-                <div class="theme-modal-alert theme-modal-alert-warning">
-                    <i class="fa fa-exclamation-triangle text-warning" style="font-size:13px; margin-top:1px;"></i>
-                    <div>
-                        <b>Important Guard:</b> If payments have already been collected for a fee head, the amount cannot be lowered below the paid sum. Changes to discount, due date, fine %, and refund status auto-save immediately.
-                    </div>
-                </div>
-
-                {{-- Table Wrap --}}
-                <div class="theme-modal-table-wrap">
-                    <div style="max-height:280px; overflow-y:auto;">
-                        <table class="table table-sm table-bordered table-hover mb-0 text-center" style="font-size:11.5px;">
-                            <thead style="position:sticky; top:0; background:#002C54; color:#ffffff; z-index:2;">
-                                <tr>
-                                    <th style="min-width:140px; padding:6px 8px;" class="text-left">Student Name</th>
-                                    <th style="min-width:85px; padding:6px 8px;">Adm No</th>
-                                    <th style="min-width:95px; padding:6px 8px;">Mobile</th>
-                                    <th style="min-width:170px; padding:6px 8px;" class="text-left">Fee Head & Amount</th>
-                                    <th style="width:90px; padding:6px 8px;">Discount (₹)</th>
-                                    <th style="min-width:125px; padding:6px 8px;">Due Date</th>
-                                    <th style="width:75px; padding:6px 8px;">Fine %</th>
-                                    <th style="width:80px; padding:6px 8px;">Refundable</th>
-                                    <th style="width:60px; padding:6px 8px;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbody_modification">
-                                <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted" style="font-size:11.5px;">
-                                        <i class="fa fa-search text-muted mr-1"></i> Enter an admission number or select a class and click Search.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer theme-modal-footer">
-                <div style="font-size:11px; color:#64748b;">
-                    <i class="fa fa-info-circle mr-1"></i> Changes auto-save when you edit a field and click outside
-                </div>
-                <button type="button" class="dash-btn dash-btn-outline" data-dismiss="modal" data-bs-dismiss="modal" style="height:28px; padding:0 14px; font-size:11px;">
-                    <i class="fa fa-times mr-1"></i> Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 $(document).ready(function() {
@@ -1584,16 +1485,7 @@ $(document).ready(function() {
         }
     });
 
-    // 4. Quick Assign Students from Class Row
-    $(document).on('click', '.btn-assign-class-students', function() {
-        var classId = $(this).data('class-id');
-        if (classId) {
-            $('#bulk_class_type_id').val(classId).trigger('change');
-            $('#students_list_modal').modal('show');
-        }
-    });
-
-    // 5. Bulk Assign Students Modal Logic
+    // 4. Bulk Assign Students Modal Logic
     if ($.fn.select2) {
         $('#bulk_fees_master_ids').select2({
             dropdownParent: $('#students_list_modal'),
@@ -1718,130 +1610,6 @@ $(document).ready(function() {
             return false;
         }
     });
-
-    // 6. Fees Modification Modal Logic
-    $('#searchButton').on('click', function() {
-        var admissionNo = ($('#admission_modification').val() || '').trim();
-        var classTypeId = $('#class_modification').val();
-
-        if (!admissionNo && !classTypeId) {
-            toastr.warning('Please select a class or enter an admission number to search.');
-            return;
-        }
-
-        $('#tbody_modification').html('<tr><td colspan="9" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin mr-1"></i> Searching student fee records...</td></tr>');
-
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: "{{ url('feesModification') }}",
-            method: 'POST',
-            data: {
-                admissionNo: admissionNo,
-                class_type_id: classTypeId,
-                admission_type_id_modify: ''
-            },
-            success: function(response) {
-                $('#tbody_modification').html(response);
-            },
-            error: function(xhr) {
-                console.error('Error loading modification data:', xhr);
-                $('#tbody_modification').html('<tr><td colspan="9" class="text-center py-3 text-danger">Failed to search student fee records.</td></tr>');
-            }
-        });
-    });
-
-    $('#tbody_modification').on('click', '.delete_assigned', function() {
-        var fees_assign_detail_id = $(this).data('detail_id');
-        var $row = $(this).closest('tr');
-
-        if (!confirm('Are you sure you want to remove this assigned fee head?')) {
-            return;
-        }
-
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            url: "{{ url('deleteAssignedFees') }}",
-            method: 'POST',
-            data: {
-                fees_assign_detail_id: fees_assign_detail_id
-            },
-            success: function() {
-                toastr.success('Assigned fee head removed successfully.');
-                $row.fadeOut(300, function() { $(this).remove(); });
-            },
-            error: function(xhr) {
-                console.error('Error deleting assigned fee:', xhr);
-                toastr.error('Failed to remove assigned fee head.');
-            }
-        });
-    });
-
-    $('#tbody_modification').on('focusout', '.fees_assign_detail', function() {
-        var $input = $(this);
-        var fees_assign_detail_id = $input.data('detail_id');
-        var value = $input.val();
-        var old_value = $input.data('old_value');
-        var field = $input.attr('name');
-
-        if (field === 'fees_group_amount') {
-            var pay_fees = parseFloat($input.data('pay_fees') || 0);
-            if (parseFloat(value) < pay_fees) {
-                toastr.error('Amount cannot be less than already paid fee: ₹' + pay_fees);
-                $input.val(old_value);
-                return;
-            }
-        }
-
-        if (value != old_value) {
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: "{{ url('updateAssignedFees') }}",
-                method: 'POST',
-                data: {
-                    fees_assign_detail_id: fees_assign_detail_id,
-                    value: value,
-                    field: field
-                },
-                success: function() {
-                    $input.data('old_value', value);
-                    toastr.success('Fee updated successfully');
-                },
-                error: function(xhr) {
-                    console.error('Error updating fee:', xhr);
-                    toastr.error('Failed to update fee.');
-                }
-            });
-        }
-    });
 });
-
-function updateRefundFees(checkbox, id) {
-    var val = checkbox.checked ? 'yes' : 'no';
-    $.ajax({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        url: "{{ url('updateAssignedFees') }}",
-        method: 'POST',
-        data: {
-            fees_assign_detail_id: id,
-            value: val,
-            field: 'fees_refund'
-        },
-        success: function() {
-            toastr.success('Refund status updated successfully');
-        },
-        error: function(xhr) {
-            console.error('Error updating refund status:', xhr);
-            toastr.error('Failed to update refund status');
-        }
-    });
-}
 </script>
 @endsection

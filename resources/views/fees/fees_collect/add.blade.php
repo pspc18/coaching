@@ -532,17 +532,52 @@ var BASEURL = "{{ url('/') }}";
 var CURRENT_SESSION_ID = "{{ Session::get('session_id') }}";
 var IMAGE_SHOW_PATH = "{{ env('IMAGE_SHOW_PATH') }}";
 
+/* Update URL query string with student_id without full page reload */
+function updateStudentUrl(admissionId) {
+    if (!window.history || !window.history.pushState) return;
+    try {
+        var currentUrl = new URL(window.location.href);
+        var currentStudent = currentUrl.searchParams.get('student_id');
+        if (admissionId) {
+            if (currentStudent == admissionId) return;
+            currentUrl.searchParams.set('student_id', admissionId);
+            window.history.pushState({ student_id: admissionId }, '', currentUrl.toString());
+        } else {
+            if (!currentStudent) return;
+            currentUrl.searchParams.delete('student_id');
+            window.history.pushState({ student_id: null }, '', currentUrl.toString());
+        }
+    } catch (e) {
+        console.error('History pushState error', e);
+    }
+}
+
 /* Select Student & Trigger Loading */
 function selectStudentAndLoad(admissionId, unique_system_id, session_id, element) {
     if (element) {
         $('#student_tbody tr').removeClass('active-row');
         $(element).addClass('active-row');
     }
+    updateStudentUrl(admissionId);
     showData(admissionId, unique_system_id, session_id);
 }
 
 /* Show Data via AJAX to /student_fees_onclick */
 function showData(admissionId, unique_system_id, session_id) {
+    // Backward compatibility if called as showData(unique_system_id, session_id)
+    if (session_id === undefined && unique_system_id !== undefined) {
+        session_id = unique_system_id;
+        unique_system_id = admissionId;
+        admissionId = '';
+    }
+
+    if (admissionId) {
+        var currentUrl = new URL(window.location.href);
+        if (currentUrl.searchParams.get('student_id') != admissionId) {
+            updateStudentUrl(admissionId);
+        }
+    }
+
     $('#student_fees_detail').html(`
         <div class="p-4 text-center m-auto">
             <i class="fa fa-spinner fa-spin fa-2x mb-2" style="color: #002C54 !important;"></i>
@@ -560,7 +595,7 @@ function showData(admissionId, unique_system_id, session_id) {
         data: {
             admission_id: admissionId,
             unique_system_id: (unique_system_id && unique_system_id !== 'null') ? unique_system_id : '',
-            session_id: session_id,
+            session_id: session_id || CURRENT_SESSION_ID,
         },
         success: function(data) {
             if (data == 0) {
@@ -717,7 +752,68 @@ function renderStudentDirectory(students) {
         `;
         tbody.append(rowHtml);
     });
+
+    var activeUrlParams = new URLSearchParams(window.location.search);
+    var activeId = activeUrlParams.get('student_id') || activeUrlParams.get('admission_id');
+    if (activeId) {
+        $('#student_tbody tr[data-id="' + activeId + '"]').addClass('active-row');
+    }
 }
+
+/* Auto-Open Student from URL Query Parameter (?student_id=... or ?admission_id=...) */
+$(document).ready(function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var targetStudentId = urlParams.get('student_id') || urlParams.get('admission_id') || "{{ $targetStudentId ?? '' }}";
+
+    if (targetStudentId) {
+        var $targetRow = $('#student_tbody tr[data-id="' + targetStudentId + '"]');
+        if ($targetRow.length) {
+            $('#student_tbody tr').removeClass('active-row');
+            $targetRow.addClass('active-row');
+            var safeUnique = $targetRow.data('unique') || '';
+
+            // Smoothly scroll the container to make this row visible
+            var scrollWrap = $('.table-scroll-wrap');
+            if (scrollWrap.length) {
+                var rowPos = $targetRow.position().top;
+                scrollWrap.scrollTop(Math.max(0, rowPos - 40));
+            }
+
+            showData(targetStudentId, safeUnique, CURRENT_SESSION_ID);
+        } else {
+            // Student ID was passed in URL but not yet in DOM table
+            showData(targetStudentId, '', CURRENT_SESSION_ID);
+        }
+    }
+});
+
+/* Browser History Navigation (Back / Forward buttons) */
+window.addEventListener('popstate', function(event) {
+    var urlParams = new URLSearchParams(window.location.search);
+    var popStudentId = urlParams.get('student_id') || urlParams.get('admission_id');
+    if (popStudentId) {
+        var $row = $('#student_tbody tr[data-id="' + popStudentId + '"]');
+        if ($row.length) {
+            $('#student_tbody tr').removeClass('active-row');
+            $row.addClass('active-row');
+            var safeUnique = $row.data('unique') || '';
+            showData(popStudentId, safeUnique, CURRENT_SESSION_ID);
+        } else {
+            showData(popStudentId, '', CURRENT_SESSION_ID);
+        }
+    } else {
+        $('#student_tbody tr').removeClass('active-row');
+        $('#student_fees_detail').html(`
+            <div class="dash-empty-state">
+                <i class="fa fa-user-circle-o empty-icon"></i>
+                <div class="empty-title">Select a Student to Collect Fees</div>
+                <div class="empty-desc">
+                    Click on any student from the left directory or search by Name, Mobile, Class, Adm No or RTE directly in the table header to open their fee desk.
+                </div>
+            </div>
+        `);
+    }
+});
 </script>
 
 @endsection

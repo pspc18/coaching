@@ -333,6 +333,11 @@ Route::match(['get', 'post'], 'save_template', 'IdCardController@save_template')
 Route::match(['get', 'post'], 'fee_dashboard', 'fees\FeesController@feeDashboard');
 Route::match(['get', 'post'], 'fees/index', 'fees\FeesController@viewFees');
 
+//Fees Settings
+Route::match(['get', 'post'], 'fees/settings', 'fees\FeesController@feesSettings');
+Route::post('fees/settings/update', 'fees\FeesController@feesSettingsUpdate');
+Route::post('fees/settings/preview-receipt', 'fees\FeesController@previewReceiptNumber');
+
 //Fees ledger
 Route::match(['get', 'post'], 'fees/ledger/collect', 'fees\FeesController@feesLedgerCollect');
 	Route::match(['get', 'post'], 'ledger_update', 'fees\FeesController@ledgerUpdate');
@@ -345,7 +350,6 @@ Route::match(['get', 'post'], 'feesGroup', 'fees\FeesController@feesGroup');
 Route::match(['get', 'post'], 'feesGroupEdit/{id}', 'fees\FeesController@feesGroupEdit');	
 Route::match(['get', 'post'], 'feesGroupDelete', 'fees\FeesController@feesGroupDelete');
 Route::match(['get', 'post'], 'assignFeesMultipleStudents', 'fees\FeesController@assignFeesMultipleStudents');
-Route::match(['get', 'post'], 'feesModification', 'fees\FeesController@feesModification');
 Route::match(['get', 'post'], 'getStudentsList', 'fees\FeesController@getStudentsList');
 Route::match(['get', 'post'], 'getMasterData', 'fees\FeesController@getMasterData');
 Route::match(['get', 'post'], 'ca_report', 'fees\FeesController@caReport');
@@ -553,7 +557,6 @@ Route::post('stream_remove/{admission_id}/{subject_id}', 'StudentsAdmissionContr
 Route::match(['get', 'post'], 'getFeesGroup', 'fees\FeesController@getFeesGroup');
 Route::match(['get', 'post'], 'createFeesInstallment', 'fees\FeesController@createFeesInstallment');
 Route::match(['get', 'post'], 'createFeesInstallmentClassWise', 'fees\FeesController@createFeesInstallmentClassWise');
-Route::match(['get', 'post'], 'deleteAssignedFees', 'fees\FeesController@deleteAssignedFees');
 Route::match(['get', 'post'], 'updateAssignedFees', 'fees\FeesController@updateAssignedFees');
 
 

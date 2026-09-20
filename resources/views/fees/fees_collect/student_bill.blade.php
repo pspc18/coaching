@@ -8,7 +8,6 @@ $fees_assign_details = DB::table('fees_assign_details')
             ->where('fees_assign_id',$data['FeesAssign']->id)
             ->whereNull('deleted_at')->get();
 $session = DB::table('sessions')->where('id',Session::get('session_id'))->whereNull('deleted_at')->first();
-$fees_advance = App\Models\fees\FeesAdvance::where('unique_system_id', $data['stuData']['unique_system_id'])->first();
 
 // Compute stats matching admissionStats
 $stat_total_assigned = 0;
@@ -42,7 +41,8 @@ if(!empty($fees_assign_details)) {
         $headArray[] = ['pending_by_group_id' => $fg->id ?? '', 'pending' => ($p_amt ?? 0)];
     }
 }
-$nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) + 1);
+$nextSlipNo = $data['runningReceiptNo'] ?? ('REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) + 1));
+$feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Session::get('branch_id'), Session::get('session_id'));
 @endphp
 
 <style>
@@ -59,104 +59,101 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
     overflow: hidden;
 }
 
-/* Student Profile Strip */
-.student-profile-strip {
-    background: #002342;
-    color: #ffffff;
-    border-radius: 2px;
-    padding: 6px 10px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-    border-left: 4px solid #38bdf8;
-    box-shadow: 0 1px 3px rgba(0,44,84,.15);
-    flex-shrink: 0;
-}
-.student-strip-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 2px;
-    border: 1.5px solid #ffffff;
-    object-fit: cover;
-    background: #ffffff;
-}
-.student-strip-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: #ffffff;
-    line-height: 1.2;
-}
-.student-strip-meta {
-    font-size: 10px;
-    color: #e2e8f0;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 2px;
-}
-.student-meta-pill {
-    background: rgba(255,255,255,.18);
-    color: #ffffff;
-    padding: 2px 7px;
-    border-radius: 3px;
-    font-size: 10px;
+.bill-active-student {
+    font-size: 11px;
     font-weight: 600;
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 2px;
+    padding: 2px 7px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    letter-spacing: .02em;
 }
 
-/* Statistics Bar (1:1 with admissionView stats cards) */
-.bill-stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-    margin-bottom: 5px;
+/* 2-Column Split: Col-1 (Student Photo) & Col-11 (3 Rows: Stats + Nav + Fast Pay) */
+.bill-header-row {
+    margin-bottom: 3px;
     flex-shrink: 0;
 }
-@media (max-width: 991px) {
+.student-profile-photo-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.student-avatar-img {
+    max-height: 96px;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2px;
+}
+@media (max-width: 768px) {
+    .bill-header-row .col-1 {
+        flex: 0 0 16.666667%;
+        max-width: 16.666667%;
+    }
+    .bill-header-row .col-11 {
+        flex: 0 0 83.333333%;
+        max-width: 83.333333%;
+    }
+}
+
+/* Statistics Bar (High-density 1-line layout) */
+.bill-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 3px;
+    flex-shrink: 0;
+}
+@media (max-width: 768px) {
     .bill-stats-row {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
     }
 }
 .bill-stat-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
-    padding: 4px 8px;
+    padding: 3px 8px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.stat-lbl {
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    color: #475569;
-    margin-bottom: 1px;
-    display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
 }
+.stat-lbl {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0;
+}
 .stat-val {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: #002C54;
-    line-height: 1.2;
+    line-height: 1;
 }
 .stat-val-paid {
     color: #15803d;
 }
 .stat-val-due {
     color: #b91c1c;
-}
-.stat-val-advance {
-    color: #0369a1;
 }
 
 /* Terminal Nav Header Bar */
@@ -243,15 +240,15 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
 .fastpay-action-strip {
     background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    padding: 6px 10px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    border-radius: 2px;
+    padding: 3px 6px;
+    margin-top: 3px;
+    margin-bottom: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 4px;
     flex-shrink: 0;
 }
 
@@ -458,6 +455,113 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
     border-color: #002C54;
 }
 
+/* Settlement Adjustments Card (Theme Aligned) */
+.settlement-adjustments-card {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 7px 10px;
+}
+.settlement-adjustments-card .input-group {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    width: 100% !important;
+}
+.settlement-adjustments-card .input-group-prepend {
+    display: flex !important;
+    flex-shrink: 0 !important;
+    margin-right: -1px !important;
+    z-index: 2;
+}
+.settlement-adjustments-card .input-group-append {
+    display: flex !important;
+    flex-shrink: 0 !important;
+    margin-left: -1px !important;
+    z-index: 2;
+}
+.settlement-adjustments-card .input-group-text {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    font-size: 11px !important;
+    height: 26px !important;
+    padding: 0 8px !important;
+    border-radius: 2px 0 0 2px !important;
+    line-height: 1 !important;
+}
+.settlement-adjustments-card .form-control {
+    position: relative !important;
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    min-width: 0 !important;
+    height: 26px !important;
+    padding: 2px 8px !important;
+    font-size: 11.5px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    z-index: 1;
+}
+.settlement-adjustments-card .form-control:focus {
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 1px #002C54 !important;
+    z-index: 3 !important;
+}
+.btn-quick-disc {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 26px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: none !important;
+    color: #475569 !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+    transition: all .12s ease;
+    white-space: nowrap;
+}
+.btn-quick-disc:hover {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+}
+.btn-quick-disc:last-child {
+    border-top-right-radius: 2px !important;
+    border-bottom-right-radius: 2px !important;
+}
+.btn-waive-fine {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 26px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: none !important;
+    color: #dc2626 !important;
+    border-radius: 0 2px 2px 0 !important;
+    cursor: pointer;
+    transition: all .12s ease;
+    white-space: nowrap;
+}
+.btn-waive-fine:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
+}
+
 /* Cash Change Calculator */
 .cash-calc-box {
     background: #f0fdf4;
@@ -521,111 +625,264 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
     color: #ffffff;
     opacity: 0.85;
 }
+
+/* Floating Quick POS Draggable Widget & Blurred Backdrop */
+.quick-pos-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 35, 66, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
+    display: none;
+}
+.pos-terminal-blurred {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+    transition: filter 0.2s ease;
+}
+.quick-pos-widget {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-width: 95vw;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 15px 45px rgba(0, 44, 84, 0.4), 0 0 0 1px rgba(0, 44, 84, 0.15);
+    border: 2px solid #002C54;
+    z-index: 1055;
+    overflow: hidden;
+    display: none;
+}
+.quick-pos-header {
+    background: #002342;
+    color: #ffffff;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #38bdf8;
+}
+.quick-pos-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: .02em;
+}
+.quick-pos-body {
+    padding: 14px 16px;
+    background: #ffffff;
+}
+.quick-pos-due-box {
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    border-radius: 3px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.quick-pos-due-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: #991b1b;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.quick-pos-due-val {
+    font-size: 18px;
+    font-weight: 800;
+    color: #b91c1c;
+}
+.quick-pos-input-group {
+    position: relative;
+    margin-bottom: 6px;
+}
+.quick-pos-input-group .input-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 800;
+    font-size: 16px;
+    color: #002C54;
+}
+.quick-pos-input {
+    width: 100%;
+    height: 42px;
+    padding-left: 28px;
+    padding-right: 12px;
+    font-size: 19px;
+    font-weight: 800;
+    color: #002C54;
+    border: 1.5px solid #94a3b8;
+    border-radius: 3px;
+    text-align: right;
+    transition: border-color .15s, box-shadow .15s;
+}
+.quick-pos-input:focus {
+    border-color: #002C54;
+    box-shadow: 0 0 0 3px rgba(0, 44, 84, 0.2);
+    outline: none;
+}
+.quick-pos-footer {
+    padding: 10px 16px 12px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.quick-pos-confirm-btn {
+    width: 100%;
+    height: 40px;
+    background: #002C54;
+    color: #ffffff;
+    border: 1px solid #001f3d;
+    border-radius: 3px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: background .15s, transform .05s;
+    box-shadow: 0 2px 6px rgba(0, 44, 84, .3);
+}
+.quick-pos-confirm-btn:hover {
+    background: #001f3d;
+    color: #ffffff;
+}
+.quick-pos-confirm-btn:active {
+    transform: scale(0.99);
+}
 </style>
 
 <div class="bill-desk-wrapper">
-    <!-- Top Active Student Profile Strip -->
-    <div class="student-profile-strip">
-        <div class="d-flex align-items-center gap-2">
-            @php
-                $userImage = !empty($data['stuData']['image']) 
-                    ? env('IMAGE_SHOW_PATH').'profile/'.$data['stuData']['image'] 
-                    : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
-            @endphp
-            <img src="{{ $userImage }}" class="student-strip-avatar" alt="Avatar" onerror="this.src='{{ env('IMAGE_SHOW_PATH') }}default/user_image.jpg'">
-            <div>
-                <div class="student-strip-name">
-                    {{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }}
+    <!-- Top Header Strip: Col-1 (Student Photo Merged across 3 Rows) + Col-11 (Stats, Nav & Fast Pay) -->
+    <div class="row no-gutters bill-header-row align-items-stretch">
+        <!-- Col-1: Student Profile Image -->
+        <div class="col-1 pr-1 d-flex">
+            <div class="student-profile-photo-card" title="{{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }} (#{{ $data['stuData']['admissionNo'] ?? '' }})">
+                @php
+                    $userImage = !empty($data['stuData']['image']) 
+                        ? env('IMAGE_SHOW_PATH').'profile/'.$data['stuData']['image'] 
+                        : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
+                @endphp
+                <img src="{{ $userImage }}" class="student-avatar-img" alt="Student Photo" onerror="this.src='{{ env('IMAGE_SHOW_PATH') }}default/user_image.jpg'">
+            </div>
+        </div>
+
+        <!-- Col-11: 3 Merged Rows (Stats Row + Terminal Nav Header Bar + Fast Pay Action Strip) -->
+        <div class="col-11 d-flex flex-column justify-content-start">
+            <!-- Row 1: Top Statistics Bar (Ultra-compact 1-line high-density layout) -->
+            <div class="bill-stats-row">
+                <div class="bill-stat-card">
+                    <div class="stat-lbl">
+                        <i class="fa fa-folder-open-o text-muted"></i>
+                        <span>Total Assigned</span>
+                    </div>
+                    <div class="stat-val">₹ {{ number_format($stat_total_assigned, 2) }}</div>
                 </div>
-                <div class="student-strip-meta">
-                    <span class="student-meta-pill"><i class="fa fa-id-card-o mr-1.5"></i> Adm: #{{ $data['stuData']['admissionNo'] ?? '—' }}</span>
-                    <span class="student-meta-pill"><i class="fa fa-graduation-cap mr-1.5"></i> Class: {{ $data['stuData']['ClassTypes']['name'] ?? '—' }}</span>
-                    <span class="student-meta-pill"><i class="fa fa-user mr-1.5"></i> F: {{ $data['stuData']['father_name'] ?? '—' }}</span>
-                    @if(!empty($data['stuData']['mobile']))
-                        <span class="student-meta-pill"><i class="fa fa-phone mr-1.5"></i> {{ $data['stuData']['mobile'] }}</span>
-                    @endif
-                    @if(($data['stuData']['admission_type_id'] ?? '') == 2)
-                        <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 9.5px; border-radius: 3px; padding: 2px 6px;">RTE</span>
-                    @endif
+                <div class="bill-stat-card">
+                    <div class="stat-lbl">
+                        <i class="fa fa-check-circle text-success"></i>
+                        <span>Paid to Date</span>
+                    </div>
+                    <div class="stat-val stat-val-paid">₹ {{ number_format($stat_total_paid, 2) }}</div>
+                </div>
+                <div class="bill-stat-card">
+                    <div class="stat-lbl">
+                        <i class="fa fa-exclamation-circle text-danger"></i>
+                        <span>Net Outstanding Due</span>
+                    </div>
+                    <div class="stat-val stat-val-due">₹ {{ number_format($stat_total_pending, 2) }}</div>
                 </div>
             </div>
-        </div>
 
-        <div class="d-flex align-items-center gap-1">
-            @if($stat_total_pending == 0)
-                <span class="badge badge-success px-2 py-1" style="font-size: 10.5px; font-weight: 700;">
-                    <i class="fa fa-check-circle mr-1"></i> CLEARED
-                </span>
-            @else
-                <span class="badge badge-danger px-2 py-1" style="font-size: 10.5px; font-weight: 700;">
-                    <i class="fa fa-exclamation-triangle mr-1"></i> DUE: ₹ {{ number_format($stat_total_pending, 2) }}
-                </span>
-            @endif
-        </div>
-    </div>
+            <!-- Row 2: Terminal Nav Header Bar -->
+            <div class="bill-nav-bar">
+                <div class="bill-tabs-group">
+                    <button type="button" class="bill-tab-btn active" data-tab="tab_payment_desk">
+                        <i class="fa fa-credit-card mr-1"></i> 1. Payment Counter
+                    </button>
+                    <button type="button" class="bill-tab-btn" data-tab="tab_installments">
+                        <i class="fa fa-calendar-check-o mr-1"></i> 2. Installments
+                    </button>
+                    <button type="button" class="bill-tab-btn" data-tab="tab_history">
+                        <i class="fa fa-history mr-1"></i> 3. Invoices ({{ count($data['FeesDetailsInvoices'] ?? []) }})
+                    </button>
+                    <button type="button" class="bill-tab-btn" id="btn_open_quick_pos" style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 700;" title="Quick POS Settlement Modal (Alt+Q)">
+                        <i class="fa fa-bolt text-warning mr-1"></i> Quick POS <kbd class="kbd-hint" style="background: rgba(0,0,0,0.25); color: #fff; font-size: 8.5px; padding: 1px 3px;">Alt+Q</kbd>
+                    </button>
+                </div>
 
-    <!-- Top Statistics Bar -->
-    <div class="bill-stats-row">
-        <div class="bill-stat-card">
-            <div class="stat-lbl">
-                <span>Total Assigned</span>
-                <i class="fa fa-folder-open-o text-muted"></i>
-            </div>
-            <div class="stat-val">₹ {{ number_format($stat_total_assigned, 2) }}</div>
-        </div>
-        <div class="bill-stat-card">
-            <div class="stat-lbl">
-                <span>Paid to Date</span>
-                <i class="fa fa-check-circle text-success"></i>
-            </div>
-            <div class="stat-val stat-val-paid">₹ {{ number_format($stat_total_paid, 2) }}</div>
-        </div>
-        <div class="bill-stat-card">
-            <div class="stat-lbl">
-                <span>Net Outstanding Due</span>
-                <i class="fa fa-exclamation-circle text-danger"></i>
-            </div>
-            <div class="stat-val stat-val-due">₹ {{ number_format($stat_total_pending, 2) }}</div>
-        </div>
-        <div class="bill-stat-card">
-            <div class="stat-lbl">
-                <span>Advance Wallet</span>
-                <i class="fa fa-gift text-info"></i>
-            </div>
-            <div class="stat-val stat-val-advance">
-                ₹ {{ number_format($fees_advance->balance ?? 0, 2) }}
-            </div>
-        </div>
-    </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="bill-active-student" title="Active Student">
+                        <i class="fa fa-user-circle mr-1 text-info"></i>
+                        <span>{{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }}</span>
+                        <span class="badge badge-secondary ml-1" style="font-size: 9px; font-weight: 600;">#{{ $data['stuData']['admissionNo'] ?? '' }}</span>
+                    </span>
 
-    <!-- Terminal Nav Header Bar -->
-    <div class="bill-nav-bar">
-        <div class="bill-tabs-group">
-            <button type="button" class="bill-tab-btn active" data-tab="tab_payment_desk">
-                <i class="fa fa-credit-card mr-1"></i> 1. Payment Counter
-            </button>
-            <button type="button" class="bill-tab-btn" data-tab="tab_installments">
-                <i class="fa fa-calendar-check-o mr-1"></i> 2. Installments
-            </button>
-            <button type="button" class="bill-tab-btn" data-tab="tab_history">
-                <i class="fa fa-history mr-1"></i> 3. Invoices ({{ count($data['FeesDetailsInvoices'] ?? []) }})
-            </button>
-        </div>
+                    <!-- Academic Session Switcher -->
+                    <div>
+                        <ul class="tabs_listing mb-0">
+                            @if(count($data['sessions']) != 0)
+                                @php
+                                    $sessions = $data['sessions'];
+                                @endphp
+                                @foreach($sessions as $item)
+                                    <li class="tab" id="{{ $data['session_id'] == $item->id ? 'active_li' : '' }}" data-id="{{ $item->id ?? '' }}" data-unique_system_id="{{ $data['stuData']['unique_system_id'] ?? '' }}">
+                                        {{ $item->from_year ?? '' }}-20{{ $item->to_year ?? '' }}
+                                    </li>
+                                @endforeach
+                            @endif
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Academic Session Switcher -->
-        <div>
-            <ul class="tabs_listing">
-                @if(count($data['sessions']) != 0)
-                    @php
-                        $sessions = $data['sessions'];
-                    @endphp
-                    @foreach($sessions as $item)
-                        <li class="tab" id="{{ $data['session_id'] == $item->id ? 'active_li' : '' }}" data-id="{{ $item->id ?? '' }}" data-unique_system_id="{{ $data['stuData']['unique_system_id'] ?? '' }}">
-                            {{ $item->from_year ?? '' }}-20{{ $item->to_year ?? '' }}
-                        </li>
-                    @endforeach
-                @endif
-            </ul>
+            <!-- Row 3: Fast-Pay Action Strip -->
+            <div class="fastpay-action-strip" id="header_fastpay_strip">
+                <div class="d-flex align-items-center gap-1 flex-wrap">
+                    <span class="dash-form-lbl mb-0 mr-1"><i class="fa fa-bolt text-warning mr-1"></i> Fast Pay:</span>
+                    @if($stat_total_pending > 0)
+                        <button type="button" class="dash-btn" id="btn_pay_full_due" data-amount="{{ $stat_total_pending }}" style="height: 25px; font-size: 10px; background: #dc2626; color: #ffffff; border-color: #b91c1c; font-weight: 700;" title="Shortcut: Alt+F">
+                            <i class="fa fa-check-square-o mr-1"></i> Pay Full: ₹{{ number_format($stat_total_pending, 2) }} <kbd class="kbd-hint">Alt+F</kbd>
+                        </button>
+                    @endif
+                    <button type="button" class="dash-btn dash-btn-light border" id="btn_select_all_heads" style="height: 25px; font-size: 10px;">
+                        <i class="fa fa-check mr-1"></i> Select All
+                    </button>
+                    <button type="button" class="dash-btn dash-btn-light border" id="btn_clear_all_heads" style="height: 25px; font-size: 10px;">
+                        <i class="fa fa-times mr-1"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Aggregate Amount Input & Auto Allocate Button -->
+                <div class="d-flex align-items-center gap-1">
+                    <span class="dash-form-lbl mb-0 font-weight-bold" title="Enter any custom amount to auto-distribute across pending fee heads">
+                        <i class="fa fa-magic text-primary mr-1"></i> Lumpsum:
+                    </span>
+                    <div style="position: relative; width: 120px;">
+                        <span style="position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #64748b; font-size: 11px;">₹</span>
+                        <input type="number" step="any" value="" id="aggregate_amount" class="dash-form-control" style="padding-left: 18px; font-weight: 700; height: 25px;" placeholder="0.00" autocomplete="off" />
+                    </div>
+                    <button type="button" id="btn_auto_allocate" class="dash-btn dash-btn-primary" style="height: 25px; font-size: 10px; padding: 0 8px; background: #002C54; border-color: #002C54; font-weight: 600;" title="Auto distribute entered amount across oldest pending heads (Alt+A)">
+                        <i class="fa fa-bolt mr-1 text-warning"></i> Auto Allocate
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -654,73 +911,16 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                 <!-- Scrollable Body (Only middle content scrolls, checkout bar is fixed at bottom!) -->
                 <div class="bill-scrollable-body" style="flex: 1; min-height: 0; overflow-y: auto; padding-right: 2px;">
 
-                    <!-- Advance Fee Deposit Option -->
-                    @if(!empty($fees_advance) && $fees_advance->balance > 0)
-                        <div class="d-flex align-items-center justify-content-between p-2 mt-1 mb-1 border rounded bg-white">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge badge-info" style="font-size: 10px; border-radius: 2px;">
-                                    <i class="fa fa-gift mr-1"></i> Available Advance Balance: ₹{{ number_format($fees_advance->balance, 2) }}
-                                </span>
-                                <input type="hidden" name="fees_advance_balance" id="fees_advance_balance" value="{{ $fees_advance->balance ?? '' }}">
-                            </div>
-                            <div class="d-flex align-items-center gap-2" style="font-size: 10.5px;">
-                                <span class="text-muted font-weight-bold">Pay using Advance Wallet:</span>
-                                <div class="form-check form-check-inline mr-1">
-                                    <input class="form-check-input pointer" type="radio" name="yesNoAdvance" id="noOption" value="no" checked>
-                                    <label class="form-check-label pointer font-weight-bold" for="noOption">No</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input pointer" type="radio" name="yesNoAdvance" id="yesOption" value="yes">
-                                    <label class="form-check-label pointer font-weight-bold text-success" for="yesOption">Yes, Deduct</label>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Fast-Pay Action Strip -->
-                    <div class="fastpay-action-strip">
-                        <div class="d-flex align-items-center gap-1 flex-wrap">
-                            <span class="dash-form-lbl mb-0 mr-1"><i class="fa fa-bolt text-warning mr-1"></i> Fast Pay:</span>
-                            @if($stat_total_pending > 0)
-                                <button type="button" class="dash-btn" id="btn_pay_full_due" data-amount="{{ $stat_total_pending }}" style="height: 25px; font-size: 10px; background: #dc2626; color: #ffffff; border-color: #b91c1c; font-weight: 700;" title="Shortcut: Alt+F">
-                                    <i class="fa fa-check-square-o mr-1"></i> Pay Full: ₹{{ number_format($stat_total_pending, 2) }} <kbd class="kbd-hint">Alt+F</kbd>
-                                </button>
-                            @endif
-                            <button type="button" class="dash-btn dash-btn-light border" id="btn_select_all_heads" style="height: 25px; font-size: 10px;">
-                                <i class="fa fa-check mr-1"></i> Select All
-                            </button>
-                            <button type="button" class="dash-btn dash-btn-light border" id="btn_clear_all_heads" style="height: 25px; font-size: 10px;">
-                                <i class="fa fa-times mr-1"></i> Clear
-                            </button>
-                        </div>
-
-                        <!-- Aggregate Amount Input & Auto Allocate Button -->
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="dash-form-lbl mb-0 font-weight-bold" title="Enter any custom amount to auto-distribute across pending fee heads">
-                                <i class="fa fa-magic text-primary mr-1"></i> Lumpsum:
-                            </span>
-                            <div style="position: relative; width: 120px;">
-                                <span style="position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-weight: 700; color: #64748b; font-size: 11px;">₹</span>
-                                <input type="number" step="any" value="" id="aggregate_amount" class="dash-form-control" style="padding-left: 18px; font-weight: 700; height: 25px;" placeholder="0.00" autocomplete="off" />
-                            </div>
-                            <button type="button" id="btn_auto_allocate" class="dash-btn dash-btn-primary" style="height: 25px; font-size: 10px; padding: 0 8px; background: #002C54; border-color: #002C54; font-weight: 600;" title="Auto distribute entered amount across oldest pending heads (Alt+A)">
-                                <i class="fa fa-bolt mr-1 text-warning"></i> Auto Allocate
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Fee Heads Matrix Table -->
                     <div class="border rounded mb-2 overflow-hidden" id="add_head_row" style="border-radius: 2px;">
                         <table class="dash-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 32%;">Fee Head Description</th>
-                                    <th style="width: 12%; text-align: right;">Assigned (₹)</th>
-                                    <th style="width: 12%; text-align: right;">Paid Earlier (₹)</th>
-                                    <th style="width: 14%; text-align: right;">Balance Due (₹)</th>
-                                    <th style="width: 14%;">Pay Amount (₹) *</th>
-                                    <th style="width: 10%;">Discount (₹)</th>
-                                    <th style="width: 8%;">Fine (₹)</th>
+                                    <th style="width: 38%;">Fee Head Description</th>
+                                    <th style="width: 15%; text-align: right;">Assigned (₹)</th>
+                                    <th style="width: 15%; text-align: right;">Paid Earlier (₹)</th>
+                                    <th style="width: 16%; text-align: right;">Balance Due (₹)</th>
+                                    <th style="width: 16%; text-align: right;">Pay Amount (₹) *</th>
                                 </tr>
                             </thead>
                             <tbody id="head_row">
@@ -739,25 +939,39 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                                             $paid_fine = $result->paid_fine ?? 0;
                                             $paids = $paid + $paid_fine;
                                             $pending_amount = (($fees->fees_group_amount) - ($fees->discount)) - ($paid);
-                                            $is_overdue = ($pending_amount > 0 && isset($fees->installment_due_date) && $fees->installment_due_date < date('Y-m-d'));
-                                            $fine_calc = $is_overdue ? ($pending_amount * ($fees->installment_fine ?? 0))/100 : 0;
+                                            $dueDate = $fees->installment_due_date ?? null;
+                                            $is_overdue = ($pending_amount > 0 && !empty($dueDate) && $dueDate < date('Y-m-d'));
+                                            $days_overdue = 0;
+                                            $billable_days = 0;
+                                            if ($is_overdue) {
+                                                $days_overdue = max(0, (int) floor((strtotime(date('Y-m-d')) - strtotime($dueDate)) / 86400));
+                                                $graceDays = (int) ($feesSetting->fine_grace_days ?? 0);
+                                                $billable_days = max(0, $days_overdue - $graceDays);
+                                            }
                                         @endphp
                                         @if($fees->fees_group_amount > $paids)
                                             <tr id="group_{{ $feesGroup->id }}" class="group_group">
                                                 <td>
                                                     <label class="d-flex align-items-center mb-0 pointer" for="checkbox_{{ $key }}">
-                                                        <input type="checkbox" class="selected_head pointer" id="checkbox_{{ $key }}" name="selected_head[]" data-fees_assign_detail_id="{{ $fees->id }}" value="{{ $feesGroup->id }}" style="margin-right: 6px;">
+                                                        <input type="checkbox" class="selected_head pointer" id="checkbox_{{ $key }}" name="selected_head[]" 
+                                                            data-fees_assign_detail_id="{{ $fees->id }}" 
+                                                            data-pending_amount="{{ $pending_amount ?? 0 }}"
+                                                            data-is_overdue="{{ $is_overdue ? 1 : 0 }}"
+                                                            data-days_overdue="{{ $days_overdue }}"
+                                                            data-billable_days="{{ $billable_days }}"
+                                                            data-due_date="{{ !empty($dueDate) ? date('d-m-Y', strtotime($dueDate)) : '' }}"
+                                                            value="{{ $feesGroup->id }}" style="margin-right: 6px;">
                                                         <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">{{ $feesGroup->name ?? '' }}</span>
                                                     </label>
                                                     @if($is_overdue)
                                                         <div class="ml-4">
                                                             <span class="badge badge-danger p-0 px-1" style="font-size: 9px;">
-                                                                Overdue (Due: {{ date('d-m-Y', strtotime($fees->installment_due_date)) }})
+                                                                Overdue (Due: {{ date('d-m-Y', strtotime($dueDate)) }}) &bull; {{ $days_overdue }}d ago
                                                             </span>
                                                         </div>
-                                                    @elseif(!empty($fees->installment_due_date))
+                                                    @elseif(!empty($dueDate))
                                                         <div class="ml-4 text-muted" style="font-size: 9.5px;">
-                                                            Due: {{ date('d-m-Y', strtotime($fees->installment_due_date)) }}
+                                                            Due: {{ date('d-m-Y', strtotime($dueDate)) }}
                                                         </div>
                                                     @endif
                                                 </td>
@@ -768,18 +982,15 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                                                     ₹ {{ number_format(($paid - ($fees->discount ?? 0)) > 0 ? ($paid - ($fees->discount ?? 0)) : $paid, 2) }}
                                                 </td>
                                                 <td style="text-align: right;">
-                                                    <span class="badge-pending" id="pending_by_group_id_{{ $fees->id ?? '' }}" data-pending_amount="{{ $pending_amount ?? '0' }}" data-fine="{{ $is_overdue ? $fees->installment_fine : 0 }}">
+                                                    <span class="badge-pending" id="pending_by_group_id_{{ $fees->id ?? '' }}" data-pending_amount="{{ $pending_amount ?? '0' }}">
                                                         ₹ {{ number_format($pending_amount ?? 0, 2) }}
                                                     </span>
                                                 </td>
-                                                <td>
+                                                <td style="text-align: right;">
                                                     <input type="tel" class="dash-form-control amount_get aggregate_{{ $feesGroup->id }}" placeholder="0.00" id="amount_{{ $fees->id }}" name="amount[]" onkeypress="javascript:return isNumber(event)" required style="height: 25px; font-weight: 700; text-align: right;">
-                                                </td>
-                                                <td>
-                                                    <input type="tel" class="dash-form-control discounts" placeholder="0.00" id="discount_{{ $fees->id }}" name="discount_amount[]" onkeypress="javascript:return isNumber(event)" style="height: 25px; text-align: right;">
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="dash-form-control fine_amount" id="fine_{{ $fees->id }}" value="0" name="fine[]" onkeypress="javascript:return isNumber(event)" required style="height: 25px; text-align: right;">
+                                                    <!-- Hidden inputs for head-level discount & fine to preserve backend data integrity -->
+                                                    <input type="hidden" class="head_discount_input" id="discount_{{ $fees->id }}" name="discount_amount[]" value="0" disabled>
+                                                    <input type="hidden" class="head_fine_input" id="fine_{{ $fees->id }}" name="fine[]" value="0" disabled>
                                                 </td>
                                             </tr>
                                         @endif
@@ -787,6 +998,46 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                                 @endif
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Policy-Driven Settlement Adjustments: Late Fine & Concession/Discount -->
+                    <!-- Policy-Driven Settlement Adjustment: Late Fine -->
+                    <div class="settlement-adjustments-card mb-2">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="dash-form-lbl mb-0 font-weight-bold text-danger">
+                                <i class="fa fa-balance-scale mr-1"></i> Late Fine (₹)
+                            </label>
+                            <span class="badge badge-light border text-danger" id="fine_policy_badge" style="font-size: 9px; text-transform: uppercase;">
+                                Policy: {{ $feesSetting->fine_mode ?? 'fixed' }}
+                            </span>
+                        </div>
+                        <div class="input-group input-group-sm flex-nowrap" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; width: 100% !important;">
+                            <div class="input-group-prepend" style="display: flex !important; flex-shrink: 0 !important; margin-right: -1px !important;">
+                                <span class="input-group-text font-weight-bold text-danger" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; height: 26px !important; padding: 0 8px !important;">₹</span>
+                            </div>
+                            <input type="number" step="any" min="0" id="settlement_fine" class="form-control font-weight-bold text-danger" 
+                                   style="flex: 1 1 auto !important; width: 1% !important; min-width: 0 !important; height: 26px !important;"
+                                   value="0.00" autocomplete="off" {{ !$feesSetting->allow_fine_waiver ? 'readonly' : '' }}>
+                            @if($feesSetting->allow_fine_waiver)
+                                <div class="input-group-append" style="display: flex !important; flex-shrink: 0 !important; margin-left: -1px !important;">
+                                    <button type="button" id="btn_waive_fine" class="btn-waive-fine" title="Waive late fine to ₹0.00">
+                                        <i class="fa fa-times-circle mr-1"></i> Waive Fine
+                                    </button>
+                                </div>
+                            @else
+                                <div class="input-group-append" style="display: flex !important; flex-shrink: 0 !important; margin-left: -1px !important;">
+                                    <span class="input-group-text bg-light text-muted" style="border-radius: 0 2px 2px 0; font-size: 9.5px;" title="Fine waiver disabled in settings">
+                                        <i class="fa fa-lock mr-1"></i> Locked
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-1 text-muted" style="font-size: 9.5px; min-height: 16px;">
+                            <span id="fine_calc_hint">Select fee heads to evaluate due date &amp; late fine</span>
+                            <span id="fine_waived_badge" class="badge badge-warning" style="display: none; font-size: 8.5px;">Waived</span>
+                        </div>
+                        <input type="hidden" id="fine_was_waived" name="fine_was_waived" value="0">
+                        <input type="hidden" id="settlement_discount" value="0">
                     </div>
 
                     <!-- Payment Mode Selection (Segmented POS Buttons) -->
@@ -854,13 +1105,16 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                             </div>
 
                             <div class="col-6 col-md-3 px-1 mb-1">
-                                <label class="dash-form-lbl text-danger">Offline Receipt / Slip No *</label>
-                                <div style="display: flex; gap: 4px;">
-                                    <input type="text" id="offline_receipt_no" class="dash-form-control" name="offline_receipt_no" placeholder="e.g. 1042 / Slip No" required>
-                                    <button type="button" id="btn_auto_slip" class="dash-btn dash-btn-light border" style="height: 25px; padding: 0 8px; font-size: 10px; font-weight: 600;" title="Auto generate next slip number">
-                                        <i class="fa fa-magic mr-1 text-primary"></i> Auto
-                                    </button>
+                                <label class="dash-form-lbl text-primary font-weight-bold">
+                                    <i class="fa fa-barcode mr-1"></i> Running Receipt No
+                                </label>
+                                <div style="display: flex; align-items: center; justify-content: space-between; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 2px; padding: 0 8px; height: 25px;">
+                                    <span id="running_receipt_display" style="font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; font-weight: 700; color: #002C54; letter-spacing: .04em;">
+                                        <i class="fa fa-tag text-primary mr-1"></i>{{ $nextSlipNo }}
+                                    </span>
+                                    <span class="badge badge-primary" style="font-size: 9px; padding: 2px 5px; text-transform: uppercase;">Next #</span>
                                 </div>
+                                <input type="hidden" id="offline_receipt_no" name="offline_receipt_no" value="{{ $nextSlipNo }}">
                             </div>
 
                             <div class="col-6 col-md-3 px-1 mb-1">
@@ -912,7 +1166,7 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
                                 <span id="selected_heads_count_badge" class="badge" style="font-size: 10px; background: rgba(255, 255, 255, 0.18); color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35); font-weight: 700; padding: 2px 8px; border-radius: 2px;">0 Heads</span>
                                 <span>Subtotal: <strong style="color: #ffffff; font-size: 11.5px;">₹<span id="aggregate">0.00</span></strong></span>
                                 <span style="opacity: 0.5;">|</span>
-                                <span>Disc: <strong style="color: #ffffff; font-size: 11.5px;">₹<span id="d_given">0.00</span></strong></span>
+                                <span>Fine (+): <strong style="color: #f87171; font-size: 11.5px;">₹<span id="f_given">0.00</span></strong></span>
                             </div>
                             <div style="font-size: 16px; font-weight: 800; color: #ffffff; letter-spacing: -.02em; margin-top: 2px;">
                                 Total Payable: <span style="color: #4ade80;">₹<span id="g_total">0.00</span></span>
@@ -1365,18 +1619,213 @@ $nextSlipNo = 'REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) +
 }
 </style>
 
+<!-- Quick POS Backdrop for Blurring Terminal -->
+<div class="quick-pos-backdrop" id="quickPosBackdrop"></div>
+
+<!-- ================= DRAGGABLE QUICK POS ALLOCATION WIDGET ================= -->
+<div class="quick-pos-widget" id="quickPosModal">
+    <div class="quick-pos-header" id="quickPosHeader">
+        <div class="quick-pos-title">
+            <i class="fa fa-bolt text-warning"></i>
+            <span>Quick POS - Fee Allocation</span>
+            <span class="badge badge-light text-dark ml-1" style="font-size: 9.5px; font-weight: 700;">#{{ $data['stuData']['admissionNo'] ?? '' }}</span>
+        </div>
+        <div>
+            <button type="button" class="close text-white" id="btn_close_quick_pos" style="font-size: 18px; line-height: 1; opacity: 0.85; padding: 0 4px; border: none; background: transparent; cursor: pointer;">&times;</button>
+        </div>
+    </div>
+
+    <div class="quick-pos-body">
+        <!-- Student Info Strip -->
+        <div class="d-flex align-items-center gap-2 mb-2 p-1.5 rounded" style="background: #f1f5f9; border: 1px solid #e2e8f0;">
+            @php
+                $quickUserImage = !empty($data['stuData']['image']) 
+                    ? env('IMAGE_SHOW_PATH').'profile/'.$data['stuData']['image'] 
+                    : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
+            @endphp
+            <img src="{{ $quickUserImage }}" style="width: 36px; height: 36px; border-radius: 2px; object-fit: cover; border: 1px solid #cbd5e1;" onerror="this.src='{{ env('IMAGE_SHOW_PATH') }}default/user_image.jpg'">
+            <div style="min-width: 0; flex: 1;">
+                <div class="text-truncate" style="font-weight: 700; font-size: 12px; color: #002C54;">
+                    {{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }}
+                </div>
+                <div class="text-truncate" style="font-size: 10px; color: #64748b;">
+                    Class: {{ $data['stuData']['ClassTypes']['name'] ?? '—' }} | F: {{ $data['stuData']['father_name'] ?? '—' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Outstanding Amount Box -->
+        <div class="quick-pos-due-box">
+            <div>
+                <div class="quick-pos-due-lbl">
+                    <i class="fa fa-exclamation-circle mr-1"></i> Net Outstanding Due:
+                </div>
+                <div style="font-size: 9.5px; color: #991b1b; opacity: 0.85;">Total unpaid fee heads</div>
+            </div>
+            <div class="quick-pos-due-val" id="quick_pos_due_display">
+                ₹ {{ number_format($stat_total_pending, 2) }}
+            </div>
+        </div>
+
+        <!-- Lumpsum Allocation Input -->
+        <div class="mb-1">
+            <div class="d-flex align-items-center justify-content-between mb-1" style="font-size: 11px;">
+                <label class="mb-0 font-weight-bold text-dark" for="quick_lumpsum_amount">
+                    <i class="fa fa-inr text-success mr-1"></i> Lumpsum Amount to Allocate:
+                </label>
+                @if($stat_total_pending > 0)
+                    <a href="javascript:void(0)" id="btn_quick_pay_full" class="font-weight-bold text-primary" style="font-size: 10.5px; text-decoration: underline;">
+                        <i class="fa fa-check-circle mr-0.5"></i> Full Due (₹{{ number_format($stat_total_pending, 2) }})
+                    </a>
+                @endif
+            </div>
+            <div class="quick-pos-input-group mb-0">
+                <span class="input-icon">₹</span>
+                <input type="number" step="any" id="quick_lumpsum_amount" class="quick-pos-input" placeholder="0.00" autocomplete="off" />
+            </div>
+            <div class="text-muted mt-1" style="font-size: 9.5px;">
+                <i class="fa fa-info-circle mr-1 text-primary"></i> Amount will auto-distribute across oldest pending fee heads.
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Footer / Confirm Button -->
+    <div class="quick-pos-footer">
+        <button type="button" class="quick-pos-confirm-btn" id="btn_quick_pos_allocate">
+            <i class="fa fa-bolt text-warning"></i> Auto Allocate Fees
+        </button>
+        <div class="d-flex align-items-center justify-content-between" style="font-size: 9.5px; color: #64748b; margin-top: 2px;">
+            <span><kbd style="font-size: 9px; padding: 1px 4px; background: #e2e8f0; color: #334155;">Enter</kbd> Auto Allocate</span>
+            <a href="javascript:void(0)" id="btn_quick_pos_dismiss" class="text-muted font-weight-bold">Cancel (<kbd style="font-size: 9px; padding: 1px 4px; background: #e2e8f0; color: #334155;">Esc</kbd>)</a>
+        </div>
+    </div>
+</div>
+
 <!-- External Scripts -->
 <script src="{{ URL::asset('public/assets/school/js/form/form_save.js') }}"></script>
 
 <!-- Fast POS Script Handlers -->
 <script>
+var feesSettingConfig = {
+    fine_mode: "{{ $feesSetting->fine_mode ?? 'fixed' }}",
+    fine_amount: {{ (float) ($feesSetting->fine_amount ?? 0) }},
+    fine_grace_days: {{ (int) ($feesSetting->fine_grace_days ?? 0) }},
+    fine_max_cap: {{ !empty($feesSetting->fine_max_cap) ? (float) $feesSetting->fine_max_cap : 'null' }},
+    allow_fine_waiver: {{ (int) ($feesSetting->allow_fine_waiver ?? 1) }},
+    fine_waiver_requires_remark: {{ (int) ($feesSetting->fine_waiver_requires_remark ?? 0) }},
+    allow_manual_discount: {{ (int) ($feesSetting->allow_manual_discount ?? 1) }},
+    max_discount_percentage: {{ (float) ($feesSetting->max_discount_percentage ?? 20) }},
+    discount_requires_remark: {{ (int) ($feesSetting->discount_requires_remark ?? 0) }}
+};
+var userManualFineEdited = false;
+var lastCalculatedPolicyFine = 0;
+var triggerAggregateAllocation;
+
+function openQuickPosModal() {
+    $('.bill-desk-wrapper').addClass('pos-terminal-blurred');
+    $('#quickPosBackdrop').fadeIn(150);
+    $('#quickPosModal').fadeIn(150, function() {
+        $('#quick_lumpsum_amount').focus().select();
+    });
+}
+
+function closeQuickPosModal() {
+    $('#quickPosBackdrop').fadeOut(120);
+    $('#quickPosModal').fadeOut(120);
+    $('.bill-desk-wrapper').removeClass('pos-terminal-blurred');
+}
+
+/* Quick POS Auto Allocation Engine */
+function executeQuickPosAllocation() {
+    let amount = parseFloat($('#quick_lumpsum_amount').val()) || 0;
+    let totalPending = parseFloat("{{ $stat_total_pending }}") || 0;
+
+    if (amount <= 0) {
+        toastr.error('Please enter an amount greater than 0 to allocate.');
+        $('#quick_lumpsum_amount').focus();
+        return;
+    }
+
+    if (amount > totalPending) {
+        toastr.warning('Amount cannot exceed total pending (₹' + totalPending.toFixed(2) + '). Setting to full due.');
+        amount = totalPending;
+        $('#quick_lumpsum_amount').val(amount.toFixed(2));
+    }
+
+    // Put amount into fastpay strip lumpsum input as well for visibility
+    $('#aggregate_amount').val(amount.toFixed(2));
+
+    // Auto allocate across fee heads
+    triggerAggregateAllocation(amount);
+
+    // Close modal & restore terminal focus
+    closeQuickPosModal();
+
+    toastr.success('₹ ' + amount.toFixed(2) + ' auto-allocated across pending fee heads.');
+}
+
 $(document).ready(function () {
+    // Auto-open Quick POS modal with focus on lumpsum amount if pending > 0
+    let studentTotalPending = parseFloat("{{ $stat_total_pending }}") || 0;
+    if (studentTotalPending > 0) {
+        setTimeout(function() {
+            openQuickPosModal();
+        }, 250);
+    }
+
+    // Quick Pay Full button
+    $('#btn_quick_pay_full').on('click', function(e) {
+        e.preventDefault();
+        let totalPending = parseFloat("{{ $stat_total_pending }}") || 0;
+        $('#quick_lumpsum_amount').val(totalPending.toFixed(2)).focus().select();
+    });
+
+    // Auto Allocate button & Enter key handlers
+    $('#btn_quick_pos_allocate').on('click', function(e) {
+        e.preventDefault();
+        executeQuickPosAllocation();
+    });
+
+    $('#quick_lumpsum_amount').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            executeQuickPosAllocation();
+        }
+    });
+
+    // Close & Dismiss (via button, footer cancel link, or clicking blurred backdrop)
+    $('#btn_close_quick_pos, #btn_quick_pos_dismiss, #quickPosBackdrop').on('click', function(e) {
+        e.preventDefault();
+        closeQuickPosModal();
+    });
+
+    // Global Key shortcuts: Esc to close, Alt+Q to reopen
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape' && $('#quickPosModal').is(':visible')) {
+            closeQuickPosModal();
+        }
+        if (e.altKey && (e.key === 'q' || e.key === 'Q')) {
+            e.preventDefault();
+            openQuickPosModal();
+        }
+    });
+
+    // Reopen button in nav bar
+    $('#btn_open_quick_pos').on('click', function(e) {
+        e.preventDefault();
+        openQuickPosModal();
+    });
     /* Tab Switching */
     $('.bill-tab-btn').on('click', function () {
         var targetTab = $(this).data('tab');
         $(this).addClass('active').siblings().removeClass('active');
         $('.pos-tab-content').hide();
         $('#' + targetTab).show();
+        if (targetTab === 'tab_payment_desk') {
+            $('#header_fastpay_strip').show();
+        } else {
+            $('#header_fastpay_strip').hide();
+        }
     });
 
     /* Visual Payment Mode Chips click */
@@ -1505,18 +1954,8 @@ $(document).ready(function () {
     });
 
     /* Auto Allocate Function across Fee Head Rows */
-    function triggerAggregateAllocation(aggregateAmount) {
+    triggerAggregateAllocation = function(aggregateAmount) {
         aggregateAmount = parseFloat(aggregateAmount) || 0;
-
-        const yesNoAdvance = document.querySelector('input[name="yesNoAdvance"]:checked');
-        if (yesNoAdvance && yesNoAdvance.value === "yes") {
-            let fees_advance_balance = parseFloat($("#fees_advance_balance").val()) || 0;
-            if (aggregateAmount > fees_advance_balance) {
-                toastr.error('The advance fee balance for student is Rs ' + fees_advance_balance);
-                aggregateAmount = fees_advance_balance;
-                $('#aggregate_amount').val(aggregateAmount);
-            }
-        }
 
         let total_pending = parseFloat($("#validate_pending").data('pending')) || 0;
         if (aggregateAmount > total_pending) {
@@ -1530,8 +1969,9 @@ $(document).ready(function () {
             $('.selected_head').prop('checked', false);
             $('.group_group').removeClass('row-selected');
             $('.amount_get').prop('disabled', true).val('');
-            $('.discounts').prop('disabled', true).val('');
-            $('.fine_amount').prop('disabled', true).val('0');
+            $('.head_discount_input').prop('disabled', true).val('0');
+            $('.head_fine_input').prop('disabled', true).val('0');
+            recomputePolicyFine();
             updateTotals();
             return;
         }
@@ -1542,8 +1982,8 @@ $(document).ready(function () {
         $('.selected_head').prop('checked', false);
         $('.group_group').removeClass('row-selected');
         $('.amount_get').prop('disabled', true).val('');
-        $('.discounts').prop('disabled', true).val('');
-        $('.fine_amount').prop('disabled', true).val('0');
+        $('.head_discount_input').prop('disabled', true).val('0');
+        $('.head_fine_input').prop('disabled', true).val('0');
 
         // Walk through each fee head row in DOM order and allocate
         $('#head_row tr.group_group').each(function () {
@@ -1554,7 +1994,6 @@ $(document).ready(function () {
             let detailId = checkbox.data('fees_assign_detail_id');
             let pendingEl = row.find('[data-pending_amount]');
             let pending = parseFloat(pendingEl.attr('data-pending_amount')) || 0;
-            let fineRate = parseFloat(pendingEl.attr('data-fine')) || 0;
 
             if (pending > 0) {
                 let allocate = Math.min(remaining, pending);
@@ -1564,17 +2003,13 @@ $(document).ready(function () {
                 row.addClass('row-selected');
 
                 let amtInput = $('#amount_' + detailId);
-                let discInput = $('#discount_' + detailId);
-                let fineInput = $('#fine_' + detailId);
-
                 amtInput.prop('disabled', false).val(allocate.toFixed(2));
-                discInput.prop('disabled', false).val('');
-
-                let fineVal = (allocate * fineRate) / 100;
-                fineInput.prop('disabled', false).val(fineVal > 0 ? fineVal.toFixed(2) : '0');
+                $('#discount_' + detailId).prop('disabled', false).val('0');
+                $('#fine_' + detailId).prop('disabled', false).val('0');
             }
         });
 
+        recomputePolicyFine();
         updateTotals();
     }
 
@@ -1590,19 +2025,17 @@ $(document).ready(function () {
             $("#fine_" + fees_assign_detail_id).prop("disabled", false);
 
             var pending_amount = Number($('#pending_by_group_id_' + fees_assign_detail_id).attr('data-pending_amount'));
-            var fine = Number($('#pending_by_group_id_' + fees_assign_detail_id).attr('data-fine'));
 
             if (pending_amount > 0) {
                 $('#amount_' + fees_assign_detail_id).val(pending_amount);
-                $('#fine_' + fees_assign_detail_id).val((pending_amount * fine) / 100);
-                $('#amount_' + fees_assign_detail_id).attr('data-fine', fine);
             }
         } else {
             parentRow.removeClass('row-selected');
             $("#amount_" + fees_assign_detail_id).prop("disabled", true).val('');
-            $("#discount_" + fees_assign_detail_id).prop("disabled", true).val('');
+            $("#discount_" + fees_assign_detail_id).prop("disabled", true).val('0');
             $("#fine_" + fees_assign_detail_id).prop("disabled", true).val('0');
         }
+        recomputePolicyFine();
         updateTotals();
     });
 
@@ -1610,52 +2043,51 @@ $(document).ready(function () {
     $(".amount_get").on("input", function () {
         let fees_assign_detail_id = $(this).attr("id").split("_")[1];
         let pendingAmount = Number($('#pending_by_group_id_' + fees_assign_detail_id).attr('data-pending_amount'));
-        let finePercentage = Number($('#amount_' + fees_assign_detail_id).attr('data-fine'));
-        let discountValue = Number($('#discount_' + fees_assign_detail_id).val());
         let currentValue = Number($(this).val());
 
         if (currentValue < 0 || isNaN(currentValue)) {
             $(this).val(0);
         }
 
-        let maxAllowedAmount = pendingAmount - discountValue;
-        if (currentValue > maxAllowedAmount) {
-            $(this).val(maxAllowedAmount);
+        if (currentValue > pendingAmount) {
+            $(this).val(pendingAmount);
             toastr.error("Amount can't be greater than pending amount");
         }
-        let updatedFine = (Number($(this).val()) * finePercentage) / 100;
-        $("#fine_" + fees_assign_detail_id).val(updatedFine.toFixed(2));
 
-        updateTotals();
-    });
-
-    /* Discounts Input */
-    $(".discounts").on("input", function () {
-        let fees_assign_detail_id = $(this).attr("id").split("_")[1];
-        let originalAmount = Number($('#pending_by_group_id_' + fees_assign_detail_id).attr('data-pending_amount'));
-        let discountValue = Number($(this).val());
-
-        if (discountValue < 0 || isNaN(discountValue)) {
-            $(this).val(0);
-        }
-
-        if (discountValue > originalAmount) {
-            $(this).val(originalAmount);
-        }
-
-        let newAmount = originalAmount - discountValue;
-        $("#amount_" + fees_assign_detail_id).val(newAmount < 0 ? 0 : newAmount);
-        updateTotals();
-    });
-
-    /* Fine manual Input */
-    $(document).on("input", ".fine_amount", function () {
-        let value = Number($(this).val());
-        if (value < 0 || isNaN(value)) {
-            $(this).val(0);
+        if (feesSettingConfig.fine_mode === 'percentage') {
+            recomputePolicyFine();
         }
         updateTotals();
     });
+
+    /* Fine Waiver Button */
+    $('#btn_waive_fine').on('click', function() {
+        userManualFineEdited = true;
+        $('#settlement_fine').val('0.00');
+        $('#fine_waived_badge').show();
+        $('#fine_was_waived').val('1');
+        updateTotals();
+        toastr.info('Late fine waived to ₹0.00');
+        if (feesSettingConfig.fine_waiver_requires_remark) {
+            $('#other_fee_remark').focus();
+        }
+    });
+
+    /* Fine Input in Settlement Card */
+    $('#settlement_fine').on('input', function() {
+        userManualFineEdited = true;
+        let entered = parseFloat($(this).val()) || 0;
+        if (lastCalculatedPolicyFine > 0 && entered < lastCalculatedPolicyFine) {
+            $('#fine_waived_badge').show();
+            $('#fine_was_waived').val('1');
+        } else {
+            $('#fine_waived_badge').hide();
+            $('#fine_was_waived').val('0');
+        }
+        updateTotals();
+    });
+
+
 
     /* Initial state disable */
     $(".selected_head").each(function () {
@@ -1870,6 +2302,15 @@ $(document).ready(function () {
             return false;
         }
 
+        let fineWasWaived = $('#fine_was_waived').val() === '1';
+        let remark = $('#other_fee_remark').val().trim();
+
+        if (fineWasWaived && feesSettingConfig.fine_waiver_requires_remark && remark === '') {
+            toastr.error('Transaction remark is mandatory when waiving or reducing late fine.');
+            $('#other_fee_remark').focus();
+            return false;
+        }
+
         $('#loadingModal').modal('show');
         $('.collect_btn_hide').hide();
         var buttonValue = $('.collect_btn').val();
@@ -1962,19 +2403,6 @@ $(document).ready(function () {
             });
         }
     });
-
-    /* Advance Radio */
-    $('input[name="yesNoAdvance"]').click(function(){
-        if (this.value === "yes") {
-            $('#payment_mode_id').val(9);
-            $('#aggregate_amount').val('');
-            $('#amount_0').val(0);
-            $('#advance_payment').val('yes');
-        } else if (this.value === "no") {
-            $('#payment_mode_id').val(1);
-            $('#advance_payment').val('no');
-        }
-    });
 });
 
 /* Revert Fees Trigger */
@@ -1988,38 +2416,127 @@ $(document).on('click', '.revert_fees', function(){
     $('#sessionID_').val(sessionID_);
 });
 
-/* Calculate Totals */
+/* Recompute Late Fine Based on FeesSetting Policy */
+function recomputePolicyFine() {
+    let checkedBoxes = $('.selected_head:checked');
+    if (checkedBoxes.length === 0) {
+        lastCalculatedPolicyFine = 0;
+        if (!userManualFineEdited) {
+            $('#settlement_fine').val('0.00');
+        }
+        $('#fine_calc_hint').text('Select fee heads to evaluate due date & late fine');
+        $('#fine_waived_badge').hide();
+        $('#fine_was_waived').val('0');
+        return;
+    }
+
+    let overdueCount = 0;
+    let maxBillableDays = 0;
+    let overduePendingSum = 0;
+
+    checkedBoxes.each(function () {
+        let isOverdue = parseInt($(this).data('is_overdue')) || 0;
+        if (isOverdue === 1) {
+            overdueCount++;
+            let pending = parseFloat($(this).data('pending_amount')) || 0;
+            let billableDays = parseInt($(this).data('billable_days')) || 0;
+            overduePendingSum += pending;
+            if (billableDays > maxBillableDays) {
+                maxBillableDays = billableDays;
+            }
+        }
+    });
+
+    let fine = 0;
+    let hint = '';
+
+    if (overdueCount === 0) {
+        fine = 0;
+        hint = 'All selected heads are within due date (No fine)';
+    } else {
+        if (feesSettingConfig.fine_mode === 'disabled') {
+            fine = 0;
+            hint = 'Late fine is disabled in institute settings';
+        } else if (feesSettingConfig.fine_mode === 'fixed') {
+            fine = feesSettingConfig.fine_amount;
+            hint = overdueCount + ' overdue head(s). Flat fine: ₹' + fine.toFixed(2);
+        } else if (feesSettingConfig.fine_mode === 'daily') {
+            fine = maxBillableDays * feesSettingConfig.fine_amount;
+            hint = maxBillableDays + ' billable overdue day(s) (after ' + feesSettingConfig.fine_grace_days + 'd grace) × ₹' + feesSettingConfig.fine_amount + '/day';
+        } else if (feesSettingConfig.fine_mode === 'percentage') {
+            fine = (overduePendingSum * feesSettingConfig.fine_amount) / 100;
+            hint = feesSettingConfig.fine_amount + '% of overdue fees (₹' + overduePendingSum.toFixed(2) + ')';
+        } else if (feesSettingConfig.fine_mode === 'manual') {
+            hint = 'Manual cashier fine entry allowed';
+        }
+
+        if (feesSettingConfig.fine_max_cap !== null && fine > feesSettingConfig.fine_max_cap) {
+            fine = feesSettingConfig.fine_max_cap;
+            hint += ' (Capped at max ₹' + feesSettingConfig.fine_max_cap.toFixed(2) + ')';
+        }
+    }
+
+    lastCalculatedPolicyFine = fine;
+
+    if (!userManualFineEdited) {
+        $('#settlement_fine').val(fine.toFixed(2));
+    }
+    $('#fine_calc_hint').text(hint);
+
+    let currentEnteredFine = parseFloat($('#settlement_fine').val()) || 0;
+    if (lastCalculatedPolicyFine > 0 && currentEnteredFine < lastCalculatedPolicyFine) {
+        $('#fine_waived_badge').show();
+        $('#fine_was_waived').val('1');
+    } else {
+        $('#fine_waived_badge').hide();
+        $('#fine_was_waived').val('0');
+    }
+}
+
+/* Calculate Totals and Settle Policy Adjustments */
 function updateTotals() {
-    let totalAmount = 0;
-    let totalDiscount = 0;
-    let totalFine = 0;
+    let subtotal = 0;
     let checkedCount = 0;
+    let checkedDetails = [];
 
     $(".selected_head:checked").each(function () {
         checkedCount++;
-        let fees_assign_detail_id = $(this).data("fees_assign_detail_id");
-        let amount = Number($("#amount_" + fees_assign_detail_id).val()) || 0;
-        let discount = Number($("#discount_" + fees_assign_detail_id).val()) || 0;
-        let fine = Number($("#fine_" + fees_assign_detail_id).val()) || 0;
-
-        totalAmount += amount;
-        totalDiscount += discount;
-        totalFine += fine;
+        let detailId = $(this).data("fees_assign_detail_id");
+        let amount = Number($("#amount_" + detailId).val()) || 0;
+        subtotal += amount;
+        checkedDetails.push(detailId);
     });
-    $("#total_amount").val(totalAmount.toFixed(2));
-    $("#total_fine").val(totalFine.toFixed(2));
-    $("#discount_given").val(totalDiscount.toFixed(2));
+
+    let enteredFine = parseFloat($('#settlement_fine').val()) || 0;
+
+    // Distribute fine and set hidden discount to 0 across checked heads for backend submission
+    $('.head_discount_input').prop('disabled', true).val('0');
+    $('.head_fine_input').prop('disabled', true).val('0');
+
+    if (checkedDetails.length > 0) {
+        for (let i = 0; i < checkedDetails.length; i++) {
+            let id = checkedDetails[i];
+            $('#discount_' + id).prop('disabled', false).val('0');
+            $('#fine_' + id).prop('disabled', false).val(i === 0 ? enteredFine.toFixed(2) : '0');
+        }
+    }
+
+    let netPayable = subtotal + enteredFine;
+
+    $("#total_amount").val(netPayable.toFixed(2));
+    $("#total_fine").val(enteredFine.toFixed(2));
+    $("#discount_given").val('0.00');
 
     // Update display values
-    $("#aggregate").text((totalAmount + totalDiscount).toFixed(2));
-    $("#d_given").text(totalDiscount.toFixed(2));
-    $("#g_total").text(totalAmount.toFixed(2));
+    $("#aggregate").text(subtotal.toFixed(2));
+    $("#f_given").text(enteredFine.toFixed(2));
+    $("#g_total").text(netPayable.toFixed(2));
     $("#selected_heads_count_badge").text(checkedCount + ' Head' + (checkedCount === 1 ? '' : 's'));
 
     // Update change calculator if cash
     let tendered = parseFloat($('#cash_tendered').val()) || 0;
     if (tendered > 0) {
-        let change = tendered - totalAmount;
+        let change = tendered - netPayable;
         if (change >= 0) {
             $('#cash_change_display').removeClass('badge-secondary').addClass('badge-success').text('₹ ' + change.toFixed(2));
         } else {

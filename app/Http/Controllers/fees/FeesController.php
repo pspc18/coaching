@@ -21,6 +21,7 @@ use PDF;
 use App\Models\fees\FeesAdvance;
 use App\Models\fees\FeesAdvanceHistory;
 use App\Models\FeesDetail;
+use App\Models\FeesSetting;
 use App\Models\Invoice;
 use App\Models\StoreItem;
 use App\Models\StoreItemRequest;
@@ -245,6 +246,8 @@ class FeesController extends Controller
                     ]);
                 }
 
+                $targetStudentId = $request->student_id ?: ($request->admission_id ?: null);
+
                 if ($request->isMethod('post')) {
                     $request->validate([
                         'class_type_id' => 'nullable|integer|exists:class_types,id',
@@ -314,7 +317,24 @@ class FeesController extends Controller
                         ->orderBy('last_name')
                         ->get();
 
-                    return view('fees.fees_collect.add', ['data' => $allstudents, 'search' => $search]);
+                    if (!empty($targetStudentId)) {
+                        $targetStudent = Admission::with('ClassTypes')
+                            ->where('id', $targetStudentId)
+                            ->where('status', 1)
+                            ->where('session_id', Session::get('session_id'))
+                            ->where('branch_id', Session::get('branch_id'))
+                            ->where('school', 1)
+                            ->first();
+                        if ($targetStudent && !$allstudents->contains('id', $targetStudent->id)) {
+                            $allstudents->prepend($targetStudent);
+                        }
+                    }
+
+                    return view('fees.fees_collect.add', [
+                        'data' => $allstudents, 
+                        'search' => $search,
+                        'targetStudentId' => $targetStudentId,
+                    ]);
                 }
 
                 // Initial GET: load initial active students so the cashier has immediate access
@@ -328,7 +348,24 @@ class FeesController extends Controller
                     ->limit(50)
                     ->get();
 
-                return view('fees.fees_collect.add', ['data' => $initialStudents, 'search' => $search]);
+                if (!empty($targetStudentId)) {
+                    $targetStudent = Admission::with('ClassTypes')
+                        ->where('id', $targetStudentId)
+                        ->where('status', 1)
+                        ->where('session_id', Session::get('session_id'))
+                        ->where('branch_id', Session::get('branch_id'))
+                        ->where('school', 1)
+                        ->first();
+                    if ($targetStudent && !$initialStudents->contains('id', $targetStudent->id)) {
+                        $initialStudents->prepend($targetStudent);
+                    }
+                }
+
+                return view('fees.fees_collect.add', [
+                    'data' => $initialStudents, 
+                    'search' => $search,
+                    'targetStudentId' => $targetStudentId,
+                ]);
             }
                 
             public function feesLedgerCollect(Request $request){
@@ -584,13 +621,21 @@ class FeesController extends Controller
                             ->where('branch_id', $branchId)
                             ->where('type', 'FeesSlip')
                             ->first();
-                    
+
                         $inventory = StoreItemRequest::where('session_id', $sessionId)
                             ->where('branch_id', $branchId)
                             ->where('admission_id', $admissionId)
                             ->groupBy('receipt_no')
                             ->get();
-                    
+
+                        // Get FeesSetting and compute running receipt number
+                        $feesSetting = FeesSetting::getSetting($branchId, $sessionId);
+                        $sessionRec = Sessions::find($sessionId);
+                        $sessionName = $sessionRec ? ($sessionRec->from_year . '-' . $sessionRec->to_year) : '';
+                        $currentCounter = $billCounterFinal ? (int) $billCounterFinal->counter : 0;
+                        $nextCounter = $currentCounter + 1;
+                        $runningReceiptNo = $feesSetting->formatReceiptNumber($nextCounter, $sessionName);
+
                         // Prepare data array for view
                         $data = [
                             'session_id' => $sessionId,
@@ -603,6 +648,8 @@ class FeesController extends Controller
                             'FeesMaster' => $feesMaster,
                             'stuFeeDet' => $stuFeeDet,
                             'inventory' => $inventory,
+                            'feesSetting' => $feesSetting,
+                            'runningReceiptNo' => $runningReceiptNo,
                         ];
                     
                         // Check if student has fees assigned
@@ -715,6 +762,24 @@ class FeesController extends Controller
                 $submittedFine = collect($request->fine)->sum(fn ($value) => (float) $value);
                 $submittedDiscount = collect($request->discount_amount ?? [])->sum(fn ($value) => (float) ($value ?? 0));
 
+                // Enforce FeesSetting policies
+                $feesSetting = FeesSetting::getSetting(Session::get('branch_id'), $session_id);
+                if ($submittedDiscount > 0) {
+                    if (!$feesSetting->allow_manual_discount) {
+                        return Response::json(['status' => 'error', 'message' => 'Manual discounts are disabled by institute fee settings.'], 422);
+                    }
+                    $maxAllowedDiscount = ($submittedAmount + $submittedDiscount) * (($feesSetting->max_discount_percentage ?? 100) / 100);
+                    if ($submittedDiscount > ($maxAllowedDiscount + 0.5)) {
+                        return Response::json(['status' => 'error', 'message' => 'Discount exceeds the maximum allowed (' . $feesSetting->max_discount_percentage . '%).'], 422);
+                    }
+                    if ($feesSetting->discount_requires_remark && empty(trim($request->other_fee_remark ?? ''))) {
+                        return Response::json(['status' => 'error', 'message' => 'Transaction remark is mandatory when granting a discount.'], 422);
+                    }
+                }
+                if ($feesSetting->fine_waiver_requires_remark && ($request->fine_was_waived == '1') && empty(trim($request->other_fee_remark ?? ''))) {
+                    return Response::json(['status' => 'error', 'message' => 'Transaction remark is mandatory when waiving late fine.'], 422);
+                }
+
                 $FeesAssign = FeesAssign::where('admission_id',$request->admission_id)
                     ->where('session_id', $session_id)
                     ->where('branch_id', Session::get('branch_id'))
@@ -741,9 +806,18 @@ class FeesController extends Controller
                         ->firstOrFail();
                     if (!empty($admission_id)) {
                         if (!empty($request->selected_head)) {
-                            $counter = !empty($BillCounter->counter) ? $BillCounter->counter : 0;
-                            $BillCounter->counter = $counter + 1;
+                            $counter = !empty($BillCounter->counter) ? (int)$BillCounter->counter : 0;
+                            $nextCounter = $counter + 1;
+                            $BillCounter->counter = $nextCounter;
                             $BillCounter->save();
+
+                            // Format receipt number according to FeesSetting
+                            $feesSetting = FeesSetting::getSetting(Session::get('branch_id'), $session_id);
+                            $sessionRec = Sessions::find($session_id);
+                            $sessionName = $sessionRec ? ($sessionRec->from_year . '-' . $sessionRec->to_year) : '';
+                            $runningReceiptNo = $feesSetting->formatReceiptNumber($nextCounter, $sessionName);
+                            $assignedReceiptNo = !empty($request->slip_no) ? $request->slip_no : $runningReceiptNo;
+
                             foreach($request->selected_head as $key=> $head){
                                 if (((float) $request->amount[$key]) > 0
                                     || ((float) ($request->discount_amount[$key] ?? 0)) > 0
@@ -762,7 +836,7 @@ class FeesController extends Controller
                                         $payDetail->branch_id = Session::get('branch_id');
                                         $payDetail->fees_collect_id = $payOld->id;
                                         $payDetail->fees_group_id = $head;
-                                        $payDetail->receipt_no  = $request->slip_no;
+                                        $payDetail->receipt_no  = $assignedReceiptNo;
                                         $payDetail->admission_id = $admission_id; 
                                         $payDetail->paid_amount = $request->amount[$key];
                                         $payDetail->installment_fine = $request->fine[$key];
@@ -770,8 +844,8 @@ class FeesController extends Controller
                                         $payDetail->discount = $request->discount_amount[$key];
                                         $payDetail->total_amount = $request->amount[$key]+$request->discount_amount[$key];
                                         $payDetail->status = $request->payment_status;
-                                         $payDetail->date = $request->date;
-                                         $payDetail->offline_receipt_no = $request->offline_receipt_no;
+                                        $payDetail->date = $request->date;
+                                        $payDetail->offline_receipt_no = $assignedReceiptNo;
                                         $payDetail->save();  
                                         $fees_details_id[]= $payDetail->id;
                                     }
@@ -792,7 +866,7 @@ class FeesController extends Controller
                                         $payDetail->branch_id = Session::get('branch_id');
                                         $payDetail->fees_collect_id = $collect_id;
                                         $payDetail->fees_group_id = $head;
-                                        $payDetail->receipt_no  = $request->slip_no;
+                                        $payDetail->receipt_no  = $assignedReceiptNo;
                                         $payDetail->admission_id = $admission_id;
                                         $payDetail->paid_amount = $request->amount[$key];
                                         $payDetail->installment_fine = $request->fine[$key];
@@ -801,7 +875,7 @@ class FeesController extends Controller
                                         $payDetail->status = $request->payment_status;
                                         $payDetail->date = $request->date;
                                         $payDetail->payment_mode_id = $request->payment_mode_id;
-                                        $payDetail->offline_receipt_no = $request->offline_receipt_no;
+                                        $payDetail->offline_receipt_no = $assignedReceiptNo;
                                         $payDetail->save();
                                         $fees_details_id[]= $payDetail->id;
                                     }
@@ -829,7 +903,7 @@ class FeesController extends Controller
                             $invoice->payment_mode = $request->payment_mode_id;
                             $invoice->transaction_id = $request->transition_id;
                             $invoice->bank_name = $request->bank_name;
-                            $invoice->invoice_no = $request->slip_no;
+                            $invoice->invoice_no = $assignedReceiptNo;
                             $invoice->status = $request->payment_status;
                             $invoice->cheque_number = $request->cheque_number;
                             $invoice->cheque_date = $request->cheque_date;
@@ -838,7 +912,7 @@ class FeesController extends Controller
                             $invoice->total_fine = $submittedFine;
                             $invoice->discount = $submittedDiscount;
                             $invoice->remark = $request->other_fee_remark;
-                            $invoice->offline_receipt_no = $request->offline_receipt_no;
+                            $invoice->offline_receipt_no = $assignedReceiptNo;
                             $invoice->save();
                             $fees_details_invoice_id = $invoice->id;
                             $slip = $invoice->invoice_no;
@@ -994,6 +1068,7 @@ class FeesController extends Controller
 
                 return Response::json(array(
                     'status' => 'success',
+                    'admission_id' => $admission_id,
                     'unique_system_id'=>$data->unique_system_id,
                     'session_id' => $data->session_id,
                     'slip'=>$slip,
@@ -2011,29 +2086,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             
     
     
-            public function feesModification(Request $request){
-                $admissionNo = $request->admissionNo ?? '';
-                $class_type_id= $request->class_type_id ?? '';
-                $admission_type_id= $request->admission_type_id_modify ?? '';
-                $data =  FeesAssign::Select('fees_assigns.*','admissions.first_name','admissions.last_name','admissions.admissionNo','admissions.mobile')
-                ->leftjoin('admissions','admissions.id','fees_assigns.admission_id')->where('fees_assigns.session_id',Session::get('session_id'))
-                ->where('fees_assigns.branch_id',Session::get('branch_id'));
-                if($class_type_id != ''){
-                    $data= $data->where('admissions.class_type_id',$class_type_id);
-                }
-                if($admission_type_id != ''){
-                    $data= $data->where('admissions.admission_type_id',$admission_type_id);
-                }
-                if($admissionNo != ''){
-                    $data= $data->where('admissions.admissionNo',$admissionNo);
-                }
-                $data = $data ->get();
-              
-                return view('fees.modification.fees_modification', ['data' => $data]);
-            }
-    
-       
-    
+
             public function updateAssignedFees(Request $request){
                 $request->validate([
                     'fees_assign_detail_id' => 'required|integer',
@@ -2085,27 +2138,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 return Response::json(array('message' =>'Fees Updated Successfully' )); 
             }
     
-            public function deleteAssignedFees(Request $request){
-                $assign_id = $request->fees_assign_detail_id ?? '' ;
-                $deleteData = FeesAssignDetail::find($assign_id);
-                $admission_id = $deleteData->admission_id;
-                $deleteData->delete();  
-                $feesAssignDetail=FeesAssignDetail::where('branch_id',Session::get('branch_id'))->where('admission_id',$admission_id)->get();    
-                $total_amount = 0;
-                $total_discount = 0;
-                if(!empty($feesAssignDetail)){
-                    foreach($feesAssignDetail as $item){
-                        $total_amount += $item->fees_group_amount ?? 0;
-                        $total_discount += $item->discount ?? 0;
-                    }
-                }
-                $feesAssign = FeesAssign::find($feesAssignDetail[0]->fees_assign_id);
-                $feesAssign->total_amount = $total_amount ?? 0;
-                $feesAssign->total_discount = $total_discount ?? 0;
-                $feesAssign->net_amount = $total_amount-$total_discount;
-                $feesAssign->save();
-                return Response::json(array('id' =>$assign_id )); 
-            }
+
             public function getStudentsList(Request $request){
                 $fees_assign_details = FeesAssignDetail::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
                 ->groupBy('admission_id')->pluck('admission_id')->implode(',');
@@ -2489,9 +2522,178 @@ public function sendReceiptOnWhatsapp(Request $request)
                     $data = $data->where('admissions.class_type_id', Session::get('class_type_id'));
                 } 
                 $data = $data->where('school', '>', 0)->orderBy('fees_details_invoices.payment_date','DESC')->get();
-               return view('fees.fees_cheque', ['data' => $data, 'search' => $search]);
+                return view('fees.fees_cheque', ['data' => $data, 'search' => $search]);
             }
      
 
-    
+    /**
+     * Fees Settings Page View
+     */
+    public function feesSettings(Request $request)
+    {
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+
+        $setting = FeesSetting::getSetting($branchId, $sessionId);
+
+        $billCounter = BillCounter::where('type', 'FeesSlip')
+            ->where('session_id', $sessionId)
+            ->where('branch_id', $branchId)
+            ->first();
+
+        $currentCounter = $billCounter ? (int) $billCounter->counter : 0;
+        $nextCounter = $currentCounter + 1;
+
+        $session = Sessions::find($sessionId);
+        $sessionName = $session ? ($session->from_year . ($session->to_year ? '-' . $session->to_year : '')) : date('Y');
+
+        $paymentModes = PaymentMode::whereNull('deleted_at')->get();
+        $samplePreview = $setting->formatReceiptNumber($nextCounter, $sessionName);
+
+        $allowedModesArray = !empty($setting->allowed_payment_modes) 
+            ? explode(',', $setting->allowed_payment_modes) 
+            : ['1', '2', '3', '4'];
+
+        return view('fees.settings.index', [
+            'setting'           => $setting,
+            'currentCounter'    => $currentCounter,
+            'nextCounter'       => $nextCounter,
+            'sessionName'       => $sessionName,
+            'paymentModes'      => $paymentModes,
+            'allowedModesArray' => $allowedModesArray,
+            'samplePreview'     => $samplePreview,
+        ]);
+    }
+
+    /**
+     * Fees Settings Update Submit
+     */
+    public function feesSettingsUpdate(Request $request)
+    {
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+
+        $request->validate([
+            'receipt_prefix'                => 'nullable|string|max:50',
+            'receipt_suffix'                => 'nullable|string|max:50',
+            'receipt_digit_padding'         => 'required|integer|min:3|max:8',
+            'receipt_number_type'           => 'required|in:auto,manual,both',
+            'receipt_reset_cycle'           => 'required|in:never,session,financial_year',
+            'fine_mode'                     => 'required|in:disabled,fixed,daily,percentage,manual',
+            'fine_amount'                   => 'nullable|numeric|min:0',
+            'fine_grace_days'               => 'nullable|integer|min:0',
+            'fine_max_cap'                  => 'nullable|numeric|min:0',
+            'due_date_policy'               => 'required|in:fixed_day_monthly,admission_days,custom_schedule',
+            'due_day_of_month'              => 'nullable|integer|min:1|max:28',
+            'due_days_after_admission'      => 'nullable|integer|min:1|max:365',
+            'advance_payment_allowed_days'  => 'nullable|integer|min:0|max:365',
+            'allowed_payment_modes'         => 'nullable|array',
+            'min_partial_amount'            => 'nullable|numeric|min:0',
+            'min_deposit_percentage'        => 'nullable|numeric|min:0|max:100',
+            'max_discount_percentage'       => 'nullable|numeric|min:0|max:100',
+            'receipt_layout'                => 'required|in:a4_single,a4_dual,thermal_pos',
+            'receipt_header_title'          => 'nullable|string|max:100',
+            'due_reminder_days_before'      => 'nullable|integer|min:1|max:30',
+        ]);
+
+        $setting = FeesSetting::getSetting($branchId, $sessionId);
+
+        $allowedModes = $request->input('allowed_payment_modes', []);
+        $allowedModesStr = is_array($allowedModes) ? implode(',', $allowedModes) : '1,2,3,4';
+
+        $setting->fill([
+            'user_id'                       => Session::get('id'),
+            'receipt_prefix'                => $request->input('receipt_prefix', 'REC-'),
+            'receipt_suffix'                => $request->input('receipt_suffix', ''),
+            'receipt_digit_padding'         => (int) $request->input('receipt_digit_padding', 4),
+            'receipt_number_type'           => $request->input('receipt_number_type', 'both'),
+            'receipt_include_session'       => (int) $request->has('receipt_include_session'),
+            'receipt_include_month'         => (int) $request->has('receipt_include_month'),
+            'receipt_starting_number'       => (int) $request->input('receipt_starting_number', 1),
+            'receipt_reset_cycle'           => $request->input('receipt_reset_cycle', 'session'),
+            'fine_mode'                     => $request->input('fine_mode', 'fixed'),
+            'fine_amount'                   => (float) $request->input('fine_amount', 0),
+            'fine_grace_days'               => (int) $request->input('fine_grace_days', 0),
+            'fine_max_cap'                  => $request->filled('fine_max_cap') ? (float) $request->input('fine_max_cap') : null,
+            'allow_fine_waiver'             => (int) $request->has('allow_fine_waiver'),
+            'fine_waiver_requires_remark'   => (int) $request->has('fine_waiver_requires_remark'),
+            'due_date_policy'               => $request->input('due_date_policy', 'fixed_day_monthly'),
+            'due_day_of_month'              => (int) $request->input('due_day_of_month', 10),
+            'due_days_after_admission'      => (int) $request->input('due_days_after_admission', 15),
+            'advance_payment_allowed_days'  => (int) $request->input('advance_payment_allowed_days', 30),
+            'allowed_payment_modes'         => $allowedModesStr,
+            'allow_partial_payment'         => (int) $request->has('allow_partial_payment'),
+            'min_partial_amount'            => (float) $request->input('min_partial_amount', 0),
+            'min_deposit_percentage'        => (float) $request->input('min_deposit_percentage', 0),
+            'allow_manual_discount'         => (int) $request->has('allow_manual_discount'),
+            'max_discount_percentage'       => (float) $request->input('max_discount_percentage', 20),
+            'discount_requires_remark'      => (int) $request->has('discount_requires_remark'),
+            'receipt_layout'                => $request->input('receipt_layout', 'a4_dual'),
+            'show_school_logo'              => (int) $request->has('show_school_logo'),
+            'show_watermark'                => (int) $request->has('show_watermark'),
+            'show_signature_box'            => (int) $request->has('show_signature_box'),
+            'show_payment_mode_details'     => (int) $request->has('show_payment_mode_details'),
+            'receipt_header_title'          => $request->input('receipt_header_title', 'FEE RECEIPT'),
+            'receipt_terms_conditions'      => $request->input('receipt_terms_conditions'),
+            'send_receipt_whatsapp'         => (int) $request->has('send_receipt_whatsapp'),
+            'send_receipt_sms'              => (int) $request->has('send_receipt_sms'),
+            'due_reminder_enabled'          => (int) $request->has('due_reminder_enabled'),
+            'due_reminder_days_before'      => (int) $request->input('due_reminder_days_before', 3),
+            'overdue_notice_enabled'        => (int) $request->has('overdue_notice_enabled'),
+            'notes'                         => $request->input('notes'),
+        ]);
+
+        $setting->save();
+
+        // If user requested to sync/reset BillCounter
+        if ($request->has('sync_bill_counter') && $request->filled('new_counter_value')) {
+            $newVal = (int) $request->input('new_counter_value');
+            BillCounter::updateOrCreate(
+                [
+                    'session_id' => $sessionId,
+                    'branch_id'  => $branchId,
+                    'type'       => 'FeesSlip',
+                ],
+                [
+                    'counter'    => max(0, $newVal - 1),
+                    'user_id'    => Session::get('id'),
+                ]
+            );
+        }
+
+        return redirect('fees/settings')->with('message', 'Fees Settings updated successfully.');
+    }
+
+    /**
+     * Preview Formatted Receipt Number via AJAX
+     */
+    public function previewReceiptNumber(Request $request)
+    {
+        $prefix = (string) $request->input('prefix', 'REC-');
+        $suffix = (string) $request->input('suffix', '');
+        $padding = max(1, min(10, (int) $request->input('padding', 4)));
+        $includeSession = (bool) $request->input('include_session', 1);
+        $includeMonth = (bool) $request->input('include_month', 0);
+        $counter = max(1, (int) $request->input('counter', 1));
+        $sessionName = (string) $request->input('session_name', date('Y'));
+
+        $sessionPart = '';
+        if ($includeSession) {
+            $clean = preg_replace('/[^0-9\-]/', '', $sessionName);
+            $sessionPart = $clean . (!empty($clean) ? '-' : '');
+        }
+
+        $monthPart = '';
+        if ($includeMonth) {
+            $monthPart = date('m') . '-';
+        }
+
+        $padded = str_pad((string) $counter, $padding, '0', STR_PAD_LEFT);
+        $formatted = $prefix . $sessionPart . $monthPart . $padded . $suffix;
+
+        return response()->json([
+            'status'    => 'success',
+            'formatted' => $formatted,
+        ]);
+    }
 }
