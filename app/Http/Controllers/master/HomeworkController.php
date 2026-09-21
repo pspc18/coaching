@@ -51,74 +51,109 @@ class HomeworkController extends Controller
                         'submission_date'  => 'required',
                         'description'  => 'required',
                     ]);
-                    /*         $stuEmail = Admission::where('class_type_id',$request->class_type_id); 
-                    */         
-                    $homework ='';
-                    if($request->file('content_file')){
-                        $image = $request->file('content_file');
-                        $path = $image->getRealPath();      
-                        $homework =  time().uniqid().$image->getClientOriginalName();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH').'homework';
-                        $image->move($destinationPath, $homework);      
+
+                    $title = trim($request->title);
+                    if(!empty($request->homework_type) && strpos($title, '[' . $request->homework_type . ']') === false){
+                        $title = '[' . $request->homework_type . '] ' . $title;
                     }
-                    $addhomework = new Homework;//model name
+
+                    $homework = '';
+                    if($request->hasFile('content_file')){
+                        $file = $request->file('content_file');
+                        $extension = $file->getClientOriginalExtension();
+                        $sanitizedName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+                        $homework = time() . '_' . uniqid() . '_' . substr($sanitizedName, 0, 30) . '.' . $extension;
+                        $destinationPath = base_path('schoolimage/homework');
+                        if (!file_exists($destinationPath)) {
+                            mkdir($destinationPath, 0775, true);
+                        }
+                        $file->move($destinationPath, $homework);      
+                    }
+
+                    $addhomework = new Homework;
                     $addhomework->user_id = Session::get('id');
                     $addhomework->session_id = Session::get('session_id');
                     $addhomework->branch_id = Session::get('branch_id');
                     $addhomework->teacher_id = Session::get('teacher_id');
             		$addhomework->class_type_id = $request->class_type_id;
-            		$addhomework->title = $request->title;
+            		$addhomework->title = $title;
             		$addhomework->subject  = $request->subject;
+            		$addhomework->homework_date = $request->homework_issue_date ?? date('Y-m-d');
             		$addhomework->homework_issue_date  = $request->homework_issue_date;
             		$addhomework->submission_date  = $request->submission_date;
             		$addhomework->content_file = $homework;
             		$addhomework->description = $request->description;
             		$addhomework->view_status = '1';
+                    if($request->filled('section_id')){
+                        $addhomework->section_id = $request->section_id;
+                    }
                     $addhomework->save();
-                    $template = MessageTemplate::Select('message_templates.*','message_types.slug','message_types.status as message_type_status')
-                    ->leftjoin('message_types','message_types.id','message_templates.message_type_id')
-                    ->where('message_types.slug','homework')->first();
-                    $branch = Branch::find(Session::get('branch_id'));
-                    $setting = Setting::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->first();
-                    $students = Admission::where('class_type_id',$request->class_type_id)
-                    ->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-                    $subject = Subject::where('id',$request->subject)->first();
-                    for($i = 0; $i < count($students); $i++){
-                        $arrey1 =   array(
-                            '{#name#}',
-                            '{#subject#}',
-                            '{#title#}',
-                            '{#description#}',
-                            '{#submission_date#}',
-                            '{#school_name#}');
-                        $arrey2 = array(
-                            $students[$i]->first_name." ".$students[$i]->last_name,
-                            $subject->name,
-                            $request->title,
-                            strip_tags($request->description),
-                            date('d-m-Y',strtotime($request->submission_date)),
-                            $setting->name);
-                             $whatsapp = str_replace($arrey1, $arrey2, $template->whatsapp_content ?? '');
+
+                    // Optional student notification loop (controlled via toggle for high performance)
+                    $shouldNotify = $request->has('notify_students') ? (int)$request->notify_students : 1;
+                    if($shouldNotify == 1){
+                        $template = MessageTemplate::select('message_templates.*','message_types.slug','message_types.status as message_type_status')
+                            ->leftjoin('message_types','message_types.id','message_templates.message_type_id')
+                            ->where('message_types.slug','homework')->first();
+                        $branch = Branch::find(Session::get('branch_id'));
+                        $setting = Setting::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->first();
+                        $students = Admission::where('class_type_id',$request->class_type_id)
+                            ->where('session_id',Session::get('session_id'))
+                            ->where('branch_id',Session::get('branch_id'))
+                            ->get();
+                        $subject = Subject::where('id',$request->subject)->first();
+                        $subjectName = $subject->name ?? 'Subject';
+
+                        if(!empty($students) && $students->count() > 0){
+                            foreach($students as $stu){
+                                $arrey1 = [
+                                    '{#name#}',
+                                    '{#subject#}',
+                                    '{#title#}',
+                                    '{#description#}',
+                                    '{#submission_date#}',
+                                    '{#school_name#}'
+                                ];
+                                $arrey2 = [
+                                    trim(($stu->first_name ?? '') . ' ' . ($stu->last_name ?? '')),
+                                    $subjectName,
+                                    $title,
+                                    strip_tags($request->description ?? ''),
+                                    date('d-m-Y', strtotime($request->submission_date)),
+                                    $setting->name ?? ''
+                                ];
+                                $whatsapp = str_replace($arrey1, $arrey2, $template->whatsapp_content ?? '');
                                 
-                                if ($setting->firebase_notification == 1) {
+                                if (!empty($setting) && $setting->firebase_notification == 1) {
                                     Helper::sendNotification(
                                         $template->title ?? 'Homework',
                                         $whatsapp,
                                         'student',
-                                        $students[$i]->id
+                                        $stu->id
                                     ); 
                                 }
                                  
-                                if ($template->message_type_status == 1) {
-                                    if ($branch->whatsapp_srvc == 1) {
-                                        $mobile = $students[$i]->mobile  ?? '';
+                                if (!empty($template) && $template->message_type_status == 1) {
+                                    if (!empty($branch) && $branch->whatsapp_srvc == 1) {
+                                        $mobile = $stu->mobile ?? '';
                                         if (!empty($mobile)) {
                                             Helper::MessageQueue($mobile, $whatsapp);
                                         }
                                     }
                                 }
-                    }           
-                   return response()->json(['status' => 'success','message' => 'Homework Added Successfully.',]);   
+                            }
+                        }
+                    }
+
+                    if($request->ajax() || $request->wantsJson()){
+                        return response()->json([
+                            'status' => 'success',
+                            'message' => 'Homework Published Successfully.',
+                            'redirect' => url('homework/index')
+                        ]);
+                    }
+
+                    return redirect('homework/index')->with('message', 'Homework Published Successfully.');
                 }
                 return view('master.home_work.home_work.add');
             }

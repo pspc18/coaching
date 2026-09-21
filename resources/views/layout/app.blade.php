@@ -22,7 +22,7 @@ $setting = Helper::getSetting();
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/daterangepicker.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/dataTables.bootstrap4.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/common.css') }}">
-        <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-modals.css') }}?v=1789536729">
+        <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-modals.css') }}?v={{ time() }}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">     
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/select2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/select2-bootstrap4.min.css') }}">
@@ -46,6 +46,7 @@ $setting = Helper::getSetting();
             opacity: 0.58 !important;
         }
         .modal, div.modal {
+            display: none;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -53,6 +54,9 @@ $setting = Helper::getSetting();
             height: 100% !important;
             z-index: 1050 !important;
             outline: 0 !important;
+        }
+        .modal:not(.show), div.modal:not(.show) {
+            display: none !important;
         }
         .modal.show, div.modal.show {
             z-index: 1055 !important;
@@ -401,9 +405,6 @@ document.addEventListener("click", function(e) {
                 }, 0);
             });
         </script>
+    @include('initial.initialView')
 </body>
 </html>
-
-
-
-@include('initial.initialView')

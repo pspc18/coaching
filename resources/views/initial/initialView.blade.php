@@ -122,7 +122,7 @@ function showBanner(msg, cls){
 
 
 
-    <div class="modal" id="smallModal" data-bs-backdrop="false">
+    <div class="modal fade" id="smallModal" style="display:none;" data-bs-backdrop="false">
       <div class="modal-dialog" >
         <div class="modal-content" >
     
@@ -146,7 +146,7 @@ function showBanner(msg, cls){
       </div>
     </div>
 
-        <div class="modal" id="fullscreenModal" data-bs-backdrop="false">
+        <div class="modal fade" id="fullscreenModal" style="display:none;" data-bs-backdrop="false">
           <div class="modal-dialog modal-fullscreen" >
             <div class="modal-content border-glow-animation" >
         
