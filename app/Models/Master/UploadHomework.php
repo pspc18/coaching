@@ -22,6 +22,10 @@ class UploadHomework extends Model
         return $this->belongsTo('App\Models\Master\Section','section_id');
     } 
 
+    public function HomeworkDocuments(){
+        return $this->hasMany('App\Models\Master\HomeworkDocuments','upload_hw_id');
+    } 
+
     public static function countTodayAssignment()
 {
     $homework = 0;

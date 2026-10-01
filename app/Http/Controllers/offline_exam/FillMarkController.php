@@ -204,6 +204,9 @@ if (isset($data[0])) {
         $search["subject_id"] = $request->subject_id ?? "";
         $showAllSubjects = (int) $request->input('show_all_subjects', 0) === 1;
         $selectedSubjectIds = $search["subject_name_id"];
+        if (empty($selectedSubjectIds) && !empty($requestedClassId) && !empty($search["exam_id"])) {
+            $showAllSubjects = true;
+        }
         $showMarksSection = $showAllSubjects || !empty($selectedSubjectIds);
 
         $subjects = collect();

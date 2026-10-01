@@ -170,6 +170,9 @@ Route::match(['get','post'],'homework/add','master\HomeworkController@add');
 Route::match(['get','post'],'homework/edit/{id}','master\HomeworkController@edit');
 Route::match(['get','post'],'homework/details/{id}','master\HomeworkController@homeworkDetails');
 Route::match(['get','post'],'homework/delete', 'master\HomeworkController@delete');
+Route::match(['get','post'],'homework/remind-defaulters', 'master\HomeworkController@remindDefaulters');
+Route::match(['get','post'],'homework/bulk-evaluate', 'master\HomeworkController@bulkEvaluate');
+Route::match(['get','post'],'homework/export-submissions/{id}', 'master\HomeworkController@exportSubmissions');
 
 //Bus
 Route::match(['get','post'],'busDashboard', 'master\BusController@busDashboard');

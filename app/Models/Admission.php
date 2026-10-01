@@ -20,6 +20,14 @@ protected $table = "admissions"; //table name
     {
         return $this->belongsTo('App\Models\ClassType','class_type_id');
     }
+    public function ClassType()
+    {
+        return $this->belongsTo('App\Models\ClassType','class_type_id');
+    }
+    public function Section()
+    {
+        return $this->belongsTo('App\Models\Master\Section','section_id');
+    }
      public function PreviousClass()
     {
         return $this->belongsTo('App\Models\ClassType','previous_class_type_id');

@@ -197,6 +197,8 @@ Route::match(['get', 'post'], 'get-class-by-session', 'PromoteController@getClas
 
 
 Route::match(['get', 'post'],'fill-marks-by-excel', [MarksImportController::class, 'FillMarksByExcel'])->name('student.subject.excel');
+Route::match(['get', 'post'], 'marks-template-download', [MarksImportController::class, 'downloadTemplate'])->name('marks.template.download');
+Route::get('marks-import/exams-by-class/{class_type_id}', [MarksImportController::class, 'getExamsByClass'])->name('marks.exams.by.class');
 Route::post('marks-mapping-prepare', [MarksImportController::class, 'prepareMapping'])->name('marks.mapping.prepare');
 Route::post('marks-mapping-save', [MarksImportController::class, 'saveMappedMarks'])->name('marks.mapping.save');
 

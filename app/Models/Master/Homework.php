@@ -30,7 +30,15 @@ class Homework extends Model
     
      public function Teacher(){
         return $this->belongsTo('App\Models\Teacher','teacher_id');
-    }    
+    }
+
+    public function UploadHomework(){
+        return $this->hasMany('App\Models\Master\UploadHomework', 'homework_id');
+    }
+
+    public function User(){
+        return $this->belongsTo('App\Models\User', 'user_id');
+    }
     
     public static function todayHomework()
 {

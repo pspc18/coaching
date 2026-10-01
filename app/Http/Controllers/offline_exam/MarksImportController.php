@@ -57,6 +57,72 @@ class MarksImportController extends Controller
             'search' => ['class_type_id' => $classTypeId, 'exam_id' => $examId],
             'examlist' => $examlist,
             'subjects' => $subjects,
+            'studentsCount' => isset($students) ? count($students) : 0,
+            'assignment' => $assignment ?? null,
+        ]);
+    }
+
+    public function getExamsByClass(Request $request, $classTypeId)
+    {
+        $classTypeId = (int) $classTypeId;
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+
+        $exams = AssignExam::select(
+                'assign_exams.*',
+                'exams.id as exam_id',
+                'exams.name as exam_name',
+                'exams.exam_term_id',
+                'exam_terms.name as exam_term_name'
+            )
+            ->join('exams', 'exams.id', '=', 'assign_exams.exam_id')
+            ->leftJoin('exam_terms', 'exam_terms.id', '=', 'exams.exam_term_id')
+            ->where('assign_exams.class_type_id', $classTypeId)
+            ->where('assign_exams.branch_id', $branchId)
+            ->where('assign_exams.session_id', $sessionId)
+            ->whereNull('assign_exams.deleted_at')
+            ->whereNull('exams.deleted_at')
+            ->orderBy('exams.name')
+            ->get();
+
+        $subjectCount = Subject::where('class_type_id', $classTypeId)
+            ->where('branch_id', $branchId)
+            ->where('session_id', $sessionId)
+            ->whereNull('deleted_at')
+            ->count();
+
+        $studentsCount = Admission::where('class_type_id', $classTypeId)
+            ->where('branch_id', $branchId)
+            ->where('session_id', $sessionId)
+            ->where('status', 1)
+            ->whereNull('deleted_at')
+            ->count();
+
+        $examList = $exams->map(function ($item) use ($classTypeId, $subjectCount, $studentsCount) {
+            $examDate = !empty($item->exam_date) ? date('d M Y', strtotime($item->exam_date)) : 'No Date Set';
+            return [
+                'id' => $item->exam_id,
+                'name' => $item->exam_name,
+                'term' => $item->exam_term_name ?? 'General',
+                'date' => $examDate,
+                'subject_count' => $subjectCount,
+                'student_count' => $studentsCount,
+                'upload_url' => url('fill-marks-by-excel?class_type_id='.$classTypeId.'&exam_id='.$item->exam_id),
+                'template_url' => route('marks.template.download', ['class_type_id' => $classTypeId, 'exam_id' => $item->exam_id]),
+                'manual_url' => url('fill_marks?class_type_id='.$classTypeId.'&exam_id='.$item->exam_id),
+                'assign_url' => url('assign/exam/'.$item->exam_id),
+            ];
+        });
+
+        $className = ClassType::where('id', $classTypeId)->value('name') ?? 'Selected Class';
+
+        return response()->json([
+            'success' => true,
+            'class_id' => $classTypeId,
+            'class_name' => $className,
+            'subject_count' => $subjectCount,
+            'student_count' => $studentsCount,
+            'exams' => $examList,
         ]);
     }
 
@@ -114,6 +180,7 @@ class MarksImportController extends Controller
             ->get();
 
         return Helper::view('examination.offline_exam.fill_marks_by_excel.fill_marks_by_excel', [
+            'classType' => Helper::classType(),
             'search' => ['class_type_id' => $classTypeId, 'exam_id' => $examId],
             'examlist' => $examlist,
             'subjects' => $subjects,
@@ -122,6 +189,8 @@ class MarksImportController extends Controller
             'candidateColumn' => $this->findHeaderColumn($headers, ['CANDIDATE ID', 'ADMISSION NO', 'ADMISSION NUMBER']),
             'importToken' => $importToken,
             'uploadedRowCount' => count($dataRows),
+            'studentsCount' => count($students),
+            'assignment' => $assignment,
         ]);
     }
 

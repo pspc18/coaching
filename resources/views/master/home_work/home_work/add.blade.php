@@ -1,6 +1,29 @@
 @php
 $classType = Helper::classType();
 $currentClassId = Session::get('class_type_id');
+$isEdit = !empty($data);
+
+// Parse title & category if in edit mode
+$rawTitle = old('title', $data->title ?? '');
+$extractedType = old('homework_type', 'DPP');
+$displayTitle = $rawTitle;
+if ($isEdit && empty(old('homework_type'))) {
+    if (preg_match('/^\[(.*?)\]\s*(.*)$/', $rawTitle, $matches)) {
+        $extractedType = trim($matches[1]);
+        $displayTitle = trim($matches[2]);
+    }
+}
+
+$selectedClassId = old('class_type_id', $data->class_type_id ?? $currentClassId);
+$selectedSubjectId = old('subject', $data->subject ?? '');
+$targetDuration = old('target_duration', $data->target_duration ?? '');
+$maxMarks = old('max_marks', $data->max_marks ?? '');
+$allowLateSubmission = old('allow_late_submission', $data->allow_late_submission ?? 1);
+$issueDate = old('homework_issue_date', $data->homework_issue_date ?? date('Y-m-d'));
+$submissionDate = old('submission_date', $data->submission_date ?? '');
+$description = old('description', $data->description ?? '');
+$existingFile = $data->content_file ?? '';
+$formAction = $isEdit ? url('homework/edit/' . $data->id) : url('homework/add');
 @endphp
 
 @extends('layout.app')
@@ -421,6 +444,14 @@ $currentClassId = Session::get('class_type_id');
     color: #1e293b !important;
 }
 
+/* Existing Document Alert */
+.existing-doc-alert {
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 2px;
+    padding: 7px 10px;
+}
+
 /* Subject Loader */
 .subject-loader {
     display: none;
@@ -449,22 +480,34 @@ $currentClassId = Session::get('class_type_id');
     {{-- 1. Top Hero Banner (Sharp Dark Navy Theme - Matching addUser) --}}
     <div class="user-hero">
         <div class="user-hero-text">
-            <span class="user-kicker"><i class="fa fa-graduation-cap mr-1"></i> Academic Hub</span>
-            <h1 class="user-title"><i class="fa fa-flask mr-1"></i> Add Homework &amp; DPP</h1>
-            <p class="user-subtitle">Assign daily practice problems, worksheets, and study material to student batches</p>
+            @if($isEdit)
+                <span class="user-kicker"><i class="fa fa-pencil mr-1"></i> Academic Hub &bull; Edit Mode (#{{ $data->id }})</span>
+                <h1 class="user-title"><i class="fa fa-edit mr-1"></i> Edit Homework &amp; DPP</h1>
+                <p class="user-subtitle">Update practice problems, deadline, description, and attached materials</p>
+            @else
+                <span class="user-kicker"><i class="fa fa-graduation-cap mr-1"></i> Academic Hub</span>
+                <h1 class="user-title"><i class="fa fa-flask mr-1"></i> Add Homework &amp; DPP</h1>
+                <p class="user-subtitle">Assign daily practice problems, worksheets, and study material to student batches</p>
+            @endif
         </div>
         <div class="dash-hero-actions d-flex align-items-center gap-1">
             <a href="{{ url('homework/index') }}" class="dash-btn dash-btn-light" title="View Homework List">
-                <i class="fa fa-list"></i> Homework List
+                <i class="fa fa-list mr-1"></i> Homework List
             </a>
-            <a href="{{ url('homework/dashboard') }}" class="dash-btn dash-btn-outline" title="Dashboard">
-                <i class="fa fa-th-large"></i> Dashboard
-            </a>
+            @if($isEdit)
+                <a href="{{ url('homework/add') }}" class="dash-btn dash-btn-outline" title="Add New Homework">
+                    <i class="fa fa-plus mr-1"></i> Add New
+                </a>
+            @else
+                <a href="{{ url('homework/dashboard') }}" class="dash-btn dash-btn-outline" title="Dashboard">
+                    <i class="fa fa-th-large mr-1"></i> Dashboard
+                </a>
+            @endif
         </div>
     </div>
 
     {{-- 2. Form Content --}}
-    <form id="form-submit" action="{{ url('homework/add') }}" method="POST" enctype="multipart/form-data" novalidate>
+    <form id="form-submit" action="{{ $formAction }}" method="POST" enctype="multipart/form-data" novalidate>
         @csrf
 
         {{-- Card 1: Academic & Assignment Schedule Details --}}
@@ -491,7 +534,7 @@ $currentClassId = Session::get('class_type_id');
                                 <option value="">{{ __('common.Select') }}</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $type)
-                                        <option value="{{ $type->id ?? '' }}" {{ (old('class_type_id', $currentClassId) == $type->id) ? 'selected' : '' }}>
+                                        <option value="{{ $type->id ?? '' }}" {{ ($selectedClassId == $type->id) ? 'selected' : '' }}>
                                             {{ $type->name ?? '' }}
                                         </option>
                                     @endforeach
@@ -503,7 +546,7 @@ $currentClassId = Session::get('class_type_id');
                         </div>
                     </div>
 
-                    {{-- Target Subject (Dynamically Loaded via AJAX) --}}
+                    {{-- Target Subject (Dynamically Loaded via AJAX or Pre-loaded on Edit) --}}
                     <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                         <div class="form-group form-group-compact">
                             <label class="form-label-compact" for="subject_id">
@@ -513,7 +556,16 @@ $currentClassId = Session::get('class_type_id');
                                     id="subject_id" 
                                     name="subject" 
                                     required>
-                                <option value="">-- First Select Class --</option>
+                                @if(!empty($subjects) && count($subjects) > 0)
+                                    <option value="">{{ __('common.Select') }}</option>
+                                    @foreach($subjects as $sub)
+                                        <option value="{{ $sub->id ?? '' }}" {{ ($selectedSubjectId == $sub->id) ? 'selected' : '' }}>
+                                            {{ $sub->name ?? '' }}
+                                        </option>
+                                    @endforeach
+                                @else
+                                    <option value="">-- First Select Class --</option>
+                                @endif
                             </select>
                             <div class="subject-loader" id="subjectLoader">
                                 <i class="fa fa-spinner fa-spin"></i> Loading subjects...
@@ -531,11 +583,11 @@ $currentClassId = Session::get('class_type_id');
                                 <span>Category / DPP Type <span class="req-star">*</span></span>
                             </label>
                             <select class="form-control form-control-compact select2" id="homework_type" name="homework_type">
-                                <option value="DPP" {{ old('homework_type') == 'DPP' ? 'selected' : '' }}>DPP (Daily Practice Problem)</option>
-                                <option value="Worksheet" {{ old('homework_type') == 'Worksheet' ? 'selected' : '' }}>Chapter Worksheet / Exercise</option>
-                                <option value="PYQ Sheet" {{ old('homework_type') == 'PYQ Sheet' ? 'selected' : '' }}>PYQ (Previous Years Questions)</option>
-                                <option value="Subjective" {{ old('homework_type') == 'Subjective' ? 'selected' : '' }}>Subjective Homework</option>
-                                <option value="Revision" {{ old('homework_type') == 'Revision' ? 'selected' : '' }}>Revision &amp; Formula Notes</option>
+                                <option value="DPP" {{ ($extractedType == 'DPP') ? 'selected' : '' }}>DPP (Daily Practice Problem)</option>
+                                <option value="Worksheet" {{ ($extractedType == 'Worksheet') ? 'selected' : '' }}>Chapter Worksheet / Exercise</option>
+                                <option value="PYQ Sheet" {{ ($extractedType == 'PYQ Sheet') ? 'selected' : '' }}>PYQ (Previous Years Questions)</option>
+                                <option value="Subjective" {{ ($extractedType == 'Subjective') ? 'selected' : '' }}>Subjective Homework</option>
+                                <option value="Revision" {{ ($extractedType == 'Revision') ? 'selected' : '' }}>Revision &amp; Formula Notes</option>
                             </select>
                         </div>
                     </div>
@@ -550,13 +602,13 @@ $currentClassId = Session::get('class_type_id');
                                    class="form-control form-control-compact"
                                    id="target_duration"
                                    name="target_duration"
-                                   value="{{ old('target_duration') }}"
+                                   value="{{ $targetDuration }}"
                                    placeholder="e.g. 45 Mins / 25 Marks">
                         </div>
                     </div>
 
                     {{-- Homework Title / Topic --}}
-                    <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                    <div class="col-12 col-sm-12 col-md-4 col-lg-4">
                         <div class="form-group form-group-compact">
                             <label class="form-label-compact" for="title">
                                 <span>Homework Title / Topic <span class="req-star">*</span></span>
@@ -565,12 +617,30 @@ $currentClassId = Session::get('class_type_id');
                                    class="form-control form-control-compact @error('title') is-invalid @enderror"
                                    id="title"
                                    name="title"
-                                   value="{{ old('title') }}"
+                                   value="{{ $displayTitle }}"
                                    placeholder="e.g. Thermodynamics: First Law & Work Done - Exercise 1.2"
                                    required>
                             @error('title')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+
+                    {{-- Maximum Marks --}}
+                    <div class="col-12 col-sm-6 col-md-2 col-lg-2">
+                        <div class="form-group form-group-compact">
+                            <label class="form-label-compact" for="max_marks">
+                                <span>Max Marks <span class="label-note">(Optional)</span></span>
+                            </label>
+                            <input type="number"
+                                   step="1"
+                                   min="0"
+                                   max="500"
+                                   class="form-control form-control-compact"
+                                   id="max_marks"
+                                   name="max_marks"
+                                   value="{{ $maxMarks }}"
+                                   placeholder="e.g. 25">
                         </div>
                     </div>
 
@@ -584,7 +654,7 @@ $currentClassId = Session::get('class_type_id');
                                    class="form-control form-control-compact @error('homework_issue_date') is-invalid @enderror"
                                    id="homework_issue_date"
                                    name="homework_issue_date"
-                                   value="{{ old('homework_issue_date', date('Y-m-d')) }}"
+                                   value="{{ $issueDate }}"
                                    required>
                             @error('homework_issue_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -602,7 +672,7 @@ $currentClassId = Session::get('class_type_id');
                                    class="form-control form-control-compact @error('submission_date') is-invalid @enderror"
                                    id="submission_date"
                                    name="submission_date"
-                                   value="{{ old('submission_date') }}"
+                                   value="{{ $submissionDate }}"
                                    required>
                             @error('submission_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -632,11 +702,11 @@ $currentClassId = Session::get('class_type_id');
                     {{-- Quill Container --}}
                     <div class="hw-quill-wrapper">
                         <div id="quill-editor">
-                            {!! old('description') !!}
+                            {!! $description !!}
                         </div>
                     </div>
                     {{-- Hidden textarea synced on submit --}}
-                    <textarea id="compose-textarea" name="description" style="display:none;">{{ old('description') }}</textarea>
+                    <textarea id="compose-textarea" name="description" style="display:none;">{{ $description }}</textarea>
                     @error('description')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
@@ -660,6 +730,29 @@ $currentClassId = Session::get('class_type_id');
                         <label class="form-label-compact">
                             <span>Upload DPP Sheet / Question File <span class="label-note">(Optional)</span></span>
                         </label>
+                        @if(!empty($existingFile))
+                            <div class="existing-doc-alert mb-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center" style="min-width: 0; flex: 1;">
+                                        <i class="fa fa-file-text-o text-primary mr-2" style="font-size: 18px; flex-shrink: 0;"></i>
+                                        <div style="min-width: 0; flex: 1;">
+                                            <span class="font-weight-bold d-block text-truncate" style="font-size: 11px; color: #002C54;" title="{{ $existingFile }}">
+                                                {{ $existingFile }}
+                                            </span>
+                                            <span class="text-muted" style="font-size: 9.5px;">Current Attachment File</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                        <a href="{{ asset('schoolimage/homework/' . $existingFile) }}" target="_blank" class="dash-btn dash-btn-light" style="border: 1px solid #cbd5e1; height: 24px; padding: 0 8px; font-size: 10.5px;">
+                                            <i class="fa fa-external-link mr-1"></i> View
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mt-1" style="font-size: 9.5px; color: #64748b;">
+                                    <i class="fa fa-info-circle mr-1"></i> Upload a new file below only if you wish to replace the current document.
+                                </div>
+                            </div>
+                        @endif
                         <div class="compact-doc-card" id="card_content_file">
                             <input type="file"
                                    name="content_file"
@@ -693,17 +786,23 @@ $currentClassId = Session::get('class_type_id');
                                     <span>Instant Student / Parent Alert</span>
                                 </label>
                                 <select class="form-control form-control-compact" id="notify_students" name="notify_students">
-                                    <option value="1" selected>Yes - Send WhatsApp &amp; Firebase App Alerts</option>
-                                    <option value="0">No - Publish Silently (Without Alerts)</option>
+                                    @if($isEdit)
+                                        <option value="0" selected>No - Update Silently (Recommended for routine edits)</option>
+                                        <option value="1">Yes - Re-send WhatsApp &amp; Firebase App Alerts</option>
+                                    @else
+                                        <option value="1" selected>Yes - Send WhatsApp &amp; Firebase App Alerts</option>
+                                        <option value="0">No - Publish Silently (Without Alerts)</option>
+                                    @endif
                                 </select>
                             </div>
 
                             <div class="form-group form-group-compact mb-0">
-                                <label class="form-label-compact">
-                                    <span>Online Portal Submission</span>
+                                <label class="form-label-compact" for="allow_late_submission">
+                                    <span>Late Submission Policy</span>
                                 </label>
-                                <select class="form-control form-control-compact" disabled>
-                                    <option value="1">Enabled - Students can submit solved assignments online</option>
+                                <select class="form-control form-control-compact" id="allow_late_submission" name="allow_late_submission">
+                                    <option value="1" {{ ($allowLateSubmission == 1) ? 'selected' : '' }}>Allowed - Students can submit after deadline (Tagged as Late)</option>
+                                    <option value="0" {{ ($allowLateSubmission == 0) ? 'selected' : '' }}>Strict Deadline - Block student submission once deadline expires</option>
                                 </select>
                             </div>
                         </div>
@@ -721,12 +820,21 @@ $currentClassId = Session::get('class_type_id');
                 </span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="reset" class="btn-compact-reset" id="btn_reset_form">
-                    <i class="fa fa-refresh"></i> Reset
-                </button>
-                <button type="submit" class="btn-compact-submit btn-submit" id="btn_submit_hw">
-                    <i class="fa fa-check"></i> Submit Homework
-                </button>
+                @if($isEdit)
+                    <a href="{{ url('homework/index') }}" class="btn-compact-reset">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-compact-submit btn-submit" id="btn_submit_hw">
+                        <i class="fa fa-save mr-1"></i> Update Homework
+                    </button>
+                @else
+                    <button type="reset" class="btn-compact-reset" id="btn_reset_form">
+                        <i class="fa fa-refresh mr-1"></i> Reset
+                    </button>
+                    <button type="submit" class="btn-compact-submit btn-submit" id="btn_submit_hw">
+                        <i class="fa fa-check mr-1"></i> Submit Homework
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -886,14 +994,16 @@ $currentClassId = Session::get('class_type_id');
             });
         }
 
+        var isEditMode = {{ $isEdit ? 'true' : 'false' }};
+
         $('#class_type_id').on('change', function() {
             var classId = $(this).val();
             fetchSubjects(classId, null);
         });
 
-        // Auto-load if class pre-selected
+        // Auto-load if class pre-selected (in add mode or old input recovery)
         var initialClassId = $('#class_type_id').val();
-        if (initialClassId) {
+        if (!isEditMode && initialClassId) {
             fetchSubjects(initialClassId, "{{ old('subject') }}");
         }
 

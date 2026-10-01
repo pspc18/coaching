@@ -381,6 +381,16 @@ class ExamController extends Controller
             }
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Result published successfully. Students notified: {$students->count()}.",
+                'is_published' => true,
+                'exam_id' => $examId,
+                'class_type_id' => $classTypeId
+            ]);
+        }
+
         return Redirect::to('view/exam')->with(
             'message',
             "Result published successfully. Students notified: {$students->count()}. Push sent: {$pushSent}. Failed: {$pushFailed}."
@@ -430,7 +440,20 @@ class ExamController extends Controller
             ->delete();
 
         if (!$deleted) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'This result is not currently published.'], 422);
+            }
             return Redirect::to('view/exam')->with('error', 'This result is not currently published.');
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "{$exam->name} result publication has been reset. Students can no longer view this result.",
+                'is_published' => false,
+                'exam_id' => $examId,
+                'class_type_id' => $classTypeId
+            ]);
         }
 
         return Redirect::to('view/exam')->with(
@@ -533,9 +556,21 @@ class ExamController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Exam copied successfully with the same assigned classes.',
+                    'exam_id' => $copiedExam->id
+                ]);
+            }
+
             return Redirect::to('view/exam')->with('message', 'Exam copied successfully with the same assigned classes.');
         } catch (\Exception $e) {
             DB::rollBack();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Exam could not be copied. ' . $e->getMessage()], 422);
+            }
 
             return Redirect::to('view/exam')->with('error', 'Exam could not be copied. ' . $e->getMessage());
         }
@@ -725,9 +760,21 @@ class ExamController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Exam and all related data were permanently deleted.',
+                    'exam_id' => $examId
+                ]);
+            }
+
             return Redirect::to('view/exam')->with('message', 'Exam and all related data were permanently deleted.');
         } catch (\Exception $e) {
             DB::rollBack();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Exam could not be deleted. ' . $e->getMessage()], 422);
+            }
 
             return Redirect::to('view/exam')->with('error', 'Exam could not be deleted. ' . $e->getMessage());
         }
