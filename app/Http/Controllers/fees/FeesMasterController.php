@@ -338,20 +338,4 @@ class FeesMasterController extends Controller
                 }
                 echo json_encode($net_amount);
             }
-
-            public function mesterClassAmt(Request $request){
-                // dd($request);
-                $data =  FeesMaster::where('class_type_id',$request->class_type_id)->where('session_id', Session::get('session_id'))->get();
-                $feesAssign = '';
-                $admission_id = '';
-                if(!empty($request->admission_id)){
-                    $feesAssign = FeesAssign::where('admission_id',$request->admission_id)->first();
-                    $admission_id = $request->admission_id;
-                }
-                if (count($data) > 0) {
-                    return view('fees.fees_master.mesterClassAmt', ['data' => $data, 'feesAssign'=>$feesAssign, 'admission_id'=>$admission_id]);
-                } else {
-                    return null;
-                }
-            }
 }

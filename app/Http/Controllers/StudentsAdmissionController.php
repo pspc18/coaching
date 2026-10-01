@@ -212,340 +212,234 @@ class StudentsAdmissionController extends Controller
             }
 
             public function admissionAdd(Request $request){
-                //dd($request);
-                $Student = Enquiry::where('id',$request->registration_id)->update(['ad_status'=>'Admission']);
-                //dd($Student);
 
-                $BillCounter = BillCounter::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('type', 'StudentAdmission')->get()->first();
-                    if (!empty($BillCounter)) {
-                        $counter = !empty($BillCounter->counter) ? $BillCounter->counter : 0;
-                        $BillCounterNo = $counter + 1;
+                $BillCounter = BillCounter::where('session_id', Session::get('session_id'))
+                    ->where('branch_id', Session::get('branch_id'))
+                    ->where('type', 'StudentAdmission')
+                    ->first();
+                $BillCounterNo = (int) ($BillCounter->counter ?? 0) + 1;
+
+                if (!$request->isMethod('post')) {
+                    return view('students.admission.add', ['BillCounter' => $BillCounterNo]);
+                }
+
+                // ---------- Validation (student_fields settings se) ----------
+                $student_fields_required = DB::table('student_fields')
+                    ->whereNull('deleted_at')
+                    ->get(['field_name', 'status', 'required'])
+                    ->keyBy('field_name');
+
+                $rules = [];
+                foreach ($student_fields_required as $field => $obj) {
+                    if ($obj->status == 0 && $obj->required == 0) {
+                        $rules[$field] = in_array($field, ['mobile', 'father_mobile'], true) ? 'required|digits:10' : 'required';
                     }
-                    
-                    if ($request->isMethod('post')) {
-                         // fresh query हर बार
-                        $student_fields_required = DB::table('student_fields')
-                            ->whereNull('deleted_at')
-                            ->get(['field_name', 'status', 'required'])
-                            ->keyBy('field_name'); // toArray() न करें
-                    
-                        $rules = [];
-                    
-                        foreach ($student_fields_required as $field => $obj) {
-                            if ($obj->status == 0 && $obj->required == 0) {
-                                if ($field === 'mobile' || $field === 'father_mobile') {
-                                    $rules[$field] = 'required|digits:10';
-                                } else {
-                                    $rules[$field] = 'required';
-                                }
-                            }
+                }
+
+                // Photo: sirf JPG/PNG, max 2MB (required setting waisi hi rahegi)
+                foreach (['student_img', 'father_img', 'mother_img'] as $imgField) {
+                    $rules[$imgField] = ($rules[$imgField] ?? 'nullable') . '|image|mimes:jpg,jpeg,png|max:2048';
+                }
+
+                $sessionId = Session::get('session_id');
+                $request->validate(array_merge($rules, [
+                    'admissionNo' => [
+                        'nullable',
+                        Rule::unique('admissions', 'admissionNo')
+                            ->where(function ($query) use ($sessionId) {
+                                $query->where('session_id', $sessionId)->whereNull('deleted_at');
+                            }),
+                    ],
+                    'mobile' => [
+                        'nullable',
+                        'digits:10',
+                        Rule::unique('admissions', 'mobile')
+                            ->where(function ($query) use ($sessionId) {
+                                $query->where('session_id', $sessionId)->whereNull('deleted_at');
+                            }),
+                    ],
+                ]));
+
+                // ---------- Photos (global helper: student / father / mother alag folder) ----------
+                $student_image = Helper::saveStudentImage($request->file('student_img'), 'student');
+                $father_image  = Helper::saveStudentImage($request->file('father_img'), 'father');
+                $mother_image  = Helper::saveStudentImage($request->file('mother_img'), 'mother');
+
+                // request field => admissions column
+                $fieldMap = [
+                    'admissionNo' => 'admissionNo', 'ledger_no' => 'ledger_no', 'student_pen' => 'student_pen',
+                    'apaar_id' => 'apaar_id', 'roll_no' => 'roll_no', 'admission_date' => 'admission_date',
+                    'admission_type_id' => 'admission_type_id', 'class_type_id' => 'class_type_id',
+                    'first_name' => 'first_name', 'last_name' => 'last_name', 'aadhaar' => 'aadhaar',
+                    'jan_aadhaar' => 'jan_aadhaar', 'previous_school' => 'previous_school', 'email' => 'email',
+                    'mobile' => 'mobile', 'father_name' => 'father_name', 'mother_name' => 'mother_name',
+                    'father_mobile' => 'father_mobile', 'dob' => 'dob', 'relation_student' => 'relation_student',
+                    'school_namestudied_last_year' => 'school_namestudied_last_year', 'house' => 'house',
+                    'height' => 'height', 'weight' => 'weight', 'gender_id' => 'gender_id',
+                    'blood_group' => 'blood_group', 'medium' => 'medium', 'address' => 'address',
+                    'country' => 'country_id', 'village_city' => 'village_city', 'city' => 'city_id',
+                    'state' => 'state_id', 'pincode' => 'pincode', 'family_id' => 'family_id',
+                    'religion' => 'religion', 'category' => 'category', 'caste_category' => 'caste_category',
+                    'transport' => 'transport', 'bus_number' => 'bus_number', 'bus_route' => 'bus_route',
+                    'stoppage' => 'stoppage', 'transpor_charges' => 'transpor_charges',
+                    'guardian_name' => 'guardian_name', 'guardian_mobile' => 'guardian_mobile',
+                    'mother_mob' => 'mother_mob', 'father_aadhaar' => 'father_aadhaar',
+                    'mother_aadhaar' => 'mother_aadhaar', 'family_annual_income' => 'family_annual_income',
+                    'bank_account' => 'bank_account', 'bank_name' => 'bank_name', 'branch_name' => 'branch_name',
+                    'ifsc' => 'ifsc', 'micr_code' => 'micr_code', 'remark_1' => 'remark_1',
+                    'bank_account_holder' => 'bank_account_holder', 'district' => 'district', 'tehsil' => 'tehsil',
+                    'father_pancard' => 'father_pancard', 'mother_pancard' => 'mother_pancard', 'bpl' => 'bpl',
+                    'bpl_certificate_no' => 'bpl_certificate_no', 'father_occupation' => 'father_occupation',
+                    'mother_occupation' => 'mother_occupation',
+                ];
+
+                try {
+                    $addadmission = DB::transaction(function () use ($request, $BillCounter, $fieldMap, $student_image, $father_image, $mother_image) {
+
+                        if ($BillCounter) {
+                            $BillCounter->counter = (int) ($BillCounter->counter ?? 0) + 1;
+                            $BillCounter->save();
                         }
-                        $sessionId = Session::get('session_id');
-                        $request->validate(array_merge($rules, [
-                            'admissionNo' => [
-                                'nullable',
-                                Rule::unique('admissions', 'admissionNo')
-                                    ->where(function ($query) use ($sessionId) {
-                                        $query->where('session_id', $sessionId)->whereNull('deleted_at');
-                                    }),
-                            ],
-                            'mobile' => [
-                                'nullable',
-                                'digits:10',
-                                Rule::unique('admissions', 'mobile')
-                                    ->where(function ($query) use ($sessionId) {
-                                        $query->where('session_id', $sessionId)->whereNull('deleted_at');
-                                    }),
-                            ],
-                        ]));
-                           
-                        $student_image = '';
-                    if ($request->file('student_img')) {
-                        $image = $request->file('student_img');
-                        $ext = $image->getClientOriginalExtension(); // jpg, png, jpeg आदि
-                        $student_image = ($request->admissionNo ??  uniqid()). '.' . $ext;
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'profile/';
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-                    if (isset($data->image) && File::exists($destinationPath . $data->image)) {
-                        File::delete($destinationPath . $data->image);
-                    }
-                    $compressedImage = Image::make($image)
-                        ->resize(600, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                            $constraint->upsize();
-                        })
-                        ->encode('jpg', 80); // Adjust quality as needed
-                        $compressedImage->save($destinationPath . $student_image);
-                        
-                    }
-                   
-                    $father_image = '';
-                    if ($request->file('father_img')) {
-                        $image = $request->file('father_img');
-                        $father_image = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'father_image/';
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-                    if (isset($data->father_image) && File::exists($destinationPath . $data->father_image)) {
-                        File::delete($destinationPath . $data->father_image);
-                    }
-                    $compressedImage = Image::make($image)
-                        ->resize(600, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                            $constraint->upsize();
-                        })
-                        ->encode('jpg', 80); // Adjust quality as needed
-                        $compressedImage->save($destinationPath . $father_image);
-                        
-                    }
-                  
-                    $mother_image = '';
-                    if ($request->file('mother_img')) {
-                        $image = $request->file('mother_img');
-                        $mother_image = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'mother_image/';
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-                    if (isset($data->mother_img) && File::exists($destinationPath . $data->mother_img)) {
-                        File::delete($destinationPath . $data->mother_img);
-                    }
-                    $compressedImage = Image::make($image)
-                        ->resize(600, null, function ($constraint) {
-                            $constraint->aspectRatio();
-                            $constraint->upsize();
-                        })
-                        ->encode('jpg', 80); // Adjust quality as needed
-                        $compressedImage->save($destinationPath . $mother_image);
-                       
-                    }
-                   
-                        $counter = !empty($BillCounter->counter) ? $BillCounter->counter : 0;
-                        $BillCounter->counter = $counter + 1;
-                        $BillCounter->save();
-                        $maxId = Admission::selectRaw('MAX(CAST(attendance_unique_id AS UNSIGNED)) as max_id')
-            ->value('max_id');
 
-                        $addadmission = new Admission(); //model name
+                        $addadmission = new Admission();
                         $addadmission->user_id = Session::get('id');
                         $addadmission->session_id = Session::get('session_id');
                         $addadmission->branch_id = Session::get('branch_id');
-                        
-                        
-                        $addadmission->admissionNo = $request->admissionNo;
-                        $addadmission->ledger_no = $request->ledger_no;
-                        $addadmission->student_pen = $request->student_pen;
-                        $addadmission->apaar_id = $request->apaar_id;
                         $addadmission->school = '1';
                         $addadmission->library = '0';
                         $addadmission->hostel = '0';
-                        $addadmission->roll_no = $request->roll_no;
-                        $addadmission->admission_date = $request->admission_date;
-                        $addadmission->admission_type_id = $request->admission_type_id;
-                        $addadmission->class_type_id = $request->class_type_id;
-                            if(!empty($request->stream_subject)){
-                                $addadmission->stream_subject = implode(',', $request->stream_subject);
-                            }
-                            $addadmission->attendance_unique_id = str_pad($maxId + 1, 4, '0', STR_PAD_LEFT);
-                            $addadmission->first_name = $request->first_name;
-                            $addadmission->last_name = $request->last_name;
-                            $addadmission->aadhaar = $request->aadhaar;
-                            $addadmission->jan_aadhaar = $request->jan_aadhaar;
-                            $addadmission->previous_school = $request->previous_school;
-                            $addadmission->email = $request->email;
-                            $addadmission->mobile = $request->mobile;
-                            $addadmission->father_name = $request->father_name;
-                            $addadmission->mother_name = $request->mother_name;
-                            $addadmission->father_mobile = $request->father_mobile;
-                            $addadmission->dob = $request->dob;
-                            $addadmission->relation_student = $request->relation_student;
-                            $addadmission->school_namestudied_last_year = $request->school_namestudied_last_year;
-                            $addadmission->house = $request->house;
-                            $addadmission->height = $request->height;
-                            $addadmission->weight = $request->weight;
-                            $addadmission->gender_id = $request->gender_id;
-                            $addadmission->admission_type_id = $request->admission_type_id;
-                            $addadmission->blood_group = $request->blood_group;
-                            $addadmission->medium = $request->medium;
-                            $addadmission->address = $request->address;
-                            $addadmission->country_id = $request->country;
-                            $addadmission->village_city = $request->village_city;
-                            $addadmission->city_id = $request->city;
-                            $addadmission->state_id = $request->state;
-                            $addadmission->pincode = $request->pincode;
-                            $addadmission->family_id = $request->family_id;
-                            $addadmission->religion = $request->religion;
-                            $addadmission->category = $request->category;
-                            $addadmission->caste_category = $request->caste_category;
-                            $addadmission->transport = $request->transport;
-                            $addadmission->bus_number = $request->bus_number;
-                            $addadmission->bus_route = $request->bus_route;
-                            $addadmission->stoppage = $request->stoppage;
-                            $addadmission->transpor_charges = $request->transpor_charges;
-                            $addadmission->guardian_name = $request->guardian_name;
-                            $addadmission->guardian_mobile = $request->guardian_mobile;
-                            $addadmission->mother_mob = $request->mother_mob;
-                            $addadmission->father_aadhaar = $request->father_aadhaar;
-                            $addadmission->mother_aadhaar = $request->mother_aadhaar;
-                            $addadmission->family_annual_income = $request->family_annual_income;
-                            $addadmission->bank_account = $request->bank_account;
-                            $addadmission->bank_name = $request->bank_name;
-                            $addadmission->branch_name = $request->branch_name;
-                            $addadmission->ifsc = $request->ifsc;
-                            $addadmission->micr_code = $request->micr_code;
-                            $addadmission->image = $student_image;
-                            $addadmission->father_img = $father_image;
-                            $addadmission->mother_img = $mother_image;
-                            $addadmission->remark_1 = $request->remark_1;
-                            $addadmission->bank_account_holder = $request->bank_account_holder;
-                            $addadmission->district = $request->district;
-                            $addadmission->tehsil = $request->tehsil;
-                            $addadmission->father_pancard = $request->father_pancard;
-                            $addadmission->mother_pancard = $request->mother_pancard;
-                            $addadmission->bpl = $request->bpl;
-                            $addadmission->bpl_certificate_no = $request->bpl_certificate_no;
-                            $addadmission->father_occupation = $request->father_occupation;
-                            $addadmission->mother_occupation = $request->mother_occupation;
-                            $addadmission->password = Hash::make($request->admissionNo);
-                            $addadmission->confirm_password = $request->admissionNo;
-                            $status = 1;
-                            if(($request->newStudentRegistration ?? '') == 'newStudentRegistration'){
-                                $status = 'newStudentRegistration';
-                            }
-                            $addadmission->status = $status;
-                            
-                            $class_name = ClassType::find($request->class_type_id);
-                            $initials = substr($request->first_name, 0, 3);
-                            $birthYear = date('Y', strtotime($request->dob));
-                            $random_number = Str::random(10);
-                            $cleanedMobile = preg_replace('/[^0-9]/', '', $request->mobile ?? $random_number);
-                            $username = strtoupper($initials).strtoupper($class_name->name).substr($cleanedMobile, -3);
-                            $addadmission->userName = $request->admissionNo;
-                            
-                            $studentFields = StudentField::where('branch_id', Session::get('branch_id'))->where('type', 'new_input')->get();
-                            if(!empty($studentFields)){
-                                foreach ($studentFields as $field) {
-                                    if ($field->field_type == 'checkbox') {
-                                        // Checkbox multiple values (array) → string में save
-                                        $addadmission->{$field->field_name} = implode(',', $request->input($field->field_name, []));
-                                    } 
-                                    else {
-                                        // बाकी सब direct save
-                                        $addadmission->{$field->field_name} = $request->input($field->field_name);
-                                    }
-                                    }
-                                }
-                            $addadmission->save();
 
-                            $addadmission->attendance_unique_id = 'AI' . $addadmission->id;
-                            $addadmission->save();
-                            
-                            $addadmission_id = $addadmission->id;
-                            $this->unique_system_id($addadmission_id);
-                            
-                            $feesGroup = new FeesAssign();
-                            $feesGroup->user_id = Session::get('id');
-                            $feesGroup->session_id = Session::get('session_id');
-                            $feesGroup->branch_id = Session::get('branch_id');
-                            $feesGroup->admission_id = $addadmission_id;
-                            $feesGroup->save();
-                            $feesGroupId = $feesGroup->id;
-                
-                            $assign_count =0;
-                            $fees_group_amount =0;
-                            $fees_group_discount =0;
-                            
-                            if (!empty($request->fees_master_id)) {
-                                $assign_count = 0; // Ensure $assign_count is defined
-                                if (is_array($request->fees_assign)) { // Check if $request->fees_assign is an array
-                                    for ($count = 0; $count < count($request->fees_master_id); $count++) {
-                                        if (in_array($request->fees_master_id[$count], $request->fees_assign)) {
-                                            $feesGroupDetail = new FeesAssignDetail(); // model name
-                                            $feesGroupDetail->user_id = Session::get('id');
-                                            $feesGroupDetail->session_id = Session::get('session_id');
-                                            $feesGroupDetail->branch_id = Session::get('branch_id');
-                                            $feesGroupDetail->fees_group_id = $request->fees_group_id[$count];
-                                            $feesGroupDetail->fees_master_id = $request->fees_assign[$assign_count];
-                                            $feesGroupDetail->fees_group_amount = $request->fees_group_amount[$count];
-                                            $feesGroupDetail->class_type_id = $request->class_type_id ?? null;
-                                            $fees_group_amount += $request->fees_group_amount[$count];
-                                            $feesGroupDetail->discount = $request->discount[$count];
-                                            $fees_group_discount += $request->discount[$count];
-                                            $feesGroupDetail->fees_breakdown = $request->fees_breakdown[$count];
-                                            $feesGroupDetail->fees_assign_id = $feesGroupId;
-                                            $feesGroupDetail->admission_id = $addadmission_id;
-                                            $feesGroupDetail->save();
-                                            $assign_count++;
-                                        }
-                                    }
-                                } else {
-                                   
+                        foreach ($fieldMap as $input => $column) {
+                            $addadmission->{$column} = $request->input($input);
+                        }
+                        if (!empty($request->stream_subject)) {
+                            $addadmission->stream_subject = implode(',', $request->stream_subject);
+                        }
+
+                        $addadmission->image = $student_image;
+                        $addadmission->father_img = $father_image;
+                        $addadmission->mother_img = $mother_image;
+
+                        $addadmission->password = Hash::make($request->admissionNo);
+                        $addadmission->confirm_password = $request->admissionNo;
+                        $addadmission->userName = $request->admissionNo;
+                        $addadmission->status = (($request->newStudentRegistration ?? '') == 'newStudentRegistration') ? 'newStudentRegistration' : 1;
+                        // temporary unique value, save ke baad 'AI' + id set hota hai
+                        $addadmission->attendance_unique_id = 'TMP' . uniqid();
+
+                        // Custom (new_input) fields
+                        $studentFields = StudentField::where('branch_id', Session::get('branch_id'))->where('type', 'new_input')->get();
+                        foreach ($studentFields as $field) {
+                            if ($field->field_type == 'checkbox') {
+                                $addadmission->{$field->field_name} = implode(',', $request->input($field->field_name, []));
+                            } else {
+                                $addadmission->{$field->field_name} = $request->input($field->field_name);
+                            }
+                        }
+
+                        $addadmission->save();
+
+                        $addadmission->attendance_unique_id = 'AI' . $addadmission->id;
+                        $addadmission->save();
+
+                        $this->unique_system_id($addadmission->id);
+
+                        // ---------- Fees assign ----------
+                        $feesGroup = new FeesAssign();
+                        $feesGroup->user_id = Session::get('id');
+                        $feesGroup->session_id = Session::get('session_id');
+                        $feesGroup->branch_id = Session::get('branch_id');
+                        $feesGroup->admission_id = $addadmission->id;
+                        $feesGroup->save();
+
+                        $fees_group_amount = 0;
+                        $fees_group_discount = 0;
+
+                        if (!empty($request->fees_master_id) && is_array($request->fees_assign)) {
+                            $assign_count = 0;
+                            for ($count = 0; $count < count($request->fees_master_id); $count++) {
+                                if (in_array($request->fees_master_id[$count], $request->fees_assign)) {
+                                    $feesGroupDetail = new FeesAssignDetail();
+                                    $feesGroupDetail->user_id = Session::get('id');
+                                    $feesGroupDetail->session_id = Session::get('session_id');
+                                    $feesGroupDetail->branch_id = Session::get('branch_id');
+                                    $feesGroupDetail->fees_group_id = $request->fees_group_id[$count];
+                                    $feesGroupDetail->fees_master_id = $request->fees_assign[$assign_count];
+                                    $feesGroupDetail->fees_group_amount = $request->fees_group_amount[$count];
+                                    $feesGroupDetail->class_type_id = $request->class_type_id ?? null;
+                                    $feesGroupDetail->discount = $request->discount[$count];
+                                    $feesGroupDetail->fees_breakdown = $request->fees_breakdown[$count];
+                                    $feesGroupDetail->fees_assign_id = $feesGroup->id;
+                                    $feesGroupDetail->admission_id = $addadmission->id;
+                                    $feesGroupDetail->save();
+
+                                    $fees_group_amount += $request->fees_group_amount[$count];
+                                    $fees_group_discount += $request->discount[$count];
+                                    $assign_count++;
                                 }
                             }
-                         
-                            $feesGroup->total_amount =$fees_group_amount;
-                            $feesGroup->total_discount = $fees_group_discount;
-                            $feesGroup->net_amount = $fees_group_amount-$fees_group_discount;
-                            $feesGroup->save();
-                             
-                            $template = MessageTemplate::select('message_templates.*', 'message_types.slug','message_types.status as message_type_status')
-                                    ->leftJoin('message_types', 'message_types.id', 'message_templates.message_type_id')
-                                    ->where('message_types.slug', 'student-admission')
-                                    ->first();
-                                
-                                $branch = Branch::find(Session::get('branch_id'));
-                                $setting = Setting::where('branch_id', Session::get('branch_id'))->first();
-                                
-                                $arrey1 = [
-                                    '{#name#}',
-                                    '{#school_name#}',
-                                    '{#user_name#}',
-                                    '{#password#}',
-                                    '{#email#}',
-                                    '{#mobile#}',
-                                ];
-                                
-                                $arrey2 = [
-                                    $addadmission->first_name . " " . $addadmission->last_name,
-                                    $setting->name ?? '',
-                                    $addadmission->userName ?? '',
-                                    $addadmission->confirm_password ?? '',
-                                    $addadmission->email ?? '',
-                                    $addadmission->mobile ?? '',
-                                ];
-                                
-                                $whatsapp = str_replace($arrey1, $arrey2, $template->whatsapp_content ?? '');
-                                
-                                // ✅ Firebase Notification 
-                                if ($setting->firebase_notification == 1) {
-                                    Helper::sendNotification(
-                                        $template->title ?? 'Admission Notification',
-                                        $whatsapp,
-                                        'student',
-                                        $addadmission->id // instead of $attendance['admission_id']
-                                    ); 
-                                }
-                                 
-                                // ✅ WhatsApp Message (only if template active)
-                                if ($template->message_type_status == 1) {
-                                    if ($branch->whatsapp_srvc == 1) {
-                                        $mobile = $addadmission->mobile ?? $request->mobile ?? '';
-                                        if (!empty($mobile)) {
-                                            Helper::MessageQueue($mobile, $whatsapp);
-                                        }
-                                    }
-                                }
+                        }
 
-                                          
-            self::clearAdmissionCache($addadmission->branch_id ?? null, $addadmission->session_id ?? null);
-           return response()->json([ 'status' => 'success','message' => 'Admission Added Successfully.','print_url' => url('/admissionStudentPrint/' . $addadmission->id) 
-            ]);
-           
+                        $feesGroup->total_amount = $fees_group_amount;
+                        $feesGroup->total_discount = $fees_group_discount;
+                        $feesGroup->net_amount = $fees_group_amount - $fees_group_discount;
+                        $feesGroup->save();
+
+                        return $addadmission;
+                    });
+                } catch (\Throwable $e) {
+                    // Admission save nahi hua to upload hui photos bhi hata do
+                    Helper::deleteStudentImage($student_image, 'student');
+                    Helper::deleteStudentImage($father_image, 'father');
+                    Helper::deleteStudentImage($mother_image, 'mother');
+                    throw $e;
                 }
-                 return view('students.admission.add', ['BillCounter' => $BillCounterNo]);
+
+                // ---------- Notification / WhatsApp (admission save hone ke baad) ----------
+                $template = MessageTemplate::select('message_templates.*', 'message_types.slug', 'message_types.status as message_type_status')
+                    ->leftJoin('message_types', 'message_types.id', 'message_templates.message_type_id')
+                    ->where('message_types.slug', 'student-admission')
+                    ->first();
+
+                $branch = Branch::find(Session::get('branch_id'));
+                $setting = Setting::where('branch_id', Session::get('branch_id'))->first();
+
+                $whatsapp = str_replace(
+                    ['{#name#}', '{#school_name#}', '{#user_name#}', '{#password#}', '{#email#}', '{#mobile#}'],
+                    [
+                        $addadmission->first_name . ' ' . $addadmission->last_name,
+                        $setting->name ?? '',
+                        $addadmission->userName ?? '',
+                        $addadmission->confirm_password ?? '',
+                        $addadmission->email ?? '',
+                        $addadmission->mobile ?? '',
+                    ],
+                    $template->whatsapp_content ?? ''
+                );
+
+                if (($setting->firebase_notification ?? 0) == 1) {
+                    Helper::sendNotification(
+                        $template->title ?? 'Admission Notification',
+                        $whatsapp,
+                        'student',
+                        $addadmission->id
+                    );
+                }
+
+                if ($template && $template->message_type_status == 1 && $branch && $branch->whatsapp_srvc == 1) {
+                    $mobile = $addadmission->mobile ?? $request->mobile ?? '';
+                    if (!empty($mobile)) {
+                        Helper::MessageQueue($mobile, $whatsapp);
+                    }
+                }
+
+                self::clearAdmissionCache($addadmission->branch_id ?? null, $addadmission->session_id ?? null);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Admission Added Successfully.',
+                    'print_url' => url('/admissionStudentPrint/' . $addadmission->id),
+                ]);
             }
 
             public function sendStudentPushNotification(Request $request)
@@ -1395,65 +1289,6 @@ class StudentsAdmissionController extends Controller
 
                     return redirect::to('admissionView')->with('error', 'Student not found.');
                 }
-            public function admissionStudentSearch(Request $request){
-                $search['name'] = $request->name;
-                    if ($request->isMethod('post')) {
-                        $request->validate([]);
-                        $data = Enquiry::with('ClassTypes')->where('session_id', Session::get('session_id'));
-                  
-                    if (!empty($request->name)) {
-                        $data = $data
-                        ->where('first_name', 'like', '%' . $request->name . '%')
-                        ->orWhere('last_name', 'like', '%' . $request->name . '%')
-                        ->orWhere('mobile', 'like', '%' . $request->name . '%')
-                        ->orWhere('email', 'like', '%' . $request->name . '%')
-                        ->orWhere('father_name', 'like', '%' . $request->name . '%')
-                        ->orWhere('mother_name', 'like', '%' . $request->name . '%')
-                        ->orWhere('address', 'like', '%' . $request->name . '%');
-                    }
-                    if (!empty($request->registration_no)) {
-                        $data = $data->where("registration_no", $request->registration_no);
-                    }
-                    if (!empty($request->class_search_id)) {
-                        $data = $data->where("class_type_id", $request->class_search_id);
-                    }
-                    $allstudents = $data->orderBy('id', 'DESC')->get();
-                }
-                return view('students.admission.studentSearchView', ['data' => $allstudents]);
-            }
-
-            public function admissionStudentOnClick(Request $request)
-{
-    $student = Enquiry::where('id', $request->student_id)->first();
-
-    if (!$student) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Student not found.'
-        ]);
-    }
-
-    // Agar already Admission hai
-    if ($student->ad_status == 'Admission') {
-        return response()->json([
-            'status' => 'already_admitted',
-            'message' => 'This student is already admitted.',
-            'stu_data' => $student
-        ]);
-    }
-
-    // Agar ad_status NULL hai
-    return response()->json([
-        'status' => 'success',
-        'stu_data' => $student
-    ]);
-}
-
-     
-
-           
-  
-            
             public function admissionStudentIdPrint(Request $request, $id){
                 // $student_id = Admission::find($id);
                 $student_id =  Admission::Select('admissions.*','sessions.from_year','class_types.name as class_name','sessions.to_year')

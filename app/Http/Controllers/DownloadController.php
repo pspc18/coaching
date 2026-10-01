@@ -113,68 +113,70 @@ class DownloadController extends Controller
             }
     
         public function upload_edit(Request $request,$id){
-            
-        $upload = DownloadCenter::find($id);
-        if($request->isMethod('post')){
-        //dd($request);
-            $request->validate([
-            
-            'content_title' => 'required',    
-            'content_type' => 'required',    
-            'upload_date' => 'required',    
-            ]);
 
-                    if ($request->file('content_file')) {
+        // Edit page removed - editing now happens in a modal on upload/content
+        if(!$request->isMethod('post')){
+            return redirect('upload/content');
+        }
 
-                        $oldFile = env('IMAGE_UPLOAD_PATH') . 'download_center/' . $upload->content_file;
+        $upload = DownloadCenter::where('id',$id)
+            ->where('session_id',Session::get('session_id'))
+            ->where('branch_id',Session::get('branch_id'))
+            ->first();
 
-                        $file = $request->file('content_file');
-                        $originalName = $file->getClientOriginalName();
-                        $extension = strtolower($file->getClientOriginalExtension());
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'download_center/';
-                        if (!file_exists($destinationPath)) {
-                            mkdir($destinationPath, 0755, true);
-                        }
-                        if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                            $compressedImage = Image::make($file)
-                                ->resize(600, null, function ($constraint) {
-                                    $constraint->aspectRatio();
-                                    $constraint->upsize();
-                                })
-                                ->encode($extension, 80);
-                    
-                            $compressedImage->save($destinationPath . $originalName);
-                    
-                            $download_center = $originalName;
-                        } else {
-                            $file->move($destinationPath, $originalName);
-                            $download_center =  $originalName;
-                        }
-                $upload->content_file = $download_center;
+        if(empty($upload)){
+            return response()->json(['status' => 'error','message' => 'Content not found !'], 404);
+        }
 
-                if (!empty($oldFile) && File::exists($oldFile)) {
-                    File::delete($oldFile);
-                }
+        $request->validate([
+            'content_title' => 'required',
+            'content_type' => 'required',
+            'upload_date' => 'required',
+            'content_file' => 'nullable|mimes:jpg,jpeg,png,gif,webp,pdf,mp4,avi,mov,mkv|max:51200', // 50MB
+        ]);
+
+        if ($request->hasFile('content_file')) {
+
+            $destinationPath = env('IMAGE_UPLOAD_PATH') . 'download_center/';
+            $oldFile = !empty($upload->content_file) ? $destinationPath . $upload->content_file : '';
+
+            $file = $request->file('content_file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            // Unique name (same as add) so the new file never overwrites / gets deleted as the old one
+            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
             }
-                 
-            $upload->user_id = Session::get('id');
-            $upload->session_id = Session::get('session_id');
-            $upload->branch_id = Session::get('branch_id');
-            $upload->content_title = $request->content_title;
-            $upload->content_type = $request->content_type;
-            $upload->upload_date = $request->upload_date;
-            $upload->class_type_id = $request->class_search_id;
-             $upload->video_link = $request->video_link;
-            $upload->description = $request->description;
-            $upload->save();
-            
-            return response()->json(['status' => 'success', 'message' => 'Content Updated Successfully !','redirect' => url('upload/content')]);
-        }   
-        $upload_list = DownloadCenter::where('session_id',Session::get('session_id'))
-                             ->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-        
-        return view('download_center.upload_edit',['dataview'=>$upload_list,'upload_data'=>$upload]);
- 
+
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                Image::make($file)
+                    ->resize(600, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->save($destinationPath . $fileName, 80);
+            } else {
+                $file->move($destinationPath, $fileName);
+            }
+
+            $upload->content_file = $fileName;
+
+            if (!empty($oldFile) && File::exists($oldFile)) {
+                File::delete($oldFile);
+            }
+        }
+
+        $upload->user_id = Session::get('id');
+        $upload->content_title = $request->content_title;
+        $upload->content_type = $request->content_type;
+        $upload->upload_date = $request->upload_date;
+        $upload->class_type_id = $request->class_search_id;
+        $upload->video_link = $request->video_link;
+        $upload->description = $request->description;
+        $upload->save();
+
+        return response()->json(['status' => 'success', 'message' => 'Content Updated Successfully !','redirect' => url('upload/content')]);
     }   
 
             public function uploadDelete(Request $request){

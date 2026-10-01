@@ -2355,6 +2355,89 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
         return view($view, $data, $mergeData);
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Student / Father / Mother Photo - single global save + show
+    |--------------------------------------------------------------------------
+    | Folder : public/assets/uploads/students/{student|father|mother}/
+    | DB     : sirf file ka naam save hota hai (path nahi)
+    | Use    : single aur bulk dono me same function call karo
+    |          $name = Helper::saveStudentImage($request->file('student_img'), 'student');
+    |          $name = Helper::saveStudentImage($file, 'father', $oldName); // purani photo delete ho jayegi
+    */
+    public const STUDENT_IMAGE_TYPES = ['student', 'father', 'mother'];
+
+    public static function studentImageType($type)
+    {
+        return in_array($type, self::STUDENT_IMAGE_TYPES, true) ? $type : 'student';
+    }
+
+    // Save karne ka poora folder path (env ki zarurat nahi)
+    public static function studentImagePath($type = 'student')
+    {
+        $type = self::studentImageType($type);
+        return public_path('assets' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'students' . DIRECTORY_SEPARATOR . $type) . DIRECTORY_SEPARATOR;
+    }
+
+    // Photo dikhane ka URL, file na mile to $default return hoga
+    public static function studentImageUrl($fileName, $type = 'student', $default = null)
+    {
+        $type = self::studentImageType($type);
+        if (!empty($fileName) && File::exists(self::studentImagePath($type) . $fileName)) {
+            return asset('public/assets/uploads/students/' . $type . '/' . $fileName);
+        }
+        return $default;
+    }
+
+    // Photo save (resize 600px + jpg 80%), unique naam return karta hai
+    public static function saveStudentImage($file, $type = 'student', $oldFileName = null)
+    {
+        if (empty($file) || !($file instanceof \Illuminate\Http\UploadedFile) || !$file->isValid()) {
+            return $oldFileName ?? '';
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        if (!in_array($extension, ['jpg', 'jpeg', 'png'], true)) {
+            return $oldFileName ?? '';
+        }
+
+        $type = self::studentImageType($type);
+        $directory = self::studentImagePath($type);
+        if (!File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true, true);
+        }
+
+        $fileName = $type . '_' . time() . '_' . uniqid() . '.jpg';
+
+        try {
+            \Intervention\Image\Facades\Image::make($file)
+                ->resize(600, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })
+                ->encode('jpg', 80)
+                ->save($directory . $fileName);
+        } catch (\Throwable $e) {
+            \Log::error('saveStudentImage failed: ' . $e->getMessage());
+            return $oldFileName ?? '';
+        }
+
+        if (!empty($oldFileName) && $oldFileName !== $fileName) {
+            self::deleteStudentImage($oldFileName, $type);
+        }
+
+        return $fileName;
+    }
+
+    public static function deleteStudentImage($fileName, $type = 'student')
+    {
+        if (empty($fileName)) {
+            return false;
+        }
+        $path = self::studentImagePath($type) . basename($fileName);
+        return File::exists($path) ? File::delete($path) : false;
+    }
 }
 
 

@@ -120,10 +120,8 @@ Route::match(['get', 'post'], 'staff/Attendance/view', 'StaffAttendanceControlle
 Route::match(['get', 'post'], 'drop_index', 'StaffController@Dropindex');
 Route::match(['get', 'post'], 'getDataClassSubject', 'StaffController@getDataClassSubject');
 
-//CallLog
+//Reception
 Route::match(['get', 'post'], 'reception_file', 'ReceptionController@receptionfile');
-Route::match(['get', 'post'], 'callLog/add', 'ReceptionController@createCallLog');
-Route::match(['get', 'post'], 'callLogDelete', 'ReceptionController@callLogDelete');
 
 
 //VisterController
@@ -507,8 +505,6 @@ Route::match(['get', 'post'], 'getStreamSubjects', 'StudentsAdmissionController@
 Route::match(['get', 'post'], 'saveAdmissionDatatableFields', 'StudentsAdmissionController@saveAdmissionDatatableFields');
 
 
-Route::match(['get', 'post'], 'admissionStudentSearch', 'StudentsAdmissionController@admissionStudentSearch');
-Route::match(['get', 'post'], 'admissionStudentOnClick', 'StudentsAdmissionController@admissionStudentOnClick');
 
 
 
@@ -570,7 +566,6 @@ Route::match(['get', 'post'], 'updateAssignedFees', 'fees\FeesController@updateA
 
 
 Route::match(['get', 'post'], 'feesMasterDelete', 'fees\FeesMasterController@feesMasterDelete');
-Route::match(['get', 'post'], 'mesterClassAmt', 'fees\FeesMasterController@mesterClassAmt');
 //AdvanceFees
 
 

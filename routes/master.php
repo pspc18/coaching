@@ -55,27 +55,10 @@ Route::get('complaints-management/{id}', 'master\SupportComplaintController@show
 Route::post('complaints-management/{id}/reply', 'master\SupportComplaintController@reply')->where('id', '[0-9]+');
 Route::post('complaints-management/{id}/status', 'master\SupportComplaintController@status')->where('id', '[0-9]+');
 Route::get('support-complaint-attachment/{replyId}', 'master\SupportComplaintController@attachment')->where('replyId', '[0-9]+');
-//Enquiry Status Reference + Other Types Start
-Route::match(['get','post'],'enquiry_status_add', 'master\EnquiryStatusController@add');
-Route::match(['get','post'],'enquiry_status_edit/{id}', 'master\EnquiryStatusController@edit');
-Route::match(['get','post'],'enquiry_status_delete', 'master\EnquiryStatusController@delete');
 
-Route::match(['get','post'],'response_add', 'master\EnquiryStatusController@add');
-Route::match(['get','post'],'response_edit/{id}', 'master\EnquiryStatusController@edit');
-Route::match(['get','post'],'response_delete', 'master\EnquiryStatusController@delete');
 
-Route::match(['get','post'],'calling_purpose_add', 'master\EnquiryStatusController@add');
-Route::match(['get','post'],'calling_purpose_edit/{id}', 'master\EnquiryStatusController@edit');
-Route::match(['get','post'],'calling_purpose_delete', 'master\EnquiryStatusController@delete');
 
-Route::match(['get','post'],'visiting_purpose_add', 'master\EnquiryStatusController@add');
-Route::match(['get','post'],'visiting_purpose_edit/{id}', 'master\EnquiryStatusController@edit');
-Route::match(['get','post'],'visiting_purpose_delete', 'master\EnquiryStatusController@delete');
 
-Route::match(['get','post'],'complaint_type_add', 'master\EnquiryStatusController@add');
-Route::match(['get','post'],'complaint_type_edit/{id}', 'master\EnquiryStatusController@edit');
-Route::match(['get','post'],'complaint_type_delete', 'master\EnquiryStatusController@delete');
-//Enquiry Status Reference + Other Types End
 
 //Gallery
 Route::match(['get','post'],'gallery_view', 'master\GalleryController@view');
