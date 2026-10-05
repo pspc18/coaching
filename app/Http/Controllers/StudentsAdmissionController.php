@@ -220,7 +220,7 @@ class StudentsAdmissionController extends Controller
                 $BillCounterNo = (int) ($BillCounter->counter ?? 0) + 1;
 
                 if (!$request->isMethod('post')) {
-                    return view('students.admission.add', ['BillCounter' => $BillCounterNo]);
+                    return Helper::view('students.admission.add', ['BillCounter' => $BillCounterNo]);
                 }
 
                 // ---------- Validation (student_fields settings se) ----------

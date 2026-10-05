@@ -1,9 +1,12 @@
 @php
     $setting = DB::table('settings')->first();
     $schoolName = $setting->name ?? 'School ERP';
-    $logoUrl = !empty($setting->left_logo)
-        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . $setting->left_logo
-        : asset('public/assets/school/img/logo.png');
+    $logoFileName = $setting->left_logo ?? '';
+    $logoUrl = !empty($logoFileName)
+        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($logoFileName)
+        : '';
+    $schoolInitial = strtoupper(mb_substr(trim($schoolName), 0, 1, 'UTF-8')) ?: 'A';
+    $faviconUrl = !empty($logoUrl) ? $logoUrl : asset('public/assets/school/img/logo.png');
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +18,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{{ $schoolName }} | Sign In</title>
-    <link rel="icon" href="{{ $logoUrl }}">
+    <link rel="icon" href="{{ $faviconUrl }}">
 
     <!-- Typography & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -139,6 +142,24 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            display: block;
+        }
+        .firm-avatar-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+            color: #ffffff;
+            font-size: 19px;
+            font-weight: 800;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            text-transform: uppercase;
+            line-height: 1;
+            border-radius: var(--radius-erp);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            user-select: none;
         }
         .showcase-brand-titles {
             overflow: hidden;
@@ -586,6 +607,9 @@
                 height: 42px !important;
                 padding: 3px !important;
             }
+            .firm-avatar-fallback {
+                font-size: 16px !important;
+            }
             .showcase-kicker {
                 font-size: 9px !important;
             }
@@ -746,7 +770,21 @@
             <!-- School Brand Crest -->
             <div class="showcase-brand-header">
                 <div class="showcase-logo-frame">
-                    <img src="{{ $logoUrl }}" alt="{{ $schoolName }}">
+                    @if(!empty($logoUrl))
+                        <img 
+                            src="{{ $logoUrl }}" 
+                            alt="{{ $schoolName }}"
+                            loading="eager"
+                            onerror="this.style.display='none'; var fb=document.getElementById('firmLogoAvatar'); if(fb){fb.style.display='flex';}"
+                        >
+                        <div class="firm-avatar-fallback" id="firmLogoAvatar" style="display: none;">
+                            {{ $schoolInitial }}
+                        </div>
+                    @else
+                        <div class="firm-avatar-fallback" id="firmLogoAvatar">
+                            {{ $schoolInitial }}
+                        </div>
+                    @endif
                 </div>
                 <div class="showcase-brand-titles">
                     <span class="showcase-kicker">Unified Campus ERP</span>
@@ -989,6 +1027,19 @@ $(function(){
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
+
+    // Firm Logo Corrupted / Broken Image Fallback
+    var $brandImg = $('.showcase-logo-frame img');
+    if ($brandImg.length) {
+        $brandImg.on('error', function(){
+            $(this).hide();
+            $('#firmLogoAvatar').css('display', 'flex');
+        });
+        if ($brandImg[0].complete && ($brandImg[0].naturalWidth === 0 || $brandImg[0].naturalHeight === 0)) {
+            $brandImg.hide();
+            $('#firmLogoAvatar').css('display', 'flex');
+        }
+    }
 
     // Tab switcher logic
     $('.arise-tab-btn').on('click', function(){

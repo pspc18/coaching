@@ -38,6 +38,12 @@
             $subSidebar->push($academicCalendarSubmenu);
         }
     }
+
+    $mobileLogoFile = $setting->left_logo ?? '';
+    $mobileLogoUrl = !empty($mobileLogoFile)
+        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($mobileLogoFile)
+        : '';
+    $firmInitial = strtoupper(mb_substr(trim($setting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -48,7 +54,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{{ $setting->name ?? 'ARISE ERP' }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset($setting->left_logo ?? '') }}">
+    <link rel="icon" type="image/x-icon" href="{{ !empty($mobileLogoUrl) ? $mobileLogoUrl : asset('public/assets/school/img/logo.png') }}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -271,13 +277,29 @@
         color: #ffffff !important;
     }
     .top-bar-logo {
-        width: 28px;
-        height: 28px;
-        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
         background: #ffffff;
         padding: 2px;
         object-fit: contain;
         box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        flex-shrink: 0;
+        display: block;
+    }
+    .top-bar-avatar {
+        background: linear-gradient(135deg, #0284c7 0%, #002C54 100%) !important;
+        color: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: 800 !important;
+        font-size: 14px !important;
+        text-transform: uppercase !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        user-select: none !important;
     }
     .top-bar-info {
         display: flex;
@@ -745,10 +767,20 @@
     {{-- Top App Bar --}}
     <header class="mobile-top-bar">
         <a href="{{ url('dashboard') }}" class="top-bar-brand">
-            @if(!empty($setting->left_logo))
-                <img src="{{ asset($setting->left_logo) }}" alt="Logo" class="top-bar-logo">
+            @if(!empty($mobileLogoUrl))
+                <img 
+                    src="{{ $mobileLogoUrl }}" 
+                    alt="Logo" 
+                    class="top-bar-logo"
+                    onerror="this.style.display='none'; var av=document.getElementById('mobileTopBarAvatar'); if(av){av.style.display='flex';}"
+                >
+                <div id="mobileTopBarAvatar" class="top-bar-logo top-bar-avatar" style="display: none;">
+                    {{ $firmInitial }}
+                </div>
             @else
-                <div class="top-bar-logo" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px;">A</div>
+                <div id="mobileTopBarAvatar" class="top-bar-logo top-bar-avatar">
+                    {{ $firmInitial }}
+                </div>
             @endif
             <div class="top-bar-info">
                 <span class="top-bar-name">{{ $setting->name ?? 'ARISE ERP' }}</span>
@@ -1032,6 +1064,19 @@ $(document).ready(function() {
             }
         });
     });
+
+    // Firm Logo Corrupted / Broken Image Fallback
+    var $topLogo = $('img.top-bar-logo');
+    if ($topLogo.length) {
+        $topLogo.on('error', function(){
+            $(this).hide();
+            $('#mobileTopBarAvatar').css('display', 'flex');
+        });
+        if ($topLogo[0].complete && ($topLogo[0].naturalWidth === 0 || $topLogo[0].naturalHeight === 0)) {
+            $topLogo.hide();
+            $('#mobileTopBarAvatar').css('display', 'flex');
+        }
+    }
 });
 </script>
 
