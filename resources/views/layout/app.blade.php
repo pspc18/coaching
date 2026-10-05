@@ -22,7 +22,7 @@ $setting = Helper::getSetting();
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/daterangepicker.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/dataTables.bootstrap4.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/common.css') }}">
-        <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-modals.css') }}?v={{ time() }}">
+        <link rel="stylesheet" href="{{ asset('public/assets/school/css/arise-modals.css') }}?v=1.0.2">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">     
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/select2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('public/assets/school/css/select2-bootstrap4.min.css') }}">
@@ -406,5 +406,6 @@ document.addEventListener("click", function(e) {
             });
         </script>
     @include('initial.initialView')
+    <script src="{{ asset('public/assets/school/js/instantpage.5.2.0.js') }}" type="module"></script>
 </body>
 </html>

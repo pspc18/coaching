@@ -123,6 +123,10 @@ class Helper{
 
     private static $cachedSettings = [];
     private static $cachedMasterData = [];
+    private static $cachedUserData = [];
+    private static $cachedUserPermisn = [];
+    private static $cachedSubPermisn = [];
+    private static $cachedBranches = [];
 
     public static function clearSettingCache($branchId = null)
     {
@@ -856,10 +860,11 @@ class Helper{
      }  
    
     public static function getUsersBirthday(){
-        $getUsersBirthday = User::whereMonth('dob', now()->month)
-                            ->whereDay('dob', now()->day)->orderBy('id', 'DESC')->get();
-        
-       return $getUsersBirthday;
+        $today = date('Y-m-d');
+        return Cache::remember('users_birthdays_' . $today, 3600, function() {
+            return User::whereMonth('dob', now()->month)
+                ->whereDay('dob', now()->day)->orderBy('id', 'DESC')->get();
+        });
     }  
    
    
@@ -980,6 +985,12 @@ class Helper{
 
     public static function getPermisn() {
         $userId = Session::get('id');
+        if (!$userId) {
+            return [];
+        }
+        if (isset(self::$cachedUserPermisn[$userId])) {
+            return self::$cachedUserPermisn[$userId];
+        }
 
         $userPerm = DB::table('user_permission')
             ->where('user_id', $userId)
@@ -1003,12 +1014,20 @@ class Helper{
             }
         }
 
+        self::$cachedUserPermisn[$userId] = $mainPermisn;
         return $mainPermisn;
     }
 
     // Get sub-sidebar IDs as array
     public static function getSubPermisn($sidebar_id) {
         $userId = Session::get('id');
+        if (!$userId) {
+            return [];
+        }
+        $cacheKey = $userId . '_' . $sidebar_id;
+        if (isset(self::$cachedSubPermisn[$cacheKey])) {
+            return self::$cachedSubPermisn[$cacheKey];
+        }
 
         $userPermSub = DB::table('user_permission')
             ->where('user_id', $userId)
@@ -1017,9 +1036,12 @@ class Helper{
             ->first();
 
         if ($userPermSub && $userPermSub->sub_sidebar_id) {
-            return explode(',', $userPermSub->sub_sidebar_id);
+            $result = explode(',', $userPermSub->sub_sidebar_id);
+            self::$cachedSubPermisn[$cacheKey] = $result;
+            return $result;
         }
 
+        self::$cachedSubPermisn[$cacheKey] = [];
         return [];
     }
 
@@ -1027,24 +1049,39 @@ class Helper{
 
    
    public static function getPermisnByBranch(){
-       $data = Branch::find(Session::get('branch_id'));
-       return $data;
+       $branchId = Session::get('branch_id');
+       if (!$branchId) {
+           return null;
+       }
+       return Cache::remember('master_branch_' . $branchId, 86400, function() use ($branchId) {
+           return Branch::find($branchId);
+       });
    }
      public static function getAllBranch() {
-        $users = User::find(Session::get('id'));
-    
+        $userId = Session::get('id');
+        $roleId = Session::get('role_id');
+        $branchId = Session::get('branch_id');
+        $cacheKey = ($userId ?: '0') . '_' . ($roleId ?: '0') . '_' . ($branchId ?: '0');
+
+        if (isset(self::$cachedBranches[$cacheKey])) {
+            return self::$cachedBranches[$cacheKey];
+        }
+
+        $users = User::find($userId);
         $data = Branch::orderBy('id', 'ASC');
-    
-        if (Session::get('role_id') > 1 && Session::get('role_id') != 3) {
-            $branchIds = explode(',', $users->access_branch_id); // Convert string to array
+
+        if ($roleId > 1 && $roleId != 3) {
+            $branchIds = !empty($users->access_branch_id) ? explode(',', $users->access_branch_id) : [];
             if(!empty($branchIds)){
-            $data = $data->whereIn('id', $branchIds);
+                $data = $data->whereIn('id', $branchIds);
             }else{
-                 $data = $data->where('id', Session::get('branch_id'));
+                $data = $data->where('id', $branchId);
             }
         }
-    
-        return $data->get();
+
+        $result = $data->get();
+        self::$cachedBranches[$cacheKey] = $result;
+        return $result;
     }
 
    
@@ -1177,13 +1214,21 @@ class Helper{
       $user_id=Session::get('id');
       $teacher_id=Session::get('teacher_id');
       $student_id=Session::get('id');
-    
+      $branch_id=Session::get('branch_id');
+      $cacheKey = ($role ?? '') . '_' . ($user_id ?? '') . '_' . ($branch_id ?? '');
+
+      if (isset(self::$cachedUserData[$cacheKey])) {
+          return self::$cachedUserData[$cacheKey];
+      }
+
         if($role==3){
-           $studentData = Admission::with('ClassTypes')->where('id',$student_id)->where('branch_id',Session::get('branch_id'))->get()->first();
-        return $studentData;
+           $studentData = Admission::with('ClassTypes')->where('id',$student_id)->where('branch_id',$branch_id)->first();
+           self::$cachedUserData[$cacheKey] = $studentData;
+           return $studentData;
         }else{
-           $userData = User::where('id',$user_id)->get()->first(); 
-        return $userData;
+           $userData = User::where('id',$user_id)->first(); 
+           self::$cachedUserData[$cacheKey] = $userData;
+           return $userData;
         }
           
     }

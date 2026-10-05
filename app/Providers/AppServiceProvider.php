@@ -16,6 +16,32 @@ class AppServiceProvider extends ServiceProvider
         if (class_exists(\App\Helpers\Helper::class) && !class_exists('App\Helpers\helper', false)) {
             class_alias(\App\Helpers\Helper::class, 'App\Helpers\helper');
         }
+
+        // Defensive polyfill for mb_strimwidth if mbstring extension is absent or incomplete
+        if (!function_exists('mb_strimwidth')) {
+            function mb_strimwidth($string, $start, $width, $trimmarker = '', $encoding = null) {
+                if (function_exists('mb_substr') && function_exists('mb_strwidth')) {
+                    $encoding = $encoding ?: mb_internal_encoding();
+                    if (mb_strwidth($string, $encoding) <= $width) {
+                        return $string;
+                    }
+                    $markerWidth = mb_strwidth($trimmarker, $encoding);
+                    $width -= $markerWidth;
+                    $trimmed = mb_substr($string, $start, $width, $encoding);
+                    while (mb_strwidth($trimmed, $encoding) > $width) {
+                        $trimmed = mb_substr($trimmed, 0, -1, $encoding);
+                    }
+                    return $trimmed . $trimmarker;
+                }
+
+                if (strlen($string) <= $width) {
+                    return $string;
+                }
+                $markerLen = strlen($trimmarker);
+                $width = max(0, $width - $markerLen);
+                return substr($string, $start, $width) . $trimmarker;
+            }
+        }
     }
 
     /**
