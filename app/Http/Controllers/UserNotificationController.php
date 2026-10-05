@@ -72,9 +72,11 @@ class UserNotificationController extends Controller
             $notification->setRelation('complaintContext', $complaintId ? $complaints->get($complaintId) : null);
         });
 
+        $totalCount = (int) $this->notifications()->count();
         $unreadCount = (int) $this->notifications()->where('message_seen', 0)->count();
+        $readCount = max(0, $totalCount - $unreadCount);
 
-        return \Helper::view('notifications.user_index', compact('notifications', 'filter', 'unreadCount'));
+        return \Helper::view('notifications.user_index', compact('notifications', 'filter', 'unreadCount', 'totalCount', 'readCount'));
     }
 
     public function markRead(Request $request, int $id)

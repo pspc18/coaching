@@ -2,7 +2,9 @@
     $currentSessionName = Session::get('session_name') ?? 'Current Session';
     $roleId = (int) Session::get('role_id');
     $imageShowPath = env('IMAGE_SHOW_PATH');
-    $totalCount = $notifications->total();
+    $totalCount = $totalCount ?? $notifications->total();
+    $unreadCount = $unreadCount ?? 0;
+    $readCount = $readCount ?? max(0, $totalCount - $unreadCount);
 @endphp
 
 @extends('layout.mobile_app')
@@ -10,20 +12,20 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - NATIVE MOBILE USER NOTIFICATIONS STYLES
-   - High-performance, lightweight and ultra-clean app layout
-   - Signature Arise ERP Dark Navy Hero Header (#001833 -> #002C54)
-   - Filter segmented tabs with real-time counters
-   - Touch-friendly feed cards for Notices, Complaints, Approval Requests
-   - Instant AJAX mark-as-read, expandable content & quick actions
+   ARISE ERP - SIGNATURE NATIVE MOBILE NOTIFICATIONS STYLES
+   - Aligned with Arise ERP Mobile Design System (enquiryView, admissionView)
+   - Sharp 4px radii, Arise Deep-Navy palette (#001833 -> #002C54)
+   - Native 36px circular avatar badges with contextual accent borders
+   - Mobile-native typography (12px base, 12.5px titles, 10.5px submeta)
+   - Touch-friendly 28px/32px action buttons & instant AJAX feedback
    ========================================================================== */
 
-/* 1. Glassmorphic Hero Banner */
+/* 1. Glassmorphic Hero Card */
 .mob-hero-card {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     border-radius: 4px;
-    padding: 11px 12px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -32,7 +34,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 .mob-hero-title {
     font-size: 13.5px;
@@ -43,42 +45,59 @@
     align-items: center;
     gap: 6px;
 }
-.mob-hero-badges {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.mob-unread-pill {
+.mob-session-pill {
     font-size: 9.5px;
-    background: rgba(239, 68, 68, 0.2);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
     padding: 2px 7px;
     border-radius: 3px;
-    font-weight: 800;
-}
-.mob-unread-pill.all-read {
-    background: rgba(74, 222, 128, 0.18);
-    border-color: rgba(74, 222, 128, 0.35);
-    color: #4ade80;
-}
-.mob-hero-desc {
-    font-size: 10.5px;
-    color: #cbd5e1;
-    margin-bottom: 9px;
+    font-weight: 700;
 }
 
-/* Fast Action Bar */
+/* 3 Metrics Glance Grid */
+.mob-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
+}
+.mob-metric-box {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    padding: 6px 4px;
+    text-align: center;
+}
+.mob-metric-tag {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 1px;
+}
+.mob-metric-val {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+}
+.mob-metric-val.val-unread { color: #f87171; }
+.mob-metric-val.val-read { color: #4ade80; }
+.mob-metric-val.val-total { color: #38bdf8; }
+
+/* Hero Fast Actions Bar */
 .mob-actions-bar {
     display: flex;
     gap: 6px;
 }
 .mob-act-btn {
     flex: 1;
-    height: 30px;
+    height: 32px;
     padding: 0 10px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -89,192 +108,243 @@
     cursor: pointer;
     transition: all .12s ease;
 }
-.mob-act-btn-readall {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+.mob-act-btn:active {
+    transform: scale(0.96);
 }
-.mob-act-btn-readall:active {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(0.97);
+.mob-act-btn-readall {
+    background: #0284c7;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 .mob-act-btn-clearall {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5 !important;
-    border: 1px solid rgba(239, 68, 68, 0.35);
-}
-.mob-act-btn-clearall:active {
-    background: rgba(239, 68, 68, 0.35);
-    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 .mob-act-btn[disabled] {
     opacity: 0.45;
     pointer-events: none;
 }
 
-/* 2. Filter Segmented Bar */
-.mob-filter-segment {
-    display: flex;
+/* 2. Compact Search & Horizontal Filter Chips Toolbar */
+.mob-filter-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 3px;
-    gap: 4px;
-    margin-bottom: 9px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-.mob-segment-tab {
-    flex: 1;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #475569;
     border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-chips-scroll {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.mob-chips-scroll::-webkit-scrollbar {
+    display: none;
+}
+.mob-chip {
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
     text-decoration: none !important;
     transition: all .12s ease;
-    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
-.mob-segment-tab.active {
+.mob-chip:active {
+    transform: scale(0.95);
+}
+.mob-chip.active {
     background: #002C54;
     color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 44, 84, 0.2);
+    border-color: #002C54;
+    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);
 }
-.mob-tab-badge {
-    font-size: 9px;
+.mob-chip-count {
+    font-size: 8.5px;
     padding: 1px 5px;
-    border-radius: 8px;
-    font-weight: 800;
-    background: #f1f5f9;
-    color: #475569;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.08);
 }
-.mob-segment-tab.active .mob-tab-badge {
+.mob-chip.active .mob-chip-count {
+    background: rgba(255, 255, 255, 0.22);
+}
+.mob-chip-count.badge-unread {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.mob-chip.active .mob-chip-count.badge-unread {
     background: #ef4444;
     color: #ffffff;
 }
 
-/* 3. Notifications Feed List */
-.mob-notif-feed {
+/* 3. Native Notification Cards Feed */
+.notif-feed-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
 }
-.mob-notif-card {
+.notif-mob-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 10px 11px;
+    border-radius: 4px;
+    padding: 9px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    transition: background-color .15s ease, border-color .15s ease;
+    transition: border-color .12s ease, background-color .12s ease;
+    border-left: 3.5px solid #94a3b8;
 }
-.mob-notif-card.is-unread {
-    background: #f8fafc;
-    border-left: 3px solid #0284c7;
+.notif-mob-card.border-notice { border-left-color: #d97706; }
+.notif-mob-card.border-complaint { border-left-color: #dc2626; }
+.notif-mob-card.border-approval { border-left-color: #4f46e5; }
+.notif-mob-card.border-default { border-left-color: #0284c7; }
+.notif-mob-card.is-unread {
+    background: #fbfcfe;
 }
 
-/* Card Header */
-.mob-notif-header {
+/* Header & Avatar */
+.notif-card-header {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 6px;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 7px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f5f9;
 }
-.mob-notif-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 5px;
+.notif-avatar-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
+    font-weight: 800;
     flex-shrink: 0;
+    border: 1.5px solid #cbd5e1;
 }
-.mob-notif-icon.type-notice {
-    background: #fef3c7;
-    color: #d97706;
+.notif-avatar-box.avatar-notice {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #b45309;
+    border-color: #fde68a;
 }
-.mob-notif-icon.type-complaint {
-    background: #fee2e2;
+.notif-avatar-box.avatar-complaint {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
     color: #dc2626;
+    border-color: #fecaca;
 }
-.mob-notif-icon.type-approval {
-    background: #e0e7ff;
-    color: #4f46e5;
+.notif-avatar-box.avatar-approval {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
+    border-color: #c7d2fe;
 }
-.mob-notif-icon.type-default {
-    background: #e0f2fe;
+.notif-avatar-box.avatar-default {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
     color: #0284c7;
+    border-color: #bae6fd;
 }
-.mob-notif-meta {
+
+.notif-header-info {
     flex: 1;
-    min-width: 0;
+    overflow: hidden;
 }
-.mob-notif-title-row {
+.notif-name-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
-    margin-bottom: 2px;
+    gap: 4px;
 }
-.mob-notif-title {
-    font-size: 12px;
+.notif-mob-title {
+    font-size: 12.5px;
     font-weight: 800;
-    color: #0f172a;
-    line-height: 1.3;
+    color: #002C54;
+    text-decoration: none !important;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.25;
 }
-.mob-notif-status-badge {
-    font-size: 8.5px;
+.notif-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+}
+.notif-type-badge {
+    font-size: 9px;
     font-weight: 800;
     padding: 1px 5px;
     border-radius: 2px;
-    white-space: nowrap;
+}
+.notif-type-badge.badge-notice { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.notif-type-badge.badge-complaint { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.notif-type-badge.badge-approval { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+.notif-type-badge.badge-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+.mob-date-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Status Badges */
+.mob-status-pill {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 3px;
     text-transform: uppercase;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }
-.mob-notif-status-badge.unread {
+.status-pill-unread {
     background: #e0f2fe;
-    color: #0284c7;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
 }
-.mob-notif-status-badge.read {
+.status-pill-read {
     background: #f1f5f9;
     color: #64748b;
+    border: 1px solid #e2e8f0;
 }
 
-.mob-notif-submeta {
+/* Card Body Rows */
+.notif-card-body {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 9.5px;
-    color: #64748b;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 7px;
 }
-.mob-type-tag {
-    font-size: 8.5px;
-    font-weight: 700;
-    padding: 1px 4px;
-    border-radius: 2px;
-}
-.mob-type-tag.notice { background: #fef3c7; color: #b45309; }
-.mob-type-tag.complaint { background: #fee2e2; color: #b91c1c; }
-.mob-type-tag.approval { background: #e0e7ff; color: #4338ca; }
-.mob-type-tag.default { background: #f1f5f9; color: #475569; }
-
-/* Message Content */
-.mob-notif-content {
+.notif-note-preview {
     font-size: 11px;
-    line-height: 1.5;
     color: #334155;
-    white-space: pre-line;
+    background: #f8fafc;
+    border-left: 2.5px solid #002C54;
+    padding: 4px 7px;
+    border-radius: 0 3px 3px 0;
+    line-height: 1.45;
     word-break: break-word;
-    margin-top: 4px;
+    white-space: pre-line;
 }
-.mob-notif-content.is-collapsed {
+.notif-note-preview.is-collapsed {
     max-height: 3.1em;
     overflow: hidden;
     position: relative;
@@ -283,200 +353,119 @@
     -webkit-box-orient: vertical;
 }
 
-/* Complaint Embedded Student Card */
+/* Embedded Complaint Student Info Row */
 .mob-complaint-box {
-    margin-top: 8px;
-    padding: 8px;
-    background: #f8fafc;
+    margin-top: 4px;
+    padding: 6px 8px;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.mob-complaint-student {
+    border-radius: 3px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
 }
-.mob-student-avatar {
-    width: 32px;
-    height: 32px;
+.mob-complaint-left {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+.mob-student-avatar-mini {
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: #e0f2fe;
     color: #0284c7;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     overflow: hidden;
     flex-shrink: 0;
+    border: 1px solid #cbd5e1;
 }
-.mob-student-avatar img {
+.mob-student-avatar-mini img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-.mob-student-details {
-    flex: 1;
+.mob-student-meta-mini {
     min-width: 0;
 }
-.mob-student-name {
-    font-size: 11.5px;
+.mob-student-name-mini {
+    font-size: 11px;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.mob-student-sub {
-    font-size: 9.5px;
+.mob-student-sub-mini {
+    font-size: 9px;
     color: #64748b;
-    margin-top: 1px;
+    line-height: 1.1;
 }
-.mob-complaint-ticket {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 5px;
-    border-top: 1px solid #e2e8f0;
-    font-size: 10px;
+.mob-complaint-right {
+    text-align: right;
+    flex-shrink: 0;
 }
 .mob-ticket-badge {
+    font-size: 9.5px;
     font-weight: 800;
     color: #0284c7;
+    display: block;
 }
-.mob-status-pill {
-    padding: 1px 5px;
-    border-radius: 2px;
-    font-size: 9px;
-    font-weight: 700;
-    background: #f1f5f9;
-    color: #334155;
-}
-
-/* Action Strip */
-.mob-notif-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid #f1f5f9;
-}
-.mob-btn-text {
-    background: none;
-    border: none;
-    color: #0284c7;
-    font-size: 10.5px;
-    font-weight: 700;
-    padding: 0;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}
-.mob-btn-text:active {
-    color: #0369a1;
-}
-.mob-pdf-chip {
-    font-size: 10px;
-    font-weight: 700;
-    color: #dc2626;
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    padding: 2px 7px;
-    border-radius: 3px;
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.mob-action-links {
-    display: flex;
-    gap: 5px;
-    margin-left: auto;
-}
-.mob-btn-pill {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 3px;
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    border: none;
-}
-.mob-btn-pill-primary {
-    background: #0284c7;
-    color: #ffffff !important;
-}
-.mob-btn-pill-outline {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    color: #334155 !important;
-}
-
-/* Inline Approval Form */
-.mob-approval-box {
-    margin-top: 8px;
-    padding: 8px;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-}
-.mob-approval-summary {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
-    margin-bottom: 6px;
-}
-.mob-appr-metric {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    padding: 4px 6px;
-}
-.mob-appr-metric-tag {
+.mob-complaint-status-mini {
     font-size: 8.5px;
     font-weight: 700;
     color: #64748b;
-    text-transform: uppercase;
 }
-.mob-appr-metric-val {
-    font-size: 11px;
+
+/* Inline Notice Review Box (Admin Role 1) */
+.mob-review-box {
+    margin-top: 6px;
+    padding: 7px 8px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+}
+.mob-review-headline {
+    font-size: 10px;
     font-weight: 800;
-    color: #0f172a;
+    color: #002C54;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
-.mob-approval-textarea {
+.mob-review-textarea {
     width: 100%;
-    height: 46px;
-    padding: 5px 7px;
+    height: 42px;
+    padding: 4px 6px;
     font-size: 11px;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
     background: #ffffff;
-    margin-top: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     outline: none;
     font-family: inherit;
 }
-.mob-approval-textarea:focus {
+.mob-review-textarea:focus {
     border-color: #0284c7;
 }
-.mob-approval-btns {
+.mob-review-actions {
     display: flex;
-    gap: 5px;
+    gap: 4px;
 }
-.mob-approval-btn {
+.mob-review-btn {
     flex: 1;
-    height: 28px;
+    height: 26px;
     border: none;
     border-radius: 3px;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -485,55 +474,114 @@
     cursor: pointer;
     color: #ffffff;
 }
-.mob-approval-btn-approve { background: #16a34a; }
-.mob-approval-btn-reject { background: #dc2626; }
+.mob-review-btn-approve { background: #16a34a; }
+.mob-review-btn-reject { background: #dc2626; }
+
+/* Card Action Strip (Same 28px buttons as enquiryView) */
+.notif-card-actions {
+    display: flex;
+    gap: 4px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 6px;
+    align-items: center;
+}
+.notif-act-btn {
+    flex: 1;
+    height: 28px;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all .1s ease;
+    white-space: nowrap;
+}
+.notif-act-btn:active {
+    transform: scale(0.96);
+}
+.notif-act-btn.btn-read {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #16a34a;
+    flex: 1.1;
+}
+.notif-act-btn.btn-toggle {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+    flex: 1.1;
+}
+.notif-act-btn.btn-pdf {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+    flex: 1.1;
+}
+.notif-act-btn.btn-ticket {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff !important;
+    flex: 1.2;
+}
+.notif-act-btn.btn-student {
+    background: #f8fafc;
+    color: #475569;
+    flex: 0.9;
+}
 
 /* Empty State */
-.mob-empty-box {
+.notif-empty-box {
     text-align: center;
-    padding: 48px 16px;
+    padding: 42px 16px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    border-radius: 4px;
     color: #64748b;
 }
-.mob-empty-box i {
-    font-size: 36px;
+.notif-empty-box i {
+    font-size: 32px;
     color: #cbd5e1;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
 }
-.mob-empty-box h4 {
+.notif-empty-box h4 {
     font-size: 13px;
     font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 3px;
+    color: #002C54;
+    margin-bottom: 2px;
 }
-.mob-empty-box p {
+.notif-empty-box p {
     font-size: 11px;
     color: #64748b;
     margin: 0;
 }
 
 /* Pagination Wrap */
-.mob-pagination-wrap {
-    margin-top: 8px;
+.notif-pagination-wrap {
+    margin-top: 6px;
     margin-bottom: 24px;
     display: flex;
     justify-content: center;
 }
-.mob-pagination-wrap .pagination {
+.notif-pagination-wrap .pagination {
     margin: 0;
-    gap: 4px;
+    gap: 3px;
 }
-.mob-pagination-wrap .page-item .page-link {
-    font-size: 11px;
+.notif-pagination-wrap .page-item .page-link {
+    font-size: 10.5px;
     font-weight: 700;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 4px 9px;
+    border-radius: 3px;
     color: #002C54;
     border: 1px solid #cbd5e1;
 }
-.mob-pagination-wrap .page-item.active .page-link {
+.notif-pagination-wrap .page-item.active .page-link {
     background: #002C54;
     border-color: #002C54;
     color: #ffffff;
@@ -543,27 +591,34 @@
 
 @section('content')
 
-{{-- 1. Glassmorphic Hero Card --}}
+{{-- 1. Signature Glassmorphic Hero Card --}}
 <div class="mob-hero-card">
     <div class="mob-hero-top">
         <div class="mob-hero-title">
             <i class="fa fa-bell text-primary"></i> Notifications Hub
         </div>
-        <div class="mob-hero-badges">
-            @if($unreadCount > 0)
-                <div class="mob-unread-pill" id="heroUnreadPill">
-                    <i class="fa fa-circle"></i> {{ $unreadCount }} Unread
-                </div>
-            @else
-                <div class="mob-unread-pill all-read" id="heroUnreadPill">
-                    <i class="fa fa-check"></i> All Caught Up
-                </div>
-            @endif
+        <div class="mob-session-pill">
+            <i class="fa fa-graduation-cap mr-1"></i> {{ $currentSessionName }}
         </div>
     </div>
-    <div class="mob-hero-desc">
-        Notices, student support complaints &amp; system updates
+
+    {{-- Metrics Glance Grid --}}
+    <div class="mob-metrics-grid">
+        <div class="mob-metric-box">
+            <span class="mob-metric-tag">Total</span>
+            <span class="mob-metric-val val-total" id="metricTotalVal">{{ $totalCount }}</span>
+        </div>
+        <div class="mob-metric-box">
+            <span class="mob-metric-tag">Unread</span>
+            <span class="mob-metric-val val-unread" id="metricUnreadVal">{{ $unreadCount }}</span>
+        </div>
+        <div class="mob-metric-box">
+            <span class="mob-metric-tag">Read</span>
+            <span class="mob-metric-val val-read" id="metricReadVal">{{ $readCount }}</span>
+        </div>
     </div>
+
+    {{-- Fast Action Bar --}}
     <div class="mob-actions-bar">
         <form method="post" action="{{ route('user.notifications.mark-all-read') }}" class="d-inline" style="flex:1;">
             @csrf
@@ -581,37 +636,38 @@
     </div>
 </div>
 
-{{-- Success Flash Alert --}}
+{{-- Flash Feedback Alert --}}
 @if(session('message'))
-    <div class="alert alert-success py-2 px-3 mb-2" style="font-size:11px; border-radius:4px; font-weight:700;">
+    <div class="alert alert-success py-2 px-3 mb-2" style="font-size:11px; border-radius:3px; font-weight:700;">
         <i class="fa fa-check mr-1"></i> {{ session('message') }}
     </div>
 @endif
 
-{{-- 2. Filter Segmented Tabs --}}
-<div class="mob-filter-segment">
-    <a href="{{ url('user-notifications?filter=all') }}" class="mob-segment-tab {{ $filter === 'all' ? 'active' : '' }}">
-        <span>All</span>
-        <span class="mob-tab-badge">{{ $totalCount }}</span>
-    </a>
-    <a href="{{ url('user-notifications?filter=unread') }}" class="mob-segment-tab {{ $filter === 'unread' ? 'active' : '' }}">
-        <span>Unread</span>
-        @if($unreadCount > 0)
-            <span class="mob-tab-badge" id="tabUnreadBadge">{{ $unreadCount }}</span>
-        @endif
-    </a>
-    <a href="{{ url('user-notifications?filter=read') }}" class="mob-segment-tab {{ $filter === 'read' ? 'active' : '' }}">
-        <span>Read</span>
-    </a>
+{{-- 2. Horizontal Filter Chips Toolbar --}}
+<div class="mob-filter-toolbar">
+    <div class="mob-chips-scroll">
+        <a href="{{ url('user-notifications?filter=all') }}" class="mob-chip {{ $filter === 'all' ? 'active' : '' }}">
+            <span>All</span>
+            <span class="mob-chip-count">{{ $totalCount }}</span>
+        </a>
+        <a href="{{ url('user-notifications?filter=unread') }}" class="mob-chip {{ $filter === 'unread' ? 'active' : '' }}">
+            <span>Unread</span>
+            <span class="mob-chip-count badge-unread" id="chipUnreadCount">{{ $unreadCount }}</span>
+        </a>
+        <a href="{{ url('user-notifications?filter=read') }}" class="mob-chip {{ $filter === 'read' ? 'active' : '' }}">
+            <span>Read</span>
+            <span class="mob-chip-count" id="chipReadCount">{{ $readCount }}</span>
+        </a>
+    </div>
 </div>
 
-{{-- 3. Notifications Feed List --}}
-<div class="mob-notif-feed">
+{{-- 3. Native Notifications Feed Cards --}}
+<div class="notif-feed-list">
     @forelse($notifications as $notification)
         @php
             $isUnread = (int) $notification->message_seen === 0;
             $content = trim((string) $notification->content);
-            $isLong = mb_strlen($content) > 130 || substr_count($content, "\n") > 2;
+            $isLong = mb_strlen($content) > 120 || substr_count($content, "\n") > 2;
             $isNotice = $notification->type === 'notice';
             $isApprovalRequest = $notification->type === 'notice_approval_request';
             $managedNotice = $notification->managedNotice;
@@ -619,12 +675,20 @@
             $complaint = $notification->complaintContext;
             $complaintStudent = $complaint ? $complaint->student : null;
 
-            $iconClass = match(true) {
-                $isComplaint => 'type-complaint',
-                $isNotice => 'type-notice',
-                $isApprovalRequest => 'type-approval',
-                default => 'type-default'
+            $borderModifier = match(true) {
+                $isComplaint => 'border-complaint',
+                $isNotice => 'border-notice',
+                $isApprovalRequest => 'border-approval',
+                default => 'border-default'
             };
+
+            $avatarModifier = match(true) {
+                $isComplaint => 'avatar-complaint',
+                $isNotice => 'avatar-notice',
+                $isApprovalRequest => 'avatar-approval',
+                default => 'avatar-default'
+            };
+
             $faIcon = match(true) {
                 $isComplaint => 'fa-comments-o',
                 $isNotice => 'fa-bullhorn',
@@ -633,153 +697,144 @@
             };
         @endphp
 
-        <article class="mob-notif-card {{ $isUnread ? 'is-unread' : '' }}" id="user-notification-{{ $notification->id }}">
-            {{-- Header --}}
-            <div class="mob-notif-header">
-                <div class="mob-notif-icon {{ $iconClass }}">
+        <article class="notif-mob-card {{ $borderModifier }} {{ $isUnread ? 'is-unread' : '' }}" id="user-notification-{{ $notification->id }}">
+            {{-- Header with 36px circular avatar --}}
+            <div class="notif-card-header">
+                <div class="notif-avatar-box {{ $avatarModifier }}">
                     <i class="fa {{ $faIcon }}"></i>
                 </div>
-                <div class="mob-notif-meta">
-                    <div class="mob-notif-title-row">
-                        <h3 class="mob-notif-title">{{ $notification->title ?: 'Notification' }}</h3>
-                        <span class="mob-notif-status-badge {{ $isUnread ? 'unread' : 'read' }}" id="badge-{{ $notification->id }}">
+                <div class="notif-header-info">
+                    <div class="notif-name-row">
+                        <span class="notif-mob-title">{{ $notification->title ?: 'Notification' }}</span>
+                        <span class="mob-status-pill {{ $isUnread ? 'status-pill-unread' : 'status-pill-read' }}" id="status-badge-{{ $notification->id }}">
                             {{ $isUnread ? 'Unread' : 'Read' }}
                         </span>
                     </div>
-                    <div class="mob-notif-submeta">
+                    <div class="notif-pills-wrap">
                         @if($isNotice)
-                            <span class="mob-type-tag notice">Notice</span>
+                            <span class="notif-type-badge badge-notice">Notice</span>
                         @elseif($isApprovalRequest)
-                            <span class="mob-type-tag approval">Approval</span>
+                            <span class="notif-type-badge badge-approval">Approval</span>
                         @elseif($isComplaint)
-                            <span class="mob-type-tag complaint">Complaint</span>
+                            <span class="notif-type-badge badge-complaint">Complaint</span>
+                        @else
+                            <span class="notif-type-badge badge-default">System</span>
                         @endif
-                        <span><i class="fa fa-clock-o"></i> {{ optional($notification->created_at)->format('d M Y, h:i A') }}</span>
+                        <span class="mob-date-badge">
+                            <i class="fa fa-clock-o"></i> {{ optional($notification->created_at)->format('d M Y, h:i A') }}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {{-- Body Content --}}
-            <div class="mob-notif-content {{ $isLong ? 'is-collapsed' : '' }}" id="user-message-{{ $notification->id }}">
-                {{ $content ?: 'No notification message available.' }}
-            </div>
-
-            {{-- Support Complaint Box --}}
-            @if($isComplaint && $complaint && $complaintStudent)
-                <div class="mob-complaint-box">
-                    <div class="mob-complaint-student">
-                        <div class="mob-student-avatar">
-                            @if(!empty($complaintStudent->image))
-                                <img src="{{ $imageShowPath . 'profile/' . rawurlencode($complaintStudent->image) }}" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            @endif
-                            <i class="fa fa-user" style="{{ !empty($complaintStudent->image) ? 'display:none;' : '' }}"></i>
-                        </div>
-                        <div class="mob-student-details">
-                            <div class="mob-student-name">
-                                {{ trim($complaintStudent->first_name . ' ' . $complaintStudent->last_name) ?: 'Student' }}
-                            </div>
-                            <div class="mob-student-sub">
-                                {{ optional($complaintStudent->ClassTypes)->name ?? 'Class N/A' }}
-                                @if(!empty($complaintStudent->admissionNo)) · Adm: {{ $complaintStudent->admissionNo }} @endif
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mob-complaint-ticket">
-                        <span class="mob-ticket-badge"><i class="fa fa-ticket"></i> {{ $complaint->ticket_no }}</span>
-                        <span class="mob-status-pill">{{ \App\Models\SupportComplaint::STATUSES[$complaint->status] ?? ucfirst($complaint->status) }}</span>
-                    </div>
+            {{-- Message Body Box --}}
+            <div class="notif-card-body">
+                <div class="notif-note-preview {{ $isLong ? 'is-collapsed' : '' }}" id="user-message-{{ $notification->id }}">
+                    {{ $content ?: 'No notification message available.' }}
                 </div>
-            @endif
 
-            {{-- Inline Approval Form for Role 1 (Admin) --}}
-            @if($isApprovalRequest && $roleId === 1 && $managedNotice)
-                @if($managedNotice->status === 'pending')
-                    <div class="mob-approval-box">
-                        @php
-                            $noticeRecipients = $managedNotice->recipients;
-                            $studentCount = $noticeRecipients->where('recipient_type', 'student')->count();
-                            $staffCount = $noticeRecipients->where('recipient_type', 'user')->count();
-                        @endphp
-                        <div class="mob-approval-summary">
-                            <div class="mob-appr-metric">
-                                <div class="mob-appr-metric-tag">Audience</div>
-                                <div class="mob-appr-metric-val">{{ ucfirst($managedNotice->audience_type) }}</div>
+                {{-- Complaint Embedded Student Row --}}
+                @if($isComplaint && $complaint && $complaintStudent)
+                    <div class="mob-complaint-box">
+                        <div class="mob-complaint-left">
+                            <div class="mob-student-avatar-mini">
+                                @if(!empty($complaintStudent->image))
+                                    <img src="{{ $imageShowPath . 'profile/' . rawurlencode($complaintStudent->image) }}" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                @endif
+                                <i class="fa fa-user" style="{{ !empty($complaintStudent->image) ? 'display:none;' : '' }}"></i>
                             </div>
-                            <div class="mob-appr-metric">
-                                <div class="mob-appr-metric-tag">Total Targets</div>
-                                <div class="mob-appr-metric-val">{{ $noticeRecipients->count() }} ({{ $staffCount }} Staff, {{ $studentCount }} Students)</div>
+                            <div class="mob-student-meta-mini">
+                                <div class="mob-student-name-mini">
+                                    {{ trim($complaintStudent->first_name . ' ' . $complaintStudent->last_name) ?: 'Student' }}
+                                </div>
+                                <div class="mob-student-sub-mini">
+                                    {{ optional($complaintStudent->ClassTypes)->name ?? 'Class N/A' }}
+                                    @if(!empty($complaintStudent->admissionNo)) · Adm: {{ $complaintStudent->admissionNo }} @endif
+                                </div>
                             </div>
                         </div>
-
-                        <form action="{{ url('notice-management/'.$managedNotice->id.'/review') }}" method="post" onsubmit="return confirmMobNoticeReview(event, this);">
-                            @csrf
-                            <input type="hidden" name="return_to" value="user-notifications">
-                            <textarea name="review_notes" class="mob-approval-textarea" placeholder="Instructions or reason for decision..." required></textarea>
-                            <div class="mob-approval-btns">
-                                <button type="submit" name="decision" value="approved" class="mob-approval-btn mob-approval-btn-approve">
-                                    <i class="fa fa-check"></i> Approve &amp; Publish
-                                </button>
-                                <button type="submit" name="decision" value="rejected" class="mob-approval-btn mob-approval-btn-reject">
-                                    <i class="fa fa-times"></i> Reject
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                @else
-                    <div class="alert alert-light py-1 px-2 mt-2 mb-0" style="font-size:10px; border:1px solid #cbd5e1;">
-                        <i class="fa {{ $managedNotice->status === 'approved' ? 'fa-check text-success' : 'fa-times text-danger' }}"></i>
-                        Notice was <b>{{ $managedNotice->status }}</b>.
+                        <div class="mob-complaint-right">
+                            <span class="mob-ticket-badge">{{ $complaint->ticket_no }}</span>
+                            <span class="mob-complaint-status-mini">{{ \App\Models\SupportComplaint::STATUSES[$complaint->status] ?? ucfirst($complaint->status) }}</span>
+                        </div>
                     </div>
                 @endif
-            @endif
 
-            {{-- Action Strip --}}
-            <div class="mob-notif-actions">
-                <div>
-                    @if($isLong)
-                        <button type="button" class="mob-btn-text mob-toggle-btn" data-id="{{ $notification->id }}" data-read-url="{{ route('user.notifications.mark-read', $notification->id) }}">
-                            <span>View More</span> <i class="fa fa-angle-down"></i>
-                        </button>
-                    @elseif($isUnread)
-                        <button type="button" class="mob-btn-text mob-mark-read-btn" data-id="{{ $notification->id }}" data-read-url="{{ route('user.notifications.mark-read', $notification->id) }}">
-                            <i class="fa fa-check"></i> Mark Read
-                        </button>
+                {{-- Approval Review Action Box (Role 1 Admin) --}}
+                @if($isApprovalRequest && $roleId === 1 && $managedNotice)
+                    @if($managedNotice->status === 'pending')
+                        <div class="mob-review-box">
+                            <div class="mob-review-headline">
+                                <span><i class="fa fa-check-square-o mr-1"></i> Admin Notice Approval</span>
+                                <span class="text-muted" style="font-size:9px;">{{ ucfirst($managedNotice->audience_type) }} ({{ $managedNotice->recipients->count() }} targets)</span>
+                            </div>
+                            <form action="{{ url('notice-management/'.$managedNotice->id.'/review') }}" method="post" onsubmit="return confirmMobNoticeReview(event, this);">
+                                @csrf
+                                <input type="hidden" name="return_to" value="user-notifications">
+                                <textarea name="review_notes" class="mob-review-textarea" placeholder="Instructions or reason for decision..." required></textarea>
+                                <div class="mob-review-actions">
+                                    <button type="submit" name="decision" value="approved" class="mob-review-btn mob-review-btn-approve">
+                                        <i class="fa fa-check"></i> Approve
+                                    </button>
+                                    <button type="submit" name="decision" value="rejected" class="mob-review-btn mob-review-btn-reject">
+                                        <i class="fa fa-times"></i> Reject
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    @else
+                        <div class="alert alert-light py-1 px-2 my-1" style="font-size:9.5px; border:1px solid #cbd5e1; border-radius:3px;">
+                            <i class="fa {{ $managedNotice->status === 'approved' ? 'fa-check text-success' : 'fa-times text-danger' }} mr-1"></i>
+                            Notice was <b>{{ $managedNotice->status }}</b>.
+                        </div>
                     @endif
+                @endif
+            </div>
 
-                    @if($isNotice && $notification->managed_notice_id && $notification->attachment_path)
-                        <a href="{{ url('notice-management/'.$notification->managed_notice_id.'/attachment') }}" class="mob-pdf-chip">
-                            <i class="fa fa-file-pdf-o"></i> PDF Attachment
+            {{-- Card Actions Strip --}}
+            <div class="notif-card-actions">
+                @if($isLong)
+                    <button type="button" class="notif-act-btn btn-toggle mob-toggle-btn" data-id="{{ $notification->id }}" data-read-url="{{ route('user.notifications.mark-read', $notification->id) }}">
+                        <i class="fa fa-angle-down"></i> View More
+                    </button>
+                @endif
+
+                @if($isUnread)
+                    <button type="button" class="notif-act-btn btn-read mob-mark-read-btn" data-id="{{ $notification->id }}" data-read-url="{{ route('user.notifications.mark-read', $notification->id) }}">
+                        <i class="fa fa-check"></i> Mark Read
+                    </button>
+                @endif
+
+                @if($isNotice && $notification->managed_notice_id && $notification->attachment_path)
+                    <a href="{{ url('notice-management/'.$notification->managed_notice_id.'/attachment') }}" class="notif-act-btn btn-pdf">
+                        <i class="fa fa-file-pdf-o"></i> PDF
+                    </a>
+                @endif
+
+                @if($isComplaint && $complaint)
+                    @if($complaintStudent)
+                        <a href="{{ url('studentDetail/'.$complaintStudent->id) }}" class="notif-act-btn btn-student">
+                            <i class="fa fa-user"></i> Student
                         </a>
                     @endif
-                </div>
-
-                {{-- Direct Link Actions --}}
-                <div class="mob-action-links">
-                    @if($isComplaint && $complaint)
-                        @if($complaintStudent)
-                            <a href="{{ url('studentDetail/'.$complaintStudent->id) }}" class="mob-btn-pill mob-btn-pill-outline">
-                                <i class="fa fa-user"></i> Student
-                            </a>
-                        @endif
-                        <a href="{{ url('complaints-management/'.$complaint->id).'?highlight=notification#complaint-ticket' }}" class="mob-btn-pill mob-btn-pill-primary">
-                            <i class="fa fa-eye"></i> View Ticket
-                        </a>
-                    @endif
-                </div>
+                    <a href="{{ url('complaints-management/'.$complaint->id).'?highlight=notification#complaint-ticket' }}" class="notif-act-btn btn-ticket">
+                        <i class="fa fa-eye"></i> View Ticket
+                    </a>
+                @endif
             </div>
         </article>
     @empty
-        <div class="mob-empty-box">
+        <div class="notif-empty-box">
             <i class="fa fa-bell-slash-o"></i>
-            <h4>No Notifications</h4>
-            <p>You have no notifications in this filter.</p>
+            <h4>No Notifications Found</h4>
+            <p>You have no notifications in this category.</p>
         </div>
     @endforelse
 </div>
 
 {{-- 4. Mobile Pagination --}}
 @if($notifications->hasPages())
-    <div class="mob-pagination-wrap">
+    <div class="notif-pagination-wrap">
         {{ $notifications->links() }}
     </div>
 @endif
@@ -805,7 +860,7 @@ function confirmMobNoticeReview(event, form) {
 $(document).ready(function() {
     var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-    // AJAX Fast Mark-As-Read Function
+    // Instant AJAX Fast Mark As Read
     function markAsRead(id, readUrl, $button) {
         var $card = $('#user-notification-' + id);
         if (!$card.length || !$card.hasClass('is-unread')) return;
@@ -820,32 +875,33 @@ $(document).ready(function() {
             },
             success: function() {
                 $card.removeClass('is-unread');
-                var $badge = $('#badge-' + id);
-                if ($badge.length) {
-                    $badge.text('Read').removeClass('unread').addClass('read');
+                var $statusBadge = $('#status-badge-' + id);
+                if ($statusBadge.length) {
+                    $statusBadge.text('Read').removeClass('status-pill-unread').addClass('status-pill-read');
                 }
                 if ($button && $button.hasClass('mob-mark-read-btn')) {
-                    $button.fadeOut(200, function() { $(this).remove(); });
+                    $button.fadeOut(150, function() { $(this).remove(); });
                 }
 
-                // Decrement hero counter if applicable
-                var $heroPill = $('#heroUnreadPill');
-                var $tabBadge = $('#tabUnreadBadge');
-                if ($tabBadge.length) {
-                    var cur = parseInt($tabBadge.text()) || 0;
-                    if (cur > 1) {
-                        $tabBadge.text(cur - 1);
-                        $heroPill.html('<i class="fa fa-circle"></i> ' + (cur - 1) + ' Unread');
-                    } else {
-                        $tabBadge.remove();
-                        $heroPill.removeClass('mob-unread-pill').addClass('mob-unread-pill all-read').html('<i class="fa fa-check"></i> All Caught Up');
-                    }
+                // Update Hero and Chip KPI numbers in real-time
+                var $unreadMetric = $('#metricUnreadVal');
+                var $readMetric = $('#metricReadVal');
+                var $chipUnread = $('#chipUnreadCount');
+                var $chipRead = $('#chipReadCount');
+
+                if ($unreadMetric.length) {
+                    var uCount = Math.max(0, (parseInt($unreadMetric.text()) || 0) - 1);
+                    var rCount = (parseInt($readMetric.text()) || 0) + 1;
+                    $unreadMetric.text(uCount);
+                    $readMetric.text(rCount);
+                    if ($chipUnread.length) $chipUnread.text(uCount);
+                    if ($chipRead.length) $chipRead.text(rCount);
                 }
             }
         });
     }
 
-    // Toggle Read More / Read Less
+    // Toggle View More / View Less
     $('.mob-toggle-btn').on('click', function() {
         var id = $(this).data('id');
         var readUrl = $(this).data('read-url');
@@ -854,15 +910,15 @@ $(document).ready(function() {
 
         if (isCollapsed) {
             $content.removeClass('is-collapsed');
-            $(this).html('<span>View Less</span> <i class="fa fa-angle-up"></i>');
+            $(this).html('<i class="fa fa-angle-up"></i> View Less');
             markAsRead(id, readUrl, $(this));
         } else {
             $content.addClass('is-collapsed');
-            $(this).html('<span>View More</span> <i class="fa fa-angle-down"></i>');
+            $(this).html('<i class="fa fa-angle-down"></i> View More');
         }
     });
 
-    // Mark as read button click
+    // Mark as read click
     $('.mob-mark-read-btn').on('click', function() {
         var id = $(this).data('id');
         var readUrl = $(this).data('read-url');
