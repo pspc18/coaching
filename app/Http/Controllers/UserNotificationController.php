@@ -74,7 +74,7 @@ class UserNotificationController extends Controller
 
         $unreadCount = (int) $this->notifications()->where('message_seen', 0)->count();
 
-        return view('notifications.user_index', compact('notifications', 'filter', 'unreadCount'));
+        return \Helper::view('notifications.user_index', compact('notifications', 'filter', 'unreadCount'));
     }
 
     public function markRead(Request $request, int $id)
