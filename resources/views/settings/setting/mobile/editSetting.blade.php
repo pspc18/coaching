@@ -466,146 +466,250 @@
     transform: translateX(16px);
 }
 
-/* 4. Branding & Signature Asset Cards */
-.mob-asset-box {
-    background: #f8fafc;
+/* 4. Branding & Signature Asset Cards (Redesigned) */
+.mob-brand-card {
+    background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 9px 10px;
-    margin-bottom: 8px;
-    transition: border-color .15s ease, background-color .15s ease;
+    padding: 11px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all .15s ease;
 }
-.mob-asset-box:last-child {
+.mob-brand-card:last-child {
     margin-bottom: 0;
 }
-.mob-asset-box.marked-removed {
+.mob-brand-card.marked-removed {
+    background: #fffafa;
     border-color: #fca5a5;
-    background: #fef2f2;
 }
-.mob-asset-top {
+.mob-brand-card.has-new-file {
+    border-color: #0284c7;
+    background: #f0f9ff;
+}
+
+/* Card Header */
+.mob-brand-card-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
 }
-.mob-asset-name {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #002C54;
+.mob-brand-title-wrap {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+    flex: 1;
 }
-.mob-asset-badge {
+.mob-brand-icon-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13.5px;
+    flex-shrink: 0;
+}
+.icon-navy { background: #e0f2fe; color: #0284c7; }
+.icon-info { background: #e0f2fe; color: #0284c7; }
+.icon-rose { background: #fee2e2; color: #dc2626; }
+
+.mob-brand-card-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.2;
+}
+.mob-brand-card-sub {
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 1px;
+}
+
+/* Status Badges */
+.mob-brand-status {
     font-size: 9px;
     font-weight: 800;
-    padding: 1px 6px;
-    border-radius: 2px;
+    padding: 2px 7px;
+    border-radius: 3px;
     text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
-.badge-configured {
+.status-configured {
     background: #dcfce7;
     color: #166534;
     border: 1px solid #bbf7d0;
 }
-.badge-default {
+.status-empty {
     background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
 }
-.badge-new {
+.status-new {
     background: #e0f2fe;
-    color: #0369a1;
+    color: #0284c7;
     border: 1px solid #bae6fd;
 }
-.badge-delete {
+.status-removed {
     background: #fee2e2;
     color: #991b1b;
     border: 1px solid #fecaca;
 }
 
-.mob-asset-body {
+/* Body: Preview Frame & Meta Information */
+.mob-brand-card-body {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    margin-bottom: 10px;
 }
-.mob-asset-preview-frame {
-    width: 60px;
-    height: 60px;
+.mob-brand-preview-frame {
+    width: 76px;
+    height: 76px;
     border-radius: 4px;
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: 3px;
+    padding: 4px;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.03);
 }
-.mob-asset-preview-img {
+.mob-brand-img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    transition: opacity .15s ease;
 }
-.mob-asset-controls {
+.mob-brand-card.marked-removed .mob-brand-img {
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+.mob-brand-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 4px;
+}
+.mob-brand-fallback i {
+    font-size: 24px;
+}
+.mob-brand-fallback span {
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Meta Information */
+.mob-brand-meta {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 8px;
 }
-.mob-asset-file-btn {
-    height: 29px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
+.mob-brand-meta-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9.5px;
+    line-height: 1.3;
+}
+.mob-meta-key {
+    color: #64748b;
+    font-weight: 600;
+}
+.mob-meta-val {
+    color: #1e293b;
+    font-weight: 700;
+}
+
+/* Error Alert */
+.mob-brand-error-alert {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
     border-radius: 3px;
-    font-size: 10.5px;
+    padding: 5px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: none;
+}
+
+/* Action Buttons Bar */
+.mob-brand-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-btn-brand-upload {
+    flex: 1;
+    height: 34px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #002C54;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all .12s ease;
+    user-select: none;
+    margin-bottom: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.mob-btn-brand-upload:active {
+    background: #e2e8f0;
+    transform: scale(0.98);
+}
+.mob-btn-brand-remove {
+    height: 34px;
+    padding: 0 14px;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #dc2626;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
     cursor: pointer;
     transition: all .12s ease;
-    user-select: none;
-    margin-bottom: 0;
+    flex-shrink: 0;
 }
-.mob-asset-file-btn:active {
-    background: #f1f5f9;
-    transform: scale(0.98);
+.mob-btn-brand-remove:active {
+    transform: scale(0.96);
 }
-.mob-asset-btn-remove {
-    height: 24px;
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #dc2626;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: all .12s ease;
-}
-.mob-asset-btn-remove.btn-undo {
+.mob-btn-brand-remove.btn-undo {
     background: #e0f2fe;
     border-color: #bae6fd;
     color: #0284c7;
-}
-.mob-asset-hint {
-    font-size: 8.5px;
-    color: #64748b;
-    font-weight: 600;
-}
-.mob-asset-error {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #dc2626;
-    margin-top: 3px;
-    display: none;
 }
 
 /* 5. Fixed Bottom Action Dock */
@@ -1122,137 +1226,224 @@
         </div>
 
         {{-- 1. Main School Logo --}}
-        <div class="mob-asset-box" id="mob_card_left_logo">
+        <div class="mob-brand-card" id="mob_card_left_logo">
             <input type="hidden" name="remove_left_logo" id="mob_remove_left_logo" value="0">
-            <div class="mob-asset-top">
-                <span class="mob-asset-name">
-                    <i class="fa fa-bookmark text-primary"></i> School Main Logo
-                </span>
-                <span id="mob_badge_left_logo" class="mob-asset-badge {{ !empty($data->left_logo) ? 'badge-configured' : 'badge-default' }}">
-                    {{ !empty($data->left_logo) ? 'Configured' : 'Default / None' }}
+            
+            <div class="mob-brand-card-header">
+                <div class="mob-brand-title-wrap">
+                    <div class="mob-brand-icon-box icon-navy">
+                        <i class="fa fa-bookmark"></i>
+                    </div>
+                    <div>
+                        <div class="mob-brand-card-title">School Main Logo</div>
+                        <div class="mob-brand-card-sub">Fee receipts, ID cards, app header &amp; portal</div>
+                    </div>
+                </div>
+                <span id="mob_badge_left_logo" class="mob-brand-status {{ !empty($data->left_logo) ? 'status-configured' : 'status-empty' }}">
+                    {!! !empty($data->left_logo) ? '<i class="fa fa-check-circle"></i> Configured' : '<i class="fa fa-circle-o"></i> Not Set' !!}
                 </span>
             </div>
-            <div class="mob-asset-body">
-                <div class="mob-asset-preview-frame">
+
+            <div class="mob-brand-card-body">
+                <div class="mob-brand-preview-frame">
                     <img id="mob_preview_left_logo" 
-                         class="mob-asset-preview-img" 
+                         class="mob-brand-img" 
                          src="{{ $currentLogo }}" 
                          data-original-src="{{ $currentLogo }}" 
-                         data-default-src="{{ $defaultLogo }}" 
-                         alt="Main Logo" 
-                         onerror="this.src='{{ $defaultLogo }}'">
-                </div>
-                <div class="mob-asset-controls">
-                    <label for="mob_left_logo" class="mob-asset-file-btn">
-                        <i class="fa fa-upload text-primary"></i> Choose Logo
-                    </label>
-                    <input type="file" 
-                           id="mob_left_logo" 
-                           name="left_logo" 
-                           accept="image/png, image/jpg, image/jpeg, image/webp" 
-                           style="display:none;" 
-                           onchange="handleMobAssetChange(this, 'left_logo')">
-                    
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="mob-asset-hint">PNG / JPG (Max 2MB)</span>
-                        @if(!empty($data->left_logo))
-                            <button type="button" class="mob-asset-btn-remove" id="mob_btn_rm_left_logo" onclick="toggleMobAssetRemoval('left_logo')">
-                                <i class="fa fa-trash"></i> Remove
-                            </button>
-                        @endif
+                         data-has-original="{{ !empty($data->left_logo) ? '1' : '0' }}"
+                         alt="School Logo" 
+                         onerror="handleImageFallback(this, 'fallback_left_logo')"
+                         style="{{ empty($data->left_logo) ? 'display:none;' : '' }}">
+                    <div class="mob-brand-fallback" id="fallback_left_logo" style="{{ !empty($data->left_logo) ? 'display:none;' : 'display:flex;' }}">
+                        <i class="fa fa-university text-primary"></i>
+                        <span>No Logo</span>
                     </div>
-                    <div id="mob_error_left_logo" class="mob-asset-error"></div>
                 </div>
+
+                <div class="mob-brand-meta">
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Allowed:</span>
+                        <span class="mob-meta-val">PNG, JPG, WEBP</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Max Size:</span>
+                        <span class="mob-meta-val">2 MB</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Aspect:</span>
+                        <span class="mob-meta-val">Square / Circular</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mob_error_left_logo" class="mob-brand-error-alert"></div>
+
+            <div class="mob-brand-actions-bar">
+                <label for="mob_left_logo" class="mob-btn-brand-upload">
+                    <i class="fa fa-camera text-primary"></i> <span>{{ !empty($data->left_logo) ? 'Change Logo' : 'Choose Logo' }}</span>
+                </label>
+                <input type="file" 
+                       id="mob_left_logo" 
+                       name="left_logo" 
+                       accept="image/png, image/jpg, image/jpeg, image/webp" 
+                       style="display:none;" 
+                       onchange="handleMobAssetChange(this, 'left_logo')">
+                
+                <button type="button" 
+                        class="mob-btn-brand-remove" 
+                        id="mob_btn_rm_left_logo" 
+                        onclick="toggleMobAssetRemoval('left_logo')"
+                        style="{{ !empty($data->left_logo) ? '' : 'display:none;' }}">
+                    <i class="fa fa-trash"></i> <span>Remove</span>
+                </button>
             </div>
         </div>
 
         {{-- 2. Report Watermark Image --}}
-        <div class="mob-asset-box" id="mob_card_watermark">
+        <div class="mob-brand-card" id="mob_card_watermark">
             <input type="hidden" name="remove_watermark_image" id="mob_remove_watermark_image" value="0">
-            <div class="mob-asset-top">
-                <span class="mob-asset-name">
-                    <i class="fa fa-file-image-o text-info"></i> Report Watermark Image
-                </span>
-                <span id="mob_badge_watermark" class="mob-asset-badge {{ !empty($data->watermark_image) ? 'badge-configured' : 'badge-default' }}">
-                    {{ !empty($data->watermark_image) ? 'Configured' : 'Default / None' }}
+            
+            <div class="mob-brand-card-header">
+                <div class="mob-brand-title-wrap">
+                    <div class="mob-brand-icon-box icon-info">
+                        <i class="fa fa-file-image-o"></i>
+                    </div>
+                    <div>
+                        <div class="mob-brand-card-title">Report Watermark Image</div>
+                        <div class="mob-brand-card-sub">Background crest on receipts &amp; marksheets</div>
+                    </div>
+                </div>
+                <span id="mob_badge_watermark" class="mob-brand-status {{ !empty($data->watermark_image) ? 'status-configured' : 'status-empty' }}">
+                    {!! !empty($data->watermark_image) ? '<i class="fa fa-check-circle"></i> Configured' : '<i class="fa fa-circle-o"></i> Not Set' !!}
                 </span>
             </div>
-            <div class="mob-asset-body">
-                <div class="mob-asset-preview-frame">
+
+            <div class="mob-brand-card-body">
+                <div class="mob-brand-preview-frame">
                     <img id="mob_preview_watermark" 
-                         class="mob-asset-preview-img" 
-                         src="{{ $currentWatermark }}" 
-                         data-original-src="{{ $currentWatermark }}" 
-                         data-default-src="{{ $defaultWatermark }}" 
-                         alt="Watermark Image" 
-                         onerror="this.src='{{ $defaultWatermark }}'">
-                </div>
-                <div class="mob-asset-controls">
-                    <label for="mob_watermark_image" class="mob-asset-file-btn">
-                        <i class="fa fa-upload text-info"></i> Choose Watermark
-                    </label>
-                    <input type="file" 
-                           id="mob_watermark_image" 
-                           name="watermark_image" 
-                           accept="image/png, image/jpg, image/jpeg, image/webp" 
-                           style="display:none;" 
-                           onchange="handleMobAssetChange(this, 'watermark_image')">
-                    
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="mob-asset-hint">PNG / JPG (Max 2MB)</span>
-                        @if(!empty($data->watermark_image))
-                            <button type="button" class="mob-asset-btn-remove" id="mob_btn_rm_watermark_image" onclick="toggleMobAssetRemoval('watermark_image')">
-                                <i class="fa fa-trash"></i> Remove
-                            </button>
-                        @endif
+                          class="mob-brand-img" 
+                          src="{{ $currentWatermark }}" 
+                          data-original-src="{{ $currentWatermark }}" 
+                          data-has-original="{{ !empty($data->watermark_image) ? '1' : '0' }}"
+                          alt="Watermark" 
+                          onerror="handleImageFallback(this, 'fallback_watermark')"
+                          style="{{ empty($data->watermark_image) ? 'display:none;' : '' }}">
+                    <div class="mob-brand-fallback" id="fallback_watermark" style="{{ !empty($data->watermark_image) ? 'display:none;' : 'display:flex;' }}">
+                        <i class="fa fa-file-text-o text-info"></i>
+                        <span>No Crest</span>
                     </div>
-                    <div id="mob_error_watermark_image" class="mob-asset-error"></div>
                 </div>
+
+                <div class="mob-brand-meta">
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Allowed:</span>
+                        <span class="mob-meta-val">PNG, JPG, WEBP</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Max Size:</span>
+                        <span class="mob-meta-val">2 MB</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Tone:</span>
+                        <span class="mob-meta-val">Light opacity recommended</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mob_error_watermark_image" class="mob-brand-error-alert"></div>
+
+            <div class="mob-brand-actions-bar">
+                <label for="mob_watermark_image" class="mob-btn-brand-upload">
+                    <i class="fa fa-camera text-info"></i> <span>{{ !empty($data->watermark_image) ? 'Change Watermark' : 'Choose Watermark' }}</span>
+                </label>
+                <input type="file" 
+                       id="mob_watermark_image" 
+                       name="watermark_image" 
+                       accept="image/png, image/jpg, image/jpeg, image/webp" 
+                       style="display:none;" 
+                       onchange="handleMobAssetChange(this, 'watermark_image')">
+                
+                <button type="button" 
+                        class="mob-btn-brand-remove" 
+                        id="mob_btn_rm_watermark_image" 
+                        onclick="toggleMobAssetRemoval('watermark_image')"
+                        style="{{ !empty($data->watermark_image) ? '' : 'display:none;' }}">
+                    <i class="fa fa-trash"></i> <span>Remove</span>
+                </button>
             </div>
         </div>
 
         {{-- 3. Official Seal & Signature --}}
-        <div class="mob-asset-box" id="mob_card_seal_sign">
+        <div class="mob-brand-card" id="mob_card_seal_sign">
             <input type="hidden" name="remove_seal_sign" id="mob_remove_seal_sign" value="0">
-            <div class="mob-asset-top">
-                <span class="mob-asset-name">
-                    <i class="fa fa-certificate text-danger"></i> Official Seal &amp; Signature
-                </span>
-                <span id="mob_badge_seal_sign" class="mob-asset-badge {{ !empty($data->seal_sign) ? 'badge-configured' : 'badge-default' }}">
-                    {{ !empty($data->seal_sign) ? 'Configured' : 'Default / None' }}
+            
+            <div class="mob-brand-card-header">
+                <div class="mob-brand-title-wrap">
+                    <div class="mob-brand-icon-box icon-rose">
+                        <i class="fa fa-certificate"></i>
+                    </div>
+                    <div>
+                        <div class="mob-brand-card-title">Official Seal &amp; Signature</div>
+                        <div class="mob-brand-card-sub">Stamp &amp; principal sign for T.C. &amp; certificates</div>
+                    </div>
+                </div>
+                <span id="mob_badge_seal_sign" class="mob-brand-status {{ !empty($data->seal_sign) ? 'status-configured' : 'status-empty' }}">
+                    {!! !empty($data->seal_sign) ? '<i class="fa fa-check-circle"></i> Configured' : '<i class="fa fa-circle-o"></i> Not Set' !!}
                 </span>
             </div>
-            <div class="mob-asset-body">
-                <div class="mob-asset-preview-frame">
+
+            <div class="mob-brand-card-body">
+                <div class="mob-brand-preview-frame">
                     <img id="mob_preview_seal_sign" 
-                         class="mob-asset-preview-img" 
+                         class="mob-brand-img" 
                          src="{{ $currentSeal }}" 
                          data-original-src="{{ $currentSeal }}" 
-                         data-default-src="{{ $defaultSeal }}" 
-                         alt="Seal & Signature" 
-                         onerror="this.src='{{ $defaultSeal }}'">
-                </div>
-                <div class="mob-asset-controls">
-                    <label for="mob_seal_sign" class="mob-asset-file-btn">
-                        <i class="fa fa-upload text-danger"></i> Choose Seal
-                    </label>
-                    <input type="file" 
-                           id="mob_seal_sign" 
-                           name="seal_sign" 
-                           accept="image/png, image/jpg, image/jpeg, image/webp" 
-                           style="display:none;" 
-                           onchange="handleMobAssetChange(this, 'seal_sign')">
-                    
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="mob-asset-hint">PNG / JPG (Max 2MB)</span>
-                        @if(!empty($data->seal_sign))
-                            <button type="button" class="mob-asset-btn-remove" id="mob_btn_rm_seal_sign" onclick="toggleMobAssetRemoval('seal_sign')">
-                                <i class="fa fa-trash"></i> Remove
-                            </button>
-                        @endif
+                         data-has-original="{{ !empty($data->seal_sign) ? '1' : '0' }}"
+                         alt="Seal & Sign" 
+                         onerror="handleImageFallback(this, 'fallback_seal_sign')"
+                         style="{{ empty($data->seal_sign) ? 'display:none;' : '' }}">
+                    <div class="mob-brand-fallback" id="fallback_seal_sign" style="{{ !empty($data->seal_sign) ? 'display:none;' : 'display:flex;' }}">
+                        <i class="fa fa-certificate text-danger"></i>
+                        <span>No Stamp</span>
                     </div>
-                    <div id="mob_error_seal_sign" class="mob-asset-error"></div>
                 </div>
+
+                <div class="mob-brand-meta">
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Allowed:</span>
+                        <span class="mob-meta-val">PNG, JPG, WEBP</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Max Size:</span>
+                        <span class="mob-meta-val">2 MB</span>
+                    </div>
+                    <div class="mob-brand-meta-item">
+                        <span class="mob-meta-key">Format:</span>
+                        <span class="mob-meta-val">High contrast on white</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mob_error_seal_sign" class="mob-brand-error-alert"></div>
+
+            <div class="mob-brand-actions-bar">
+                <label for="mob_seal_sign" class="mob-btn-brand-upload">
+                    <i class="fa fa-camera text-danger"></i> <span>{{ !empty($data->seal_sign) ? 'Change Seal' : 'Choose Seal' }}</span>
+                </label>
+                <input type="file" 
+                       id="mob_seal_sign" 
+                       name="seal_sign" 
+                       accept="image/png, image/jpg, image/jpeg, image/webp" 
+                       style="display:none;" 
+                       onchange="handleMobAssetChange(this, 'seal_sign')">
+                
+                <button type="button" 
+                        class="mob-btn-brand-remove" 
+                        id="mob_btn_rm_seal_sign" 
+                        onclick="toggleMobAssetRemoval('seal_sign')"
+                        style="{{ !empty($data->seal_sign) ? '' : 'display:none;' }}">
+                    <i class="fa fa-trash"></i> <span>Remove</span>
+                </button>
             </div>
         </div>
 
@@ -1292,23 +1483,63 @@ function isNumber(evt) {
 }
 
 /**
+ * Safe Image Fallback Handler
+ * Hides broken image tag and reveals fallback placeholder icon
+ */
+function handleImageFallback(imgEl, fallbackId) {
+    if (imgEl) {
+        imgEl.style.display = 'none';
+    }
+    const fallback = document.getElementById(fallbackId);
+    if (fallback) {
+        fallback.style.display = 'flex';
+    }
+}
+
+/**
  * Handle real-time file upload preview with 2MB validation
  */
 function handleMobAssetChange(input, fieldKey) {
     const keyMap = {
-        'left_logo': { preview: 'mob_preview_left_logo', error: 'mob_error_left_logo', badge: 'mob_badge_left_logo', card: 'mob_card_left_logo', remove: 'mob_remove_left_logo' },
-        'watermark_image': { preview: 'mob_preview_watermark', error: 'mob_error_watermark_image', badge: 'mob_badge_watermark', card: 'mob_card_watermark', remove: 'mob_remove_watermark_image' },
-        'seal_sign': { preview: 'mob_preview_seal_sign', error: 'mob_error_seal_sign', badge: 'mob_badge_seal_sign', card: 'mob_card_seal_sign', remove: 'mob_remove_seal_sign' }
+        'left_logo': {
+            preview: 'mob_preview_left_logo',
+            fallback: 'fallback_left_logo',
+            error: 'mob_error_left_logo',
+            badge: 'mob_badge_left_logo',
+            card: 'mob_card_left_logo',
+            remove: 'mob_remove_left_logo',
+            btn: 'mob_btn_rm_left_logo'
+        },
+        'watermark_image': {
+            preview: 'mob_preview_watermark',
+            fallback: 'fallback_watermark',
+            error: 'mob_error_watermark_image',
+            badge: 'mob_badge_watermark',
+            card: 'mob_card_watermark',
+            remove: 'mob_remove_watermark_image',
+            btn: 'mob_btn_rm_watermark_image'
+        },
+        'seal_sign': {
+            preview: 'mob_preview_seal_sign',
+            fallback: 'fallback_seal_sign',
+            error: 'mob_error_seal_sign',
+            badge: 'mob_badge_seal_sign',
+            card: 'mob_card_seal_sign',
+            remove: 'mob_remove_seal_sign',
+            btn: 'mob_btn_rm_seal_sign'
+        }
     };
 
     const cfg = keyMap[fieldKey];
     if (!cfg) return;
 
     const previewEl = document.getElementById(cfg.preview);
+    const fallbackEl = document.getElementById(cfg.fallback);
     const errorEl = document.getElementById(cfg.error);
     const badgeEl = document.getElementById(cfg.badge);
     const cardEl = document.getElementById(cfg.card);
     const removeInput = document.getElementById(cfg.remove);
+    const btn = document.getElementById(cfg.btn);
 
     if (errorEl) { errorEl.style.display = 'none'; errorEl.innerHTML = ''; }
     if (removeInput) removeInput.value = '0';
@@ -1320,7 +1551,7 @@ function handleMobAssetChange(input, fieldKey) {
 
         if (!['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
             if (errorEl) {
-                errorEl.innerHTML = "<i class='fa fa-exclamation-circle mr-1'></i> Only PNG, JPG, or JPEG images allowed.";
+                errorEl.innerHTML = "<i class='fa fa-exclamation-circle mr-1'></i> Only PNG, JPG, or WEBP images are allowed.";
                 errorEl.style.display = 'block';
             }
             input.value = "";
@@ -1329,7 +1560,7 @@ function handleMobAssetChange(input, fieldKey) {
 
         if (file.size > MAX_IMAGE_SIZE) {
             if (errorEl) {
-                errorEl.innerHTML = "<i class='fa fa-exclamation-circle mr-1'></i> Image size (" + (file.size / 1024 / 1024).toFixed(2) + "MB) exceeds 2MB limit.";
+                errorEl.innerHTML = "<i class='fa fa-exclamation-circle mr-1'></i> File size (" + (file.size / 1024 / 1024).toFixed(2) + " MB) exceeds 2 MB limit.";
                 errorEl.style.display = 'block';
             }
             input.value = "";
@@ -1338,20 +1569,29 @@ function handleMobAssetChange(input, fieldKey) {
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            if (previewEl) previewEl.src = e.target.result;
+            if (previewEl) {
+                previewEl.src = e.target.result;
+                previewEl.style.display = 'block';
+            }
+            if (fallbackEl) {
+                fallbackEl.style.display = 'none';
+            }
+            if (cardEl) {
+                cardEl.classList.add('has-new-file');
+            }
             if (badgeEl) {
-                badgeEl.className = 'mob-asset-badge badge-new';
-                badgeEl.innerText = 'New Selected';
+                badgeEl.className = 'mob-brand-status status-new';
+                badgeEl.innerHTML = '<i class="fa fa-upload"></i> New File';
+            }
+            if (btn) {
+                btn.style.display = 'inline-flex';
+                btn.className = 'mob-btn-brand-remove';
+                btn.innerHTML = '<i class="fa fa-times"></i> <span>Cancel</span>';
             }
         };
         reader.readAsDataURL(file);
     } else {
-        if (previewEl) previewEl.src = previewEl.getAttribute('data-original-src');
-        if (badgeEl) {
-            const hasOrig = previewEl && previewEl.getAttribute('data-original-src') !== previewEl.getAttribute('data-default-src');
-            badgeEl.className = hasOrig ? 'mob-asset-badge badge-configured' : 'mob-asset-badge badge-default';
-            badgeEl.innerText = hasOrig ? 'Configured' : 'Default / None';
-        }
+        resetSingleMobAsset(fieldKey);
     }
 }
 
@@ -1360,9 +1600,33 @@ function handleMobAssetChange(input, fieldKey) {
  */
 function toggleMobAssetRemoval(fieldKey) {
     const keyMap = {
-        'left_logo': { preview: 'mob_preview_left_logo', badge: 'mob_badge_left_logo', card: 'mob_card_left_logo', remove: 'mob_remove_left_logo', btn: 'mob_btn_rm_left_logo', input: 'mob_left_logo' },
-        'watermark_image': { preview: 'mob_preview_watermark', badge: 'mob_badge_watermark', card: 'mob_card_watermark', remove: 'mob_remove_watermark_image', btn: 'mob_btn_rm_watermark_image', input: 'mob_watermark_image' },
-        'seal_sign': { preview: 'mob_preview_seal_sign', badge: 'mob_badge_seal_sign', card: 'mob_card_seal_sign', remove: 'mob_remove_seal_sign', btn: 'mob_btn_rm_seal_sign', input: 'mob_seal_sign' }
+        'left_logo': {
+            preview: 'mob_preview_left_logo',
+            fallback: 'fallback_left_logo',
+            badge: 'mob_badge_left_logo',
+            card: 'mob_card_left_logo',
+            remove: 'mob_remove_left_logo',
+            btn: 'mob_btn_rm_left_logo',
+            input: 'mob_left_logo'
+        },
+        'watermark_image': {
+            preview: 'mob_preview_watermark',
+            fallback: 'fallback_watermark',
+            badge: 'mob_badge_watermark',
+            card: 'mob_card_watermark',
+            remove: 'mob_remove_watermark_image',
+            btn: 'mob_btn_rm_watermark_image',
+            input: 'mob_watermark_image'
+        },
+        'seal_sign': {
+            preview: 'mob_preview_seal_sign',
+            fallback: 'fallback_seal_sign',
+            badge: 'mob_badge_seal_sign',
+            card: 'mob_card_seal_sign',
+            remove: 'mob_remove_seal_sign',
+            btn: 'mob_btn_rm_seal_sign',
+            input: 'mob_seal_sign'
+        }
     };
 
     const cfg = keyMap[fieldKey];
@@ -1371,35 +1635,75 @@ function toggleMobAssetRemoval(fieldKey) {
     const removeInput = document.getElementById(cfg.remove);
     const fileInput = document.getElementById(cfg.input);
     const previewEl = document.getElementById(cfg.preview);
+    const fallbackEl = document.getElementById(cfg.fallback);
     const badgeEl = document.getElementById(cfg.badge);
     const cardEl = document.getElementById(cfg.card);
     const btn = document.getElementById(cfg.btn);
+    const hasOriginal = previewEl && previewEl.getAttribute('data-has-original') === '1';
 
+    // If user previously selected a new file and wants to cancel that selection
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        fileInput.value = '';
+        if (cardEl) cardEl.classList.remove('has-new-file');
+
+        if (hasOriginal) {
+            if (previewEl) {
+                previewEl.src = previewEl.getAttribute('data-original-src');
+                previewEl.style.display = 'block';
+            }
+            if (fallbackEl) fallbackEl.style.display = 'none';
+            if (badgeEl) {
+                badgeEl.className = 'mob-brand-status status-configured';
+                badgeEl.innerHTML = '<i class="fa fa-check-circle"></i> Configured';
+            }
+            if (btn) {
+                btn.className = 'mob-btn-brand-remove';
+                btn.innerHTML = '<i class="fa fa-trash"></i> <span>Remove</span>';
+                btn.style.display = 'inline-flex';
+            }
+        } else {
+            if (previewEl) previewEl.style.display = 'none';
+            if (fallbackEl) fallbackEl.style.display = 'flex';
+            if (badgeEl) {
+                badgeEl.className = 'mob-brand-status status-empty';
+                badgeEl.innerHTML = '<i class="fa fa-circle-o"></i> Not Set';
+            }
+            if (btn) btn.style.display = 'none';
+        }
+        return;
+    }
+
+    // Toggle removal flag for existing saved image
     if (removeInput.value === '0') {
         removeInput.value = '1';
         if (fileInput) fileInput.value = '';
-        if (cardEl) cardEl.classList.add('marked-removed');
-        if (previewEl) previewEl.src = previewEl.getAttribute('data-default-src');
+        if (cardEl) {
+            cardEl.classList.remove('has-new-file');
+            cardEl.classList.add('marked-removed');
+        }
         if (badgeEl) {
-            badgeEl.className = 'mob-asset-badge badge-delete';
-            badgeEl.innerText = 'Marked For Removal';
+            badgeEl.className = 'mob-brand-status status-removed';
+            badgeEl.innerHTML = '<i class="fa fa-trash"></i> Marked to Remove';
         }
         if (btn) {
-            btn.className = 'mob-asset-btn-remove btn-undo';
-            btn.innerHTML = '<i class="fa fa-undo"></i> Undo';
+            btn.className = 'mob-btn-brand-remove btn-undo';
+            btn.innerHTML = '<i class="fa fa-undo"></i> <span>Undo</span>';
         }
     } else {
         removeInput.value = '0';
         if (cardEl) cardEl.classList.remove('marked-removed');
-        if (previewEl) previewEl.src = previewEl.getAttribute('data-original-src');
+        if (previewEl) {
+            previewEl.src = previewEl.getAttribute('data-original-src');
+            previewEl.style.display = 'block';
+        }
+        if (fallbackEl) fallbackEl.style.display = 'none';
         if (badgeEl) {
-            const hasOrig = previewEl && previewEl.getAttribute('data-original-src') !== previewEl.getAttribute('data-default-src');
-            badgeEl.className = hasOrig ? 'mob-asset-badge badge-configured' : 'mob-asset-badge badge-default';
-            badgeEl.innerText = hasOrig ? 'Configured' : 'Default / None';
+            badgeEl.className = 'mob-brand-status status-configured';
+            badgeEl.innerHTML = '<i class="fa fa-check-circle"></i> Configured';
         }
         if (btn) {
-            btn.className = 'mob-asset-btn-remove';
-            btn.innerHTML = '<i class="fa fa-trash"></i> Remove';
+            btn.className = 'mob-btn-brand-remove';
+            btn.innerHTML = '<i class="fa fa-trash"></i> <span>Remove</span>';
         }
     }
 }
@@ -1440,14 +1744,94 @@ function toggleRemoveApkMob() {
 }
 
 /**
+ * Reset single asset to initial db state
+ */
+function resetSingleMobAsset(fieldKey) {
+    const keyMap = {
+        'left_logo': {
+            preview: 'mob_preview_left_logo',
+            fallback: 'fallback_left_logo',
+            badge: 'mob_badge_left_logo',
+            card: 'mob_card_left_logo',
+            remove: 'mob_remove_left_logo',
+            btn: 'mob_btn_rm_left_logo',
+            input: 'mob_left_logo',
+            error: 'mob_error_left_logo'
+        },
+        'watermark_image': {
+            preview: 'mob_preview_watermark',
+            fallback: 'fallback_watermark',
+            badge: 'mob_badge_watermark',
+            card: 'mob_card_watermark',
+            remove: 'mob_remove_watermark_image',
+            btn: 'mob_btn_rm_watermark_image',
+            input: 'mob_watermark_image',
+            error: 'mob_error_watermark_image'
+        },
+        'seal_sign': {
+            preview: 'mob_preview_seal_sign',
+            fallback: 'fallback_seal_sign',
+            badge: 'mob_badge_seal_sign',
+            card: 'mob_card_seal_sign',
+            remove: 'mob_remove_seal_sign',
+            btn: 'mob_btn_rm_seal_sign',
+            input: 'mob_seal_sign',
+            error: 'mob_error_seal_sign'
+        }
+    };
+
+    const cfg = keyMap[fieldKey];
+    if (!cfg) return;
+
+    const fileInput = document.getElementById(cfg.input);
+    const removeInput = document.getElementById(cfg.remove);
+    const previewEl = document.getElementById(cfg.preview);
+    const fallbackEl = document.getElementById(cfg.fallback);
+    const badgeEl = document.getElementById(cfg.badge);
+    const cardEl = document.getElementById(cfg.card);
+    const btn = document.getElementById(cfg.btn);
+    const errorEl = document.getElementById(cfg.error);
+
+    if (fileInput) fileInput.value = '';
+    if (removeInput) removeInput.value = '0';
+    if (errorEl) { errorEl.style.display = 'none'; errorEl.innerHTML = ''; }
+    if (cardEl) {
+        cardEl.classList.remove('marked-removed', 'has-new-file');
+    }
+
+    const hasOriginal = previewEl && previewEl.getAttribute('data-has-original') === '1';
+    if (hasOriginal) {
+        if (previewEl) {
+            previewEl.src = previewEl.getAttribute('data-original-src');
+            previewEl.style.display = 'block';
+        }
+        if (fallbackEl) fallbackEl.style.display = 'none';
+        if (badgeEl) {
+            badgeEl.className = 'mob-brand-status status-configured';
+            badgeEl.innerHTML = '<i class="fa fa-check-circle"></i> Configured';
+        }
+        if (btn) {
+            btn.className = 'mob-btn-brand-remove';
+            btn.innerHTML = '<i class="fa fa-trash"></i> <span>Remove</span>';
+            btn.style.display = 'inline-flex';
+        }
+    } else {
+        if (previewEl) previewEl.style.display = 'none';
+        if (fallbackEl) fallbackEl.style.display = 'flex';
+        if (badgeEl) {
+            badgeEl.className = 'mob-brand-status status-empty';
+            badgeEl.innerHTML = '<i class="fa fa-circle-o"></i> Not Set';
+        }
+        if (btn) btn.style.display = 'none';
+    }
+}
+
+/**
  * Reset all image previews
  */
 function resetAllMobAssets() {
     ['left_logo', 'watermark_image', 'seal_sign'].forEach(function(fieldKey) {
-        const removeInput = document.getElementById(fieldKey === 'watermark_image' ? 'mob_remove_watermark_image' : ('mob_remove_' + fieldKey));
-        if (removeInput && removeInput.value === '1') {
-            toggleMobAssetRemoval(fieldKey);
-        }
+        resetSingleMobAsset(fieldKey);
     });
 }
 
