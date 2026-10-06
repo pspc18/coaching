@@ -94,7 +94,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 5px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 .mob-kpi-item {
     background: rgba(255, 255, 255, 0.08);
@@ -121,41 +121,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 1px;
-}
-
-/* Hero Fast Actions Bar */
-.mob-actions-bar {
-    display: flex;
-    gap: 6px;
-}
-.mob-act-btn {
-    flex: 1;
-    height: 30px;
-    padding: 0 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    text-decoration: none !important;
-    border: none;
-    cursor: pointer;
-    transition: all .12s ease;
-}
-.mob-act-btn:active {
-    transform: scale(0.96);
-}
-.mob-act-btn-desktop {
-    background: rgba(255, 255, 255, 0.14);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-}
-.mob-act-btn-refresh {
-    background: rgba(56, 189, 248, 0.2);
-    color: #38bdf8 !important;
-    border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 /* 2. Interactive Sticky Step Progress Tracker */
@@ -862,16 +827,6 @@
                 {{ !empty($data->firebase_notification) ? 'Enabled' : 'Disabled' }}
             </span>
         </div>
-    </div>
-
-    {{-- Fast Actions --}}
-    <div class="mob-actions-bar">
-        <a href="{{ url('editSetting/' . $data->id) }}?layout=desktop" class="mob-act-btn mob-act-btn-desktop">
-            <i class="fa fa-desktop"></i> Desktop View
-        </a>
-        <a href="{{ url('editSetting/' . $data->id) }}" class="mob-act-btn mob-act-btn-refresh">
-            <i class="fa fa-refresh"></i> Refresh Data
-        </a>
     </div>
 </div>
 
