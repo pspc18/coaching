@@ -707,7 +707,7 @@
                 <i class="fa fa-plus"></i> New Assignment
             </a>
         @else
-            <a href="{{ url('homework/dashboard?layout=mobile') }}" class="mob-act-btn mob-act-btn-outline">
+            <a href="{{ url('dashboard') }}" class="mob-act-btn mob-act-btn-outline">
                 <i class="fa fa-th-large"></i> Dashboard
             </a>
         @endif
