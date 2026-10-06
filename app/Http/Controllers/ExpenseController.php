@@ -145,7 +145,7 @@ class ExpenseController extends Controller
             return redirect('expenseView')->with('message', $existing->isNotEmpty() ? 'Expense voucher updated successfully.' : 'Expense voucher added successfully.');
         }
 
-        return view('expense.add', [
+        return \Helper::view('expense.add', [
             'categories' => $this->categories(),
             'paymentModes' => $this->paymentModes(),
             'data' => collect(),
@@ -287,7 +287,7 @@ class ExpenseController extends Controller
             ->get();
         abort_if($data->isEmpty(), 404);
 
-        return view('expense.add', [
+        return \Helper::view('expense.add', [
             'categories' => $this->categories(),
             'paymentModes' => $this->paymentModes(),
             'data' => $data,
