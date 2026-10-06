@@ -275,7 +275,7 @@ class SettingsController extends Controller
                     }
                     return redirect('editSetting/' . $data->id)->with('message', 'Institute Setting Updated Successfully.');
                 }
-                return view('settings.setting.editSetting', ['data' => $data, 'branch' => $branch, 'getcitys' => $getcitys]);
+                return \Helper::view('settings.setting.editSetting', ['data' => $data, 'branch' => $branch, 'getcitys' => $getcitys]);
             } 
 
              public function deleteSetting(Request $request){
