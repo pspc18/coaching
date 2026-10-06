@@ -2378,54 +2378,6 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
     }
 
     /**
-     * Detect whether current request is inside an Android or iOS App WebView.
-     */
-    public static function isAppWebView(): bool
-    {
-        // 1. Explicit query or session override (e.g. ?app_view=1 or ?webview=1)
-        if (request()->has('app_view') || request()->has('webview') || request()->has('is_app')) {
-            $val = request()->get('app_view') ?? request()->get('webview') ?? request()->get('is_app');
-            return in_array((string)$val, ['1', 'true', 'yes'], true);
-        }
-        if (Session::has('is_app_webview')) {
-            return (bool) Session::get('is_app_webview');
-        }
-
-        // 2. Android X-Requested-With header (standard Android Webview)
-        $requestedWith = request()->header('X-Requested-With', '');
-        if (!empty($requestedWith) && !in_array(strtolower($requestedWith), ['xmlhttprequest'], true)) {
-            return true;
-        }
-
-        // 3. Custom / Webview User-Agents
-        $userAgent = request()->header('User-Agent', '');
-        if (empty($userAgent)) {
-            return false;
-        }
-
-        // App-specific signatures
-        if (preg_match('/(ariseapp|coachingapp|rusoftapp|schoolapp|appwebview|flutter|reactnative|capacitor|cordova)/i', $userAgent)) {
-            return true;
-        }
-
-        // Android WebView: 'Version/X.X Chrome/... Mobile' + '; wv' or 'Version/... Chrome/... Mobile'
-        if (stripos($userAgent, 'Android') !== false) {
-            if (stripos($userAgent, '; wv') !== false || stripos($userAgent, 'Version/') !== false && stripos($userAgent, 'Chrome') !== false) {
-                return true;
-            }
-        }
-
-        // iOS WebView: iPhone/iPad without 'Safari' or with UIWebView/WKWebView signatures
-        if (preg_match('/(iPhone|iPod|iPad)/i', $userAgent)) {
-            if (stripos($userAgent, 'Safari') === false || stripos($userAgent, 'Mobile/') !== false && stripos($userAgent, 'Safari') === false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Intelligently render mobile view if available and client is mobile, else desktop view.
      * Pattern: 'dashboard.admin_dashboard' => looks for 'dashboard.mobile.admin_dashboard' or 'mobile.dashboard.admin_dashboard'
      */

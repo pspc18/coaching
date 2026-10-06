@@ -44,7 +44,6 @@
         ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($mobileLogoFile)
         : '';
     $firmInitial = strtoupper(mb_substr(trim($setting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
-    $isAppWebView = Helper::isAppWebView();
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -96,24 +95,7 @@
         --app-text-muted: #64748b;
         --header-height: 48px;
         --bottom-nav-height: 52px;
-        --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
-        --app-status-bar-height: 0px;
-        --total-header-height: calc(var(--header-height) + var(--safe-top) + var(--app-status-bar-height));
-    }
-
-    /* Device / WebView Native App Status Bar adjustments (Higher spacing for punch-hole cameras & notch) */
-    body.is-webview,
-    body.is-app-webview {
-        --app-status-bar-height: 48px;
-    }
-    body.is-webview.is-ios-webview,
-    body.is-app-webview.is-ios-webview {
-        --app-status-bar-height: max(48px, env(safe-area-inset-top, 48px));
-    }
-    body.is-webview.is-android-webview,
-    body.is-app-webview.is-android-webview {
-        --app-status-bar-height: 48px;
     }
 
     * {
@@ -264,7 +246,7 @@
         flex-direction: column;
         min-height: 100vh;
         position: relative;
-        padding-top: var(--total-header-height);
+        padding-top: var(--header-height);
         padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 12px);
         background: linear-gradient(180deg, #001f3f 0%, #002C54 100px, #f8fafc 200px, #f8fafc 100%);
     }
@@ -275,8 +257,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: var(--total-header-height);
-        padding-top: calc(var(--safe-top) + var(--app-status-bar-height));
+        height: var(--header-height);
         background: rgba(0, 20, 40, 0.94);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
@@ -284,11 +265,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-left: 10px;
-        padding-right: 10px;
+        padding: 0 10px;
         z-index: 1000;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        box-sizing: border-box;
     }
     .top-bar-brand {
         display: flex;
@@ -495,7 +474,7 @@
     .drawer-header {
         background: linear-gradient(135deg, #001833 0%, #002C54 100%);
         color: #ffffff;
-        padding: calc(12px + var(--safe-top) + var(--app-status-bar-height)) 10px 12px 10px;
+        padding: 12px 10px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -543,7 +522,7 @@
     }
     .drawer-close-btn {
         position: absolute;
-        top: calc(10px + var(--safe-top) + var(--app-status-bar-height));
+        top: 10px;
         right: 10px;
         width: 26px;
         height: 26px;
@@ -781,7 +760,7 @@
 
     @yield('styles')
 </head>
-<body class="{{ $isAppWebView ? 'is-webview is-app-webview' : '' }}">
+<body>
 
 <div class="mobile-app-shell">
 
@@ -1098,28 +1077,6 @@ $(document).ready(function() {
             $('#mobileTopBarAvatar').css('display', 'flex');
         }
     }
-
-    // Client-side Android / iOS WebView Status Bar Detection
-    (function detectWebViewClient() {
-        var ua = navigator.userAgent || navigator.vendor || window.opera || '';
-        var isAndroid = /Android/i.test(ua);
-        var isIOS = /iPhone|iPod|iPad/i.test(ua);
-        var isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-
-        var isAndroidWebView = isAndroid && (/wv/i.test(ua) || (/Version\/[\d.]+/i.test(ua) && /Chrome\/[\d.]+/i.test(ua)));
-        var isIOSWebView = isIOS && (!/Safari/i.test(ua) || !window.safari);
-        var isAppUA = /ariseapp|coachingapp|rusoftapp|schoolapp|appwebview|flutter|reactnative|capacitor|cordova/i.test(ua);
-
-        if (isAndroidWebView || isIOSWebView || isAppUA || isStandalone) {
-            $('body').addClass('is-webview is-app-webview');
-            if (isAndroid || isAndroidWebView) {
-                $('body').addClass('is-android-webview');
-            }
-            if (isIOS || isIOSWebView) {
-                $('body').addClass('is-ios-webview');
-            }
-        }
-    })();
 });
 </script>
 
