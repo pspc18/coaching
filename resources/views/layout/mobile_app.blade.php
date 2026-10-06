@@ -9,6 +9,17 @@
     $userImage = Session::get('image');
     $noticesData = Helper::noticeBoard();
     $unreadNoticesCount = is_countable($noticesData) ? count($noticesData) : 0;
+    $userNotificationUnreadCount = 0;
+    if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
+        $userNotificationUnreadCount = DB::table('notifications')
+            ->where('user_id', (int) Session::get('id'))
+            ->where('branch_id', (int) Session::get('branch_id'))
+            ->where('session_id', (int) Session::get('session_id'))
+            ->where('show_status', 1)
+            ->where('message_seen', 0)
+            ->whereNull('deleted_at')
+            ->count();
+    }
 
     // Fetch dynamic sidebar permissions exactly like desktop layout/sidebar.blade.php
     $branch = \App\Models\Master\Branch::find(Session::get('branch_id'));
@@ -352,6 +363,11 @@
     .top-icon-pill:active {
         transform: scale(0.93);
         background: rgba(255, 255, 255, 0.18);
+    }
+    .top-icon-pill.active {
+        background: rgba(56, 189, 248, 0.25);
+        border-color: #38bdf8;
+        color: #38bdf8 !important;
     }
     .top-badge-pulse {
         position: absolute;
@@ -792,10 +808,10 @@
 
         <div class="top-bar-actions">
             {{-- Notification Bell --}}
-            <a href="{{ url('notice-management') }}" class="top-icon-pill" title="Notices">
+            <a href="{{ url('user-notifications') }}" class="top-icon-pill {{ request()->is('user-notifications*') ? 'active' : '' }}" title="Notifications">
                 <i class="fa fa-bell-o"></i>
-                @if($unreadNoticesCount > 0)
-                    <span class="top-badge-pulse">{{ $unreadNoticesCount > 9 ? '9+' : $unreadNoticesCount }}</span>
+                @if($userNotificationUnreadCount > 0)
+                    <span class="top-badge-pulse">{{ $userNotificationUnreadCount > 9 ? '9+' : $userNotificationUnreadCount }}</span>
                 @endif
             </a>
 
@@ -966,6 +982,21 @@
                     @endif
                 </li>
             @endforeach
+
+            {{-- User Notifications --}}
+            @if((int) Session::get('role_id') !== 3)
+            <li class="mob-menu-item-wrap" data-name="notifications user notifications">
+                <a href="{{ url('user-notifications') }}" class="mob-menu-direct-link {{ request()->is('user-notifications*') ? 'active' : '' }}">
+                    <div class="mob-menu-left">
+                        <span class="mob-menu-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa fa-bell-o"></i></span>
+                        <span class="mob-menu-text">Notifications</span>
+                    </div>
+                    @if($userNotificationUnreadCount > 0)
+                        <span class="badge badge-danger" style="font-size: 10px; border-radius: 10px; padding: 2px 6px;">{{ $userNotificationUnreadCount > 99 ? '99+' : $userNotificationUnreadCount }}</span>
+                    @endif
+                </a>
+            </li>
+            @endif
 
             {{-- Notice Management --}}
             @if((int) Session::get('role_id') !== 3)
