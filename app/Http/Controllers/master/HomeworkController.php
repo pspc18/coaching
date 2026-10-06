@@ -158,7 +158,7 @@ class HomeworkController extends Controller
 
                     return redirect('homework/index')->with('message', 'Homework Published Successfully.');
                 }
-                return view('master.home_work.home_work.add');
+                return Helper::view('master.home_work.home_work.add');
             }
             
             public function index(Request $request){
@@ -440,7 +440,7 @@ class HomeworkController extends Controller
                     ->orderBy('name', 'ASC')
                     ->get();
 
-                return view('master.home_work.home_work.add', [
+                return Helper::view('master.home_work.home_work.add', [
                     'data' => $data,
                     'subjects' => $subjects,
                     'isEdit' => true
