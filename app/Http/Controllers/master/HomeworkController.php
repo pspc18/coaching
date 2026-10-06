@@ -290,7 +290,7 @@ class HomeworkController extends Controller
                     ->orderBy('name', 'ASC')
                     ->get();
 
-                return view('master.home_work.home_work.index', [
+                return Helper::view('master.home_work.home_work.index', [
                     'data' => $allhomework,
                     'startIndex' => $startIndex,
                     'search' => $search,
