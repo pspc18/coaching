@@ -388,6 +388,65 @@
         box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
     }
 
+    /* Native Mobile Pull-To-Refresh Indicator */
+    .mob-ptr-container {
+        position: fixed;
+        top: calc(var(--top-bar-height) + 6px);
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        z-index: 999;
+        transform: translate3d(0, -60px, 0);
+        opacity: 0;
+        transition: transform .12s cubic-bezier(0.2, 0.8, 0.4, 1), opacity .15s ease;
+        will-change: transform, opacity;
+    }
+    .mob-ptr-container.is-animating {
+        transition: transform .28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity .25s ease;
+    }
+    .mob-ptr-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: #ffffff;
+        color: #002C54;
+        padding: 6px 13px;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 24, 51, 0.2), 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid #cbd5e1;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        user-select: none;
+    }
+    .mob-ptr-icon-wrap {
+        width: 15px;
+        height: 15px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #0284c7;
+        font-size: 11.5px;
+    }
+    .mob-ptr-arrow {
+        transition: transform .18s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-block;
+    }
+    .mob-ptr-arrow.rotate-up {
+        transform: rotate(180deg);
+        color: #16a34a;
+    }
+    .mob-ptr-spinner {
+        color: #0284c7;
+        font-size: 12px;
+    }
+    .mob-ptr-text {
+        line-height: 1.2;
+    }
+
     /* 2. Main Body Content */
     .mobile-app-main {
         flex: 1;
@@ -822,6 +881,17 @@
         </div>
     </header>
 
+    {{-- Global Mobile Native Pull-To-Refresh Indicator --}}
+    <div id="mobPullToRefresh" class="mob-ptr-container" aria-hidden="true">
+        <div class="mob-ptr-pill">
+            <div class="mob-ptr-icon-wrap">
+                <i class="fa fa-arrow-down mob-ptr-arrow" id="mobPtrArrow"></i>
+                <i class="fa fa-circle-o-notch fa-spin mob-ptr-spinner" id="mobPtrSpinner" style="display: none;"></i>
+            </div>
+            <span class="mob-ptr-text" id="mobPtrText">Pull down to refresh</span>
+        </div>
+    </div>
+
     {{-- Main Page Content --}}
     <main class="mobile-app-main">
         @yield('content')
@@ -1108,6 +1178,166 @@ $(document).ready(function() {
             $('#mobileTopBarAvatar').css('display', 'flex');
         }
     }
+
+    // =========================================================================
+    // GLOBAL NATIVE MOBILE PULL-TO-REFRESH (PTR) ENGINE
+    // =========================================================================
+    (function initMobilePullToRefresh() {
+        const ptrContainer = document.getElementById('mobPullToRefresh');
+        const ptrArrow = document.getElementById('mobPtrArrow');
+        const ptrSpinner = document.getElementById('mobPtrSpinner');
+        const ptrText = document.getElementById('mobPtrText');
+        if (!ptrContainer || !ptrArrow || !ptrSpinner || !ptrText) return;
+
+        let startY = 0;
+        let startX = 0;
+        let diffY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        let canPull = false;
+        const PULL_THRESHOLD = 68;
+        const MAX_PULL = 90;
+
+        function isAtPageTop() {
+            return (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0) <= 2;
+        }
+
+        function isInsideExcludedElement(target) {
+            if (!target) return false;
+            if (target.closest && (
+                target.closest('#mobileDrawer') ||
+                target.closest('.modal') ||
+                target.closest('.dropdown-menu') ||
+                target.closest('input, textarea, select, button, [contenteditable="true"]')
+            )) {
+                return true;
+            }
+            if ($('#mobileDrawer').hasClass('show') || $('.modal.show, .modal.in').length > 0) {
+                return true;
+            }
+            return false;
+        }
+
+        window.addEventListener('touchstart', function(e) {
+            if (isRefreshing || e.touches.length !== 1) return;
+            if (!isAtPageTop() || isInsideExcludedElement(e.target)) {
+                canPull = false;
+                return;
+            }
+
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+            diffY = 0;
+            isPulling = false;
+            canPull = true;
+            ptrContainer.classList.remove('is-animating');
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function(e) {
+            if (!canPull || isRefreshing || e.touches.length !== 1) return;
+
+            const currentY = e.touches[0].clientY;
+            const currentX = e.touches[0].clientX;
+            const deltaY = currentY - startY;
+            const deltaX = currentX - startX;
+
+            if (deltaY <= 0 || !isAtPageTop()) {
+                canPull = false;
+                if (isPulling) resetPTR(true);
+                return;
+            }
+
+            if (Math.abs(deltaX) > deltaY) {
+                canPull = false;
+                if (isPulling) resetPTR(true);
+                return;
+            }
+
+            if (deltaY > 6) {
+                isPulling = true;
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+
+                const pullDistance = Math.min(deltaY * 0.42, MAX_PULL);
+                diffY = pullDistance;
+
+                const translateY = Math.max(0, pullDistance);
+                ptrContainer.style.transform = 'translate3d(0, ' + translateY + 'px, 0)';
+                ptrContainer.style.opacity = Math.min(pullDistance / 24, 1);
+
+                if (pullDistance >= PULL_THRESHOLD) {
+                    ptrArrow.classList.add('rotate-up');
+                    ptrText.textContent = 'Release to refresh';
+                } else {
+                    ptrArrow.classList.remove('rotate-up');
+                    ptrText.textContent = 'Pull down to refresh';
+                }
+            }
+        }, { passive: false });
+
+        function resetPTR(animate) {
+            canPull = false;
+            isPulling = false;
+            isRefreshing = false;
+            if (animate) ptrContainer.classList.add('is-animating');
+            ptrContainer.style.transform = 'translate3d(0, -60px, 0)';
+            ptrContainer.style.opacity = '0';
+            setTimeout(function() {
+                ptrArrow.style.display = 'inline-block';
+                ptrArrow.classList.remove('rotate-up');
+                ptrSpinner.style.display = 'none';
+                ptrText.textContent = 'Pull down to refresh';
+                ptrContainer.classList.remove('is-animating');
+            }, 300);
+        }
+
+        window.addEventListener('touchend', function(e) {
+            if (!canPull || !isPulling || isRefreshing) {
+                canPull = false;
+                isPulling = false;
+                return;
+            }
+
+            if (diffY >= PULL_THRESHOLD) {
+                isRefreshing = true;
+                ptrContainer.classList.add('is-animating');
+                ptrContainer.style.transform = 'translate3d(0, 48px, 0)';
+                ptrContainer.style.opacity = '1';
+
+                ptrArrow.style.display = 'none';
+                ptrSpinner.style.display = 'inline-block';
+                ptrText.textContent = 'Refreshing...';
+
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(25); } catch(err) {}
+                }
+
+                if (typeof window.mobPullToRefreshHandler === 'function') {
+                    try {
+                        window.mobPullToRefreshHandler(function done() {
+                            resetPTR(true);
+                        });
+                    } catch(err) {
+                        console.error('Custom PTR error:', err);
+                        window.location.reload();
+                    }
+                } else {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 350);
+                }
+            } else {
+                resetPTR(true);
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchcancel', function() {
+            if (isPulling && !isRefreshing) {
+                resetPTR(true);
+            }
+        }, { passive: true });
+    })();
 });
 </script>
 
