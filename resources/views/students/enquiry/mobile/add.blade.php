@@ -121,7 +121,7 @@ $billCounterVal = !empty($BillCounter->counter) ? ($BillCounter->counter + 1) : 
 }
 .mob-step-tracker.is-fixed {
     position: fixed !important;
-    top: 54px !important;
+    top: calc(var(--total-header-height) + 6px) !important;
     left: 8px !important;
     right: 8px !important;
     width: auto !important;
@@ -901,7 +901,8 @@ $(document).ready(function() {
 
         const containerTop = $container.offset().top;
         const scrollY = $(window).scrollTop() || window.pageYOffset || document.documentElement.scrollTop || 0;
-        const triggerPoint = containerTop - 54; // 48px top bar height + 6px margin
+        const topBarHeight = $('.mobile-top-bar').outerHeight() || 48;
+        const triggerPoint = containerTop - topBarHeight - 6;
 
         if (scrollY >= triggerPoint && triggerPoint > 0) {
             if (!$tracker.hasClass('is-fixed')) {
