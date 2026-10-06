@@ -242,7 +242,10 @@ class ExpenseController extends Controller
 
         if ($request->ajax() || $request->wantsJson()) {
             $categories = $this->categories();
-            $html = view('expense.table_rows', [
+            $isMobile = \Helper::isMobile();
+            $viewName = $isMobile ? 'expense.mobile.card_rows' : 'expense.table_rows';
+            
+            $html = view($viewName, [
                 'data' => $pagedData,
                 'startIndex' => ($page - 1) * ($perPage === 'all' ? $totalRecords : (int)$perPage),
                 'categories' => $categories,
@@ -261,7 +264,7 @@ class ExpenseController extends Controller
             ]);
         }
 
-        return view('expense.view', [
+        return \Helper::view('expense.view', [
             'data' => $pagedData,
             'allData' => $allData,
             'totalCount' => $totalRecords,
