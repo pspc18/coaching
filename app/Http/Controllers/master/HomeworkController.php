@@ -644,10 +644,10 @@ class HomeworkController extends Controller
                 ];
 
                 if (Session::get('role_id') == 3) {
-                    return view('master.home_work.student_view.details', $viewData);
+                    return Helper::view('master.home_work.student_view.details', $viewData);
                 }
 
-                return view('master.home_work.home_work.details', $viewData);
+                return Helper::view('master.home_work.home_work.details', $viewData);
             }
 
             public function particularHomeworkDetails(Request $request){
