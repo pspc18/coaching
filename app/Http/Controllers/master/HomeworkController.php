@@ -693,7 +693,7 @@ class HomeworkController extends Controller
                 $currentIndex = ($currentPos !== false) ? ($currentPos + 1) : 1;
                 $totalStudents = max(1, count($allStudentIds));
 
-                return view('master.home_work.home_work.data_homework', [
+                return Helper::view('master.home_work.home_work.data_homework', [
                     'data' => $data,
                     'student' => $student,
                     'homework' => $homework,
