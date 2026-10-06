@@ -68,7 +68,7 @@
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     border-radius: 4px;
-    padding: 11px 12px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -78,19 +78,30 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 6px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.mob-hero-title {
-    font-size: 13.5px;
-    font-weight: 800;
-    line-height: 1.25;
-    color: #ffffff;
+.mob-hero-badge-left {
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-width: 0;
+    gap: 5px;
+}
+.mob-type-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.mob-status-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
 }
 .mob-session-pill {
-    font-size: 9.5px;
+    font-size: 9px;
     background: rgba(56, 189, 248, 0.18);
     border: 1px solid rgba(56, 189, 248, 0.35);
     color: #38bdf8;
@@ -99,26 +110,82 @@
     font-weight: 700;
     white-space: nowrap;
 }
-.mob-hero-tags {
+
+/* Hero Assignment Title (Clean 2-line clamp with expand trigger) */
+.mob-hero-content-wrap {
+    margin-bottom: 7px;
+}
+.mob-hero-title-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    cursor: pointer;
+}
+.mob-hero-title-icon {
+    font-size: 13px;
+    color: #38bdf8;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.mob-hero-title-text {
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: #ffffff;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all .15s ease;
+}
+.mob-hero-title-text.expanded {
+    -webkit-line-clamp: unset;
+}
+.mob-hero-expand-hint {
+    font-size: 9px;
+    color: #38bdf8;
+    font-weight: 600;
+    display: inline-block;
+    margin-left: 4px;
+}
+
+/* Secondary Meta Chips Strip */
+.mob-hero-meta-strip {
     display: flex;
     align-items: center;
     gap: 5px;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    margin-bottom: 7px;
 }
-.mob-tag-pill {
+.mob-hero-meta-strip::-webkit-scrollbar {
+    display: none;
+}
+.mob-meta-chip {
     font-size: 9.5px;
-    font-weight: 700;
+    font-weight: 600;
     padding: 2px 6px;
     border-radius: 2px;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #e2e8f0;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
-.mob-hero-desc {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 9px;
-    line-height: 1.35;
-    word-break: break-word;
+.mob-meta-chip strong {
+    color: #ffffff;
+}
+.mob-meta-chip.chip-due {
+    background: rgba(254, 240, 138, 0.15);
+    border-color: rgba(254, 240, 138, 0.35);
+    color: #fef08a;
+}
+.mob-meta-chip.chip-due strong {
+    color: #facc15;
 }
 
 /* 3 Metrics Glance Grid */
@@ -126,7 +193,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
-    margin-bottom: 9px;
+    margin-bottom: 8px;
 }
 .mob-metric-box {
     background: rgba(255, 255, 255, 0.08);
@@ -628,30 +695,47 @@
 
 {{-- 1. Glassmorphic Hero Card --}}
 <div class="mob-hero-card">
+    {{-- Row 1: Session, Category, and Due Status Badges --}}
     <div class="mob-hero-top">
-        <div class="mob-hero-title text-truncate">
-            <i class="fa fa-book text-info mr-1"></i> {{ $displayTitle }}
+        <div class="mob-hero-badge-left">
+            <span class="mob-type-badge {{ $badgeClass }}">{{ $type }}</span>
+            @if($isOverdue)
+                <span class="mob-status-badge bg-danger text-white"><i class="fa fa-clock-o mr-1"></i> Due Expired</span>
+            @elseif($isDueToday)
+                <span class="mob-status-badge bg-warning text-dark"><i class="fa fa-hourglass-half mr-1"></i> Due Today</span>
+            @else
+                <span class="mob-status-badge bg-success text-white"><i class="fa fa-check-circle mr-1"></i> Active</span>
+            @endif
         </div>
         <div class="mob-session-pill">
             <i class="fa fa-calendar mr-1"></i> {{ $currentSessionName }}
         </div>
     </div>
 
-    <div class="mob-hero-tags">
-        <span class="mob-tag-pill {{ $badgeClass }}">{{ $type }}</span>
-        <span class="mob-tag-pill bg-light text-dark border"><i class="fa fa-graduation-cap mr-1"></i> {{ $hwClass }}</span>
-        <span class="mob-tag-pill bg-light text-dark border"><i class="fa fa-bookmark mr-1"></i> {{ $hwSubject }}</span>
-        @if($isOverdue)
-            <span class="mob-tag-pill bg-danger text-white"><i class="fa fa-clock-o mr-1"></i> Due Expired</span>
-        @elseif($isDueToday)
-            <span class="mob-tag-pill bg-warning text-dark"><i class="fa fa-hourglass-half mr-1"></i> Due Today</span>
-        @else
-            <span class="mob-tag-pill bg-success text-white"><i class="fa fa-check-circle mr-1"></i> Active</span>
-        @endif
+    {{-- Row 2: Assignment Title with Expand/Collapse --}}
+    <div class="mob-hero-content-wrap">
+        <div class="mob-hero-title-box" id="mobHeroTitleBox" title="Tap to expand/collapse full title">
+            <i class="fa fa-book mob-hero-title-icon"></i>
+            <div class="mob-hero-title-text" id="mobHeroTitleText">
+                {{ $displayTitle }}
+            </div>
+        </div>
     </div>
 
-    <div class="mob-hero-desc">
-        Due Date: <strong class="text-warning">{{ $hwDueDate }}</strong> &bull; Teacher: <strong>{{ $hwTeacher }}</strong>
+    {{-- Row 3: Class, Subject, Due Date, and Teacher Meta Chips --}}
+    <div class="mob-hero-meta-strip">
+        <span class="mob-meta-chip">
+            <i class="fa fa-graduation-cap text-info"></i> <strong>{{ $hwClass }}</strong>
+        </span>
+        <span class="mob-meta-chip">
+            <i class="fa fa-bookmark text-primary"></i> <strong>{{ $hwSubject }}</strong>
+        </span>
+        <span class="mob-meta-chip chip-due">
+            <i class="fa fa-calendar-check-o"></i> Due: <strong>{{ $hwDueDate }}</strong>
+        </span>
+        <span class="mob-meta-chip">
+            <i class="fa fa-user-circle text-muted"></i> <strong>{{ $hwTeacher }}</strong>
+        </span>
     </div>
 
     {{-- Metrics Glance Grid --}}
@@ -915,6 +999,11 @@ $(document).ready(function() {
     $('#btnCloseHwInfoSheet, #mobHwInfoSheetBackdrop').on('click', function() {
         $('#mobHwInfoSheetBackdrop').removeClass('show');
         $('#mobHwInfoSheet').removeClass('show');
+    });
+
+    // Toggle Title Expand / Collapse
+    $('#mobHeroTitleBox').on('click', function() {
+        $('#mobHeroTitleText').toggleClass('expanded');
     });
 
     // 2. Client Side Real-time Search & Filter Chips
