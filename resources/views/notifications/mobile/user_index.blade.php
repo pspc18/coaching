@@ -428,7 +428,7 @@
     border-left: 2.5px solid #002C54;
     padding: 5px 8px;
     border-radius: 0 3px 3px 0;
-    line-height: 1.42;
+    line-height: 16px;
     word-break: break-word;
     white-space: pre-line;
     margin: 0;
@@ -439,6 +439,8 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-bottom: 0 !important;
+    max-height: 53px; /* 5px padding-top + (3 lines * 16px line-height = 48px) = 53px */
 }
 
 /* Embedded Complaint Student Info */
