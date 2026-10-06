@@ -724,7 +724,7 @@
                 <i class="fa fa-check-circle"></i> Mark All Read
             </button>
         </form>
-        <button type="button" class="mob-act-btn mob-act-btn-clearall" id="btnOpenClearAllModal" data-toggle="modal" data-target="#clearAllModal" data-bs-toggle="modal" data-bs-target="#clearAllModal" {{ $totalCount === 0 ? 'disabled' : '' }}>
+        <button type="button" class="mob-act-btn mob-act-btn-clearall" id="btnOpenClearAllModal" {{ $totalCount === 0 ? 'disabled' : '' }}>
             <i class="fa fa-trash"></i> Clear All
         </button>
     </div>
@@ -948,69 +948,11 @@
     </div>
 @endif
 
-{{-- 5. Custom Modal Alert for Clear All Notifications (Arise ERP Standard Theme) --}}
-<div class="modal fade" id="clearAllModal" tabindex="-1" role="dialog" aria-labelledby="clearAllModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 380px; margin: 16px auto;">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid rgba(0, 44, 84, 0.15); box-shadow: 0 10px 25px rgba(0, 20, 40, 0.35);">
-            {{-- Modal Header --}}
-            <div class="modal-header bg-danger text-white py-2 px-3" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important; min-height: 42px; display: flex; align-items: center; justify-content: space-between;">
-                <h5 class="modal-title m-0 font-weight-bold" id="clearAllModalTitle" style="font-size: 13px; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa fa-trash"></i> Clear All Notifications
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="background: transparent; border: none; color: #ffffff; opacity: 0.9; font-size: 20px; line-height: 1; padding: 0; margin: 0; cursor: pointer;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            {{-- Modal Form & Body --}}
-            <form method="post" action="{{ route('user.notifications.clear-all') }}" id="clearAllForm">
-                @csrf
-                @method('DELETE')
-                <div class="modal-body p-3" style="background: #ffffff; color: #1e293b; font-size: 12px;">
-                    <div class="d-flex align-items-center mb-2" style="gap: 12px;">
-                        <div style="width: 38px; height: 38px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; border: 1px solid #fecaca;">
-                            <i class="fa fa-exclamation-triangle"></i>
-                        </div>
-                        <div style="min-width: 0;">
-                            <h6 class="font-weight-bold text-dark mb-1" style="font-size: 12.5px; line-height: 1.3;">
-                                Clear all notifications?
-                            </h6>
-                            <p class="text-muted mb-0" style="font-size: 11px; line-height: 1.35;">
-                                This will permanently remove all notifications from your hub.
-                            </p>
-                        </div>
-                    </div>
-
-                    {{-- Summary Box --}}
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px 10px; margin-top: 10px; font-size: 11px;">
-                        <div class="d-flex justify-content-between py-1 border-bottom" style="border-color: #f1f5f9 !important;">
-                            <span class="text-muted"><i class="fa fa-bell-o mr-1"></i> Total Notifications:</span>
-                            <strong class="text-dark">{{ $totalCount }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between py-1">
-                            <span class="text-muted"><i class="fa fa-envelope-o text-danger mr-1"></i> Unread Notifications:</span>
-                            <strong class="text-danger">{{ $unreadCount }}</strong>
-                        </div>
-                    </div>
-
-                    <p class="text-muted mb-0 mt-2" style="font-size: 10px; font-style: italic;">
-                        <i class="fa fa-info-circle text-primary mr-1"></i> Note: This action cannot be undone.
-                    </p>
-                </div>
-
-                {{-- Modal Footer --}}
-                <div class="modal-footer py-2 px-3 bg-light" style="background: #f8fafc !important; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal" style="font-size: 11px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569;">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-danger btn-sm font-weight-bold" id="btnConfirmClearAll" style="font-size: 11px; font-weight: 700; height: 32px; padding: 0 14px; border-radius: 4px; background: #dc2626; border: 1px solid #dc2626; color: #ffffff; display: inline-flex; align-items: center; gap: 5px;">
-                        <i class="fa fa-trash"></i> Yes, Clear All
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{{-- Hidden Form for Native Slide-Up Confirmation Execution --}}
+<form method="post" action="{{ route('user.notifications.clear-all') }}" id="clearAllHiddenForm" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 @endsection
 
@@ -1020,14 +962,24 @@ function confirmMobNoticeReview(event, form) {
     var submitter = event.submitter || document.activeElement;
     var decisionValue = submitter && submitter.value === 'rejected' ? 'rejected' : 'approved';
     var decisionLabel = decisionValue === 'rejected' ? 'reject' : 'approve and publish';
-    if (!window.confirm('Are you sure you want to ' + decisionLabel + ' this notice?')) return false;
-    var hiddenDecision = document.createElement('input');
-    hiddenDecision.type = 'hidden';
-    hiddenDecision.name = 'decision';
-    hiddenDecision.value = decisionValue;
-    form.appendChild(hiddenDecision);
-    $(form).find('button[type="submit"]').prop('disabled', true);
-    return true;
+    if (event) event.preventDefault();
+    showMobileConfirm(
+        decisionValue === 'rejected' ? 'Reject Notice' : 'Approve Notice',
+        'Are you sure you want to ' + decisionLabel + ' this notice?',
+        function() {
+            var hiddenDecision = document.createElement('input');
+            hiddenDecision.type = 'hidden';
+            hiddenDecision.name = 'decision';
+            hiddenDecision.value = decisionValue;
+            form.appendChild(hiddenDecision);
+            $(form).find('button[type="submit"]').prop('disabled', true);
+            form.submit();
+        },
+        decisionValue === 'rejected' ? 'Reject' : 'Approve',
+        decisionValue === 'rejected',
+        decisionValue === 'rejected' ? 'fa-times text-danger' : 'fa-check text-success'
+    );
+    return false;
 }
 
 $(document).ready(function() {
@@ -1123,14 +1075,20 @@ $(document).ready(function() {
         $('#notifSearchInput').val('').trigger('input');
     });
 
-    // Custom Clear All Modal Triggers
+    // Custom Native Slide-Up Confirmation Modal for Clear All
     $('#btnOpenClearAllModal').on('click', function(e) {
         e.preventDefault();
-        $('#clearAllModal').modal('show');
-    });
-
-    $('#clearAllForm').on('submit', function() {
-        $('#btnConfirmClearAll').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Clearing...');
+        if ($(this).attr('disabled')) return;
+        showMobileConfirm(
+            'Clear All Notifications',
+            'Are you sure you want to permanently clear all notifications? All records will be removed.',
+            function() {
+                $('#clearAllHiddenForm').submit();
+            },
+            '<i class="fa fa-trash"></i> Yes, Clear All',
+            true,
+            'fa-trash text-danger'
+        );
     });
 });
 </script>

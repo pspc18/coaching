@@ -831,6 +831,99 @@
         border-radius: 4px;
         text-decoration: none !important;
     }
+
+    /* Global Native Mobile Confirmation Bottom Sheet (Slide-Up Modal) */
+    .mob-confirm-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 15, 30, 0.72);
+        z-index: 2200;
+        opacity: 0;
+        visibility: hidden;
+        transition: all .2s ease-in-out;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    .mob-confirm-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    .mob-confirm-sheet {
+        position: fixed;
+        bottom: -380px;
+        left: 8px;
+        right: 8px;
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 14px 14px 16px;
+        z-index: 2201;
+        transition: bottom .24s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 -4px 25px rgba(0, 20, 40, 0.35);
+        border: 1px solid #cbd5e1;
+        max-width: 440px;
+        margin: 0 auto;
+    }
+    .mob-confirm-sheet.show {
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+    .mob-confirm-title {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #002C54;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .mob-confirm-desc {
+        font-size: 11.5px;
+        color: #475569;
+        margin-bottom: 14px;
+        line-height: 1.45;
+    }
+    .mob-confirm-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    .mob-btn-cancel-dialog {
+        flex: 1;
+        height: 34px;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background .12s ease;
+    }
+    .mob-btn-cancel-dialog:active {
+        background: #e2e8f0;
+    }
+    .mob-btn-execute-dialog {
+        flex: 1.4;
+        height: 34px;
+        background: #0284c7;
+        color: #ffffff;
+        border: none;
+        border-radius: 4px;
+        font-size: 11.5px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: opacity .12s ease;
+    }
+    .mob-btn-execute-dialog:active {
+        opacity: 0.9;
+    }
+    .mob-btn-execute-dialog.btn-danger-confirm {
+        background: #dc2626 !important;
+    }
     </style>
 
     @yield('styles')
@@ -1338,8 +1431,64 @@ $(document).ready(function() {
             }
         }, { passive: true });
     })();
+
+    // Global Native Mobile Slide-Up Confirmation Modal
+    window._mobOnConfirmCallback = null;
+    window.showMobileConfirm = function(title, message, callback, okText, isDanger, iconClass) {
+        okText = okText || 'Confirm';
+        isDanger = (typeof isDanger === 'undefined') ? false : !!isDanger;
+        iconClass = iconClass || 'fa-question-circle text-primary';
+        window._mobOnConfirmCallback = callback;
+
+        $('#mobGlobalConfirmTitle span').text(title);
+        $('#mobGlobalConfirmTitle i').attr('class', 'fa ' + iconClass);
+        $('#mobGlobalConfirmDesc').html(message);
+        $('#mobGlobalBtnExecuteConfirm').html(okText);
+
+        if (isDanger) {
+            $('#mobGlobalBtnExecuteConfirm').addClass('btn-danger-confirm');
+        } else {
+            $('#mobGlobalBtnExecuteConfirm').removeClass('btn-danger-confirm');
+        }
+
+        $('#mobGlobalConfirmBackdrop').addClass('show');
+        $('#mobGlobalConfirmSheet').addClass('show');
+    };
+
+    window.closeMobileConfirm = function() {
+        $('#mobGlobalConfirmBackdrop').removeClass('show');
+        $('#mobGlobalConfirmSheet').removeClass('show');
+        window._mobOnConfirmCallback = null;
+    };
+
+    $(document).on('click', '#mobGlobalBtnCancelConfirm, #mobGlobalConfirmBackdrop', function() {
+        window.closeMobileConfirm();
+    });
+
+    $(document).on('click', '#mobGlobalBtnExecuteConfirm', function() {
+        var cb = window._mobOnConfirmCallback;
+        window.closeMobileConfirm();
+        if (typeof cb === 'function') {
+            cb();
+        }
+    });
 });
 </script>
+
+{{-- Global Native Mobile Confirmation Bottom Sheet Modal --}}
+<div class="mob-confirm-backdrop" id="mobGlobalConfirmBackdrop"></div>
+<div class="mob-confirm-sheet" id="mobGlobalConfirmSheet">
+    <div class="mob-confirm-title" id="mobGlobalConfirmTitle">
+        <i class="fa fa-question-circle text-primary"></i> <span>Confirm Action</span>
+    </div>
+    <div class="mob-confirm-desc" id="mobGlobalConfirmDesc">
+        Are you sure you want to proceed?
+    </div>
+    <div class="mob-confirm-buttons">
+        <button type="button" class="mob-btn-cancel-dialog" id="mobGlobalBtnCancelConfirm">Cancel</button>
+        <button type="button" class="mob-btn-execute-dialog" id="mobGlobalBtnExecuteConfirm">Confirm</button>
+    </div>
+</div>
 
 @yield('scripts')
 </body>

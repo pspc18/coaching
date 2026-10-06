@@ -1151,16 +1151,23 @@ $(document).ready(function() {
         }
     });
 
-    // Delete Expense Voucher
+    // Delete Expense Voucher (Native Slide-Up Bottom Sheet Confirmation)
     $(document).on('click', '.btn-exp-delete', function() {
         var id = $(this).data('id');
         var voucher = $(this).data('voucher');
         var amount = $(this).data('amount');
 
-        if (confirm('Are you sure you want to delete ' + (voucher ? ('voucher ' + voucher) : 'this expense') + ' (' + amount + ')?')) {
-            $('#mobDeleteId').val(id);
-            $('#mobDeleteForm').submit();
-        }
+        showMobileConfirm(
+            'Delete Expense Voucher',
+            'Are you sure you want to delete ' + (voucher ? ('voucher <b>' + voucher + '</b>') : 'this expense') + ' of amount <b class="text-danger">' + amount + '</b>? This cannot be undone.',
+            function() {
+                $('#mobDeleteId').val(id);
+                $('#mobDeleteForm').submit();
+            },
+            '<i class="fa fa-trash"></i> Yes, Delete',
+            true,
+            'fa-trash text-danger'
+        );
     });
 });
 </script>
