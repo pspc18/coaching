@@ -111,15 +111,27 @@
     white-space: nowrap;
 }
 
-/* Hero Assignment Title (Clean 2-line clamp with expand trigger) */
+/* Hero Assignment Title (Clean slide expand/collapse with interactive chevron toggle) */
 .mob-hero-content-wrap {
     margin-bottom: 7px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 4px;
+    padding: 6px 8px;
 }
 .mob-hero-title-box {
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 8px;
     cursor: pointer;
+}
+.mob-hero-title-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
 }
 .mob-hero-title-icon {
     font-size: 13px;
@@ -128,26 +140,42 @@
     flex-shrink: 0;
 }
 .mob-hero-title-text {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
-    line-height: 1.35;
+    line-height: 1.4;
     color: #ffffff;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    max-height: 34px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    transition: all .15s ease;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    word-break: break-word;
 }
 .mob-hero-title-text.expanded {
-    -webkit-line-clamp: unset;
+    max-height: 400px;
 }
-.mob-hero-expand-hint {
-    font-size: 9px;
+.mob-hero-expand-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
     color: #38bdf8;
-    font-weight: 600;
-    display: inline-block;
-    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.25s ease, background 0.15s ease;
+    padding: 0;
+}
+.mob-hero-expand-btn:active {
+    transform: scale(0.92);
+}
+.mob-hero-expand-btn.expanded i {
+    transform: rotate(180deg);
+}
+.mob-hero-expand-btn i {
+    transition: transform 0.25s ease;
 }
 
 /* Secondary Meta Chips Strip */
@@ -712,13 +740,18 @@
         </div>
     </div>
 
-    {{-- Row 2: Assignment Title with Expand/Collapse --}}
+    {{-- Row 2: Assignment Title with Smooth Expand/Collapse Chevron Button --}}
     <div class="mob-hero-content-wrap">
-        <div class="mob-hero-title-box" id="mobHeroTitleBox" title="Tap to expand/collapse full title">
-            <i class="fa fa-book mob-hero-title-icon"></i>
-            <div class="mob-hero-title-text" id="mobHeroTitleText">
-                {{ $displayTitle }}
+        <div class="mob-hero-title-box" id="mobHeroTitleBox" title="Tap to expand / collapse full assignment topic">
+            <div class="mob-hero-title-left">
+                <i class="fa fa-book mob-hero-title-icon"></i>
+                <div class="mob-hero-title-text" id="mobHeroTitleText">
+                    {{ $displayTitle }}
+                </div>
             </div>
+            <button type="button" class="mob-hero-expand-btn" id="mobHeroExpandBtn" aria-label="Toggle Full Topic">
+                <i class="fa fa-chevron-down"></i>
+            </button>
         </div>
     </div>
 
@@ -1001,9 +1034,11 @@ $(document).ready(function() {
         $('#mobHwInfoSheet').removeClass('show');
     });
 
-    // Toggle Title Expand / Collapse
-    $('#mobHeroTitleBox').on('click', function() {
+    // Toggle Title Expand / Collapse with Animated Chevron
+    $('#mobHeroTitleBox').on('click', function(e) {
+        e.preventDefault();
         $('#mobHeroTitleText').toggleClass('expanded');
+        $('#mobHeroExpandBtn').toggleClass('expanded');
     });
 
     // 2. Client Side Real-time Search & Filter Chips
