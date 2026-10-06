@@ -102,18 +102,18 @@
         --total-header-height: calc(var(--header-height) + var(--safe-top) + var(--app-status-bar-height));
     }
 
-    /* Device / WebView Native App Status Bar adjustments */
+    /* Device / WebView Native App Status Bar adjustments (Higher spacing for punch-hole cameras & notch) */
     body.is-webview,
     body.is-app-webview {
-        --app-status-bar-height: 24px;
+        --app-status-bar-height: 38px;
     }
     body.is-webview.is-ios-webview,
     body.is-app-webview.is-ios-webview {
-        --app-status-bar-height: max(20px, env(safe-area-inset-top, 20px));
+        --app-status-bar-height: max(38px, env(safe-area-inset-top, 38px));
     }
     body.is-webview.is-android-webview,
     body.is-app-webview.is-android-webview {
-        --app-status-bar-height: 24px;
+        --app-status-bar-height: 38px;
     }
 
     * {
