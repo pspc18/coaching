@@ -106,17 +106,24 @@
     text-overflow: ellipsis;
 }
 
-/* Hero Fast Actions Bar */
+/* Hero Fast Actions Bar - Exact 2-Column Full Width Grid */
 .mob-actions-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
+    width: 100%;
+}
+.mob-actions-bar form {
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
 .mob-act-btn {
-    flex: 1;
+    width: 100%;
     height: 32px;
-    padding: 0 10px;
+    padding: 0 8px;
     border-radius: 4px;
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -127,14 +134,16 @@
     cursor: pointer;
     transition: all .12s ease;
     font-family: inherit;
+    box-sizing: border-box;
 }
 .mob-act-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
 }
 .mob-act-btn-readall {
     background: #0284c7;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    border: 1px solid #0284c7;
 }
 .mob-act-btn-clearall {
     background: rgba(255, 255, 255, 0.12);
@@ -409,7 +418,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
 .notif-note-preview {
     font-size: 11px;
@@ -419,17 +428,17 @@
     border-left: 2.5px solid #002C54;
     padding: 5px 8px;
     border-radius: 0 3px 3px 0;
-    line-height: 1.45;
+    line-height: 1.42;
     word-break: break-word;
     white-space: pre-line;
+    margin: 0;
 }
 .notif-note-preview.is-collapsed {
-    max-height: 3.2em;
-    overflow: hidden;
-    position: relative;
-    -webkit-line-clamp: 2;
     display: -webkit-box;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Embedded Complaint Student Info */
@@ -705,18 +714,18 @@
         </div>
     </div>
 
-    {{-- Fast Action Bar --}}
+    {{-- Fast Action Bar - 2-Column Full Width Grid --}}
     <div class="mob-actions-bar">
-        <form method="post" action="{{ route('user.notifications.mark-all-read') }}" class="d-inline" style="flex:1;">
+        <form method="post" action="{{ route('user.notifications.mark-all-read') }}">
             @csrf
-            <button type="submit" class="mob-act-btn mob-act-btn-readall w-100" {{ $unreadCount === 0 ? 'disabled' : '' }}>
+            <button type="submit" class="mob-act-btn mob-act-btn-readall" {{ $unreadCount === 0 ? 'disabled' : '' }}>
                 <i class="fa fa-check-circle"></i> Mark All Read
             </button>
         </form>
-        <form method="post" action="{{ route('user.notifications.clear-all') }}" class="d-inline" style="flex:1;" onsubmit="return confirm('Are you sure you want to clear all notifications?');">
+        <form method="post" action="{{ route('user.notifications.clear-all') }}" onsubmit="return confirm('Are you sure you want to clear all notifications?');">
             @csrf
             @method('DELETE')
-            <button type="submit" class="mob-act-btn mob-act-btn-clearall w-100" {{ $totalCount === 0 ? 'disabled' : '' }}>
+            <button type="submit" class="mob-act-btn mob-act-btn-clearall" {{ $totalCount === 0 ? 'disabled' : '' }}>
                 <i class="fa fa-trash"></i> Clear All
             </button>
         </form>
@@ -760,8 +769,13 @@
     @forelse($notifications as $notification)
         @php
             $isUnread = (int) $notification->message_seen === 0;
-            $content = trim((string) $notification->content);
-            $isLong = mb_strlen($content) > 120 || substr_count($content, "\n") > 2;
+            $rawContent = (string) $notification->content;
+            $rawContent = str_replace("\r", "", $rawContent);
+            $lines = array_values(array_filter(array_map('trim', explode("\n", $rawContent)), function($line) {
+                return $line !== '';
+            }));
+            $content = implode("\n", $lines);
+            $isLong = count($lines) > 3 || mb_strlen($content) > 130;
             $isNotice = $notification->type === 'notice';
             $isApprovalRequest = $notification->type === 'notice_approval_request';
             $managedNotice = $notification->managedNotice;
@@ -823,9 +837,7 @@
 
             {{-- Message Body Box --}}
             <div class="notif-card-body">
-                <div class="notif-note-preview {{ $isLong ? 'is-collapsed' : '' }}" id="user-message-{{ $notification->id }}">
-                    {{ $content ?: 'No notification message available.' }}
-                </div>
+                <div class="notif-note-preview {{ $isLong ? 'is-collapsed' : '' }}" id="user-message-{{ $notification->id }}">{{ $content ?: 'No notification message available.' }}</div>
 
                 {{-- Complaint Embedded Student Row --}}
                 @if($isComplaint && $complaint && $complaintStudent)
@@ -885,6 +897,10 @@
                 @endif
             </div>
 
+            @php
+                $hasCardActions = $isLong || $isUnread || ($isNotice && $notification->managed_notice_id && $notification->attachment_path) || ($isComplaint && $complaint);
+            @endphp
+            @if($hasCardActions)
             {{-- Card Actions Strip --}}
             <div class="notif-card-actions">
                 @if($isLong)
@@ -916,6 +932,7 @@
                     </a>
                 @endif
             </div>
+            @endif
         </article>
     @empty
         <div class="notif-empty-box">
@@ -974,7 +991,13 @@ $(document).ready(function() {
                     $statusBadge.text('Read').removeClass('status-pill-unread').addClass('status-pill-read');
                 }
                 if ($button && $button.hasClass('mob-mark-read-btn')) {
-                    $button.fadeOut(150, function() { $(this).remove(); });
+                    $button.fadeOut(150, function() {
+                        var $actions = $(this).closest('.notif-card-actions');
+                        $(this).remove();
+                        if ($actions.length && $actions.children().length === 0) {
+                            $actions.remove();
+                        }
+                    });
                 }
 
                 // Update Hero and Chip KPI numbers in real-time
