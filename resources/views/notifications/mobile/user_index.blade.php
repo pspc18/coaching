@@ -12,12 +12,14 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - SIGNATURE NATIVE MOBILE NOTIFICATIONS STYLES
-   - Aligned with Arise ERP Mobile Design System (enquiryView, admissionView)
+   ARISE ERP - NATIVE MOBILE NOTIFICATIONS DIRECTORY STYLES
+   - Aligned with Arise ERP Mobile Design System (admissionView, expenseView)
    - Sharp 4px radii, Arise Deep-Navy palette (#001833 -> #002C54)
-   - Native 36px circular avatar badges with contextual accent borders
-   - Mobile-native typography (12px base, 12.5px titles, 10.5px submeta)
-   - Touch-friendly 28px/32px action buttons & instant AJAX feedback
+   - Glassmorphic Hero Card with Live KPI Stats & Micro Subtitles
+   - Compact Search & Horizontal Filter Chips Toolbar
+   - Clean 4px Cards Feed with Color-Coded Accent Borders & Sharp 36px Avatars
+   - Standardized 29px/30px Action Buttons with Theme Palettes
+   - Standardized Micro Badges (8.5px/9px bold)
    ========================================================================== */
 
 /* 1. Glassmorphic Hero Card */
@@ -55,7 +57,7 @@
     font-weight: 700;
 }
 
-/* 3 Metrics Glance Grid */
+/* 3 Metrics Glance Grid - Aligned with expenseView KPI Cards */
 .mob-metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -68,17 +70,24 @@
     border-radius: 4px;
     padding: 6px 4px;
     text-align: center;
+    transition: background .15s ease;
 }
 .mob-metric-tag {
-    font-size: 8.5px;
+    font-size: 8px;
     font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
-    display: block;
-    margin-bottom: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .mob-metric-val {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.1;
@@ -86,6 +95,16 @@
 .mob-metric-val.val-unread { color: #f87171; }
 .mob-metric-val.val-read { color: #4ade80; }
 .mob-metric-val.val-total { color: #38bdf8; }
+.mob-metric-sub {
+    font-size: 8.5px;
+    color: #cbd5e1;
+    font-weight: 600;
+    margin-top: 1px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* Hero Fast Actions Bar */
 .mob-actions-bar {
@@ -107,6 +126,7 @@
     border: none;
     cursor: pointer;
     transition: all .12s ease;
+    font-family: inherit;
 }
 .mob-act-btn:active {
     transform: scale(0.96);
@@ -134,7 +154,57 @@
     padding: 6px 8px;
     margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
+.mob-search-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.mob-search-input-wrap {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+.mob-search-input-wrap i.fa-search {
+    position: absolute;
+    left: 9px;
+    color: #94a3b8;
+    font-size: 11px;
+    pointer-events: none;
+}
+.mob-search-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 28px 0 28px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+    font-family: inherit;
+    transition: all .15s ease;
+}
+.mob-search-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+.mob-search-clear {
+    position: absolute;
+    right: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+    display: none;
+}
+
+/* Horizontal Filter Chips */
 .mob-chips-scroll {
     display: flex;
     gap: 5px;
@@ -147,9 +217,9 @@
     display: none;
 }
 .mob-chip {
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 3px;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     white-space: nowrap;
     border: 1px solid #e2e8f0;
@@ -161,6 +231,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    user-select: none;
 }
 .mob-chip:active {
     transform: scale(0.95);
@@ -173,12 +244,14 @@
 }
 .mob-chip-count {
     font-size: 8.5px;
-    padding: 1px 5px;
+    font-weight: 800;
+    padding: 1px 4px;
     border-radius: 2px;
     background: rgba(0, 0, 0, 0.08);
 }
 .mob-chip.active .mob-chip-count {
     background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
 }
 .mob-chip-count.badge-unread {
     background: #fee2e2;
@@ -195,6 +268,7 @@
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
+    padding-bottom: 40px;
 }
 .notif-mob-card {
     background: #ffffff;
@@ -203,8 +277,8 @@
     padding: 9px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    transition: border-color .12s ease, background-color .12s ease;
-    border-left: 3.5px solid #94a3b8;
+    transition: all .15s ease;
+    border-left: 3.5px solid #cbd5e1;
 }
 .notif-mob-card.border-notice { border-left-color: #d97706; }
 .notif-mob-card.border-complaint { border-left-color: #dc2626; }
@@ -212,9 +286,10 @@
 .notif-mob-card.border-default { border-left-color: #0284c7; }
 .notif-mob-card.is-unread {
     background: #fbfcfe;
+    border-color: #bae6fd;
 }
 
-/* Header & Avatar */
+/* Card Header */
 .notif-card-header {
     display: flex;
     align-items: center;
@@ -226,32 +301,32 @@
 .notif-avatar-box {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
     flex-shrink: 0;
-    border: 1.5px solid #cbd5e1;
+    border: 1px solid #cbd5e1;
 }
 .notif-avatar-box.avatar-notice {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    background: #fef3c7;
     color: #b45309;
     border-color: #fde68a;
 }
 .notif-avatar-box.avatar-complaint {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background: #fee2e2;
     color: #dc2626;
     border-color: #fecaca;
 }
 .notif-avatar-box.avatar-approval {
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    background: #e0e7ff;
     color: #4338ca;
     border-color: #c7d2fe;
 }
 .notif-avatar-box.avatar-default {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    background: #e0f2fe;
     color: #0284c7;
     border-color: #bae6fd;
 }
@@ -264,7 +339,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
+    gap: 6px;
 }
 .notif-mob-title {
     font-size: 12.5px;
@@ -284,10 +359,12 @@
     flex-wrap: wrap;
 }
 .notif-type-badge {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 800;
-    padding: 1px 5px;
+    padding: 1.5px 5px;
     border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
 }
 .notif-type-badge.badge-notice { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
 .notif-type-badge.badge-complaint { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
@@ -296,7 +373,7 @@
 
 .mob-date-badge {
     font-size: 9.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: #64748b;
     display: inline-flex;
     align-items: center;
@@ -305,28 +382,29 @@
 
 /* Status Badges */
 .mob-status-pill {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 800;
     padding: 2px 6px;
-    border-radius: 3px;
+    border-radius: 2px;
     text-transform: uppercase;
+    letter-spacing: .02em;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
     gap: 3px;
 }
 .status-pill-unread {
-    background: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid #bae6fd;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
 }
 .status-pill-read {
-    background: #f1f5f9;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
 }
 
-/* Card Body Rows */
+/* Card Body */
 .notif-card-body {
     display: flex;
     flex-direction: column;
@@ -335,17 +413,18 @@
 }
 .notif-note-preview {
     font-size: 11px;
-    color: #334155;
+    font-weight: 500;
+    color: #1e293b;
     background: #f8fafc;
     border-left: 2.5px solid #002C54;
-    padding: 4px 7px;
+    padding: 5px 8px;
     border-radius: 0 3px 3px 0;
     line-height: 1.45;
     word-break: break-word;
     white-space: pre-line;
 }
 .notif-note-preview.is-collapsed {
-    max-height: 3.1em;
+    max-height: 3.2em;
     overflow: hidden;
     position: relative;
     -webkit-line-clamp: 2;
@@ -353,11 +432,11 @@
     -webkit-box-orient: vertical;
 }
 
-/* Embedded Complaint Student Info Row */
+/* Embedded Complaint Student Info */
 .mob-complaint-box {
     margin-top: 4px;
     padding: 6px 8px;
-    background: #ffffff;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 3px;
     display: flex;
@@ -374,7 +453,7 @@
 .mob-student-avatar-mini {
     width: 26px;
     height: 26px;
-    border-radius: 50%;
+    border-radius: 3px;
     background: #e0f2fe;
     color: #0284c7;
     display: flex;
@@ -407,6 +486,7 @@
     font-size: 9px;
     color: #64748b;
     line-height: 1.1;
+    font-weight: 600;
 }
 .mob-complaint-right {
     text-align: right;
@@ -424,7 +504,7 @@
     color: #64748b;
 }
 
-/* Inline Notice Review Box (Admin Role 1) */
+/* Inline Review Box (Admin Role 1) */
 .mob-review-box {
     margin-top: 6px;
     padding: 7px 8px;
@@ -443,8 +523,8 @@
 }
 .mob-review-textarea {
     width: 100%;
-    height: 42px;
-    padding: 4px 6px;
+    height: 44px;
+    padding: 5px 7px;
     font-size: 11px;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
@@ -452,6 +532,7 @@
     margin-bottom: 5px;
     outline: none;
     font-family: inherit;
+    font-weight: 500;
 }
 .mob-review-textarea:focus {
     border-color: #0284c7;
@@ -462,10 +543,10 @@
 }
 .mob-review-btn {
     flex: 1;
-    height: 26px;
+    height: 28px;
     border: none;
     border-radius: 3px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -473,23 +554,24 @@
     gap: 4px;
     cursor: pointer;
     color: #ffffff;
+    font-family: inherit;
 }
 .mob-review-btn-approve { background: #16a34a; }
 .mob-review-btn-reject { background: #dc2626; }
 
-/* Card Action Strip (Same 28px buttons as enquiryView) */
+/* Card Actions Strip - 29px/30px standardized across admissionView & expenseView */
 .notif-card-actions {
     display: flex;
-    gap: 4px;
+    gap: 5px;
     border-top: 1px solid #f1f5f9;
     padding-top: 6px;
     align-items: center;
 }
 .notif-act-btn {
     flex: 1;
-    height: 28px;
-    border-radius: 3px;
-    font-size: 10.5px;
+    height: 29px;
+    border-radius: 4px;
+    font-size: 11px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -502,70 +584,72 @@
     cursor: pointer;
     transition: all .1s ease;
     white-space: nowrap;
+    font-family: inherit;
 }
 .notif-act-btn:active {
     transform: scale(0.96);
 }
 .notif-act-btn.btn-read {
-    background: #f0fdf4;
-    border-color: #86efac;
-    color: #16a34a;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
     flex: 1.1;
 }
 .notif-act-btn.btn-toggle {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #2563eb;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #334155;
     flex: 1.1;
 }
 .notif-act-btn.btn-pdf {
     background: #fef2f2;
     border-color: #fecaca;
     color: #dc2626;
-    flex: 1.1;
+    flex: 1;
 }
 .notif-act-btn.btn-ticket {
-    background: #0284c7;
-    border-color: #0284c7;
+    background: #002C54;
+    border-color: #002C54;
     color: #ffffff !important;
     flex: 1.2;
 }
 .notif-act-btn.btn-student {
     background: #f8fafc;
-    color: #475569;
-    flex: 0.9;
+    border-color: #cbd5e1;
+    color: #0284c7;
+    flex: 1;
 }
 
 /* Empty State */
 .notif-empty-box {
     text-align: center;
-    padding: 42px 16px;
+    padding: 38px 16px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     color: #64748b;
 }
 .notif-empty-box i {
-    font-size: 32px;
+    font-size: 28px;
     color: #cbd5e1;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
 .notif-empty-box h4 {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
     color: #002C54;
     margin-bottom: 2px;
 }
 .notif-empty-box p {
-    font-size: 11px;
+    font-size: 10.5px;
     color: #64748b;
     margin: 0;
 }
 
-/* Pagination Wrap */
+/* Pagination Wrap with clearance for bottom navigation dock */
 .notif-pagination-wrap {
-    margin-top: 6px;
-    margin-bottom: 24px;
+    margin-top: 8px;
+    margin-bottom: calc(var(--bottom-nav-height, 52px) + 20px);
     display: flex;
     justify-content: center;
 }
@@ -605,16 +689,19 @@
     {{-- Metrics Glance Grid --}}
     <div class="mob-metrics-grid">
         <div class="mob-metric-box">
-            <span class="mob-metric-tag">Total</span>
+            <span class="mob-metric-tag"><i class="fa fa-bell-o text-info"></i> Total</span>
             <span class="mob-metric-val val-total" id="metricTotalVal">{{ $totalCount }}</span>
+            <span class="mob-metric-sub">All Received</span>
         </div>
         <div class="mob-metric-box">
-            <span class="mob-metric-tag">Unread</span>
+            <span class="mob-metric-tag"><i class="fa fa-envelope-o text-danger"></i> Unread</span>
             <span class="mob-metric-val val-unread" id="metricUnreadVal">{{ $unreadCount }}</span>
+            <span class="mob-metric-sub">Requires Action</span>
         </div>
         <div class="mob-metric-box">
-            <span class="mob-metric-tag">Read</span>
+            <span class="mob-metric-tag"><i class="fa fa-check-circle-o text-success"></i> Read</span>
             <span class="mob-metric-val val-read" id="metricReadVal">{{ $readCount }}</span>
+            <span class="mob-metric-sub">Archived</span>
         </div>
     </div>
 
@@ -643,8 +730,15 @@
     </div>
 @endif
 
-{{-- 2. Horizontal Filter Chips Toolbar --}}
+{{-- 2. Compact Search & Filter Toolbar --}}
 <div class="mob-filter-toolbar">
+    <div class="mob-search-row">
+        <div class="mob-search-input-wrap">
+            <i class="fa fa-search"></i>
+            <input type="text" id="notifSearchInput" class="mob-search-input" placeholder="Search notifications by title or text..." autocomplete="off">
+            <i class="fa fa-times mob-search-clear" id="notifSearchClear"></i>
+        </div>
+    </div>
     <div class="mob-chips-scroll">
         <a href="{{ url('user-notifications?filter=all') }}" class="mob-chip {{ $filter === 'all' ? 'active' : '' }}">
             <span>All</span>
@@ -923,6 +1017,25 @@ $(document).ready(function() {
         var id = $(this).data('id');
         var readUrl = $(this).data('read-url');
         markAsRead(id, readUrl, $(this));
+    });
+
+    // Real-time client-side search filtering
+    $('#notifSearchInput').on('input', function() {
+        var query = ($(this).val() || '').toLowerCase().trim();
+        if (query.length > 0) {
+            $('#notifSearchClear').show();
+            $('.notif-mob-card').each(function() {
+                var text = $(this).text().toLowerCase();
+                $(this).toggle(text.indexOf(query) !== -1);
+            });
+        } else {
+            $('#notifSearchClear').hide();
+            $('.notif-mob-card').show();
+        }
+    });
+
+    $('#notifSearchClear').on('click', function() {
+        $('#notifSearchInput').val('').trigger('input');
     });
 });
 </script>
