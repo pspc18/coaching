@@ -259,6 +259,7 @@
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
+    padding-bottom: 54px;
 }
 .exp-mob-card {
     background: #ffffff;
@@ -523,63 +524,91 @@
     background: #fee2e2;
 }
 
-/* 4. Native Pagination Toolbar (matching enquiryView) */
-.mob-pagination-toolbar {
-    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+/* 4. Compact Fixed Bottom Pagination Bar (Reference: admissionView) */
+.mob-pagination-bar {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height, 52px) + var(--safe-bottom, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    z-index: 990;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 24px;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 44, 84, 0.2);
+    margin-bottom: 0;
+    box-shadow: 0 -2px 10px rgba(0, 44, 84, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
-.mob-page-info {
-    font-size: 10px;
-    font-weight: 700;
-    color: #cbd5e1;
+.mob-pagination-info {
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 600;
 }
-.mob-page-info strong {
-    color: #ffffff;
+.mob-pagination-info b,
+.mob-pagination-info strong {
+    color: #002C54;
+    font-weight: 800;
 }
-.mob-page-nav {
+.mob-pagination-btns {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 .mob-per-page-select {
-    height: 26px;
+    height: 28px;
     padding: 0 4px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
-    border-radius: 3px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #1e293b;
     outline: none;
+    cursor: pointer;
 }
 .mob-per-page-select option {
-    background: #002C54;
-    color: #ffffff;
+    background: #ffffff;
+    color: #1e293b;
+}
+.mob-page-indicator {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #002C54;
+    padding: 0 4px;
+    min-width: 28px;
+    text-align: center;
 }
 .mob-page-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    font-size: 10px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    text-decoration: none !important;
+    transition: all .12s ease;
 }
-.mob-page-btn.disabled {
+.mob-page-btn:disabled, .mob-page-btn.disabled {
     opacity: 0.35;
+    cursor: not-allowed;
     pointer-events: none;
+}
+.mob-page-btn:not(:disabled):not(.disabled):active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: scale(0.94);
 }
 
 /* 5. Mobile Filter Bottom Sheet */
@@ -795,23 +824,24 @@
     ])
 </div>
 
-{{-- 4. Pinned Native Pagination Toolbar --}}
-<div class="mob-pagination-toolbar" id="mobPaginationBar">
-    <div class="mob-page-info">
-        Showing <strong id="mobPageFrom">{{ $totalCount > 0 ? ($startIndex + 1) : 0 }}</strong> to <strong id="mobPageTo">{{ min($startIndex + count($data), $totalCount) }}</strong> of <strong id="mobPageTotal">{{ $totalCount }}</strong>
+{{-- 4. Compact Fixed Bottom Pagination Bar (Reference: admissionView) --}}
+<div class="mob-pagination-bar" id="mobPaginationBar" style="{{ ($totalCount == 0) ? 'display:none;' : '' }}">
+    <div class="mob-pagination-info">
+        Showing <b id="mobPageFrom">{{ $totalCount > 0 ? ($startIndex + 1) : 0 }}</b> - <b id="mobPageTo">{{ min($startIndex + count($data), $totalCount) }}</b> of <b id="mobPageTotal">{{ $totalCount }}</b>
     </div>
-    <div class="mob-page-nav">
-        <select class="mob-per-page-select" id="mobPerPageSelect">
+    <div class="mob-pagination-btns">
+        <select class="mob-per-page-select" id="mobPerPageSelect" title="Rows per page">
             <option value="15" {{ ($perPage == 15) ? 'selected' : '' }}>15</option>
             <option value="25" {{ ($perPage == 25 || empty($perPage)) ? 'selected' : '' }}>25</option>
             <option value="50" {{ ($perPage == 50) ? 'selected' : '' }}>50</option>
             <option value="100" {{ ($perPage == 100) ? 'selected' : '' }}>100</option>
             <option value="all" {{ ($perPage === 'all' || $perPage == -1) ? 'selected' : '' }}>All</option>
         </select>
-        <button type="button" class="mob-page-btn {{ $currentPage <= 1 ? 'disabled' : '' }}" id="mobBtnPrevPage" title="Previous Page">
+        <button type="button" class="mob-page-btn {{ $currentPage <= 1 ? 'disabled' : '' }}" id="mobBtnPrevPage" title="Previous Page" {{ $currentPage <= 1 ? 'disabled' : '' }}>
             <i class="fa fa-chevron-left"></i>
         </button>
-        <button type="button" class="mob-page-btn {{ $currentPage >= $lastPage ? 'disabled' : '' }}" id="mobBtnNextPage" title="Next Page">
+        <span class="mob-page-indicator" id="mobPageIndicator">{{ $currentPage }} / {{ $lastPage }}</span>
+        <button type="button" class="mob-page-btn {{ $currentPage >= $lastPage ? 'disabled' : '' }}" id="mobBtnNextPage" title="Next Page" {{ $currentPage >= $lastPage ? 'disabled' : '' }}>
             <i class="fa fa-chevron-right"></i>
         </button>
     </div>
@@ -973,8 +1003,8 @@ $(document).ready(function() {
     }
 
     // High Performance AJAX Engine
-    function fetchExpenseData(pageToLoad) {
-        if (pageToLoad) currentPage = pageToLoad;
+    function fetchExpenseData(pageToLoad, shouldScroll) {
+        if (pageToLoad) currentPage = parseInt(pageToLoad) || 1;
         var params = gatherFilterParams(currentPage);
 
         $('#mobFeedLoader').show();
@@ -993,14 +1023,25 @@ $(document).ready(function() {
                 $('#expenseCardsContainer').css('opacity', '1').html(res.html);
 
                 // Update Pagination Numbers
-                currentPage = res.current_page;
-                lastPage = res.last_page;
-                $('#mobPageFrom').text(res.from || 0);
-                $('#mobPageTo').text(res.to || 0);
-                $('#mobPageTotal').text(res.total || 0);
+                currentPage = parseInt(res.current_page) || 1;
+                lastPage = parseInt(res.last_page) || 1;
+                var total = parseInt(res.total) || 0;
+                var from = parseInt(res.from) || 0;
+                var to = parseInt(res.to) || 0;
 
-                $('#mobBtnPrevPage').toggleClass('disabled', currentPage <= 1);
-                $('#mobBtnNextPage').toggleClass('disabled', currentPage >= lastPage);
+                $('#mobPageFrom').text(from);
+                $('#mobPageTo').text(to);
+                $('#mobPageTotal').text(total);
+                $('#mobPageIndicator').text(currentPage + ' / ' + lastPage);
+
+                $('#mobBtnPrevPage').prop('disabled', currentPage <= 1).toggleClass('disabled', currentPage <= 1);
+                $('#mobBtnNextPage').prop('disabled', currentPage >= lastPage).toggleClass('disabled', currentPage >= lastPage);
+
+                if (total <= 0) {
+                    $('#mobPaginationBar').hide();
+                } else {
+                    $('#mobPaginationBar').show();
+                }
 
                 // Update Hero KPIs
                 if (res.stats) {
@@ -1018,7 +1059,7 @@ $(document).ready(function() {
                 }
 
                 // Smooth scroll to top of list if paging
-                if (pageToLoad && pageToLoad > 1) {
+                if (shouldScroll) {
                     $('html, body').animate({ scrollTop: $('#expenseCardsContainer').offset().top - 80 }, 200);
                 }
             },
@@ -1092,18 +1133,21 @@ $(document).ready(function() {
 
     // Pagination controls
     $('#mobPerPageSelect').on('change', function() {
-        fetchExpenseData(1);
+        currentPage = 1;
+        fetchExpenseData(1, true);
     });
 
-    $('#mobBtnPrevPage').on('click', function() {
-        if (currentPage > 1) {
-            fetchExpenseData(currentPage - 1);
+    $('#mobBtnPrevPage').on('click', function(e) {
+        e.preventDefault();
+        if (currentPage > 1 && !$(this).hasClass('disabled')) {
+            fetchExpenseData(currentPage - 1, true);
         }
     });
 
-    $('#mobBtnNextPage').on('click', function() {
-        if (currentPage < lastPage) {
-            fetchExpenseData(currentPage + 1);
+    $('#mobBtnNextPage').on('click', function(e) {
+        e.preventDefault();
+        if (currentPage < lastPage && !$(this).hasClass('disabled')) {
+            fetchExpenseData(currentPage + 1, true);
         }
     });
 
