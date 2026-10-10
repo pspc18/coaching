@@ -92,7 +92,7 @@ $roleName = DB::table('role')->whereNull('deleted_at')->find(Session::get('role_
                             @if(!empty($noticeBoard))
                             @foreach($noticeBoard as $item)
                                 <li class="">
-                                    <a href="{{ url('notice_board/view') }}">
+                                    <a href="{{ url('notice-management') }}">
                                     <span class="text text-dark">{{ $item->title ?? '' }}</span>
                                     <small class="badge badge-danger"><i class="fa fa-envelope-o"></i> New</small>
                                     </a>

@@ -149,7 +149,7 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
            @foreach($noticeBoard as $item)
         
            <li class="">
-             <a target='blank' href="{{ url('notice_board/view') }}/{{$item->id}}">
+             <a href="{{ url('student-notices') }}">
                   <span class="text font-weight-bold"> {!! html_entity_decode($item->title ?? '', ENT_QUOTES, 'UTF-8') !!} </span><br>
                   <span class="text text-dark"> {!! html_entity_decode($item->message ?? '', ENT_QUOTES, 'UTF-8') !!} </span>
                    <small class="badge badge-danger"><i class="fa fa-envelope-o"></i>
@@ -204,7 +204,7 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
             </div>
             
             <div class="col-3 mt-3">
-                <a href="{{ url('notice_board/view/0')}}" class="text-dark">
+                <a href="{{ url('student-notices') }}" class="text-dark">
                     <div class="dashboard-card bg-green text-white">
                         <i class="fa fa-envelope"></i>
                     </div>

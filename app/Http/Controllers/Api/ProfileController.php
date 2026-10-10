@@ -8,7 +8,7 @@ use App\Models\Master\Rule;
 use App\Models\Master\SchoolDesk;
 use App\Models\Master\Prayer;
 use App\Models\Master\GatePass;
-use App\Models\Master\NoticeBoard;
+use App\Models\ManagedNotice;
 use App\Models\Admission;
 use App\Models\StudentAttendance;
 use App\Models\Teacher;
@@ -211,16 +211,19 @@ class ProfileController extends BaseController
 }
       public function noticeBoard(Request $request){
     
-    $data = NoticeBoard::where('role_id',3)->whereDate('to_date', '>=', date("Y-m-d"))->whereDate('from_date', '<=', date("Y-m-d"))->orderBy('id','DESC')->get();
-    //   $data = NoticeBoard::where('role_id',3)->whereDate('from_date', '<=', date('Y-m-d'))->whereDate('to_date', '>=', date('Y-m-d'))->get();
-           if(!empty($data))
-            {
-                  return $this->sendResponseData($data, 'success');
-            }
-            else
-            {
-                  return $this->sendError('Validation Error.', 'Error');
-            }
+        $data = ManagedNotice::where('status', 'approved')
+            ->whereDate('to_date', '>=', date("Y-m-d"))
+            ->whereDate('from_date', '<=', date("Y-m-d"))
+            ->orderBy('id','DESC')
+            ->get();
+        if(!empty($data))
+        {
+            return $this->sendResponseData($data, 'success');
+        }
+        else
+        {
+            return $this->sendError('Validation Error.', 'Error');
+        }
 }
 
 public function schoolGallery(Request $request){

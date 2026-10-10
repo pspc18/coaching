@@ -72,7 +72,6 @@ use App\Models\Master\MessageContent;
 use App\Models\Master\MessageType;
 use App\Models\Expense;
 use App\Models\Master\SidebarPermission;
-use App\Models\Master\NoticeBoard;
 use App\Models\Master\HomeworkReview;
 use App\Models\Master\HomeworkDocuments;
 use App\Models\exam\ExamResultDetail;
@@ -172,6 +171,27 @@ class Helper{
             Cache::forget('dashboard_admin_' . $branchId . '_' . $sessionId . '_' . $today);
             Cache::forget('notice_board_' . $branchId . '_' . $sessionId . '_' . $today);
         }
+    }
+
+    public static function noticeBoard()
+    {
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+        $today = date('Y-m-d');
+        $cacheKey = 'notice_board_' . $branchId . '_' . $sessionId . '_' . $today;
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($branchId, $sessionId, $today) {
+            $query = \App\Models\ManagedNotice::where('status', 'approved')
+                ->whereDate('to_date', '>=', $today)
+                ->whereDate('from_date', '<=', $today);
+            if (!empty($branchId)) {
+                $query->where('branch_id', $branchId);
+            }
+            if (!empty($sessionId)) {
+                $query->where('session_id', $sessionId);
+            }
+            return $query->orderBy('id', 'DESC')->get();
+        });
     }
 
     public static function clearComplaintCache($branchId = null, $sessionId = null)

@@ -220,7 +220,7 @@
                         <div class="dash-card-body p-0 d-flex flex-column dash-card-body-fixed">
                             <div class="dash-feed-list">
                                 @forelse($notices as $notice)
-                                    <a href="{{ url('notice_board/viewid') }}/{{ $notice->id }}" class="dash-feed-item">
+                                    <a href="{{ url('notice-management') }}" class="dash-feed-item">
                                         <span class="feed-badge bg-warning"><i class="fa fa-bell-o"></i></span>
                                         <div class="feed-content">
                                             <span class="feed-title">{{ strip_tags(html_entity_decode($notice->title . ' ' . $notice->message)) }}</span>

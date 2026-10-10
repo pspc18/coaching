@@ -35,7 +35,6 @@ use App\Models\Master\HomeworkReview;
 
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;
-use App\Models\Master\NoticeBoard;
 use App\Models\Master\Penalty;
 use App\Models\Master\Prayer;
 use App\Models\Master\RecycleBin;
@@ -143,7 +142,6 @@ class BranchController extends Controller
         HomeworkReview::where('branch_id',$request->delete_id)->delete();
         HourlyHomework::where('branch_id',$request->delete_id)->delete();
         LeaveManagement::where('branch_id',$request->delete_id)->delete();
-        NoticeBoard::where('branch_id',$request->delete_id)->delete();
         Penalty::where('branch_id',$request->delete_id)->delete();
         Prayer::where('branch_id',$request->delete_id)->delete();
         RecycleBin::where('branch_id',$request->delete_id)->delete();

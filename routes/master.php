@@ -71,14 +71,6 @@ Route::match(['get','post'],'messageTemplate', 'master\message\MessageTemplateCo
 Route::match(['get','post'],'messageTemplateEdit/{id}', 'master\message\MessageTemplateController@messageTemplateEdit');
 Route::match(['get','post'],'messageTemplateDelete', 'master\message\MessageTemplateController@messageTemplateDelete');
 
-
-//NoticeBoardController
- Route::match(['get','post'],'notice_board/view', 'master\NoticeBoardController@view');
- Route::match(['get','post'],'notice_board/viewid/{id?}', 'master\NoticeBoardController@viewid');
- Route::match(['get','post'],'notice_board/add', 'master\NoticeBoardController@add');
- Route::match(['get','post'],'notice_board/delete', 'master\NoticeBoardController@delete');
- Route::match(['get','post'],'notice_board/edit/{id}', 'master\NoticeBoardController@edit');
-
 // Notice Management (recipient targeting + admin approval)
  Route::get('notice-management', 'master\NoticeManagementController@index');
  Route::get('notice-management/create', 'master\NoticeManagementController@create');

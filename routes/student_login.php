@@ -32,7 +32,6 @@ Route::group(['middleware' => 'islogin'], function () {
     Route::match(['get', 'post'], 'student_study_material', 'student_login\DownloadCenterController@studyMaterials');
     Route::match(['get', 'post'], 'student_other_downloads', 'student_login\DownloadCenterController@otherDownloads');
     Route::match(['get', 'post'], 'student_download_center', 'student_login\DownloadCenterController@student_download_center');
-    Route::match(['get','post'],'notice_board_student/{id}', 'student_login\NoticeBoardController@view');
     Route::get('student-notices', 'student_login\StudentNoticeController@index')
         ->name('student.notices.index');
     Route::get('student-complaints', 'student_login\SupportComplaintController@index');

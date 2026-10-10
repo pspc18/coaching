@@ -37,7 +37,6 @@ use App\Models\Master\HourlyHomework;
 use App\Models\Master\LeaveManagement;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;
-use App\Models\Master\NoticeBoard;
 use App\Models\Master\Penalty;
 use App\Models\Master\Prayer;
 use App\Models\Master\RecycleBin;
@@ -294,7 +293,6 @@ class SessionsController extends Controller
             HomeworkReview::where('session_id', $deleteId)->delete();
             HourlyHomework::where('session_id', $deleteId)->delete();
             LeaveManagement::where('session_id', $deleteId)->delete();
-            NoticeBoard::where('session_id', $deleteId)->delete();
             Penalty::where('session_id', $deleteId)->delete();
             Prayer::where('session_id', $deleteId)->delete();
             RecycleBin::where('session_id', $deleteId)->delete();

@@ -598,7 +598,6 @@ class AuthController extends Controller
             DB::table('mess_fees_strucher')->truncate();
             DB::table('mess_food_categorys')->truncate();
             DB::table('mess_food_routine')->truncate();
-            DB::table('notice_board')->truncate();
             DB::table('online_payment_transactions')->truncate();
             DB::table('pelantys')->truncate();
             DB::table('permission_managements')->truncate();

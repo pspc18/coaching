@@ -17,7 +17,7 @@
                 </div>
                 <div class="hero-actions">
                     <a href="{{ url('attendance/mark') }}" class="btn btn-light btn-sm"><i class="fa fa-check-square mr-1"></i> Attendance</a>
-                    <a href="{{ url('notice_board/view') }}" class="btn btn-outline-light btn-sm"><i class="fa fa-bullhorn mr-1"></i> Notices</a>
+                    <a href="{{ url('notice-management') }}" class="btn btn-outline-light btn-sm"><i class="fa fa-bullhorn mr-1"></i> Notices</a>
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="col-6 col-sm-6 col-xl-2 mb-3">
-                    <a class="metric-card metric-dark" href="{{ url('notice_board/view') }}">
+                    <a class="metric-card metric-dark" href="{{ url('notice-management') }}">
                         <span class="metric-icon"><i class="fa fa-bullhorn"></i></span>
                         <span class="metric-label">Notices</span>
                         <strong>{{ number_format((int) ($teacherNoticeCount ?? 0)) }}</strong>
@@ -167,7 +167,7 @@
                         </div>
                         <div class="card-body pt-0 dashboard-list">
                             @forelse($teacherNotices as $notice)
-                                <a href="{{ url('notice_board/view') }}" class="feed-item">
+                                <a href="{{ url('notice-management') }}" class="feed-item">
                                     <span class="feed-dot bg-warning"></span>
                                     <span>{{ \Illuminate\Support\Str::limit(strip_tags((string) ($notice->title ?? 'Notice') . ' ' . (string) ($notice->message ?? '')), 70) }}</span>
                                     <small>{{ optional($notice->published_at)->format('d M') ?? 'View' }}</small>
