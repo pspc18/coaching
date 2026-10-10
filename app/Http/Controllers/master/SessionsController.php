@@ -23,7 +23,6 @@ use App\Models\fees\FeesCounter;
 use App\Models\fees\FeesAssignDetail;
 use App\Models\Setting;
 use App\Models\Master\Branch;
-use App\Models\Master\BooksUniformShop;
 use App\Models\Master\EmailRecords;
 use App\Models\Master\EmailTamplate;
 use App\Models\Master\EnquiryStatus;
@@ -283,7 +282,6 @@ class SessionsController extends Controller
             ExamOffline::where('session_id', $deleteId)->delete();
             FeesAssign::where('session_id', $deleteId)->delete();
             FeesAssignDetail::where('session_id', $deleteId)->delete();
-            BooksUniformShop::where('session_id', $deleteId)->delete();
             EventManagement::where('session_id', $deleteId)->delete();
             GatePass::where('session_id', $deleteId)->delete();
             Holidays::where('session_id', $deleteId)->delete();

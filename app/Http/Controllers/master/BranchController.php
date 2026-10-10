@@ -22,7 +22,6 @@ use App\Models\fees\FeesCounter;
 use App\Models\fees\FeesAssignDetail;
 use App\Models\Setting;
 use App\Models\Master\Branch;
-use App\Models\Master\BooksUniformShop;
 use App\Models\Master\EmailRecords;
 use App\Models\Master\EmailTamplate;
 use App\Models\Master\EnquiryStatus;
@@ -132,7 +131,6 @@ class BranchController extends Controller
        // ExamOffline::where('branch_id',$request->delete_id)->delete();
         FeesAssign::where('branch_id',$request->delete_id)->delete();
         FeesAssignDetail::where('branch_id',$request->delete_id)->delete();
-        BooksUniformShop::where('branch_id',$request->delete_id)->delete();
         EventManagement::where('branch_id',$request->delete_id)->delete();
         GatePass::where('branch_id',$request->delete_id)->delete();
         Holidays::where('branch_id',$request->delete_id)->delete();

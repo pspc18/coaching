@@ -523,7 +523,6 @@ class AuthController extends Controller
             DB::table('assign_questions')->truncate();
             DB::table('bill_counters')->truncate();
             DB::table('birthday_wishes')->truncate();
-            DB::table('books_uniform_shops')->truncate();
             DB::table('book_invoices')->truncate();
             DB::table('branch')->truncate();
             DB::table('bus')->truncate();

@@ -21,11 +21,6 @@ Route::match(['get'],'master_dashboard', 'master\DashboardController@dashboard')
  Route::match(['get','post'],'add_subject', 'master\SubjectController@add');
  Route::match(['get','post'],'multi_edit_subject', 'master\SubjectController@multiEditSubjects');
 
-//Book uniform controller
-Route::match(['get','post'],'books_uniform_view', 'master\BooksUniformController@view');
- Route::match(['get','post'],'books_uniform_edit/{id}', 'master\BooksUniformController@edit');
-  Route::match(['get','post'],'books_uniform_delete', 'master\BooksUniformController@delete');
-  Route::match(['get','post'],'books_uniform_add', 'master\BooksUniformController@add');
 
 //Branch
 Route::match(['get','post'],'viewBranch', 'master\BranchController@viewBranch');
@@ -243,7 +238,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
     
     
     
-//BooksUniformController    
     
     
    

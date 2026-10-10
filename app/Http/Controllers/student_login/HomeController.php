@@ -7,7 +7,6 @@ use App\Models\Master\Rule;
 use App\Models\Admission;
 use App\Models\Teacher;
 use App\Models\Master\TeacherSubject;
-use App\Models\Master\BooksUniformShop;
 use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
 use App\Models\Master\Uniform;
@@ -105,10 +104,6 @@ class HomeController extends Controller
                 return view('student_login.uniform', ['data' => $data]);
             }
             
-             public function booksView(Request $request){
-                $data = BooksUniformShop::where('branch_id',Session::get('branch_id'))->orderBy('id','DESC')->get();
-                return view('student_login.books',['data'=>$data]);
-            }
             
             
             public function my_id_card(Request $request){
