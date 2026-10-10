@@ -516,14 +516,7 @@ if ($student_marks == 'AB') {
 			  
 			     @foreach($list_exam as $item)
 			      	     @php
-		 	 $scholastic_exams =    DB::table('performance_marks')->where('term_id',$item->id)->where('admission_id',$admission_id->id)
-		 	 ->where('performance',0)
-		 	 ->where('session_id',Session::get('session_id'))
-                                    ->where('branch_id',Session::get('branch_id'))
-                                    ->where('deleted_at',null)
-                                    ->first();
-			    
-			 
+		 	 $scholastic_exams = null;
 			    @endphp
 			      	   
 			      	  @if(!empty($scholastic_exams))
@@ -540,12 +533,7 @@ if ($student_marks == 'AB') {
 			 	       @foreach($list_exam as $item)
 			      	     @php
 			      	     
-		 	 $scholastic_number =    DB::table('performance_marks')->where('term_id',$item->id)->where('admission_id',$admission_id->id)
-		 	 ->where('performance',0)
-		 	 ->where('session_id',Session::get('session_id'))
-                                    ->where('branch_id',Session::get('branch_id'))
-                                    ->where('deleted_at',null)
-                                    ->get();
+		 	 $scholastic_number = collect([]);
                                     
                                   
 	

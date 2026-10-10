@@ -29,7 +29,6 @@ use App\Models\TotalDays;
 use App\Models\WhatsappApiResponse;
 use App\Models\StudentAttendance;
 use App\Models\Master\TeacherSubject; 
-use App\Models\examoffline\PerformanceMarks;
 use App\Models\TeacherAttendance;
 use App\Models\Month;
 use App\Models\FeesReminder;
@@ -1599,32 +1598,7 @@ protected static function activeStudentAttendanceIndex(): array
 }
        public static function getPerformaceOtherSubjets($admission_id,$class_type_id)
 {
-    
-    $clsOrder = ClassType::where('id',$class_type_id)->first();
-    $streams = [];
-    if($clsOrder->orderBy > 10)
-    {
-        $student = Admission::where('id',$admission_id)->first();
-        
-        if(!empty($student))
-        {
-            $streams = explode(',',($student->stream_subject ?? ''));
-            
-        }
-          $subject = PerformanceMarks::where('session_id',Session::get('session_id'))->where('admission_id',$admission_id)->whereIn('subject_id',$streams)->groupBy('subject_id')->pluck('subject_id')->implode(',');
-
-    }
-    else
-    {
-       $subject = PerformanceMarks::where('session_id',Session::get('session_id'))->where('admission_id',$admission_id)->groupBy('subject_id')->pluck('subject_id')->implode(',');
-     
-    }
-    
-    
-
-    
-    
-    return explode(',',$subject);
+    return [];
 }
        public static function getPerformaceSubjectsName($subject_ids)
 {
@@ -1657,16 +1631,7 @@ protected static function activeStudentAttendanceIndex(): array
 }
        public static function getParticularOtherPerformaceData($admission_id,$exam_id,$other_id,$class_type_id)
 {
-    
-  
-    $marks['mark'] = PerformanceMarks::where('session_id',Session::get('session_id'))
-    ->where('admission_id',$admission_id)
-    ->where('term_id',$exam_id)
-    ->where('class_type_id',$class_type_id)
-    ->where('subject_id',$other_id)->first();
-   
-    
-    
+    $marks['mark'] = null;
     return $marks;
 }
        public static function getExamMaximumForPerformance($exam_ids,$class_type_id)

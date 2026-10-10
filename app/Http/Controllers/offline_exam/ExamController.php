@@ -741,7 +741,6 @@ class ExamController extends Controller
         try {
             DB::table('examination_admit_cards')->where('exam_id', $examId)->delete();
             DB::table('examination_schedules')->where('exam_id', $examId)->delete();
-            DB::table('exam_result_updates')->where('exam_id', $examId)->delete();
             DB::table('assign_questions')->where('exam_id', $examId)->delete();
             DB::table('fill_marks')->where('exam_id', $examId)->delete();
             DB::table('fill_min_max_marks')->where('exam_id', $examId)->delete();

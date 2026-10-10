@@ -226,12 +226,7 @@
                 @php
                  $ids = $examlist->pluck('exam_id')->toArray();  
                     $lastExamlId = end($ids);
-                    $exam_result_updates = DB::table('exam_result_updates')
-                                            ->where('class_type_id',$student->class_type_id)
-                                            ->where('admission_id',$student->id)
-                                            ->where('exam_id',$lastExamlId)
-                                            ->where('branch_id',Session::get('branch_id'))
-                                            ->whereNull('deleted_at')->first();
+                    $exam_result_updates = null;
                                        
                 @endphp
                 

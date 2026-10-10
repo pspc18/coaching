@@ -11,7 +11,6 @@ use App\Models\Admission;
 use App\Models\Sessions;
 use App\Models\exam\ExaminationSchedule;
 use App\Models\exam\ExaminationScheduleDetail;
-use App\Models\examoffline\PerformanceMarks;
 
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -349,15 +348,7 @@ class ReportController extends Controller
             ->get()
             ->groupBy('admission_id');
 
-        $resultUpdateRows = DB::table('exam_result_updates')
-            ->where('exam_id', $examId)
-            ->where('class_type_id', $classTypeId)
-            ->where('session_id', Session::get('session_id'))
-            ->where('branch_id', Session::get('branch_id'))
-            ->whereNull('deleted_at')
-            ->whereIn('admission_id', $studentIds)
-            ->get()
-            ->keyBy('admission_id');
+        $resultUpdateRows = collect();
 
         $singleSubjectMode = $listSubject->count() === 1;
         $rows = [];
@@ -800,14 +791,7 @@ class ReportController extends Controller
                 'exam_maximum_marks',
             ]);
 
-        $storedRanks = DB::table('exam_result_updates')
-            ->whereIn('exam_id', $examIds)
-            ->where('branch_id', $branchId)
-            ->where('session_id', $sessionId)
-            ->where('class_type_id', $classTypeId)
-            ->whereNull('deleted_at')
-            ->get(['exam_id', 'admission_id', 'rank'])
-            ->groupBy('exam_id');
+        $storedRanks = collect();
 
         $marksMap = [];
         foreach ($fillMarksRows as $markRow) {

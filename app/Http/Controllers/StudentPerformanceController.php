@@ -121,12 +121,7 @@ class StudentPerformanceController extends Controller
           }
 
           if (!empty($otherIds)) {
-              $otherMarks = DB::table('performance_marks')
-                  ->where('session_id', Session::get('session_id'))
-                  ->where('admission_id', $data->id)
-                  ->whereIn('term_id', $examIds)
-                  ->whereIn('subject_id', $otherIds)
-                  ->get(['term_id', 'subject_id', 'student_marks']);
+              $otherMarks = collect();
 
               $otherMarksMap = [];
               foreach ($otherMarks as $mark) {
