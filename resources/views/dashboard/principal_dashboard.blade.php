@@ -144,17 +144,6 @@ $task = Helper::task();
                     </div>
                 </div>
                 </a>
-            </div>             
-            <div class="col-12 col-sm-6 col-md-3">
-                <a href="{{ url('hostel_add') }}">
-                <div class="info-box mb-3 text-dark">
-                    <span class="info-box-icon bg-danger elevation-1"><i class="fa fa-hospital-o" ></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">TOTAL HOSTEL</span>
-                    <span class="info-box-number">{{\App\Models\hostel\Hostel::countTotelHostel() }}</span>
-                    </div>
-                </div>
-                </a>
             </div>
             <div class="col-12 col-sm-6 col-md-3">
                 <a href="{{ url('bus/index') }}">
