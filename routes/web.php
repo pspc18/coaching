@@ -264,10 +264,6 @@ Route::match(['get', 'post'], 'AttendanceView_staff', 'AttendanceViewController@
 
 Route::match(['get', 'post'], 'monthlyReport', 'AttendanceViewController@monthlyReport');
 
-Route::match(['get','post'],'qrcode_Dashboard', 'QrCodeAttendanceController@qrcode_Dashboard');
-Route::match(['get','post'],'qrcode_user', 'QrCodeAttendanceController@qrcode_user');
-Route::match(['get','post'],'qrcode_student', 'QrCodeAttendanceController@qrcode_student');
-Route::match(['get','post'],'qrcode_attendance', 'QrCodeAttendanceController@qrcode_attendance');
 
 
 //Examination Panel Start
@@ -432,9 +428,6 @@ Route::match(['get', 'post'], 'addStationaryRequest', 'StoreController@addStatio
 
 
 
-Route::match(['get','post'],'qrcode_attendance_save', 'QrCodeAttendanceController@qrcode_attendance_save');
-Route::match(['get','post'],'user_attendence_qr_download', 'QrCodeAttendanceController@user_attendence_qr_download');
-Route::match(['get','post'],'student_attendence_qr_download', 'QrCodeAttendanceController@student_attendence_qr_download');
     
 
 
