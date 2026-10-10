@@ -287,11 +287,6 @@ Route::match(['get', 'post'], 'student_exam_comparison_students', 'offline_exam\
 
 
 
-//PrintFileController
- Route::match(['get', 'post'], 'printFilePanel', 'PrintFileController@printFilePanel');
-Route::match(['get', 'post'], 'printFileModuleWiseView/{id}', 'PrintFileController@printFileModuleWiseView');
-Route::match(['get', 'post'], 'printFilePanel', 'PrintFileController@printFilePanel');                               //Edit Module Name
-Route::match(['get', 'post'], 'template/{id}', 'PrintFileController@template');
 Route::match(['get', 'post'], 'feesRemainderCron', 'fees\FeesController@feesRemainderCron');
 
 Route::match(['get', 'post'], 'sample_id_print', 'IdCardController@sample_id_print');

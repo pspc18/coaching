@@ -1298,7 +1298,7 @@ class StudentsAdmissionController extends Controller
                 // //dd($printPreviewId);
                 // return view($printPreviewId, ['data' => $student_id]);
 
-                return view('master.printFilePanel.StudentManagement.template14', ['data' => $student_id]);
+                return view('print_file.student_print.admissionStudentIdPrint', ['data' => $student_id]);
                 // return view('print_file.student_print.admissionStudentIdPrint', ['data' => $student_id]);
             }
             

@@ -518,7 +518,7 @@ class UserController extends Controller
                                     ->first();
                             
                                 return view(
-                                    'master.printFilePanel.UserManagement.relieving_letter_print',
+                                    'print_file.staff_print.drop_teacher',
                                     ['data' => $data]
                                 );
                             }
@@ -536,7 +536,7 @@ class UserController extends Controller
             ->leftJoin('teachers as staff', 'staff.user_id', '=', 'users.id')
             ->where('users.id', $id)
             ->first(); 
-        return view('master.printFilePanel.UserManagement.joining_letter_print', ['data' => $data]);
+        return view('print_file.staff_print.joining_letter_print', ['data' => $data]);
     }
 
     
@@ -549,7 +549,7 @@ class UserController extends Controller
                 // return $pdf->download('StaffManagement.pdf');
                 //$printPreviewId = Helper::printPreview('Teacher Id Card');
                // return view($printPreviewId, ['data' => $data]);
-                return view('master.printFilePanel.UserManagement.id_print',['data'=>$data]);
+                return view('print_file.staff_print.id_print',['data'=>$data]);
             } 
             
             

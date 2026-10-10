@@ -25,9 +25,6 @@ use App\Models\exam\digital\LevelDigital;
 use App\Models\StoreItem;
 use App\Models\StoreItemRequest;
 use App\Models\StoreBillingDetail;
-use App\Models\PrintFileSetting;
-use App\Models\PrintFileDetails;
-use App\Models\PrintFileSubModule;
 use App\Models\TotalDays;
 use App\Models\WhatsappApiResponse;
 use App\Models\StudentAttendance;
@@ -192,6 +189,23 @@ class Helper{
             }
             return $query->orderBy('id', 'DESC')->get();
         });
+    }
+
+    public static function printPreview($subModule)
+    {
+        $map = [
+            'Fees Collect' => 'print_file.student_print.print_fees',
+            'Admission Print' => 'print_file.student_print.admissionStudentPrint',
+            'Student Id Print' => 'print_file.student_print.admissionStudentIdPrint',
+            'Enquiry Print' => 'print_file.student_print.registration_print',
+            'Admit Card' => 'print_file.pdf.admit_card_all',
+            'Teacher Drop' => 'print_file.staff_print.drop_teacher',
+            'Teacher Joining Latter' => 'print_file.staff_print.joining_letter_print',
+            'Teacher Id Card' => 'print_file.staff_print.id_print',
+            'Time Table' => 'print_file.exam_time_table',
+        ];
+
+        return $map[$subModule] ?? 'print_file.view';
     }
 
     public static function clearComplaintCache($branchId = null, $sessionId = null)
