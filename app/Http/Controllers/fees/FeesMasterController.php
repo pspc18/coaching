@@ -11,7 +11,6 @@ use App\Models\Admission;
 use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\WhatsappSetting;
-use App\Models\Account;
 use App\Models\FeesStructure;
 use App\Models\FeesType;
 use App\Models\FeesGroup;

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\master;
 use Illuminate\Validation\Validator; 
 use App\Models\User;
 use App\Models\Admin;
-use App\Models\Account;
 use App\Models\Admission;
 use App\Models\Admit;
 use App\Models\AdmitCardNote;
@@ -268,8 +267,6 @@ class SessionsController extends Controller
     {
         $deleteId = $request->delete_id;
         if (!empty($deleteId)) {
-            AssignBook::where('session_id', $deleteId)->delete();
-            Account::where('session_id', $deleteId)->delete();
             Admission::where('session_id', $deleteId)->delete();
             Admit::where('session_id', $deleteId)->delete();
             AssignExam::where('session_id', $deleteId)->delete();

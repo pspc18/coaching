@@ -29,7 +29,6 @@ use App\Models\PrintFileSetting;
 use App\Models\PrintFileDetails;
 use App\Models\PrintFileSubModule;
 use App\Models\TotalDays;
-use App\Models\Account;
 use App\Models\WhatsappApiResponse;
 use App\Models\StudentAttendance;
 use App\Models\Master\TeacherSubject; 
@@ -224,12 +223,12 @@ class Helper{
 
         $setting = Cache::remember('app_setting_' . $branchId, 86400, function () use ($branchId) {
             $data = Setting::where('branch_id', $branchId)
-                ->with(['Account', 'City', 'Country', 'State'])
+                ->with(['City', 'Country', 'State'])
                 ->first();
 
             if (empty($data) && $branchId != 1) {
                 $data = Setting::where('branch_id', 1)
-                    ->with(['Account', 'City', 'Country', 'State'])
+                    ->with(['City', 'Country', 'State'])
                     ->first();
             }
 
@@ -771,8 +770,7 @@ class Helper{
        return $getcitie;
     }
     public static function getQRCode($id){
-        $qrcoede = Account::where('id',$id)->first();
-        return $qrcoede;
+        return null;
     }
                         
    
@@ -1011,9 +1009,8 @@ class Helper{
    }
    
   public static function getaccount(){
-       $getaccounts = Account::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-       return $getaccounts;
-   }
+        return collect([]);
+    }
 
   
    public static function getInvantory(){

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\master;
 use Illuminate\Validation\Validator; 
 use App\Models\User;
 use App\Models\Admin;
-use App\Models\Account;
 use App\Models\Admission;
 use App\Models\Admit;
 use App\Models\AdmitCardNote;
@@ -109,8 +108,6 @@ class BranchController extends Controller
 {
     public function deleteBranch(Request $request){
         
-        AssignBook::where('branch_id',$request->delete_id)->delete();
-        Account::where('branch_id',$request->delete_id)->delete();
         Admission::where('branch_id',$request->delete_id)->delete();
         Admit::where('branch_id',$request->delete_id)->delete();
         AssignExam::where('branch_id',$request->delete_id)->delete();

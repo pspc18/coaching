@@ -8,7 +8,6 @@ use App\Models\Master\Rule;
 use App\Models\Master\SchoolDesk;
 use App\Models\Master\Gallery;
 use App\Models\Master\Prayer;
-use App\Models\Account;
 use App\Models\Master\GatePass;
 use App\Models\Master\NoticeBoard;
 use App\Models\Admission;
@@ -54,7 +53,7 @@ class ProfileController extends BaseController
 		  
 		     $teacherCount=Teacher::where('drop_status',0)->where('branch_id',1)->count();
 		     
-		      $accountCount=Account::where('deleted_at', null)->where('branch_id',1)->count();
+		      $accountCount = 0;
 		      
 		       $complaintCount = Complaint::where('deleted_at', null)->where('branch_id',1)->count();
 		           $monthlyExpenses=Expense::where('branch_id',1)->whereMonth('date',date('m'))->sum('amount');

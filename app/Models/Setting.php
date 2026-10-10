@@ -23,10 +23,6 @@ class Setting extends Model
     {
         return $this->belongsTo('App\Models\State','state_id');
     }
-    	public function Account()
-    {
-        return $this->belongsTo('App\Models\Account','account_id');
-    }
     
     protected static function booted()
     {
