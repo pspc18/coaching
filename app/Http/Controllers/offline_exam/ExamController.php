@@ -4,7 +4,6 @@ namespace App\Http\Controllers\offline_exam;
 use Illuminate\Validation\Validator;
 use App\Models\exam\Question;
 use App\Models\exam\Exam;
-use App\Models\exam\ExamTerm;
 use App\Models\exam\AssignExam;
 use App\Models\Admission;
 use App\Models\Notification;
@@ -37,17 +36,12 @@ class ExamController extends Controller
 
         // Base Query with Filters
         $query = Exam::query()
-            ->leftJoin('exam_terms', 'exam_terms.id', '=', 'exams.exam_term_id')
             ->where('exams.session_id', $sessionId)
             ->where('exams.branch_id', $branchId)
             ->whereNull('exams.deleted_at');
 
         if (!empty($searchName)) {
             $query->where('exams.name', 'like', '%' . $searchName . '%');
-        }
-
-        if (!empty($termId)) {
-            $query->where('exams.exam_term_id', $termId);
         }
 
         if (!empty($classTypeId)) {
@@ -117,7 +111,7 @@ class ExamController extends Controller
         $offset = ($page - 1) * $perPage;
 
         // Fetch ONLY Requested Page Slice
-        $data = $query->select('exams.id', 'exams.name', 'exams.exam_date', 'exams.exam_term_id', 'exam_terms.name as exam_term_name')
+        $data = $query->select('exams.id', 'exams.name', 'exams.exam_date', 'exams.exam_term_id', DB::raw("NULL as exam_term_name"))
             ->orderBy('exams.id', 'DESC')
             ->skip($offset)
             ->take($perPage)
@@ -228,7 +222,7 @@ class ExamController extends Controller
             'lastPage' => $lastPage,
             'stats' => $stats,
             'classType' => Helper::classType(),
-            'examTerms' => ExamTerm::where('session_id', $sessionId)->where('branch_id', $branchId)->orderBy('name')->get()
+            'examTerms' => collect([])
         ]);
     }
 
@@ -779,85 +773,4 @@ class ExamController extends Controller
             return Redirect::to('view/exam')->with('error', 'Exam could not be deleted. ' . $e->getMessage());
         }
     }
-    
-    
-    public function viewExamTerm(Request $request){
-        $search['name'] = $request->name;
-            $data = ExamTerm::select('exam_terms.*')
-            ->where('exam_terms.session_id',Session::get('session_id'))
-            ->where('exam_terms.branch_id',Session::get('branch_id'));
-
-            if($request->isMethod('post')){
-                if (!empty($request->name)){
-                    $data = $data->where("exam_terms.name",'like','%'.$request->name.'%');
-                }
-            }
-            $data = $data->groupBy('exam_terms.id')->orderBy('id','DESC')->get();
-          
-          
-     //    dd(Session::get('role_id'));
-
-     
-      
-      
-    return view('examination.offline_exam.exam_term.view ',['data'=>$data,'search'=>$search]);
-    }
-    
-    
-    public function addExamTerm(Request $request){
-         if($request->isMethod('post')){
-                 $request->validate([
-                     
-         'name'  => 'required',
-        //  'class_type_id'  => 'required',
-        
-         ]);
-         $add = new ExamTerm;//model name
-	     $add->user_id = Session::get('id');
-	     $add->session_id = Session::get('session_id');
-         $add->branch_id = Session::get('branch_id');
-		 $add->name =$request->name;
-	     $add->save();
-	
-		  return redirect::to('view/exam_term')->with('message', 'Exam Term added Successfully.');
-        }
-
-        return view('examination.offline_exam.exam_term.add');
-    } 
-    
-     public function editExamTerm(Request $request, $id){
-         $data = ExamTerm::find($id);
-            if($request->isMethod('post')){
-                $request->validate([
-
-         'name'  => 'required',
-        //  'class_type_id'  => 'required',
-   
-         ]);
-
-	     $data->user_id = Session::get('id');
-         $data->session_id = Session::get('session_id');
-         $data->branch_id = Session::get('branch_id');	     
-		 $data->name =$request->name;
-	     $data->save();
-
-            return redirect::to('view/exam_term')->with('message', 'Exam Term Updated Successfully.');
-        }
-
-        return view('examination.offline_exam.exam_term.edit',['data'=>$data]);
-    } 
-    
-    public function deleteExamTerm(Request $request)
-{
-    $examTerm = ExamTerm::find($request->id);
-
-    if (!$examTerm) {
-        return Redirect::to('view/exam_term')->with('error', 'Exam Term not found.');
-    }
-
-    $examTerm->delete();
-
-    return Redirect::to('view/exam_term')->with('message', 'Exam Term Deleted Successfully.');
-}
-    
 }

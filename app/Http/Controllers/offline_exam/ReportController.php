@@ -717,7 +717,7 @@ class ReportController extends Controller
                 'exams.exam_term_id',
                 'exams.exam_maximum_marks',
                 'exams.created_at',
-                'exam_terms.name as exam_term_name',
+                DB::raw("NULL as exam_term_name"),
                 'assign_exams.result_declaration_date'
             )
             ->join('fill_marks as student_fill_marks', function ($join) use ($studentId, $classTypeId, $branchId, $sessionId) {
@@ -728,7 +728,6 @@ class ReportController extends Controller
                     ->where('student_fill_marks.session_id', $sessionId)
                     ->whereNull('student_fill_marks.deleted_at');
             })
-            ->leftJoin('exam_terms', 'exam_terms.id', '=', 'exams.exam_term_id')
             ->leftJoin('assign_exams', function ($join) use ($classTypeId, $branchId, $sessionId) {
                 $join->on('assign_exams.exam_id', '=', 'exams.id')
                     ->where('assign_exams.class_type_id', $classTypeId)
@@ -751,7 +750,6 @@ class ReportController extends Controller
                 'exams.exam_term_id',
                 'exams.exam_maximum_marks',
                 'exams.created_at',
-                'exam_terms.name',
                 'assign_exams.result_declaration_date'
             )
             ->orderByRaw('DATE(COALESCE(assign_exams.result_declaration_date, exams.created_at)) ASC')

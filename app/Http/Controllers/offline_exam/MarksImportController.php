@@ -73,10 +73,9 @@ class MarksImportController extends Controller
                 'exams.id as exam_id',
                 'exams.name as exam_name',
                 'exams.exam_term_id',
-                'exam_terms.name as exam_term_name'
+                DB::raw("NULL as exam_term_name")
             )
             ->join('exams', 'exams.id', '=', 'assign_exams.exam_id')
-            ->leftJoin('exam_terms', 'exam_terms.id', '=', 'exams.exam_term_id')
             ->where('assign_exams.class_type_id', $classTypeId)
             ->where('assign_exams.branch_id', $branchId)
             ->where('assign_exams.session_id', $sessionId)

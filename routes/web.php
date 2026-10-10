@@ -271,10 +271,7 @@ Route::match(['get', 'post'], 'admit_card_notes', 'offline_exam\AdmitCardControl
 Route::match(['get', 'post'], 'fill_marks', 'offline_exam\FillMarkController@fillMarks');
 Route::match(['get', 'post'], 'bulk_marksheet', 'offline_exam\FillMarkController@bulk_marksheet');
 Route::match(['get', 'post'], 'performance_marks', 'offline_exam\FillMarkController@performanceMarks');
-Route::match(['get', 'post'], 'view/exam_term', 'offline_exam\ExamController@viewExamTerm');
 Route::match(['get', 'post'], 'student_performance', 'StudentPerformanceController@studentPerformance');
-
-
 //Examination Offline
 Route::match(['get', 'post'], 'exam_wise_report', 'offline_exam\ReportController@exam_wise_report');
 Route::get('exam_wise_report/pdf', 'offline_exam\ReportController@downloadExamWiseReportPdf')
@@ -740,11 +737,6 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::match(['get', 'post'], 'assign/delete/exam', 'offline_exam\ExamController@deleteAssignExam');
 	Route::match(['get', 'post'], 'delete/exam', 'offline_exam\ExamController@deleteExam');
 
-
-    
-    Route::match(['get', 'post'], 'add/exam_term', 'offline_exam\ExamController@addExamTerm');
-    Route::match(['get', 'post'], 'edit/exam_term/{id}', 'offline_exam\ExamController@editExamTerm');
-    Route::match(['get', 'post'], 'delete/exam_term', 'offline_exam\ExamController@deleteExamTerm');
 
 	
     Route::match(['get', 'post'], 'examData/{class_type_id}', 'HomeController@examData');
