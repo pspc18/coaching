@@ -24,16 +24,7 @@ class DownloadController extends Controller
             public function downloadCenter(){
                 $upload_count = DownloadCenter::where('session_id',Session::get('session_id'))
                 ->where('branch_id',Session::get('branch_id'))->count();
-                $assignments_count = DownloadCenter::where('session_id',Session::get('session_id'))
-                ->where('branch_id',Session::get('branch_id'))->where('content_type','Assignments')->count();
-                $syllabus_count =  DownloadCenter::where('session_id',Session::get('session_id'))
-                ->where('branch_id',Session::get('branch_id'))->where('content_type','Syllabus')->count();
-                $study_material_count =  DownloadCenter::where('session_id',Session::get('session_id'))
-                ->where('branch_id',Session::get('branch_id'))->where('content_type','Study Material')->count();
-                $other_doc_count =  DownloadCenter::where('session_id',Session::get('session_id'))
-                ->where('branch_id',Session::get('branch_id'))->where('content_type','Other Downloads')->count();
-                return view('download_center.download_center',['upload_count'=>$upload_count,'assignments_count'=>$assignments_count,
-                'syllabus_count'=>$syllabus_count,'study_material_count'=>$study_material_count,'other_doc_count'=>$other_doc_count]);
+                return view('download_center.download_center',['upload_count'=>$upload_count]);
             }
             public function upload(Request $request){
                 if($request->isMethod('post')){
@@ -188,80 +179,6 @@ class DownloadController extends Controller
                 $upload_delete = DownloadCenter::find($id)->delete();
                 return redirect::to('upload/content')->with('message', 'Content Deleted Successfully !');
             }
-    
-            public function assignments(){
-                $assignments = DownloadCenter::select('download_center.*','types.name as class_name')
-                ->leftjoin('class_types as types','types.id','download_center.class_type_id')
-                ->where('download_center.session_id',Session::get('session_id'))
-                ->where('download_center.branch_id',Session::get('branch_id'));
-                if(Session::get('role_id') > 1){
-                    if(Session::get('role_id') == 2){
-                        $classes = TeacherSubject::where('teacher_id',Session::get('teacher_id'))->groupBy('class_type_id')->get();
-                        if(!empty($classes)){
-                            $att = array();
-                            foreach($classes as $item){
-                                $att[] = $item->class_type_id;
-                            }
-                            $assignments =$assignments->whereIn('class_type_id',$att);
-                        }
-                    }
-                    elseif(Session::get('role_id') == 3){
-                        $assignments = $assignments->where('download_center.class_type_id',Session::get('class_type_id'));
-                    }
-                }
-                $assignments = $assignments->where('content_type','Assignments')->orderBy('id', 'DESC')->get();
-                return view('download_center.assignments',['data'=>$assignments]);  
-            }
-    
-            public function studyMaterials(){
-                //$studyMaterials = DownloadCenter::where('session_id',Session::get('session_id'));
-                $studyMaterials = DownloadCenter::select('download_center.*','types.name as class_name')
-                ->leftjoin('class_types as types','types.id','download_center.class_type_id')
-                ->where('download_center.session_id',Session::get('session_id'))
-                ->where('download_center.branch_id',Session::get('branch_id'));
-                if(Session::get('role_id') > 1){
-                    if(Session::get('role_id') == 2){
-                        $classes = TeacherSubject::where('teacher_id',Session::get('teacher_id'))->groupBy('class_type_id')->get();
-                        if(!empty($classes)){
-                            $att = array();
-                            foreach($classes as $item){
-                                $att[] = $item->class_type_id;
-                            }
-                            $studyMaterials =$studyMaterials->whereIn('class_type_id',$att);
-                        }
-                    }
-                    elseif(Session::get('role_id') == 3){
-                        $studyMaterials = $studyMaterials->where('download_center.class_type_id',Session::get('class_type_id'));
-                    }
-                }
-                $studyMaterials = $studyMaterials->where('content_type','Study Material')->orderBy('id', 'DESC')->get();
-                return view('download_center.study_material',['data'=>$studyMaterials]);  
-            }
-            
-            public function syllabus(){
-                //$syllabus = DownloadCenter::where('session_id',Session::get('session_id'));
-                $syllabus = DownloadCenter::select('download_center.*','types.name as class_name')
-                ->leftjoin('class_types as types','types.id','download_center.class_type_id')
-                ->where('download_center.session_id',Session::get('session_id'))
-                ->where('download_center.branch_id',Session::get('branch_id'));
-                if(Session::get('role_id') > 1){
-                    if(Session::get('role_id') == 2){
-                        $classes = TeacherSubject::where('teacher_id',Session::get('teacher_id'))->groupBy('class_type_id')->get();
-                        if(!empty($classes)){
-                            $att = array();
-                            foreach($classes as $item){
-                                $att[] = $item->class_type_id;
-                            }
-                            $syllabus =$syllabus->whereIn('class_type_id',$att);
-                        }
-                    }
-                    elseif(Session::get('role_id') == 3){
-                        $syllabus = $syllabus->where('download_center.class_type_id',Session::get('class_type_id'));
-                    }
-                }
-                $syllabus = $syllabus->where('content_type','Syllabus')->orderBy('id', 'DESC')->get();
-                return view('download_center.syllabus',['data'=>$syllabus]);  
-            }
             
             public function studentAdmitCard(Request $request){
                 $data = '';
@@ -287,31 +204,6 @@ class DownloadController extends Controller
                     $data = [];
                 }
                 return view('download_center.studentAdmitCard',['data'=>$data,'fees'=>$fees]);  
-            }
-            
-            public function otherDownloads(){
-                //$otherDownloads = DownloadCenter::where('session_id',Session::get('session_id'));
-                $otherDownloads = DownloadCenter::select('download_center.*','types.name as class_name')
-                ->leftjoin('class_types as types','types.id','download_center.class_type_id')
-                ->where('download_center.session_id',Session::get('session_id'))
-                ->where('download_center.branch_id',Session::get('branch_id'));
-                if(Session::get('role_id') > 1){
-                    if(Session::get('role_id') == 2){
-                        $classes = TeacherSubject::where('teacher_id',Session::get('teacher_id'))->groupBy('class_type_id')->get();
-                        if(!empty($classes)){
-                            $att = array();
-                            foreach($classes as $item){
-                                $att[] = $item->class_type_id;
-                            }
-                            $otherDownloads =$otherDownloads->whereIn('class_type_id',$att);
-                        }
-                    }
-                    elseif(Session::get('role_id') == 3){
-                        $otherDownloads = $otherDownloads->where('download_center.class_type_id',Session::get('class_type_id'));
-                    }
-                }
-                $otherDownloads = $otherDownloads->orderBy('id', 'DESC')->get();
-                return view('download_center.other_downloads',['data'=>$otherDownloads]);  
             }
             
             // public function download($id)

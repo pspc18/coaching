@@ -338,10 +338,6 @@ Route::match(['get', 'post'], 'download_center', 'DownloadController@downloadCen
 Route::match(['get', 'post'], 'upload/content', 'DownloadController@upload');
 Route::match(['get', 'post'], 'upload/content_edit/{id}', 'DownloadController@upload_edit');
 Route::match(['get', 'post'], 'upload_delete', 'DownloadController@uploadDelete');
-Route::match(['get', 'post'], 'assignments', 'DownloadController@assignments');
-Route::match(['get', 'post'], 'syllabus', 'DownloadController@syllabus');
-Route::match(['get', 'post'], 'study_material', 'DownloadController@studyMaterials');
-Route::match(['get', 'post'], 'other_downloads', 'DownloadController@otherDownloads');
 
 
 //SMS Service
