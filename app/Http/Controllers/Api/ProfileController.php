@@ -6,7 +6,6 @@ use App\Models\WebUser;
 use App\Models\User;
 use App\Models\Master\Rule;
 use App\Models\Master\SchoolDesk;
-use App\Models\Master\Gallery;
 use App\Models\Master\Prayer;
 use App\Models\Master\GatePass;
 use App\Models\Master\NoticeBoard;
@@ -225,17 +224,8 @@ class ProfileController extends BaseController
 }
 
 public function schoolGallery(Request $request){
-        $Category= Gallery::groupBy('img_category')->orderBy('id','DESC')->get();
-        $Images= Gallery::orderBy('id','DESC')->get();
-          if(!empty($Category))
-            {
-              return response()->json(['status' => true, 'message' => 'Success','images'=>$Images,'category'=>$Category], 200);
-            }
-            else
-            {
-                 return response()->json(['status' => false, 'message' => 'Error','images'=>[],'category'=>[]], 200);
-            }
-    }  
+    return response()->json(['status' => true, 'message' => 'Success', 'images' => [], 'category' => []], 200);
+}  
 public function addComplain(Request $request){
     $admission_id  = $request->admission_id;
     $subject  = $request->subject;

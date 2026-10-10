@@ -13,7 +13,6 @@ use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
 use App\Models\Master\Uniform;
 use App\Models\Master\Prayer;
-use App\Models\Master\Gallery;
 use App\Models\Subject;
 use Session;
 use Hash;
@@ -84,10 +83,7 @@ class HomeController extends Controller
                 return view('student_login.timetable', ['data' => $data]);
             }
               public function galleryView(Request $request){
-                $data= Gallery::groupBy('img_category')->where('branch_id',Session::get('branch_id'));
-                $barnch =Session::all();
-                    $data = $data->where('type', 'gallery')->orderBy('id','DESC')->get();
-                    return view('student_login.gallery',['data'=>$data]); 
+                return view('student_login.gallery',['data'=>[]]); 
             }   
               public function prayerView(){
                 $data = Prayer::get();

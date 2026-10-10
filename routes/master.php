@@ -53,9 +53,7 @@ Route::get('support-complaint-attachment/{replyId}', 'master\SupportComplaintCon
 
 
 
-//Gallery
-Route::match(['get','post'],'gallery_view', 'master\GalleryController@view');
-Route::match(['get','post'],'gallery_add', 'master\GalleryController@add');
+
 
 //GatePassController
 Route::match(['get','post'],'gate_pass_view', 'master\GatePassController@view');
@@ -325,8 +323,7 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
 
     
     
-    Route::match(['get','post'],'gallery_edit/{id}', 'master\GalleryController@edit');
-    Route::match(['get','post'],'gallery_delete', 'master\GalleryController@delete');
+
 
 
 //NoticeBoardController

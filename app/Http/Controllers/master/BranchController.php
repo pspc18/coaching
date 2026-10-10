@@ -27,7 +27,6 @@ use App\Models\Master\EmailRecords;
 use App\Models\Master\EmailTamplate;
 use App\Models\Master\EnquiryStatus;
 use App\Models\Master\EventManagement;
-use App\Models\Master\Gallery;
 use App\Models\Master\GatePass;
 use App\Models\Master\Holidays;
 use App\Models\Master\Homework;
@@ -137,7 +136,6 @@ class BranchController extends Controller
         FeesAssignDetail::where('branch_id',$request->delete_id)->delete();
         BooksUniformShop::where('branch_id',$request->delete_id)->delete();
         EventManagement::where('branch_id',$request->delete_id)->delete();
-        Gallery::where('branch_id',$request->delete_id)->delete();
         GatePass::where('branch_id',$request->delete_id)->delete();
         Holidays::where('branch_id',$request->delete_id)->delete();
         Homework::where('branch_id',$request->delete_id)->delete();

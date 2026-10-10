@@ -28,7 +28,6 @@ use App\Models\Master\EmailRecords;
 use App\Models\Master\EmailTamplate;
 use App\Models\Master\EnquiryStatus;
 use App\Models\Master\EventManagement;
-use App\Models\Master\Gallery;
 use App\Models\Master\GatePass;
 use App\Models\Master\Holidays;
 use App\Models\Master\Homework;
@@ -288,7 +287,6 @@ class SessionsController extends Controller
             FeesAssignDetail::where('session_id', $deleteId)->delete();
             BooksUniformShop::where('session_id', $deleteId)->delete();
             EventManagement::where('session_id', $deleteId)->delete();
-            Gallery::where('session_id', $deleteId)->delete();
             GatePass::where('session_id', $deleteId)->delete();
             Holidays::where('session_id', $deleteId)->delete();
             Homework::where('session_id', $deleteId)->delete();
