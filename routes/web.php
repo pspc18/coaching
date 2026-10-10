@@ -311,9 +311,6 @@ Route::match(['get', 'post'], 'student_exam_comparison_report', 'offline_exam\Re
 Route::match(['get', 'post'], 'student_exam_comparison_students', 'offline_exam\ReportController@studentExamComparisonStudents');
 
 
-//Account Dashboard
-Route::match(['get', 'post'], 'bank/account/add', 'AccountController@add');
-
 
 //PrintFileController
  Route::match(['get', 'post'], 'printFilePanel', 'PrintFileController@printFilePanel');
@@ -790,11 +787,6 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::match(['get', 'post'], 'students_id_data', 'StudentsIdController@studentsIdData');
 	
 
-	//account_dashboard 
-	Route::match(['get', 'post'], 'account_dashboard', 'AccountController@account_dashboard');
-	
-	Route::match(['get', 'post'], 'bank/account/edit/{id}', 'AccountController@editBank');
-	Route::match(['get', 'post'], 'account_delete', 'AccountController@delete');
 
 	//staff
 		Route::match(['get', 'post'], 'checkClassTeacher', 'StaffController@checkClassTeacher');
