@@ -26,8 +26,14 @@
     $branchSidebarIds = !empty($branch->branch_sidebar_id) ? explode(',', $branch->branch_sidebar_id) : [];
     $Permisn = Helper::getPermisn();
 
-    $sidebar = DB::table('sidebars')->whereNull('deleted_at')->whereIn('id', $Permisn)->orderBy('order_by','ASC')->get();
-    $subSidebar = DB::table('sidebar_sub')->where('sub_sidebar','yes')->whereIn('sidebar_id', $branchSidebarIds)->whereNull('deleted_at')->orderBy('orderBy','ASC')->get();
+    if ((int) Session::get('role_id') === 1) {
+        // Admin: Show all modules and submenus for comprehensive review
+        $sidebar = DB::table('sidebars')->orderBy('order_by','ASC')->get();
+        $subSidebar = DB::table('sidebar_sub')->whereNull('deleted_at')->orderBy('orderBy','ASC')->get();
+    } else {
+        $sidebar = DB::table('sidebars')->whereNull('deleted_at')->whereIn('id', $Permisn)->orderBy('order_by','ASC')->get();
+        $subSidebar = DB::table('sidebar_sub')->where('sub_sidebar','yes')->whereIn('sidebar_id', $branchSidebarIds)->whereNull('deleted_at')->orderBy('orderBy','ASC')->get();
+    }
 
     if ((int) Session::get('role_id') === 1) {
         $sidebar = $sidebar->reject(function ($item) {
@@ -36,18 +42,6 @@
         $subSidebar = $subSidebar->reject(function ($item) {
             return trim((string) ($item->url ?? ''), '/') === 'attendance/self';
         })->values();
-    }
-
-    if ((int) Session::get('role_id') === 1) {
-        $academicCalendarSubmenu = DB::table('sidebar_sub')
-            ->where('sidebar_id', 9)
-            ->where('url', 'add_weekend')
-            ->whereNull('deleted_at')
-            ->first();
-
-        if ($academicCalendarSubmenu && !$subSidebar->contains('id', $academicCalendarSubmenu->id)) {
-            $subSidebar->push($academicCalendarSubmenu);
-        }
     }
 
     $mobileLogoFile = $setting->left_logo ?? '';
@@ -1049,46 +1043,21 @@
         <ul class="drawer-menu-list" id="mobDrawerMenuList">
             @foreach($sidebar as $data)
                 @php
-                    $submenus = Helper::getSubPermisn($data->id);
+                    if ((int) Session::get('role_id') === 1) {
+                        $submenus = $subSidebar->where('sidebar_id', $data->id)->pluck('id')->map(fn($id) => (string) $id)->toArray();
+                    } else {
+                        $submenus = array_map('strval', Helper::getSubPermisn($data->id));
+                    }
+
                     if ((int) $data->id === 17 || trim((string)($data->url ?? ''), '/') === 'settings_dashboard' || trim((string)($data->url ?? ''), '/') === 'viewSetting') {
                         $submenus = [];
                         $data->url = 'editSetting/1';
-                    }
-                    if ((int) Session::get('role_id') === 1 && (int) $data->id === 4) {
-                        $attendanceSettingsId = $subSidebar
-                            ->firstWhere('url', 'attendance/settings')
-                            ->id ?? null;
-                        $attendanceWindowId = $subSidebar
-                            ->firstWhere('url', 'attendance/marking-window')
-                            ->id ?? null;
-                        if ($attendanceSettingsId && !in_array((string) $attendanceSettingsId, array_map('strval', $submenus), true)) {
-                            $submenus[] = (string) $attendanceSettingsId;
-                        }
-                        if ($attendanceWindowId && !in_array((string) $attendanceWindowId, array_map('strval', $submenus), true)) {
-                            $submenus[] = (string) $attendanceWindowId;
-                        }
-                    }
-                    if ((int) Session::get('role_id') === 1 && (int) $data->id === 3) {
-                        $studentLogsId = $subSidebar
-                            ->firstWhere('url', 'student_logs')
-                            ->id ?? null;
-                        if ($studentLogsId && !in_array((string) $studentLogsId, array_map('strval', $submenus), true)) {
-                            $submenus[] = (string) $studentLogsId;
-                        }
-                    }
-                    if ((int) Session::get('role_id') === 1 && (int) $data->id === 9) {
-                        $academicCalendarId = $subSidebar
-                            ->firstWhere('url', 'add_weekend')
-                            ->id ?? null;
-                        if ($academicCalendarId && !in_array((string) $academicCalendarId, array_map('strval', $submenus), true)) {
-                            $submenus[] = (string) $academicCalendarId;
-                        }
                     }
 
                     $activeSub = false;
                     $validSubmenusCount = 0;
                     foreach($subSidebar as $sub){
-                        if(in_array($sub->id, $submenus)){
+                        if(in_array((string) $sub->id, array_map('strval', $submenus), true)){
                             $validSubmenusCount++;
                             if (url($sub->url) == URL::current() || (!empty($sub->url) && request()->is(trim($sub->url, '/').'*'))) {
                                 $activeSub = true;
@@ -1120,7 +1089,7 @@
                         {{-- Submenus List --}}
                         <ul class="mob-submenu-list">
                             @foreach($subSidebar as $sub)
-                                @if(in_array($sub->id, $submenus))
+                                @if(in_array((string) $sub->id, array_map('strval', $submenus), true))
                                     @php
                                         $isChildActive = (url($sub->url) == URL::current() || (!empty($sub->url) && request()->is(trim($sub->url, '/').'*')));
                                         $subDisplayName = (Session::get('locale') == 'hi' && !empty($sub->hindi_name)) ? $sub->hindi_name : ($sub->name ?? '');

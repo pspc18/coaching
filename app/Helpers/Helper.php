@@ -992,6 +992,16 @@ class Helper{
             return self::$cachedUserPermisn[$userId];
         }
 
+        // For Admin (role_id == 1), provide all active modules
+        if ((int) Session::get('role_id') === 1) {
+            $mainPermisn = DB::table('sidebars')
+                ->pluck('id')
+                ->map(fn($id) => (string) $id)
+                ->toArray();
+            self::$cachedUserPermisn[$userId] = $mainPermisn;
+            return $mainPermisn;
+        }
+
         $userPerm = DB::table('user_permission')
             ->where('user_id', $userId)
             ->whereNull('deleted_at')
@@ -1027,6 +1037,18 @@ class Helper{
         $cacheKey = $userId . '_' . $sidebar_id;
         if (isset(self::$cachedSubPermisn[$cacheKey])) {
             return self::$cachedSubPermisn[$cacheKey];
+        }
+
+        // For Admin (role_id == 1), provide all active submenus for this sidebar
+        if ((int) Session::get('role_id') === 1) {
+            $result = DB::table('sidebar_sub')
+                ->where('sidebar_id', $sidebar_id)
+                ->whereNull('deleted_at')
+                ->pluck('id')
+                ->map(fn($id) => (string) $id)
+                ->toArray();
+            self::$cachedSubPermisn[$cacheKey] = $result;
+            return $result;
         }
 
         $userPermSub = DB::table('user_permission')
