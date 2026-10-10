@@ -113,12 +113,6 @@ Route::match(['get', 'post'], 'monthWiseStudentAttendance', 'Api\StudentAttendan
 //subject Controller
 Route::match(['get', 'post'], 'studentSubjectList', 'Api\SubjectController@studentSubjectList');
 
-//certicates Controller
-Route::match(['get', 'post'], 'getAllCertificates', 'Api\CertificateController@getAllCertificates');
-Route::match(['get', 'post'], 'cc_print/{id}', 'Api\CertificateController@characterCertificate');
-Route::match(['get', 'post'], 'evente_print/{id}', 'Api\CertificateController@eventCertificate');
-Route::match(['get', 'post'], 'sport_print/{id}', 'Api\CertificateController@sportCertificate');
-Route::match(['get', 'post'], 'tc_print/{id}', 'Api\CertificateController@tcCertificate');
 
 
 //download Controller

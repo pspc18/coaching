@@ -15,7 +15,6 @@ use App\Models\ClassType;
 use App\Models\Subject;
 use App\Models\Sessions;
 use App\Models\Master\Branch;
-use App\Models\TcCertificate;
 use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\BloodGroup;

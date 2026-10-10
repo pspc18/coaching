@@ -205,17 +205,6 @@ Route::post('marks-mapping-save', [MarksImportController::class, 'saveMappedMark
 
 
 
-//Certificate Dashboard
-Route::match(['get', 'post'], 'certificate_dashboard', 'CertificateController@certificate_dashboard');
-Route::match(['get', 'post'], 'cc/form/add', 'CertificateController@add');
-Route::match(['get', 'post'], 'cc/form/index', 'CertificateController@ccFormIndex');
-Route::match(['get', 'post'], 'evente/certificate/add', 'CertificateController@eventeCertificateAdd');
-Route::match(['get', 'post'], 'evente/certificate/index', 'CertificateController@certificateIndex');
-Route::match(['get', 'post'], 'sport/certificate/add', 'CertificateController@sportAdd');
-Route::match(['get', 'post'], 'sport/certificate/index', 'CertificateController@sportndex');
-Route::match(['get', 'post'], 'tc/certificate/add', 'CertificateController@tcCertificateAdd');
-Route::match(['get', 'post'], 'tc/certificate/index', 'CertificateController@tcIndex');
-Route::match(['get', 'post'], 'certificate_editor', 'CertificateController@certificateEditor');
 
 
 
@@ -579,46 +568,6 @@ Route::match(['get', 'post'], 'feesCounterEdit/{id}', 'fees\FeesCounterControlle
 Route::match(['get', 'post'], 'feesCounterDelete', 'fees\FeesCounterController@feesCounterDelete');
 Route::match(['get', 'post'], 'feesCounterView', 'fees\FeesCounterController@feesCounterview');
 
-//certificate_dashboard
-
-Route::match(['get', 'post'], 'certificate_student_dashboard', 'CertificateController@certificate_student_dashboard');
-Route::match(['get', 'post'], 'CC_Form_std_data', 'CertificateController@CCFormStdData');
-
-
-Route::match(['get', 'post'], 'cc/form/edit/{id}', 'CertificateController@formEdit');
-Route::match(['get', 'post'], 'student_search_certificate', 'CertificateController@certificateSearch');
-Route::match(['get', 'post'], 'certificate_delete', 'CertificateController@delete');
-Route::match(['get', 'post'], 'certificate_add_click', 'CertificateController@certificateAddClick');
-Route::get('cc_print/{id}', 'CertificateController@ccPrint');
-
-
-
-
-
-Route::match(['get', 'post'], 'evente/certificate/edit/{id}', 'CertificateController@certificateEdit');
-Route::match(['get', 'post'], 'search_evente', 'CertificateController@eventeSearch');
-Route::match(['get', 'post'], 'evente_add_click', 'CertificateController@eventeAddClick');
-Route::match(['get', 'post'], 'evente_delete', 'CertificateController@evente_delete');
-Route::get('evente_print/{id}', 'CertificateController@eventePrint');
- 
-
-
-Route::match(['get', 'post'], 'sport/certificate/edit/{id}', 'CertificateController@sportEdit');
-Route::match(['get', 'post'], 'search_sport', 'CertificateController@sportSearch');
-Route::match(['get', 'post'], 'sport_add_click', 'CertificateController@sportAddClick');
-Route::match(['get', 'post'], 'sport_delete', 'CertificateController@sport_delete');
-Route::match(['get', 'post'], 'CCFormStdData', 'CertificateController@CCFormStdData');
-Route::get('sport_print/{id}', 'CertificateController@sportPrint');
-
-
-
-Route::match(['get', 'post'], 'tc/certificate/edit/{id}', 'CertificateController@tcEdit');
-Route::match(['get', 'post'], 'search_tc', 'CertificateController@tcSearch');
-Route::match(['get', 'post'], 'tc_add_click', 'CertificateController@tcAddClick');
-Route::match(['get', 'post'], 'tc_delete', 'CertificateController@tc_delete');
-Route::get('tc_print/{id}', 'CertificateController@tcPrint');
-Route::get('tc_print_formate', 'CertificateController@tcPrintFormate');
-Route::match(['get', 'post'], 'noc_print/{id}', 'CertificateController@nocPrint');
 
 //Student Dashboard
 

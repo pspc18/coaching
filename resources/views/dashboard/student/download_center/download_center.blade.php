@@ -1,12 +1,7 @@
 
 @extends('layout.app') 
 @section('content')
-@php
-$c_certificate_count = Helper::getCount('c_certificates_form','id','count');
-$event_count = Helper::getCount('evente_certificates','id','count');
-$sports_count = Helper::getCount('sports_certificates','id','count');
-$tc_count = Helper::getCount('tc_certificates','id','count');
-@endphp
+
                                                          
 <div class="content-wrapper" >
 
@@ -112,86 +107,8 @@ $tc_count = Helper::getCount('tc_certificates','id','count');
     </div>
 
 
-      <div class="row">
-          <div class="col-12 col-md-12">
-            <div class="card card-outline card-orange">
-                <div class="card-header bg-primary">
-                    <h3 class="card-title"><i class="fa fa-sitemap"></i> &nbsp;  Certificates</h3>
-                    <div class="card-tools">
-                    </div>
-            
-                </div>               
-            </div>
-            </div> 
-        </div
-
-    <div class="card-body"> 
-        <div class="row">
-
-            <div class="col-md-3">
-                <a href="{{url('cc/form/index')}}" class="small-box-footer">
-                <div class="small-box bg-secondary">
-                    <div class="inner">
-                        <h4>CC List </h4>
-                        <h4>{{$c_certificate_count ?? '0'}}</h4>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-stats-bars"></i>
-                    </div>
-                    <div class="text-center small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></div>
-                </div></a>
-            </div>
-
-            <div class="col-md-3">
-                <a href="{{url('evente/certificate/index')}}" class="small-box-footer">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h4>Event List</h4>
-                        <h4>{{$event_count ?? '0'}}</h4>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-pie-graph"></i>
-                    </div>
-                    <div class="text-center small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></div>
-                </div></a>
-            </div>
-            
-            <div class="col-md-3">
-                <a href="{{url('sport/certificate/index')}}" class="small-box-footer">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h4>Sports List  </h4>
-                        <h4>{{$sports_count ?? '0'}}</h4>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-stats-bars"></i>
-                    </div>
-                <div class="text-center small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></div>
-                </div></a>
-            </div>
-
-            <div class="col-md-3">
-                <a href="{{url('tc/certificate/index')}}" class="small-box-footer">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h4>TC Form List</h4>
-                       <h4>{{$tc_count ?? '0'}}</h4>
-                    </div>
-                    <div class="icon">
-                        <i class="ion ion-pie-graph"></i>
-                    </div>
-                    <div class="text-center small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></div>
-                </div></a>
-            </div>
-            
-        </div>           
-    </div>
-      
+      </div>
+</section>
 </div>
 
-
-  
-       
-
 @endsection
-
