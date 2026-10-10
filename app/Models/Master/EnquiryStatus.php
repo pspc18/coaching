@@ -18,9 +18,4 @@ class EnquiryStatus extends Model
     public static function countStatus($type){
         return EnquiryStatus::where('type',$type)->whereNull('deleted_at')->count();
     }
-
-       public function callLogs()
-    {
-        return $this->hasMany(\App\Models\CallLog::class, 'calling_purpose_id');
-    }
 }

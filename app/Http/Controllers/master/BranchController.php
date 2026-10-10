@@ -22,7 +22,6 @@ use App\Models\fees\FeesCounter;
 use App\Models\fees\FeesAssignDetail;
 use App\Models\Setting;
 use App\Models\Master\Branch;
-use App\Models\Master\Complaint;
 use App\Models\Master\BooksUniformShop;
 use App\Models\Master\EmailRecords;
 use App\Models\Master\EmailTamplate;

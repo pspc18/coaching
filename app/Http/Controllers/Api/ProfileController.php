@@ -16,7 +16,7 @@ use App\Models\Teacher;
 use App\Models\Expense;
 use App\Models\FeesDetail;
 use App\Models\Setting;
-use App\Models\Master\Complaint;
+use App\Models\SupportComplaint;
 use App\Models\Master\LeaveManagement;
 use Illuminate\Support\Facades\Auth;
 use Validator;
@@ -55,7 +55,7 @@ class ProfileController extends BaseController
 		     
 		      $accountCount = 0;
 		      
-		       $complaintCount = Complaint::where('deleted_at', null)->where('branch_id',1)->count();
+		       $complaintCount = SupportComplaint::where('branch_id',1)->count();
 		           $monthlyExpenses=Expense::where('branch_id',1)->whereMonth('date',date('m'))->sum('amount');
 		       
                   $data = array();
@@ -242,13 +242,21 @@ public function addComplain(Request $request){
     $class_type_id = $request->class_type_id;
     $message  = $request->message;
      if($request->isMethod('post')){
-         
-         $add = new Complaint();
-         $add->description =$message; 
-         $add->subject = $subject;
-         $add->class_type_id= $class_type_id;
-         $add->admission_id = $admission_id;
-         $add->save();
+         $student = \App\Models\Admission::find($admission_id);
+         $add = SupportComplaint::create([
+             'ticket_no' => SupportComplaint::generateTicketNo(),
+             'session_id' => $student->session_id ?? 1,
+             'branch_id' => $student->branch_id ?? 1,
+             'admission_id' => $admission_id,
+             'role_id' => 3,
+             'submitted_as' => 'student',
+             'category' => 'other',
+             'priority' => 'medium',
+             'status' => 'open',
+             'subject' => $subject,
+             'message' => $message,
+             'last_replied_at' => now(),
+         ]);
           if(!empty($add))
             {
               return response()->json(['status' => true, 'message' => 'Success'], 200);
@@ -257,11 +265,7 @@ public function addComplain(Request $request){
             {
                  return response()->json(['status' => false, 'message' => 'Error'], 200);
             }
-         
-         
      }
-     
-         
     }  
 public function addLeave(Request $request){
     $admission_id  = $request->admission_id;
@@ -394,7 +398,7 @@ public function addLeave(Request $request){
     }
      public function complainBox(Request $request){
          $admission_id= $request->admission_id;
-        $data = Complaint::where('admission_id',$admission_id)->orderBy('id','DESC')->get();
+        $data = SupportComplaint::where('admission_id',$admission_id)->orderBy('id','DESC')->get();
           if(!empty($data))
             {
               return response()->json(['status' => true, 'message' => 'Success','data'=>$data], 200);

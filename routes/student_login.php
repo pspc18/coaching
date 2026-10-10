@@ -35,10 +35,6 @@ Route::group(['middleware' => 'islogin'], function () {
     Route::match(['get','post'],'notice_board_student/{id}', 'student_login\NoticeBoardController@view');
     Route::get('student-notices', 'student_login\StudentNoticeController@index')
         ->name('student.notices.index');
-    
-	Route::match(['get', 'post'], 'complaintEditStudent/{id}', 'student_login\ComplaintController@edit');
-	Route::match(['get', 'post'], 'complaintAddStudent', 'student_login\ComplaintController@add');
-	Route::match(['get', 'post'], 'complaintDeleteStudent', 'student_login\ComplaintController@delete');
     Route::get('student-complaints', 'student_login\SupportComplaintController@index');
     Route::get('student-complaints/create', 'student_login\SupportComplaintController@create');
     Route::post('student-complaints', 'student_login\SupportComplaintController@store');

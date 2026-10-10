@@ -67,7 +67,6 @@ use App\Models\Master\Branch;
 use App\Models\Master\EnquiryStatus;
 use App\Models\Master\TimePeriods;
 use App\Models\Master\PaymentMode;
-use App\Models\Master\Complaint;
 use App\Models\Master\Role;
 use App\Models\Master\MessageContent;
 use App\Models\Master\MessageType;
@@ -713,11 +712,6 @@ class Helper{
         return $getMessageType;
     }
    
-   public static function getcomplaint(){
-       $getcomplaint = Complaint::where('id',Session::get('id'))->get()->first();
-       return $getcomplaint;
-   
-   }
    public static function getallStudent(){
        $getallStudent = Admission::get();
        return $getallStudent;

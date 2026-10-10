@@ -99,7 +99,7 @@ $task = Helper::task();
                 </div>
 
                 <div class="col-12 col-sm-6 col-md-3">
-                    <a href="{{ url('complaint_view') }}">
+                    <a href="{{ url('complaints-management') }}">
                         <div class="info-box mb-3 text-dark">
                             <span class="info-box-icon bg-warning elevation-1"><i class="fa fa-snapchat"></i></span>
                             <div class="info-box-content">
