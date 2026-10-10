@@ -792,7 +792,7 @@ select.excel-col-filter option {
                                 <i class="fa fa-file-pdf-o"></i> Download PDF
                             </a>
                         @endif
-                        <a href="{{ url('studentsAttendanceAdd') }}" class="dash-btn dash-btn-light" title="Go to Mark Student Attendance">
+                        <a href="{{ url('attendance/mark') }}" class="dash-btn dash-btn-light" title="Go to Mark Student Attendance">
                             <i class="fa fa-calendar-check-o"></i> Mark Attendance
                         </a>
                         <a href="{{ url('dashboard') }}" class="dash-btn dash-btn-outline" title="Back to Dashboard">

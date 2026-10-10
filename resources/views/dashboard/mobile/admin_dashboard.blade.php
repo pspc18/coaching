@@ -673,7 +673,7 @@
         <div class="launcher-icon-circle circle-grad-2"><i class="fa fa-inr"></i></div>
         <span class="launcher-tile-title">Collect Fee</span>
     </a>
-    <a href="{{ url('studentsAttendanceAdd') }}" class="native-launcher-tile">
+    <a href="{{ url('attendance/mark') }}" class="native-launcher-tile">
         <div class="launcher-icon-circle circle-grad-3"><i class="fa fa-calendar-check-o"></i></div>
         <span class="launcher-tile-title">Attendance</span>
     </a>
@@ -765,7 +765,7 @@
             <h3 class="sharp-card-title">
                 <i class="fa fa-graduation-cap text-primary"></i> Student Attendance Breakdown
             </h3>
-            <a href="{{ url('studentsAttendanceAdd') }}" class="sharp-card-link">
+            <a href="{{ url('attendance/mark') }}" class="sharp-card-link">
                 Mark Attendance <i class="fa fa-angle-right"></i>
             </a>
         </div>

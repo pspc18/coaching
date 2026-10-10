@@ -213,7 +213,7 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
             </div>
             
             <div class="col-3 mt-3">
-                <a href="{{ url('studentsAttendanceView') }}" class="text-dark">
+                <a href="{{ url('attendance/view') }}" class="text-dark">
                     <div class="dashboard-card bg-purple text-white">
                         <i class="fa fa-clock-o"></i>
                     </div>

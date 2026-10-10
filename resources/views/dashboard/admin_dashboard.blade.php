@@ -27,7 +27,7 @@
                 <div class="dash-hero-actions">
                     <a href="{{ url('admissionView') }}" class="dash-btn dash-btn-light"><i class="fa fa-user-plus mr-1"></i> Admission</a>
                     <a href="{{ url('feesCollectAdd') }}" class="dash-btn dash-btn-outline"><i class="fa fa-inr mr-1"></i> Collect Fees</a>
-                    <a href="{{ url('studentsAttendanceAdd') }}" class="dash-btn dash-btn-outline"><i class="fa fa-calendar-check-o mr-1"></i> Attendance</a>
+                    <a href="{{ url('attendance/mark') }}" class="dash-btn dash-btn-outline"><i class="fa fa-calendar-check-o mr-1"></i> Attendance</a>
                     <a href="{{ url('expenseAdd') }}" class="dash-btn dash-btn-outline"><i class="fa fa-plus-circle mr-1"></i> Expense</a>
                 </div>
             </div>

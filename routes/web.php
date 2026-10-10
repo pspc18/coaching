@@ -175,11 +175,6 @@ Route::match(['get', 'post'], 'studentCsvImport', 'StudentCsvImportController@st
 Route::match(['get', 'post'], 'imageRotateSave', 'StudentsAdmissionController@imageRotateSave');
 
 
-//Student Attendence
-// Route::match(['get', 'post'], 'studentsAttendanceAdd', 'StudentAttendanceController@add');
-// Route::match(['get', 'post'], 'studentsAttendanceViewTable', 'StudentAttendanceController@viewTable');
-// Route::match(['get', 'post'], 'SearchValueAtten', 'StudentAttendanceController@SearchValueAtten');
-// Route::match(['get', 'post'], 'studentsAttendancdDelete', 'StudentAttendanceController@attendancedelete');
 
 
 //Students Id
@@ -470,16 +465,6 @@ Route::match(['get', 'post'], 'studentBulkImageUpload', 'StudentsAdmissionContro
 
 Route::match(['get', 'post'], 'stream_update_save', 'StudentsAdmissionController@streamUpdateSave');
 Route::post('stream_remove/{admission_id}/{subject_id}', 'StudentsAdmissionController@streamRemove');
-
-//student attendance
-
-
-// Route::match(['get', 'post'], 'getAttendanceDates', 'StudentAttendanceController@getAttendanceDates');
-// Route::match(['get', 'post'], 'sundayAutoSubmitAttendance', 'StudentAttendanceController@sundayAutoSubmitAttendance');  //Need to start cron...
-// Route::match(['get', 'post'], 'autoStudentAttendance', 'StudentAttendanceController@autoStudentAttendance');
-// Route::match(['get', 'post'], 'studentsAttendanceView', 'StudentAttendanceController@view');
-
-// Route::match(['get', 'post'], 'studentPanelAttendanceView', 'StudentAttendanceController@studentPanelAttendanceView');
 
 
 
