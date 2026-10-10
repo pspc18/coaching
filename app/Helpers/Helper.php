@@ -769,6 +769,26 @@ class Helper{
          });
      }  
    
+    public static function getRemark(){
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+        $today = date('Y-m-d');
+        $cacheKey = 'remarks_' . $branchId . '_' . $sessionId . '_' . $today;
+
+        return Cache::remember($cacheKey, 1800, function() use ($branchId, $sessionId, $today) {
+            try {
+                return Remark::where('date', $today)
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->orderBy('id', 'DESC')
+                    ->get();
+            } catch (\Exception $e) {
+                return collect([]);
+            }
+        });
+    }
+
+
     public static function getUsersBirthday(){
         $today = date('Y-m-d');
         return Cache::remember('users_birthdays_' . $today, 3600, function() {
