@@ -167,8 +167,7 @@ $classType = Helper::classType();
                                  
                                  @endforeach
                                  @else
-                                    <span class='text-danger' style='font-size:12px'> Timetable not scheduled </span> <br>
-                                    <a href="{{url('teacher_subject_add')}}"class='text-primary'  style='font-size:12px;cursor:pointer' target='_blank'>Click here to assign subject</a>
+                                    <span class='text-danger' style='font-size:12px'> Timetable not scheduled </span>
                                  @endif
                                 
                                 

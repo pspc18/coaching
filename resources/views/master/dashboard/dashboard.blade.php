@@ -43,21 +43,7 @@
                  
              
                
-                <!--<div class="col-md-3 col-6">
-                    <a href="{{url('teacher_subject_add')}}" class="small-box-footer">
-                        <div class="small-box bg-dark">
-                            <div class="inner">
-                                <h4 class="mobile_text_title">{{ __('master.Subject Teachers') }}</h4>
 
-                                <p>{{ __('common.Enter') }}</p>
-                            </div>
-                            <div class="icon">
-                                <i class="ion ion-stats-bars"></i>
-                            </div>
-                            <div class="text-center small-box-footer">{{ __('common.More info') }}<i class="fa fa-arrow-circle-right"></i></div>
-                        </div>
-                    </a>
-                </div>-->
                 
                 
            

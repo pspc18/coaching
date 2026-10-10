@@ -33,10 +33,6 @@ Route::match(['get','post'],'edit_class/{id}', 'master\ClassController@edit');
 Route::match(['get','post'],'class_delete', 'master\ClassController@delete');
 Route::match(['get','post'],'save-selected-classes', 'master\ClassController@saveSelectedClasses');
 
-//TeacherSubjectController
-//TeacherSubjectController
-Route::match(['get','post'],'teacher_subject_add', 'master\TeacherSubjectController@teacherSubjectAdd');
-Route::match(['get','post'],'printTimeTable', 'master\TeacherSubjectController@printTimeTable');
 
 Route::get('complaints-management', 'master\SupportComplaintController@index');
 Route::get('complaints-management/{id}', 'master\SupportComplaintController@show')->where('id', '[0-9]+');
