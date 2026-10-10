@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use App\Models\WebUser;
 use App\Models\User;
 use App\Models\Master\Rule;
-use App\Models\Master\SchoolDesk;
 use App\Models\Master\GatePass;
 use App\Models\ManagedNotice;
 use App\Models\Admission;
@@ -163,18 +162,7 @@ class ProfileController extends BaseController
     
      public function schoolDeskView(Request $request)
     {
-            $data = SchoolDesk::where('id',1)->first();
-            
-            if(!empty($data))
-            {
-                 return $this->sendResponseData($data, 'success');
-            }
-            else
-            {
-                  return $this->sendError('Validation Error.', 'Error');
-            }
-          
-        
+        return response()->json(['status' => true, 'message' => 'Success', 'data' => null], 200);
     }
     
     

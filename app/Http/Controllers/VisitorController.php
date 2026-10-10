@@ -23,7 +23,6 @@ use App\Models\Sessions;
 use App\Models\Master\MessageTemplate;
 use App\Models\fees\FeesAssign;
 use App\Models\fees\FeesAssignDetail;
-use App\Models\Master\SchoolDesk;
 use App\Models\Master\MessageType;
 use App\Models\Master\Branch;
 use Session;

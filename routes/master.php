@@ -97,7 +97,6 @@ Route::match(['get','post'],'user/module_status', 'UserController@module_status'
  Route::match(['get','post'],'rules_add', 'master\RuleController@add');
  Route::match(['get','post'],'rules_edit/{id}', 'master\RuleController@edit');
 Route::match(['get','post'],'rules_delete', 'master\RuleController@delete');
-Route::match(['get','post'],'school_desk', 'master\RuleController@schoolDeskEdit');
 
 
 //Session Start
@@ -255,7 +254,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
    
     
     
-    Route::match(['get', 'post'], 'school_desk_view', 'master\RuleController@schoolDeskView');
     
 
 //GatePassController

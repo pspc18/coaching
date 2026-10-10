@@ -6,7 +6,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\Master\Rule;
 use App\Models\Master\Role;
-use App\Models\Master\SchoolDesk;
 use Session;
 use Hash;
 use Str;
@@ -185,31 +184,4 @@ class RuleController extends Controller
         return redirect::to('rules_add')->with('message', 'Rule Deleted Successfully.');
     }
 
-    public function schoolDeskEdit(Request $request)
-    {
-        $old = SchoolDesk::first();
-        if ($request->isMethod('post')) {
-            $request->validate([
-                'description' => 'required',
-            ]);
-            if (empty($old)) {
-                $data = new SchoolDesk;
-            } else {
-                $data = SchoolDesk::find(1);
-            }
-            $data->user_id = Session::get('id');
-            $data->session_id = Session::get('session_id');
-            $data->branch_id = Session::get('branch_id');
-            $data->description = $request->description;
-            $data->save();
-            return response()->json(['status' => 'success', 'message' => 'School Desk updated Successfully.', 'redirect' => url('school_desk')]);
-        }
-        return view('master.schoolDesk.school_desk', ['data' => $old]);
     }
-
-    public function schoolDeskView(Request $request)
-    {
-        $data = SchoolDesk::where('id', 1)->first();
-        return view('master.schoolDesk.school_desk_view', ['data' => $data]);
-    }
-}

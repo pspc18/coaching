@@ -609,7 +609,6 @@ class AuthController extends Controller
             DB::table('registration_terms')->truncate();
             DB::table('rules')->truncate();
             DB::table('school_calender')->truncate();
-            DB::table('school_desk')->truncate();
             DB::table('security_deposit')->truncate();
             DB::table('sell_invantory_items')->truncate();
             DB::table('sell_inventory')->truncate();

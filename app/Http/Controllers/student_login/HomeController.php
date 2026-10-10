@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Master\Rule;
 use App\Models\Admission;
 use App\Models\Teacher;
-use App\Models\Master\SchoolDesk;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\BooksUniformShop;
 use App\Models\Master\GatePass;
@@ -26,10 +25,6 @@ class HomeController extends Controller
 
 {
            
-            public function schoolDeskView(Request $request){
-                $data = SchoolDesk::where('id',1)->first();
-                return view('student_login.school_desk', ['data' => $data]);
-            }
             public function myteachers(Request $request){
                
                 $branch = Session::all();
