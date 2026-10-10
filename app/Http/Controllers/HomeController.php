@@ -13,15 +13,10 @@ use App\Models\Sessions;
 use App\Models\Admission;
 use App\Models\exam\AssignExam;
 use App\Models\examoffline\AssignOfflineExam;
-use App\Models\hostel\HostelBuilding;
-use App\Models\hostel\HostelFloor;
-use App\Models\hostel\HostelRoom;
-use App\Models\hostel\HostelBed;
 use App\Models\Master\BusRouteAssign;
 use App\Models\Master\TeacherSubject;
 use App\Models\Teacher;
 use App\Models\Subject;
-use App\Models\library\LibraryCabin;
 use Session;
 use Hash;
 use Str;
@@ -138,19 +133,7 @@ class HomeController extends Controller
         echo $busData;
        } 
     }   
- 
-     public function libraryData(Request $request,$id){
-         $data = array();    
-             if(!empty($id)){
-            $data = LibraryCabin::with('Library')->where('library_id',$id)->get();
-            $libraryData ='<option value="">Select</option>';
-                foreach($data as $type){
-               $libraryData.='
-               <option value="'.$type['id'].'">'.$type['name'].'</option>';
-               }
-            echo $libraryData;
-           }  
-     } 
+
     
      
       public function change(Request $request)

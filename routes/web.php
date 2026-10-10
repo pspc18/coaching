@@ -853,8 +853,6 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 
 
 
-	Route::match(['get', 'post'], 'dataCabin/{id}', 'library\LibraryClickDataController@dataCabin');
-	Route::match(['get', 'post'], 'libraryData/{id}', 'HomeController@libraryData');
 
 	
 

@@ -5,7 +5,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\Master\NoticeBoard;
 use App\Models\Master\Role;
-use App\Models\Master\Library;
 use App\Models\Master\Branch;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;

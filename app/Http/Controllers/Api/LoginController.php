@@ -10,8 +10,6 @@ use App\Models\Admission;
 use App\Models\Master\Branch;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;
-use App\Models\library\LibraryAssign;
-use App\Models\hostel\HostelAssign;
 use Validator;
 use Hash;
 use File;
@@ -173,28 +171,13 @@ public function forgotPassword(Request $request)
 }
 
         public function libraryHostelDetails(Request $request){
-            
             try{
                 if($request->isMethod('post')){
-                    $id = $request->admission_id;
-                    
-                    $details['library'] = LibraryAssign::select('library_assign.*','locker.name as lockerName','librarys.name as libraryName')
-                                          ->leftJoin('librarys','librarys.id','library_assign.library_id')
-                                          ->leftJoin('library_lockers as locker','locker.id','library_assign.library_locker_id')
-                                          ->where('library_assign.status',1)->where('library_assign.admission_id',$id)->first();
-                                          
-                    $details['hostel'] = HostelAssign::select('hostel_assign.*','hostel.name as hostelName','hostel_floor.name as floorName'
-                                            ,'hostel_building.name as buildingName','hostel_bed.name as bedName','hostel_room.name as roomName')
-                                          ->leftJoin('hostel','hostel.id','hostel_assign.hostel_id')
-                                          ->leftJoin('hostel_building','hostel_building.id','hostel_assign.building_id')
-                                          ->leftJoin('hostel_floor','hostel_floor.id','hostel_assign.floor_id')
-                                          ->leftJoin('hostel_room','hostel_room.id','hostel_assign.room_id')
-                                          ->leftJoin('hostel_bed','hostel_bed.id','hostel_assign.bed_id')
-                                          ->where('hostel_assign.admission_id',$id)->first();
+                    $details['library'] = null;
+                    $details['hostel'] = null;
 
                     return response()->json(['status' => true, 'data' => $details, 'message' => 'Hostel And Library Details Fatched Successfully'], 200);
                 }
-                
             }catch (Exception $e) {
                 return $this->sendError('Something Went Wrong', 'Error');
             }

@@ -10,10 +10,7 @@ use App\Models\StudentAttendance;
 use App\Models\Teacher;
 use App\Models\PermissionManagement;
 use App\Models\Enquiry;
-use App\Models\hostel\HostelAssign;
 use App\Models\Admission;
-use App\Models\FeesDiscount;
-use App\Models\library\LibraryAssign;
 use App\Models\AttendanceMark;
 use App\Models\TeacherAttendance;
 use App\Models\ClassType;
@@ -63,11 +60,8 @@ class DashboardController extends Controller
                 ]);
             
             }
-        elseif($barnch['role_id'] == 4){
-            return Helper::view('dashboard.libraryAdmin_dashboard',['result'=>$result]);
-        }     
-        elseif($barnch['role_id'] == 5){
-            return Helper::view('dashboard.hostelAdmin_dashboard',['result'=>$result]);
+        elseif($barnch['role_id'] == 4 || $barnch['role_id'] == 5){
+            return redirect('/');
         } 
         elseif($barnch['role_id'] == 6){
             return Helper::view('dashboard.admin_dashboard', array_merge(['result' => $result], $this->adminDashboardData()));

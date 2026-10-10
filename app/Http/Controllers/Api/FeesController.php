@@ -248,46 +248,15 @@ $feesDetails=	FeesDetail::Select('fees_detail.*','payment_modes.name as payment_
         }
         
         if($data->library != 0){
-          $fees['library_fees'] =  Invoice::select('invoices.*','admissions.first_name as first_name','admissions.mobile','admissions.admissionNo') 
-                                        ->leftjoin('library_assign as library_assign','library_assign.admission_id','invoices.admission_id')
-                                        ->leftjoin('admissions','admissions.id','library_assign.admission_id')
-                                        ->where('library_assign.session_id',3)
-                                        ->where('library_assign.branch_id',1)
-                                        ->GroupBy('invoices.id')->where('invoices.invoice_type',0)
-                                        ->where('invoices.admission_id',$id)
-                                        ->where('admissions.library',1)->get();
-         
-
-                    if(count($fees['library_fees']) != 0)
-                    {
-                         $fees['total_library_fees']  = $fees['library_fees']->sum('total_amount') ?? 0;
-                         $fees['collected_library_fees']  = $fees['library_fees']->sum('paid_amount') ?? 0;
-                    }else
-                    {
-                         $fees['total_library_fees'] = 0;
-                         $fees['collected_library_fees'] = 0;
-                    }
+            $fees['library_fees'] = [];
+            $fees['total_library_fees'] = 0;
+            $fees['collected_library_fees'] = 0;
         }
         
         if($data->hostel != 0){
-          $fees['hostel_fees'] =  Invoice::select('invoices.*','admissions.first_name as first_name','admissions.mobile','admissions.admissionNo') 
-                                    ->leftjoin('hostel_assign as hostel_assign','hostel_assign.admission_id','invoices.admission_id')
-                                        ->leftjoin('admissions','admissions.id','hostel_assign.admission_id')
-                                        ->where('hostel_assign.session_id',3)
-                                        ->where('hostel_assign.branch_id',1)
-                                        ->GroupBy('invoices.id')->where('invoices.invoice_type',1)
-                                        ->where('invoices.admission_id',$id)
-                                        ->where('admissions.hostel',1)->get();
-    
-                    if(count($fees['hostel_fees']) != 0)
-                    {
-                         $fees['total_hostel_fees']  = $fees['hostel_fees']->sum('total_amount') ?? 0;
-                         $fees['collected_hostel_fees']  = $fees['hostel_fees']->sum('paid_amount') ?? 0;
-                    }else
-                    {
-                         $fees['total_hostel_fees'] = 0;
-                         $fees['collected_hostel_fees'] = 0;
-                    }
+            $fees['hostel_fees'] = [];
+            $fees['total_hostel_fees'] = 0;
+            $fees['collected_hostel_fees'] = 0;
         }
 
               return response()->json(['status' => true, 'message' => 'Fees Details Fetched Successfully', 'data' => $fees, 'subscription' => $subscription], 200);
@@ -337,29 +306,6 @@ $feesDetails=	FeesDetail::Select('fees_detail.*','payment_modes.name as payment_
     
         
     public function libraryFeesPrint(Request $request,$invoice_no,$admission_id){
-        $data =  Invoice::select('invoices.*','admissions.first_name as first_name','library_lockers.name as locker_name','admissions.mobile as mobile','admissions.admissionNo','payment_modes.name as payment_mode_name'
-                            ,'fees_detail.discount as per_discount','fees_detail.paid_amount as per_paid_amount','fees_detail.date as bill_date') 
-                            ->leftjoin('library_assign as library_assign','library_assign.admission_id','invoices.admission_id')
-                            ->leftjoin('library_lockers','library_lockers.id','invoices.library_locker_id')
-                            ->leftjoin('admissions','admissions.id','library_assign.admission_id')
-                             ->leftjoin('fees_detail','fees_detail.invoice_id','invoices.id')
-                            ->leftjoin('payment_modes','payment_modes.id','fees_detail.payment_mode_id')
-                            ->where('invoices.invoice_no',$invoice_no)
-                            ->where('invoices.admission_id',$admission_id)
-                            ->where('invoices.invoice_type',0)->get();
-                        
-      
-        $printPreview = Helper::printPreview('Student Fees Collect');
-
-        $html = View::make($printPreview, ['data' => $data])->render();
-        
-        $dompdf = new Dompdf();
-        
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape');
-        
-        $dompdf->render();
-    
-        return $dompdf->stream("LibraryFees.pdf");
+        return response()->json(['status' => false, 'message' => 'Library module is no longer available.'], 404);
     }
 }

@@ -41,15 +41,11 @@ use App\Models\Master\SubjectStreams;
 use App\Models\Master\Weekendcalendar; 
 use App\Models\exam\Exam;
 use App\Models\Remark;
-use App\Models\HostelStudent;
-use App\Models\hostel\ElectricityBillPayment;
-use App\Models\hostel\HostelMeterUnit;
 use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 use App\Models\fees\FeesAssignDetail;
 use App\Models\Setting;
-use App\Models\hostel\HostelFeesDetail;
 use App\Models\ClassType;
 use App\Models\BloodGroup;
 use App\Models\Enquiry;
@@ -65,9 +61,7 @@ use App\Models\FeesDetail;
 use App\Models\FeesAssign;
 use App\Models\FeesCollect;
 use App\Models\OnlinePaymentTransaction;
-use App\Models\hostel\StudentExpenseDetail;
 use App\Models\AdmitCardNote;
-use App\Models\hostel\StudentExpense;
 use App\Models\TeacherDocuments;
 use App\Models\UserPermission;
 use App\Models\AttendanceStatus;
@@ -83,21 +77,7 @@ use App\Models\Master\BusRouteAssign;
 use App\Models\Master\BusAssign;
 use App\Models\Master\MessageContent;
 use App\Models\Master\MessageType;
-use App\Models\hostel\Hostel;
 use App\Models\Expense;
-use App\Models\hostel\HostelBuilding;
-use App\Models\hostel\HostelFloor;
-use App\Models\hostel\HostelRoom;
-use App\Models\hostel\HostelBed;
-use App\Models\hostel\MessFoodCategory;
-use App\Models\hostel\MessFeesStrucher;
-use App\Models\hostel\HostelAssign;
-use App\Models\hostel\HostelDetail;
-use App\Models\hostel\Head;
-use App\Models\library\Library;
-use App\Models\library\LibraryPlan;
-use App\Models\library\LibraryCategory;
-use App\Models\library\LibraryCabin;
 use App\Models\Master\SidebarPermission;
 use App\Models\Master\NoticeBoard;
 use App\Models\Master\HomeworkReview;
@@ -107,8 +87,6 @@ use App\Models\exam\ExamResult;
 use App\Models\exam\AssignExam;
 use App\Models\ExaminationScheduleDetail;
 use App\Models\Sessions;
-use App\Models\library\LibraryAssign;
-use App\Models\library\LibraryTimeSlot;
 use App\Models\ToDoList;
 use App\Models\NotificationToken;
 use App\Models\Notification;
@@ -712,97 +690,7 @@ class Helper{
    }
    
        public static function getDocumentsIsNull($id){
-       $hostel_detail = HostelAssign::where('id',$id)->first();
-       
-       $count = 0;
-       $name = '';
-       $comma ='';
-       
-       if(!empty($hostel_detail))
-       {
-            if($hostel_detail->student_image == '')
-            {
-                $count++;
-                
-                
-                 $name = $name.$count==0 ? '':','.'Student Image' ;
-                
-                
-            }
-            if($hostel_detail->Signature_img == '')
-            {
-                $count++;
-                  $name = $name.','.'Student Signature' ;
-            }
-            if($hostel_detail->student_id_proof == '')
-            {
-                $count++;
-                  $name = $name.','.'Student Id' ;
-            }
-            if($hostel_detail->college_id == '')
-            {
-                $count++;
-                  $name = $name.','.'College Id' ;
-            }
-            if($hostel_detail->police_verification == '')
-            {
-                $count++;
-                  $name = $name.','.'Police Verification' ;
-            }
-            if($hostel_detail->covid_certificate == '')
-            {
-                $count++;
-                  $name = $name.','.'Covid Certificate' ;
-            }
-       }
-       
-       $name =  preg_replace('/,/', '',  $name, 1);
-     
-      
-       return $name;
-   
-   }
-   
-      public static function getCount($table_name,$colem_name=null,$method =null,$where_colem_name=null,$where_value_name =null){
-       
-            $user_id = Session::get('id');
-            $result = DB::table($table_name)->where('deleted_at', '=', Null)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'));
-            if(!empty($where_colem_name)){
-                 $result =$result->where($where_colem_name,$where_value_name);
-         
-             }
-             /*if($user_id > 1){
-                 $result =$result->where('user_id',$user_id);
-             }*/
-            if(!empty($colem_name)){
-              $result =$result->$method($colem_name);
-            }
-          return $result;
-   }
-     public static function getAllUsers(){
-       $getAllUsers = User::where('branch_id',Session::get('branch_id'))->whereNull('deleted_at')->get();
-       return $getAllUsers;
-   
-   }
-
-     public static function getMessFeesStrucher(){
-       $getMessFeesStrucher = MessFeesStrucher::all();
-       return $getMessFeesStrucher;
-   
-   }
-     public static function getAllHead(){
-       $getAllHead = Head::whereNull('deleted_at')->get();
-       return $getAllHead;
-   
-   }
-      public static function studentexamview(){
-       $studentexamview = Exam::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-       return $studentexamview;
-   }
-   
-    public static function getMonth(){
-        $getMonth = Month::orderBy('id','ASC')->get();
-        return $getMonth;
+        return '';
     }  
     
    public static function getCountry(){
@@ -1256,102 +1144,7 @@ class Helper{
     }
       
    public static function getHostel(){
-       $getHostel = Hostel::where('session_id',Session::get('session_id'));
-       if(Session::get('role_id') > 1){
-           $getHostel = $getHostel->where('branch_id',Session::get('branch_id'));
-       }
-       
-       $getHostel = $getHostel->orderBy('id', 'DESC')->get();
-       return $getHostel;
-   }      
-      
-   public static function getHostelBuilding($hostel_id){
-       $getHostelBuilding = HostelBuilding::where('hostel_id',$hostel_id)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-       return $getHostelBuilding;
-   }      
-
-   public static function getHostelBuildingAll(){
-       $getHostelBuildingAll = HostelBuilding::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-       return $getHostelBuildingAll;
-   } 
-   
-   public static function getHostelFloor(){
-       $getHostelFloor = HostelFloor::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-       return $getHostelFloor;
-   }
-   
-   public static function getHostelRoom(){
-       $getHostelRoom = HostelRoom::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-       return $getHostelRoom;
-   }
-   
-   public static function getHostelBed(){
-       $getHostelBed = HostelBed::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->orderBy('id', 'DESC')->get();
-       return $getHostelBed;
-   }   
-
-   public static function getMessageContent(){
-       $getMessageContent = MessageContent::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-       return $getMessageContent;
-   }      
-      
-   public static function expanceSum(){
-       $expanceSum = Expense::sum('amount');
-       return $expanceSum;
-   }        
-      
-     public static function noticeBoard(){
-        $branchId = Session::get('branch_id');
-        $sessionId = Session::get('session_id');
-        $roleId = Session::get('role_id');
-        $today = date('Y-m-d');
-        $cacheKey = 'notice_board_' . $branchId . '_' . $sessionId . '_' . $today;
-
-        $notices = Cache::remember($cacheKey, 1800, function() use ($branchId, $sessionId, $today) {
-            return NoticeBoard::where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->whereDate('to_date', '>=', $today)
-                ->whereDate('from_date', '<=', $today)
-                ->orderBy('id', 'DESC')
-                ->get();
-        });
-
-        $newData = [];
-        foreach($notices as $item)
-        {
-            foreach(explode(',', (string)$item->role_id) as $r_id) 
-            {
-                if($r_id == $roleId)
-                {
-                    $newData[] = $item;
-                }
-            }
-        }
-        return $newData;
-     }      
-       
-   public static function getLibrary(){
-       $getLibrary = Library::where('session_id',Session::get('session_id'));
-       
-       if(Session::get('role_id') > 1){
-           $data = $getLibrary->where('branch_id',Session::get('branch_id'));
-       }
-        $data = $getLibrary->orderBy('id', 'DESC')->get();
-       return $data;
-   }      
-    public static function getRemark(){
-        $branchId = Session::get('branch_id');
-        $sessionId = Session::get('session_id');
-        $today = date('Y-m-d');
-        $cacheKey = 'remarks_' . $branchId . '_' . $sessionId . '_' . $today;
-
-        return Cache::remember($cacheKey, 1800, function() use ($branchId, $sessionId, $today) {
-            return Remark::where('date', $today)
-                ->where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->orderBy('id', 'DESC')
-                ->get();
-        });
+        return collect([]);
     }      
      
     public static function getSession(){
@@ -1585,185 +1378,10 @@ protected static function activeStudentAttendanceIndex(): array
 
 
    public static function getBookCategory(){
-      $bookCategory = LibraryCategory::orderBy('id', 'DESC')->get();
-        return $bookCategory;
-  }
-
-  
-    
-    public static function monthlyUnits($hostel_room_id,$floor_id,$building_id,$hostel_id){
-          
-      $data = HostelMeterUnit::where('hostel_room_id',$hostel_room_id)->
-      where('floor_id',$floor_id)->
-      where('building_id',$building_id)->
-      where('hostel_id',$hostel_id)->get();
-       return $data;
-   }
+        return collect([]);
+    }
       public static function monthlyConsumption($month_id,$hostel_room_id,$floor_id,$building_id,$hostel_id){
-          
-      $data1= TotalDays::where('room_id',$hostel_room_id)->
-      where('floor_id',$floor_id)->
-      where('building_id',$building_id)->
-      where('hostel_id',$hostel_id)->
-      where('month_id',$month_id)->groupBy('hostel_assign_id')->get();
-      
-      $data['people']=count($data1);
-      
-      $data['days'] = TotalDays::where('room_id',$hostel_room_id)->
-      where('floor_id',$floor_id)->
-      where('building_id',$building_id)->
-      where('hostel_id',$hostel_id)->
-      where('month_id',$month_id)->sum('total_days');
-       return $data;
-   }
-      public static function getBillDetails($date,$end_date,$admission_id, $hostel_room_id,$floor_id,$building_id,$hostel_id,$hostel_assign_id){
-       
-       
-   
-           $data['assigned_ids'] =  HostelAssign:: where('floor_id',$floor_id)->
-       where('building_id',$building_id)->
-       where('hostel_id',$hostel_id)->
-      // whereMonth('date', '>=', $month_id)->
-       get();
-       
-     
-     
-        
-        
-         $day_arr =0;
-     $per_head_unit =0;
-     
-     $carbonDate;
-     
-     $old_id=[];
-     $old_month_id=[];
- 
-    $i =0;
-    $day_arr = 0;
-     foreach($data['assigned_ids'] as $item)
-     {
-       
-           $carbonDate = Carbon::createFromFormat('Y-m-d', date('Y-m-d'));
-           $carbonDate =   $carbonDate->format('n');
-  
-    //   $lastDayOfMonth = Carbon::createFromDate(date("Y"), $carbonDate)->endOfMonth();
-      
-                $currentMonthLastDay = Carbon::createFromDate(date("Y"), $carbonDate)->endOfMonth();
-    $datetime1 = new DateTime($item['date']);
-     $datetime2 = new DateTime($currentMonthLastDay);
- 
-        
-         $carbonDate1 = Carbon::createFromFormat('Y-m-d', $item['date']);
-           $carbonDate1 =   $carbonDate1->format('n');
-    $monthDiff = $carbonDate-$carbonDate1;
- $joiningDate =$item['date'];
-
-              if($item['date'] != null)
-        {
-            $joiningDate =Carbon::createFromFormat('Y-m-d',  $joiningDate);
-            for($i =0 ; $i<$monthDiff; $i++)
-            {
-               
-           $joiningMonth =   $joiningDate->format('n');
-           
-         
-  
-      $lastDayOfMonth = Carbon::createFromDate(date("Y"), $joiningMonth)->endOfMonth();
-       $start;
-        $days;
-      if($i> 0)
-      {
-          
-          $start = new DateTime($joiningDate);
-          
-          
-      }
-      else
-      {
-            $start = new DateTime($item['date']);
-      }
-     
-        $end = new DateTime($lastDayOfMonth);
-             $interval = $start->diff($end);
-             if($i> 0 )
-             {
-                       $days = $interval->format('%a')+1;  
-             }
-             else
-             {
-                 $days = $interval->format('%a');
-             }
-                 
-                $day_arr += $days;
-                $initialDate = Carbon::parse($end);
-            //   $joiningMonth =  $initialDate->addDay(1); 
-              $joiningDate = \Carbon\Carbon::parse($initialDate->addDay(1)->format('Y-m-d'));
-           
-           
-           $olddata = TotalDays::where('month_id',$joiningMonth)->where('hostel_assign_id',$item['id'])->first();
-           
-           if(empty($olddata))
-           {
-           $totalDays = new TotalDays;
-           $totalDays->hostel_assign_id = $item['id'];
-           $totalDays->total_days = $days;
-           $totalDays->month_id = $joiningMonth;
-           $totalDays->hostel_id =  $item['hostel_id'];
-           $totalDays->building_id =  $item['building_id'];
-           $totalDays->floor_id =  $item['floor_id'];
-           $totalDays->room_id =  $item['room_id'];
-           $totalDays->bed_id =  $item['bed_id'];
-           $totalDays->save();
-           }
-            }
-        }
-     }
-       
-        $endDateIds =  HostelAssign:: where('floor_id',$floor_id)->
-       where('building_id',$building_id)->
-       where('hostel_id',$hostel_id)->
-       where('end_date', '!=', null)->
-       get();
-        
-        
-        $days1 = 0;
-          foreach($endDateIds as $item)
-     {
-          $endingDate =Carbon::createFromFormat('Y-m-d',  $item['end_date']);
-           
-               
-          $endingMonth =   $endingDate->format('n');
-          $firstDayOfMonth1 = Carbon::createFromDate(date("Y"), $endingMonth)->startOfMonth();
-          $lastDayOfMonth1 = Carbon::createFromDate(date("Y"), $endingMonth)->endOfMonth();
-          $start1 = new DateTime($firstDayOfMonth1);
-             $end1= new DateTime($item['end_date']);
-         
-          $interval1 = $start1->diff($end1);
-           
-                      $days1 = $interval1->format('%a')+1;  
-                  
-                       
-                $olddata1 = TotalDays::where('month_id',$endingMonth)->where('hostel_assign_id',$item['id'])->first();
-       
-          if(!empty($olddata1))
-          {         
-              $olddata2 =TotalDays::where('id',$olddata1['id'])->update(['total_days'=> $days1]);
-          }
-                       
-     }
-        
-      
-
-    $hostel_assign_total_days = TotalDays::select('total_days.*','payment.status as payment_status','payment.payment_mode_id','payment.id as electricity_id')
-        ->leftjoin('electricity_bill_payments as payment','payment.total_days_id','total_days.id')->where('total_days.hostel_assign_id',$hostel_assign_id)->get();
-       
-           //dd($hostel_assign_total_days);
-  
-         return $hostel_assign_total_days;
-   }
-     public static function getExpanceDetails($id){
-        $detailsExpance = StudentExpenseDetail::where('student_expense_id',$id)->get();
-        return $detailsExpance;
+        return ['people' => 0, 'days' => 0];
     }
     
     public static function getTimePeriod(){
@@ -1839,12 +1457,7 @@ protected static function activeStudentAttendanceIndex(): array
        return $data;
    }
     public static function allstudents() {
-        $data =  HostelAssign::select('hostel_assign.*','admissions.first_name','admissions.father_name')
-                    ->leftjoin('admissions','admissions.id','hostel_assign.admission_id')
-                    ->where('hostel_assign.branch_id', Session::get('branch_id'))
-                    ->where('hostel_assign.bed_status', 1)
-                    ->orderBy('hostel_assign.id', 'DESC')->get();
-        return $data;
+        return collect([]);
     }
     
  
@@ -1874,82 +1487,11 @@ protected static function activeStudentAttendanceIndex(): array
     
 
     public static function getSeatCounts($time_slot_id){
-        $total_seats = LibraryCabin::count();
-        $time = LibraryTimeSlot::where('id',$time_slot_id)->first();
-        $a1=explode(',', $time->not_assign_time_slot_id);
-        $a2=array($time_slot_id);
-        $seatsCount = LibraryPlan::where('status', 0)->whereIn('library_time_slot_id', array_merge($a1,$a2))->count();
-        $seats['available_seats'] = $total_seats - $seatsCount;
-        $seats['booked_seats'] = $seatsCount;
-        
-        return $seats;
+        return ['available_seats' => 0, 'booked_seats' => 0];
     }
     
     public static function getLibraryCabin($library_id){
-       $getLibraryCabin = LibraryCabin::where('library_id',$library_id)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-       //dd($getLibraryCabin);
-       return $getLibraryCabin;
-   } 
-   
-   
-     public static function getChapter(){
-       $getChapter = ChapterDigital::orderBy('id', 'ASC')->get();
-       return $getChapter;
-   }
-    public static function getTopic(){
-       $getTopic = TopicDigital::orderBy('id', 'ASC')->get();
-       return $getTopic;
-   }
- 
- 
-   public static function getQuestionType(){
-       $getQuestionType = QuestionTypeDigital::orderBy('id', 'ASC')->get();
-       return $getQuestionType;
-   }
- 
-   public static function getSuka(){
-       $getSuka = SukaDigital::orderBy('id', 'ASC')->get();
-       return $getSuka;
-   }
- 
-   public static function getUploadBypic(){
-       $getUploadBy = UploadByDigital::orderBy('id', 'ASC')->get();
-       return $getUploadBy;
-   }
-    
-     public static function getLevel(){
-       $getLevel = LevelDigital::orderBy('id', 'ASC')->get();
-       return $getLevel;
-   }
-   
-   public static function getExamPattern(){
-       $getExamPattern = ExamPatternDigital::orderBy('id', 'ASC')->get();
-       return $getExamPattern;
-   }
-   
-   public static function getPrintPreviewSample($module_id){ 
-        $data = PrintFileDetails::Select('print_file_details.*','print_file_modules.name as print_file_modules_name' )
-            ->leftjoin('print_file_modules','print_file_modules.id', 'print_file_details.print_file_modules_id')->where('print_file_details.id',$module_id)->first();
-        
-            $module_name = str_replace(' ', '', $data->print_file_modules_name);
-            
-           
-            
-           return env('IMAGE_SHOW_PATH').'default/print_file_samples/'.$module_name.'/'.$data->name.'.jpg';
-   }
-   public static function printPreview($subModule){ 
-        
-        $printSubModule = PrintFileSubModule::where('name',$subModule)->first();
-
-        $printPreview = PrintFileDetails::select('print_file_details.*','module.name as module_name')
-                    ->leftjoin('print_file_settings as settings', 'settings.print_file_details_id', 'print_file_details.id')
-                    ->leftjoin('print_file_modules as module', 'module.id', 'print_file_details.print_file_modules_id')
-                    ->where('print_file_details.print_file_sub_modules_id',$printSubModule->id)->first();
-        
-                    
-        $module_name = str_replace(' ', '', $printPreview->module_name);
-       
-        return 'master.printFilePanel.'.$module_name.'.'.$printPreview->name;
+        return collect([]);
     }
     
     

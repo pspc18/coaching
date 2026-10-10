@@ -133,18 +133,7 @@ $task = Helper::task();
                 </div>
                 </a>
             </div>
-  
-            <div class="col-12 col-sm-6 col-md-3">
-                <a href="{{ url('library_add') }}">
-                <div class="info-box mb-3 text-dark">
-                    <span class="info-box-icon bg-warning elevation-1"><i class="fa fa-book"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">TOTAL LIBRARY</span>
-                    <span class="info-box-number">{{\App\Models\library\Library::countTotelLibrary() }}</span>
-                    </div>
-                </div>
-                </a>
-            </div>
+
             <div class="col-12 col-sm-6 col-md-3">
                 <a href="{{ url('bus/index') }}">
                 <div class="info-box mb-3 text-dark">

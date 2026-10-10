@@ -1,5 +1,4 @@
 @php
-    $getHostel = Helper::getHostel();
     $getPaymentMode = Helper::getPaymentMode();
     $getRole = Helper::getUsers();
 @endphp
