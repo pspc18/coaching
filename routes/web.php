@@ -312,7 +312,6 @@ Route::match(['get', 'post'], 'student_exam_comparison_students', 'offline_exam\
 
 
 //Account Dashboard
-Route::match(['get', 'post'], 'bank/account/index', 'AccountController@accountList');
 Route::match(['get', 'post'], 'bank/account/add', 'AccountController@add');
 
 

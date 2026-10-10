@@ -121,19 +121,9 @@ class AccountController extends Controller
         
         return view('account.add_bank.add');
  
-     }
-     
-      public function accountList(Request $request){
-       $data =  Account::where('session_id',Session::get('session_id'));
-       
-       if(Session::get('role_id') > 1){
-           $data = $data->where('branch_id',Session::get('branch_id'));
-       }
-        $allaccount = $data->orderBy('id', 'DESC')->get();
-        return view('account.add_bank.index',['data'=>$allaccount]);
     }
     
-      public function editBank(Request $request,$id){
+    public function editBank(Request $request,$id){
             // dd($request);
             $data = Account::find($id);
         if($request->isMethod('post')){
