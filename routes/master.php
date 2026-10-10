@@ -96,10 +96,6 @@ Route::match(['get','post'],'session_add', 'master\SessionsController@add');
 Route::match(['get','post'],'sessions_delete', 'master\SessionsController@delete');
 
 
-//Subject Controller
-Route::match(['get','post'],'time_periods', 'master\SubjectController@timePeriods');
-Route::match(['get','post'],'edit_periods/{id}', 'master\SubjectController@editTimePeriods');
-    Route::match(['get','post'],'delete_periods', 'master\SubjectController@deletePeriods');
 
 
 

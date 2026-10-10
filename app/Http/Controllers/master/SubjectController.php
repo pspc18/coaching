@@ -6,7 +6,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\TeacherCategory;
 use App\Models\Subject;
-use App\Models\Master\TimePeriods;
 use App\Models\Master\AllSubjects;
 use App\Models\ClassType;
 use Session;
@@ -374,56 +373,6 @@ class SubjectController extends Controller
         return redirect::to('add_subject')->with('message', 'Subject Deleted Successfully.');
     }
 
-    public function deletePeriods(Request $request)
-    {
-        $id = $request->delete_id;
-        TimePeriods::find($id)->delete();
-        return redirect::to('time_periods')->with('message', 'Period Deleted Successfully.');
-    }
-
-    public function timePeriods(Request $request)
-    {
-        if ($request->isMethod('post')) {
-            $request->validate([
-                'from_time' => 'required',
-                'to_time' => 'required',
-                'period_name' => 'required',
-            ]);
-            $data = new TimePeriods;
-            $data->user_id = Session::get('id');
-            $data->session_id = Session::get('session_id');
-            $data->branch_id = Session::get('branch_id');
-            $data->from_time = $request->from_time;
-            $data->to_time = $request->to_time;
-            $data->period_name = $request->period_name;
-            $data->save();
-
-            return response()->json(['status' => 'success', 'message' => 'Period added Successfully.']);
-        }
-        $data = TimePeriods::where('branch_id', Session::get('branch_id'))->where('session_id', Session::get('session_id'))->orderBy('id', 'ASC')->get();
-        return view('master.time_table.add', ['data' => $data]);
-    }
-
-    public function editTimePeriods(Request $request, $id)
-    {
-        $data = TimePeriods::find($id);
-        if ($request->isMethod('post')) {
-            $request->validate([
-                'from_time' => 'required',
-                'to_time' => 'required',
-                'period_name' => 'required',
-            ]);
-            $data->user_id = Session::get('id');
-            $data->session_id = Session::get('session_id');
-            $data->branch_id = Session::get('branch_id');
-            $data->from_time = $request->from_time;
-            $data->to_time = $request->to_time;
-            $data->period_name = $request->period_name;
-            $data->save();
-            return response()->json(['status' => 'success', 'message' => 'Period Updated Successfully.', 'redirect' => url('time_periods')]);
-        }
-        return view('master.time_table.edit', ['data' => $data]);
-    }
 
     public function subjectOrderBy(Request $request)
     {
