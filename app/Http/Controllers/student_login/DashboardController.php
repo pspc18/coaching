@@ -8,7 +8,6 @@ use App\Models\Master\Branch;
 use App\Models\Master\Uniform;
 use App\Models\Master\Rule;
 use App\Models\Master\GatePass;
-use App\Models\Master\Prayer;
 use App\Models\Master\Homework;
 use App\Models\Master\TeacherSubject;
 use Illuminate\Validation\Validator;

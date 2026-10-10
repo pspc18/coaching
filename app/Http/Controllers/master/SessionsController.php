@@ -38,7 +38,6 @@ use App\Models\Master\LeaveManagement;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;
 use App\Models\Master\Penalty;
-use App\Models\Master\Prayer;
 use App\Models\Master\RecycleBin;
 use App\Models\Master\RegistrationTerms;
 use App\Models\Master\Sport;
@@ -294,7 +293,6 @@ class SessionsController extends Controller
             HourlyHomework::where('session_id', $deleteId)->delete();
             LeaveManagement::where('session_id', $deleteId)->delete();
             Penalty::where('session_id', $deleteId)->delete();
-            Prayer::where('session_id', $deleteId)->delete();
             RecycleBin::where('session_id', $deleteId)->delete();
             RegistrationTerms::where('session_id', $deleteId)->delete();
             Sport::where('session_id', $deleteId)->delete();

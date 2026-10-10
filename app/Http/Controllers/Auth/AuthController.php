@@ -601,7 +601,6 @@ class AuthController extends Controller
             DB::table('online_payment_transactions')->truncate();
             DB::table('pelantys')->truncate();
             DB::table('permission_managements')->truncate();
-            DB::table('prayers')->truncate();
             DB::table('questions')->truncate();
             DB::table('questions_digital')->truncate();
             DB::table('question_types_digital')->truncate();

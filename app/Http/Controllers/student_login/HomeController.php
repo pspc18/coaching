@@ -12,7 +12,6 @@ use App\Models\Master\BooksUniformShop;
 use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
 use App\Models\Master\Uniform;
-use App\Models\Master\Prayer;
 use App\Models\Subject;
 use Session;
 use Hash;
@@ -85,10 +84,6 @@ class HomeController extends Controller
               public function galleryView(Request $request){
                 return view('student_login.gallery',['data'=>[]]); 
             }   
-              public function prayerView(){
-                $data = Prayer::get();
-                return view('student_login.prayer', ['data' => $data]);
-            }
              public function subjectView(Request $request){
                 $data = Subject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
                 ->where('class_type_id',Session::get('class_type_id'))->orderBy('id', 'DESC')->get();

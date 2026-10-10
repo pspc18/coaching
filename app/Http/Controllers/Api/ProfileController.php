@@ -6,7 +6,6 @@ use App\Models\WebUser;
 use App\Models\User;
 use App\Models\Master\Rule;
 use App\Models\Master\SchoolDesk;
-use App\Models\Master\Prayer;
 use App\Models\Master\GatePass;
 use App\Models\ManagedNotice;
 use App\Models\Admission;
@@ -180,19 +179,7 @@ class ProfileController extends BaseController
     
     
      public function schoolPrayer(Request $request){
-        
-        $data = Prayer::whereNull('deleted_at')->orderBy('id', 'DESC')->get();
-		 
-	
-          if(!empty($data))
-            {
-                 return $this->sendResponseData($data, 'success');
-            }
-            else
-            {
-                  return $this->sendError('Validation Error.', 'Error');
-            }
-          
+        return response()->json(['status' => true, 'message' => 'Success', 'data' => []], 200);
     } 
     
     

@@ -81,12 +81,6 @@ Route::match(['get','post'],'messageTemplateDelete', 'master\message\MessageTemp
  Route::delete('notice-management/{id}', 'master\NoticeManagementController@destroy');
 
 
-//PrayerController
-Route::match(['get','post'],'prayer_view', 'master\PrayerController@view');
-Route::match(['get','post'],'prayer_edit/{id}', 'master\PrayerController@edit');
-Route::match(['get','post'],'prayer_delete', 'master\PrayerController@delete');
-Route::match(['get','post'],'prayer_add', 'master\PrayerController@add');
-
 
 //Role
 Route::match(['get','post'],'role_add', 'master\RoleController@add');
