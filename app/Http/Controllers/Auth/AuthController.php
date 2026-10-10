@@ -619,8 +619,6 @@ class AuthController extends Controller
             DB::table('sms_settings')->truncate();
             DB::table('sports')->truncate();
             DB::table('sports_certificates')->truncate();
-            DB::table('staff_salarys')->truncate();
-            DB::table('staff_salary_details')->truncate();
             DB::table('strok')->truncate();
             DB::table('student_attendance')->truncate();
             DB::table('student_expenses')->truncate();

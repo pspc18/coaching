@@ -10,7 +10,6 @@ use App\Models\BillCounter;
 use App\Models\Setting;
 use App\Models\Teacher;
 use App\Models\TeacherDocuments;
-use App\Models\SalaryDocument;
 use App\Models\PermissionManagement;
 use Illuminate\Support\Facades\Auth;
 use Validator;

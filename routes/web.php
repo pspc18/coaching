@@ -225,7 +225,6 @@ Route::get('joining_letter_print_user/{id}', 'UserController@joiningLater');
 Route::get('users_idCard/{id}', 'UserController@usersidCard');
 Route::match(['get', 'post'], 'editUser/{id}', 'UserController@editUser');	
 Route::match(['get', 'post'], 'deleteUser', 'UserController@deleteUser');
-Route::match(['get', 'post'], 'user/Attendance/view', 'UserController@userAttendanceView');
 Route::match(['get', 'post'], 'user_side_per', 'UserController@userSidePer');
 Route::match(['get', 'post'], 'userStatus', 'UserController@userStatus');
 Route::prefix('user/timetable')->group(function () {
@@ -233,10 +232,6 @@ Route::prefix('user/timetable')->group(function () {
     Route::get('{userId}', 'UserController@showTimeTable');
 });
 
-//Generate Salary Slip
-Route::match(['get', 'post'], 'generate/salary/slip', 'SalaryController@generateSalarySlip');
-Route::match(['get', 'post'], 'salary_details', 'SalaryController@salaryDetails');
-Route::match(['get', 'post'], 'assign/salary', 'SalaryController@assignSalary');
 Route::match(['get', 'post'], 'stateData/{id}', 'HomeController@stateData');
 Route::match(['get', 'post'], 'subjectGetData/{id}', 'HomeController@subjectGetData');
 
@@ -604,16 +599,7 @@ Route::match(['get', 'post'], 'feesCounterView', 'fees\FeesCounterController@fee
 
 
 
-//Generate Slary Slip...//
 
-Route::match(['get', 'post'], 'staff_salary_view', 'SalaryController@staff_salary_view');
-
-Route::match(['get', 'post'], 'assignSalaryDetail', 'SalaryController@assignSalaryDetail');
-
-Route::match(['get', 'post'], 'find/staff', 'SalaryController@findStaff');
-Route::match(['get', 'post'], 'salary_print/{id}/{month_id}', 'SalaryController@salaryPrint');
-Route::match(['get', 'post'], 'download/salary/slip/{id}/{month_id}', 'SalaryController@downloadSalarySlip');
-Route::match(['get', 'post'], 'generate/salary', 'SalaryController@generateSalary');
 
 Route::match(['get', 'post'], 'updateSingleField', 'HomeController@updateSingleField');
 Route::match(['get', 'post'], 'countryData/{id}', 'HomeController@countryData');
@@ -695,7 +681,6 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	
 	
 
-	Route::get('salary_generate', 'SalaryController@salaryGenerate');
 
 	
 	Route::match(['get', 'post'], 'SearchValueStaffAtten', 'StaffAttendanceController@searchValueStaffAtten');

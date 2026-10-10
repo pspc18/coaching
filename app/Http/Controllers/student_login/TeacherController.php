@@ -5,7 +5,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\Teacher;
 use App\Models\TeacherDocuments;
-use App\Models\SalaryDocument;
 use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\Setting;

@@ -62,8 +62,6 @@ use App\Models\FeesDetail;
 use App\Models\SchoolCalender;
 use App\Models\StudentMarksDetails;
 use App\Models\StudentsMarks;
-use App\Models\StaffSalary;
-use App\Models\StaffSalaryDetail;
 use App\Models\StudentAttendance;
 use App\Models\StudentAction;
 use App\Models\Teacher;
@@ -115,8 +113,6 @@ class BranchController extends Controller
         Invoice::where('branch_id',$request->delete_id)->delete();
         Remark::where('branch_id',$request->delete_id)->delete();
         SchoolCalender::where('branch_id',$request->delete_id)->delete();
-        StaffSalary::where('branch_id',$request->delete_id)->delete();
-        StaffSalaryDetail::where('branch_id',$request->delete_id)->delete();
         StudentAction::where('branch_id',$request->delete_id)->delete();
         StudentAttendance::where('branch_id',$request->delete_id)->delete();
         // StudentMarksDetails::where('branch_id',$request->delete_id)->delete();

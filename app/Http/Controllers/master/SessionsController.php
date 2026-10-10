@@ -64,8 +64,6 @@ use App\Models\FeesDetail;
 use App\Models\SchoolCalender;
 use App\Models\StudentMarksDetails;
 use App\Models\StudentsMarks;
-use App\Models\StaffSalary;
-use App\Models\StaffSalaryDetail;
 use App\Models\StudentAttendance;
 use App\Models\StudentAction;
 use App\Models\Teacher;
@@ -268,8 +266,6 @@ class SessionsController extends Controller
             Invoice::where('session_id', $deleteId)->delete();
             Remark::where('session_id', $deleteId)->delete();
             SchoolCalender::where('session_id', $deleteId)->delete();
-            StaffSalary::where('session_id', $deleteId)->delete();
-            StaffSalaryDetail::where('session_id', $deleteId)->delete();
             StudentAction::where('session_id', $deleteId)->delete();
             StudentAttendance::where('session_id', $deleteId)->delete();
             StudentsMarks::where('session_id', $deleteId)->delete();
