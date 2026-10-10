@@ -62,9 +62,6 @@ Route::match(['get','post'],'gate_pass_view', 'master\GatePassController@view');
 Route::match(['get','post'],'gate_pass_add', 'master\GatePassController@add');
 Route::match(['get','post'],'gate_pass_delete', 'master\GatePassController@delete');
 Route::match(['get','post'],'gate_pass_edit/{id}', 'master\GatePassController@edit');
-
-//leave
-Route::match(['get','post'],'leave', 'master\LeaveController@add');
  
 //MessageTemplate
 Route::match(['get','post'],'messageDashboard', 'master\message\MessageTemplateController@messageDashboard');
@@ -331,9 +328,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
     Route::match(['get','post'],'gallery_edit/{id}', 'master\GalleryController@edit');
     Route::match(['get','post'],'gallery_delete', 'master\GalleryController@delete');
 
-//Leave
-    
-    Route::match(['get','post'],'leaveStatus', 'master\LeaveController@leaveStatus');
 
 //NoticeBoardController
   
