@@ -124,17 +124,7 @@ $task = Helper::task();
                 </a>
             </div>
 
-            <div class="col-12 col-sm-6 col-md-3">
-                <a href="{{ url('bus/index') }}">
-                <div class="info-box mb-3 text-dark">
-                    <span class="info-box-icon bg-primary elevation-1"><i class="fa fa-bus"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">TOTAL BUS</span>
-                    <span class="info-box-number">{{\App\Models\Master\Bus::countBus() }}</span>
-                    </div>
-                </div>
-                </a>
-            </div>
+
                   
         </div>        
         

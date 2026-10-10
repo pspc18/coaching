@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Console\Commands;
-use App\Models\Master\Bus;
 use Illuminate\Console\Command;
 use Session;
 use Illuminate\Support\Str;
@@ -40,18 +38,6 @@ class DemoCron extends Command
      */
     public function handle()
     {
-        $i =0;
-        $id = random_int(10,50);
-        
-        for($i = 0; $i < random_int(10,50); $i++)
-        {
-       $bus = new Bus ;
-       
-       $bus->user_id = $id;
-       $bus->session_id = 1;
-       $bus->branch_id = 1;
-       $bus->save();
-        }
-        \Log::info("Cron is working fine!".' entry saved : '.$i);
+        \Log::info("Cron is working fine!");
     }
 }

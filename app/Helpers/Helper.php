@@ -69,10 +69,6 @@ use App\Models\Master\TimePeriods;
 use App\Models\Master\PaymentMode;
 use App\Models\Master\Complaint;
 use App\Models\Master\Role;
-use App\Models\Master\BusRoute;
-use App\Models\Master\Bus;
-use App\Models\Master\BusRouteAssign;
-use App\Models\Master\BusAssign;
 use App\Models\Master\MessageContent;
 use App\Models\Master\MessageType;
 use App\Models\Expense;
@@ -1083,37 +1079,21 @@ class Helper{
    } 
    
    public static function busRoute(){
-       $busRoute = BusRoute::where('session_id',Session::get('session_id'));
-       
-       if(Session::get('branch_id') > 1){
-          $data =  $busRoute->where('branch_id',Session::get('branch_id'));
-       }
-        $data = $busRoute->orderBy('id', 'DESC')->get();
-       return $data;
+       return collect([]);
    }
-   
+    
    public static function bus(){
-       $bus = Bus::where('session_id',Session::get('session_id'));
-       
-       if(Session::get('role_id') > 1){
-           $data = $bus->where('branch_id',Session::get('branch_id'));
-       }
-        $data = $bus->orderBy('id', 'DESC')->get();
-       return $data;
+       return collect([]);
    }
-   
-   public static function busRouteAssign($route_id){
-       $busRouteAssign = BusRouteAssign::with('BusRoute')->with('Bus')->where('route_id',$route_id)->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get();
-       
-       return $busRouteAssign;
+    
+   public static function busRouteAssign($route_id = null){
+       return collect([]);
    }
 
    public static function busAssign(){
-       $busAssign = BusAssign::with('busId')->with('busRoute')->where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->get()->first();
-       
-       return $busAssign;
+       return null;
    }   
-   
+    
     public static function getUser(){
       $role=Session::get('role_id');
       $user_id=Session::get('id');

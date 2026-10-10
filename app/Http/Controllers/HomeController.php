@@ -12,8 +12,6 @@ use App\Models\Student;
 use App\Models\Sessions;
 use App\Models\Admission;
 use App\Models\exam\AssignExam;
-use App\Models\examoffline\AssignOfflineExam;
-use App\Models\Master\BusRouteAssign;
 use App\Models\Master\TeacherSubject;
 use App\Models\Teacher;
 use App\Models\Subject;
@@ -120,19 +118,6 @@ class HomeController extends Controller
        } 
      }
 
-    public function busData(Request $request,$id){
-     $data = array();    
-         if(!empty($id)){
-        $data = BusRouteAssign::with('bus')->where('route_id',$id)->get();
-      
-        $busData ='';
-            foreach($data as $bus){
-           $busData.='
-           <option value="'.$bus['bus_id'].'">'.$bus['bus']['name'].'</option>';
-           }
-        echo $busData;
-       } 
-    }   
 
     
      

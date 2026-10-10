@@ -1,6 +1,5 @@
 @php
 $getSetting=Helper::getSetting();
-$busAssign=Helper::busAssign();
 @endphp
 @extends('layout.app') 
 @section('content')
@@ -166,39 +165,7 @@ $busAssign=Helper::busAssign();
                             </table>
                         </div>
                         
-                        <div class="card-body p-0 mb-3">
-                            <table class="table table-sm border table-hover">
-                                <thead>
-                                    <tr class="bg-light">
-                                    <th width="39%" class="text-white">Transport Details</th>
-                                    <th></th>
-                                    <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                    <td>Route</td>
-                                    <td>{{$busAssign['busRoute']['name'] ?? ''}}</td>
-                                    <td></td>
-                                    </tr>
-                                    <tr>
-                                    <td>Vehicle Number</td>
-                                    <td>{{$busAssign['busId']['bus_no'] ?? ''}}</td>
-                                    <td></td>
-                                    </tr>
-                                    <tr>
-                                    <td>Driver Name</td>
-                                    <td>{{$busAssign['busId']['bus_owmer_name'] ?? ''}}</td>
-                                    <td></td>
-                                    </tr>
-                                    <tr>
-                                    <td>Driver Contact</td>
-                                    <td>{{$busAssign['busId']['owner_no'] ?? ''}}</td>
-                                    <td></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>                    
+                    
                         
                         <div class="card-body p-0 mb-3">
                             <table class="table table-sm border table-hover">

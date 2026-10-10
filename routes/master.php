@@ -157,23 +157,6 @@ Route::match(['get','post'],'homework/remind-defaulters', 'master\HomeworkContro
 Route::match(['get','post'],'homework/bulk-evaluate', 'master\HomeworkController@bulkEvaluate');
 Route::match(['get','post'],'homework/export-submissions/{id}', 'master\HomeworkController@exportSubmissions');
 
-//Bus
-Route::match(['get','post'],'busDashboard', 'master\BusController@busDashboard');
-Route::match(['get','post'],'busRouteAdd', 'master\BusController@busRouteAdd');
- Route::match(['get','post'],'busRouteEdit/{id}', 'master\BusController@busRouteEdit');
-Route::match(['get','post'],'busRouteDelete', 'master\BusController@busRouteDelete'); 
-Route::match(['get','post'],'busAdd', 'master\BusController@busAdd');
- Route::match(['get','post'],'busView', 'master\BusController@busView');
-Route::match(['get','post'],'busEdit/{id}', 'master\BusController@busEdit');
-Route::match(['get','post'],'busDelete', 'master\BusController@busDelete');
-Route::match(['get','post'],'assignBusRoute', 'master\BusController@assignBusRoute'); 
-Route::match(['get','post'],'assignBusRouteEdit/{id}', 'master\BusController@assignBusRouteEdit');   
-Route::match(['get','post'],'assignBusRouteDelete', 'master\BusController@assignBusRouteDelete');
-Route::match(['get','post'],'assignBus/{id}', 'master\BusController@assignBus');
-Route::match(['get','post'],'studentBusView', 'master\BusController@studentBusView');
-Route::match(['get','post'],'busAssignEdit/{id}', 'master\BusController@busAssignEdit');
-    Route::match(['get','post'],'busLateMessage', 'master\BusController@busLateMessage');
-
 
 
 
@@ -252,10 +235,6 @@ Route::match(['get','post'],'busAssignEdit/{id}', 'master\BusController@busAssig
     Route::match(['get','post'],'changeBranch', 'master\BranchController@changeBranch');
 //Branch end..
 
-//Bus
-       
-     
-    Route::match(['get','post'],'student_bus_assign_view', 'master\BusController@studentBusAssignView');
     
     
     
@@ -453,11 +432,6 @@ Route::match(['get','post'],'utilities', 'master\UtilitiesController@add');
 //School Calendar 
   Route::match(['get','post'],'calendar', 'master\CalendarController@calendar');
 
-//Bus
-
-Route::match(['get','post'],'assign_bus_search_data', 'master\BusController@assignBusSearchData'); 
-Route::match(['get','post'],'bus_assign_delete', 'master\BusController@assignBusDelete');
-Route::match(['get','post'],'busData/{id}','HomeController@busData');
 
 
 //Homework

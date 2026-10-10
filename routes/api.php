@@ -120,6 +120,4 @@ Route::match(['get', 'post'], 'getDownloadCenter', 'Api\DownloadController@getDo
 Route::match(['get', 'post'], 'getStudyMaterial', 'Api\DownloadController@getStudyMaterial');
 //BooksUniform Controller
 Route::match(['get', 'post'], 'booksUniformShops', 'Api\BooksUniformController@booksUniformShops');
-//Bus Controller
-Route::match(['get', 'post'], 'busAssigned', 'Api\BusController@busAssigned');
 
