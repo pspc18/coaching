@@ -9,7 +9,6 @@ use App\Models\Teacher;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
-use App\Models\Master\Uniform;
 use App\Models\Subject;
 use Session;
 use Hash;
@@ -99,10 +98,6 @@ class HomeController extends Controller
                 return view('student_login.gate_pass', ['data' => $data]);
             }
             
-             public function uniformView(){
-                $data = Uniform::get();
-                return view('student_login.uniform', ['data' => $data]);
-            }
             
             
             

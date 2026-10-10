@@ -631,7 +631,6 @@ class AuthController extends Controller
             DB::table('topics_digital')->truncate();
             DB::table('total_days')->truncate();
             DB::table('to_do_list')->truncate();
-            DB::table('uniforms')->truncate();
             DB::table('upload_bys_digital')->truncate();
             DB::table('upload_homeworks')->truncate();
             DB::table('users')->truncate();

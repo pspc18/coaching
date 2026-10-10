@@ -5,7 +5,6 @@ use App\Models\User;
 use App\Models\State;
 use App\Models\Admission;
 use App\Models\Master\Branch;
-use App\Models\Master\Uniform;
 use App\Models\Master\Rule;
 use App\Models\Master\GatePass;
 use App\Models\Master\Homework;

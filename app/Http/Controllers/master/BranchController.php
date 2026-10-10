@@ -43,7 +43,6 @@ use App\Models\Master\Stork;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\Time_Table;
 use App\Models\Master\TimePeriods;
-use App\Models\Master\Uniform;
 use App\Models\Master\UploadHomework;
 use App\Models\Master\Sessions;
 use App\Models\BillCounter;
@@ -148,7 +147,6 @@ class BranchController extends Controller
         TeacherSubject::where('branch_id',$request->delete_id)->delete();
         Time_Table::where('branch_id',$request->delete_id)->delete();
         TimePeriods::where('branch_id',$request->delete_id)->delete();
-        Uniform::where('branch_id',$request->delete_id)->delete();
         UploadHomework::where('branch_id',$request->delete_id)->delete();
 
         Branch::find($request->delete_id)->delete();

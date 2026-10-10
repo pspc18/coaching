@@ -45,7 +45,6 @@ use App\Models\Master\Stork;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\Time_Table;
 use App\Models\Master\TimePeriods;
-use App\Models\Master\Uniform;
 use App\Models\Master\UploadHomework;
 use App\Models\Master\Sessions;
 use App\Models\BillCounter;
@@ -299,7 +298,6 @@ class SessionsController extends Controller
             TeacherSubject::where('session_id', $deleteId)->delete();
             Time_Table::where('session_id', $deleteId)->delete();
             TimePeriods::where('session_id', $deleteId)->delete();
-            Uniform::where('session_id', $deleteId)->delete();
             UploadHomework::where('session_id', $deleteId)->delete();
             Sessions::find($deleteId)?->delete();
         }

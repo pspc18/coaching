@@ -21,7 +21,6 @@ Route::group(['middleware' => 'islogin'], function () {
     Route::match(['get','post'],'student_subject_view', 'student_login\HomeController@subjectView');
     Route::match(['get', 'post'], 'rule_view', 'student_login\HomeController@ruleView');
     Route::match(['get', 'post'], 'student_gate_pass_view', 'student_login\HomeController@gatePassView');
-    Route::match(['get', 'post'], 'student_uniform_view', 'student_login\HomeController@uniformView');
     //Download Center
     Route::match(['get', 'post'], 'download_center_student', 'student_login\DownloadCenterController@studentDownloadCenter');
     Route::match(['get', 'post'], 'studentAssignments', 'student_login\DownloadCenterController@assignments');

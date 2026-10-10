@@ -105,10 +105,6 @@ Route::match(['get','post'],'time_periods', 'master\SubjectController@timePeriod
 Route::match(['get','post'],'edit_periods/{id}', 'master\SubjectController@editTimePeriods');
     Route::match(['get','post'],'delete_periods', 'master\SubjectController@deletePeriods');
 
-//UniformController
-Route::match(['get','post'],'uniform_add', 'master\UniformController@add');
-Route::match(['get','post'],'uniform_edit/{id}', 'master\UniformController@edit');
-Route::match(['get','post'],'uniform_delete', 'master\UniformController@delete');
 
 
 //WhatsappController
@@ -233,7 +229,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
     
    
 
-//UniformController
     
     
     
