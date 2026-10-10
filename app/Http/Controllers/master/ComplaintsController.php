@@ -24,14 +24,6 @@ class ComplaintsController extends Controller
 
 
 { 
-            public function parent_teacherConversation(Request $request){
-                $Complaints = Complaint::Select('complaint.*','admissions.first_name','admissions.last_name','admissions.image','class_types.name as class_name')
-                ->leftjoin('admissions','admissions.id','complaint.admission_id')
-                ->leftjoin('class_types','class_types.id','complaint.class_type_id')
-                ->where('complaint.session_id',Session::get('session_id'))
-                ->where('complaint.branch_id',Session::get('branch_id'))->where('complaint.teacher_id_to_complaint',Session::get('teacher_id'))->get();
-                return view('staff.parentTeacherConversation.index',['data'=>$Complaints]);
-            }    
     
             public function view(Request $request){
                 $Complaints =  Complaint::with('Admission')->with('ClassType')->where('session_id',Session::get('session_id'))

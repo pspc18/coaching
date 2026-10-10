@@ -397,28 +397,6 @@ Route::match(['get', 'post'], 'addSetting', 'SettingsController@addSetting');
 Route::match(['get', 'post'], 'addVillageList', 'SettingsController@addVillageList');
 Route::match(['get', 'post'], 'deleteVillageList', 'SettingsController@deleteVillageList');
 
-//Invantory Start
-Route::match(['get', 'post'], 'invantory_dashboard', 'inventory\InvantoryController@invantoryDashboard');
-Route::match(['get', 'post'], 'invantory_item_add', 'inventory\InvantoryController@addInvantoryItem');
-Route::match(['get', 'post'], 'invantory_item_edit/{id}', 'inventory\InvantoryController@editInvantoryItem');
-Route::match(['get', 'post'], 'invantory_item_delete', 'inventory\InvantoryController@deleteInvantoryItem');
-Route::match(['get', 'post'], 'invantory_add', 'inventory\InvantoryController@addInvantory');
-Route::match(['get', 'post'], 'invantory_view', 'inventory\InvantoryController@viewInvantory');
-Route::match(['get', 'post'], 'invantory_edit/{id}', 'inventory\InvantoryController@editInvantory');
-Route::match(['get', 'post'], 'delete_inventory_detail', 'inventory\InvantoryController@deleteInvantoryDetail');
-Route::match(['get', 'post'], 'invantory_delete', 'inventory\InvantoryController@deleteInvantory');
-Route::match(['get', 'post'], 'sale_inventory_view', 'inventory\SalesInvantoryController@SalesViewInvantory');
-Route::match(['get', 'post'], 'sales_invantory_add', 'inventory\SalesInvantoryController@SalesAddInvantory');
-Route::match(['get', 'post'], 'sales_invantory_edit/{id}', 'inventory\SalesInvantoryController@SalesEditInvantory');
-Route::match(['get', 'post'], 'sale_inventory_print/{id}', 'inventory\SalesInvantoryController@sale_inventory_print');
-Route::match(['get', 'post'], 'sales_invantory_delete', 'inventory\SalesInvantoryController@SalesDeleteInvantory');
-Route::match(['get', 'post'], 'getInvantoryItemQtyCheck', 'inventory\SalesInvantoryController@getInvantoryItemQtyCheck');
-Route::match(['get', 'post'], 'getAutoCompleteStudent', 'inventory\SalesInvantoryController@getAutoCompleteStudent');
-Route::match(['get', 'post'], 'getStudentsForInventory', 'inventory\SalesInvantoryController@getStudentsForInventory');
-Route::match(['get', 'post'], 'getStudentSaleHistory', 'inventory\SalesInvantoryController@getStudentSaleHistory');
-//Parent/Teacher Conversation
-Route::match(['get', 'post'], 'parent_teacher_conversation', 'student_login\ComplaintController@parent_teacherConversation');
-
 //Store Management
 Route::match(['get', 'post'], 'storeDashboard', 'StoreController@storeDashboard');
 Route::match(['get', 'post'], 'viewStoreRequest', 'StoreController@viewStoreRequest');
@@ -512,20 +490,6 @@ Route::post('stream_remove/{admission_id}/{subject_id}', 'StudentsAdmissionContr
 
 
 
-//Invantory Start...//
-
-	
-	
-
-	
-	
-	
-
-
-	
-	
-	
-	Route::match(['get', 'post'], 'getAutoCompleteInvantoryItem', 'inventory\InvantoryController@getAutoCompleteInvantoryItem');
     
     
 	

@@ -54,7 +54,6 @@ use App\Models\Sidebar;
 use App\Models\Gender;
 use App\Models\Subject;
 use App\Models\FeesGroup;
-use App\Models\Invantory;
 use App\Models\FeesMaster;
 use App\Models\FeesDetail;
 use App\Models\FeesAssign;
@@ -1014,8 +1013,7 @@ class Helper{
 
   
    public static function getInvantory(){
-       $getInvantory = Invantory::orderBy('id', 'ASC')->get();
-       return $getInvantory;
+       return collect([]);
    }
 
 

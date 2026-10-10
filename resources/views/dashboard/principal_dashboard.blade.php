@@ -110,17 +110,7 @@ $task = Helper::task();
                     </a>
                 </div>
 
-                <div class="col-12 col-sm-6 col-md-3">
-                    <a href="{{ url('invantory_dashboard') }}">
-                        <div class="info-box mb-3 text-dark">
-                            <span class="info-box-icon bg-danger elevation-1"><i class="fa fa-archive"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text">{{ __('dashboard.INVANTORY') }}</span>
-                                <span class="info-box-number"> {{\App\Models\Invantory::countInvantory() }}</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+
             
             <div class="col-12 col-sm-6 col-md-3">
                 <a href="{{ url('add_class') }}">
