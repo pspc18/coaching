@@ -871,12 +871,7 @@
             <i class="fa fa-eye" style="color: #38bdf8;"></i>
             <span>Document Preview</span>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="#" id="previewModalDownloadBtn" class="mob-sheet-close" style="font-size: 12px; text-decoration: none;" target="_blank" download title="Download File">
-                <i class="fa fa-download"></i>
-            </a>
-            <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
-        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
     </div>
 
     {{-- Moveable / Scrollable Body --}}
@@ -894,12 +889,7 @@
             <i class="fa fa-youtube-play text-danger"></i>
             <span>Video Lesson</span>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="#" id="videoExternalLinkBtn" class="mob-sheet-close" style="font-size: 12px; text-decoration: none;" target="_blank" rel="noopener" title="Open in YouTube">
-                <i class="fa fa-external-link"></i>
-            </a>
-            <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
-        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
     </div>
 
     {{-- Moveable / Scrollable Body --}}
@@ -1066,7 +1056,6 @@ $(document).ready(function() {
     // =========================================================================
     window.previewFileAttachment = function(fileUrl, fileType, title, downloadUrl) {
         $('#previewFileModalTitle').html('<i class="fa fa-eye" style="color: #38bdf8;"></i> ' + escapeHtml(title));
-        $('#previewModalDownloadBtn').attr('href', downloadUrl || fileUrl);
 
         const body = $('#previewFileModalBody');
         body.empty();
@@ -1106,7 +1095,6 @@ $(document).ready(function() {
 
     window.openVideoPlayerSheet = function(videoUrl, title) {
         $('#videoPlayerModalTitle').html('<i class="fa fa-youtube-play text-danger"></i> ' + escapeHtml(title));
-        $('#videoExternalLinkBtn').attr('href', videoUrl);
 
         const body = $('#videoPlayerModalBody');
         body.empty();
