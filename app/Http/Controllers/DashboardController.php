@@ -493,13 +493,39 @@ class DashboardController extends Controller
                 'notMarked' => array_column($classAttendanceRows, 'not_marked'),
             ];
 
+            $staffAttendance = AttendanceMark::query()
+                ->whereDate('date', $today)
+                ->where('session_id', $sessionId)
+                ->where('branch_id', $branchId)
+                ->where('entity_type', 'staff');
+
+            $todayStaffMarks = (clone $staffAttendance)
+                ->select('unique_id', 'status', 'updated_at')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->unique('unique_id')
+                ->map(function ($mark) {
+                    $mark->status = strtolower(trim((string) $mark->status));
+                    return $mark;
+                })
+                ->values();
+
+            $staffPresentStatuses = ['present', 'in', 'out', 'early_out', 'earlyout'];
+            $staffPresent = $todayStaffMarks->whereIn('status', $staffPresentStatuses)->count();
+            $staffAbsent = $todayStaffMarks->where('status', 'absent')->count();
+            $staffWfh = $todayStaffMarks->where('status', 'wfh')->count();
+            $staffHalfDay = $todayStaffMarks->where('status', 'halfday')->count();
+            $staffHoliday = $todayStaffMarks->where('status', 'holiday')->count();
+            $staffTotalMarked = $todayStaffMarks->count();
+            $staffTotal = User::where('branch_id', $branchId)->where('status', 1)->count();
+
             $staffAttendanceBreakdown = [
-                'Present' => 0,
-                'Absent' => 0,
-                'Work From Home' => 0,
-                'Half Day' => 0,
-                'Holiday' => 0,
-                'Not Marked' => 0,
+                'Present' => $staffPresent,
+                'Absent' => $staffAbsent,
+                'Work From Home' => $staffWfh,
+                'Half Day' => $staffHalfDay,
+                'Holiday' => $staffHoliday,
+                'Not Marked' => max(0, $staffTotal - $staffTotalMarked),
             ];
 
             $assignedFees = (float) (\App\Models\fees\FeesAssignDetail::Collection() ?? 0);
