@@ -1,174 +1,1090 @@
 @php
     $getSetting = Helper::getSetting();
     $dashboardStudent = $getUser ?? Helper::getUser();
+    $studentId = (int) Session::get('id');
+    $branchId = (int) Session::get('branch_id');
+    $sessionId = (int) Session::get('session_id');
+
     $studentName = trim(($dashboardStudent->first_name ?? '').' '.($dashboardStudent->last_name ?? ''));
     $firstName = $dashboardStudent->first_name ?? 'Student';
     $className = optional($dashboardStudent->ClassTypes)->name ?? '-';
     $admissionNo = $dashboardStudent->admissionNo ?? '-';
+    $sessionName = Session::get('session_name') ?? date('Y');
+
     $hour = (int) date('H');
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+
     $dashboardAvatar = !empty($dashboardStudent->image)
         ? env('IMAGE_SHOW_PATH').'/profile/'.$dashboardStudent->image
         : null;
-    $notificationCounts = collect($notificationCounts ?? []);
-    $modules = [
-        ['icon' => 'bi-calendar2-check', 'label' => 'Attendance', 'text' => 'View your daily attendance', 'url' => 'AttendanceView_student', 'tone' => 'blue', 'category' => 'attendance'],
-        ['icon' => 'bi-wallet2', 'label' => 'Fees', 'text' => 'Payments and receipts', 'url' => 'fees_history', 'tone' => 'green', 'category' => 'fees'],
-        ['icon' => 'bi-file-earmark-bar-graph', 'label' => 'Exam Results', 'text' => 'Check published results', 'url' => 'student/result-card', 'tone' => 'purple', 'category' => 'result'],
-        ['icon' => 'bi-megaphone', 'label' => 'Notices', 'text' => 'Latest school updates', 'url' => 'student-notices', 'tone' => 'amber', 'category' => 'notice'],
-        ['icon' => 'bi-chat-square-text', 'label' => 'Complaints', 'text' => 'Ask for help and support', 'url' => 'student-complaints', 'tone' => 'red', 'category' => 'complaint'],
-    ];
+
+    // 1. Attendance Data
+    $today = now()->toDateString();
+    $todayAttendanceMark = null;
+    $studentUniqueIds = array_values(array_filter([
+        trim((string) ($dashboardStudent->attendance_unique_id ?? '')),
+        trim((string) ($dashboardStudent->admissionNo ?? '')),
+        'STU-' . $studentId,
+    ]));
+
+    if (!empty($studentUniqueIds)) {
+        $todayAttendanceMark = \App\Models\AttendanceMark::query()
+            ->whereDate('date', $today)
+            ->where('session_id', $sessionId)
+            ->where('branch_id', $branchId)
+            ->where('entity_type', 'student')
+            ->whereIn('unique_id', $studentUniqueIds)
+            ->orderByDesc('updated_at')
+            ->value('status');
+    }
+
+    $todayStatus = strtolower(trim((string) ($todayAttendanceMark ?? '')));
+    if (in_array($todayStatus, ['present', 'in', 'out', 'early_out', 'earlyout'])) {
+        $todayStatusLabel = 'Present';
+        $todayStatusColor = '#10b981';
+    } elseif ($todayStatus === 'absent') {
+        $todayStatusLabel = 'Absent';
+        $todayStatusColor = '#f43f5e';
+    } elseif ($todayStatus === 'leave') {
+        $todayStatusLabel = 'On Leave';
+        $todayStatusColor = '#f59e0b';
+    } elseif ($todayStatus === 'holiday') {
+        $todayStatusLabel = 'Holiday';
+        $todayStatusColor = '#0284c7';
+    } elseif ($todayStatus === 'halfday') {
+        $todayStatusLabel = 'Half Day';
+        $todayStatusColor = '#8b5cf6';
+    } else {
+        $todayStatusLabel = 'Not Marked Yet';
+        $todayStatusColor = '#94a3b8';
+    }
+
+    // Monthly Attendance Breakdown
+    $monthMarks = \App\Models\AttendanceMark::query()
+        ->whereYear('date', now()->year)
+        ->whereMonth('date', now()->month)
+        ->where('session_id', $sessionId)
+        ->where('branch_id', $branchId)
+        ->where('entity_type', 'student')
+        ->whereIn('unique_id', $studentUniqueIds)
+        ->select('status')
+        ->get()
+        ->map(fn($m) => strtolower(trim((string) $m->status)));
+
+    $monthPresentCount = $monthMarks->filter(fn($s) => in_array($s, ['present', 'in', 'out', 'early_out', 'earlyout']))->count();
+    $monthAbsentCount = $monthMarks->filter(fn($s) => $s === 'absent')->count();
+    $monthLeaveCount = $monthMarks->filter(fn($s) => $s === 'leave')->count();
+    $monthHalfDayCount = $monthMarks->filter(fn($s) => $s === 'halfday')->count();
+    $monthHolidayCount = $monthMarks->filter(fn($s) => $s === 'holiday')->count();
+    $monthTotalDays = $monthMarks->count();
+    $monthAttendancePercent = $monthTotalDays > 0 ? round(($monthPresentCount / $monthTotalDays) * 100) : 100;
+
+    // 2. Fees Data
+    $assignedFees = (float) \App\Models\fees\FeesAssignDetail::where('admission_id', $studentId)
+        ->where('session_id', $sessionId)
+        ->sum('fees_group_amount');
+    $collectedFees = (float) \App\Models\FeesDetail::where('admission_id', $studentId)
+        ->where('session_id', $sessionId)
+        ->where('status', '!=', '2')
+        ->sum('total_amount');
+    $pendingFees = max(0, $assignedFees - $collectedFees);
+    $feePercent = $assignedFees > 0 ? round(($collectedFees / $assignedFees) * 100) : 0;
+
+    // 3. Notices & Circulars
+    $notices = \App\Models\ManagedNotice::where('branch_id', $branchId)
+        ->where('session_id', $sessionId)
+        ->where('status', 'published')
+        ->latest()
+        ->take(4)
+        ->get();
+    if ($notices->isEmpty()) {
+        $notices = collect(Helper::noticeBoard() ?? [])->take(4);
+    }
+
+    // 4. Notifications / Alerts
+    $notificationCount = DB::table('notifications')
+        ->where('admission_id', $studentId)
+        ->where('show_status', 1)
+        ->count();
+
+    // 5. Active Homework Count
+    $activeHomeworkCount = \App\Models\Master\HomeWork::where('branch_id', $branchId)
+        ->where('session_id', $sessionId)
+        ->where('class_type_id', $dashboardStudent->class_type_id ?? 0)
+        ->count();
 @endphp
 
 @extends('student_login.layout.app')
-@section('title', 'Dashboard')
-@section('page_title', 'Dashboard')
-@section('page_sub', $firstName.' - '.$className)
+
+@section('title', 'Student Dashboard')
 
 @section('content')
-<section class="student-dashboard-app">
-    <div class="dashboard-hero">
-        <div class="dashboard-hero-grid"></div>
-        <div class="dashboard-orb dashboard-orb-one"></div>
-        <div class="dashboard-orb dashboard-orb-two"></div>
-        <div class="dashboard-hero-top">
-            <div class="dashboard-greeting">
-                <span>{{ $greeting }}</span>
-                <h1>{{ $firstName }} <span aria-hidden="true">👋</span></h1>
-                <p>{{ date('l, d F') }}</p>
-            </div>
-            <div class="dashboard-profile-visual">
-                <div class="dashboard-avatar-halo"></div>
-                <div class="dashboard-avatar-frame">
-                @if($dashboardAvatar)
-                    <span class="dashboard-avatar-photo" style="background-image:url('{{ $dashboardAvatar }}')" role="img" aria-label="{{ $studentName ?: 'Student' }}"></span>
-                @else
-                    <i class="bi bi-person-fill"></i>
-                @endif
-                    <span class="dashboard-avatar-status"></span>
-                </div>
-                <div class="dashboard-avatar-caption"><i class="bi bi-patch-check-fill"></i> Student</div>
-            </div>
-        </div>
-        <div class="dashboard-student-summary">
-            <div><span><i class="bi bi-people"></i> Class</span><strong>{{ $className }}</strong></div>
-            <div><span><i class="bi bi-person-vcard"></i> Admission No.</span><strong>{{ $admissionNo }}</strong></div>
-        </div>
-    </div>
-
-    <div class="dashboard-content">
-        <!-- <div class="dashboard-section-heading"> 
-            <div> 
-                <span>Fee Reminder</span> 
-               <div style="text-align: center; margin-top: 15px;">
-            <marquee behavior="scroll"
-                    direction="left"
-                    scrollamount="5"
-                    style="
-                        color: red;
-                        font-size: 26px;
-                        font-weight: 500;
-                    ">
-                Fee Reminder: Please check your pending fees and complete your payment on time.
-            </marquee>
-        </div>
-            </div>
-        </div> -->
-        @php
-          //dd(Session::all());
-           use Carbon\Carbon;
-            $today = Carbon::today();
-            $reminderEndDate = Carbon::today()->addDays(5);
-
-            $duefees = DB::table('fees_assign_details')
-                ->where('admission_id', Session::get('id'))
-                ->whereNotNull('installment_due_date')
-                ->whereDate('installment_due_date', '>=', $today)
-                ->whereDate('installment_due_date', '<=', $reminderEndDate)
-                ->get();
-        @endphp
-        @if($duefees->count() > 0)
-        <div class="fee-reminder">
-            <marquee behavior="scroll" direction="left" scrollamount="5">
-                🔔 <strong>Fee Reminder:</strong>
-                Please check your pending fees and complete your payment on time.
-                Don't miss your fee due date!
-            </marquee>
-        </div>
-        @endif
-
-        <style>
-            .fee-reminder {
-                text-align: center;
-                color: #ff0000;
-                font-size: 24px;
-                font-weight: 600;
-                margin: 15px 0;
-            }
-        </style>
-
-
-        <div class="dashboard-section-heading">
-            <div><span>Quick access</span><small>Everything you need for school</small></div>
-        </div>
-
-        <div class="dashboard-actions">
-            @foreach($modules as $item)
-                @php
-                    $badgeCount = (int) data_get($notificationCounts, $item['category'], 0);
-                    $badgeUrl = url('notificationFatchStudent?category='.$item['category']);
-                @endphp
-                <div class="dashboard-action {{ $loop->last ? 'dashboard-action-wide' : '' }}">
-                    <a href="{{ url($item['url']) }}" class="dashboard-action-link" aria-label="Open {{ $item['label'] }}"></a>
-                    <span class="dashboard-action-icon tone-{{ $item['tone'] }}"><i class="bi {{ $item['icon'] }}"></i></span>
-                    <span class="dashboard-action-copy"><strong>{{ $item['label'] }}</strong><small>{{ $item['text'] }}</small></span>
-                    <span class="dashboard-action-arrow"><i class="bi bi-arrow-up-right"></i></span>
-                    @if($badgeCount > 0)
-                        <a href="{{ $badgeUrl }}" class="dashboard-action-badge" aria-label="{{ $badgeCount }} unread {{ strtolower($item['label']) }} notifications">
-                            {{ $badgeCount > 99 ? '99+' : $badgeCount }}
-                        </a>
-                    @endif
-                </div>
-            @endforeach
-        </div>
-
-        <div class="dashboard-section-heading school-heading">
-            <div><span>Your school</span><small>Institution information</small></div>
-        </div>
-
-        <div class="dashboard-school-card">
-            <div class="school-card-head">
-                <span class="school-card-icon"><i class="bi bi-building"></i></span>
-                <div><strong>{{ $getSetting->name ?? 'School' }}</strong><small>Learning today, leading tomorrow</small></div>
-            </div>
-            @if(!empty($getSetting->address))
-                <div class="school-detail-row"><i class="bi bi-geo-alt"></i><span>{{ $getSetting->address }}</span></div>
-            @endif
-            @if(!empty($getSetting->gmail))
-                <div class="school-detail-row"><i class="bi bi-envelope"></i><span>{{ $getSetting->gmail }}</span></div>
-            @endif
-        </div>
-    </div>
-</section>
-
 <style>
-.student-dashboard-app{min-height:calc(100vh - 154px)!important;padding:0 0 28px!important;color:#253858!important;background:#f3f6fb!important;overflow:hidden!important}
-.dashboard-hero{position:relative!important;min-height:202px!important;margin:0!important;padding:15px 15px 13px!important;overflow:hidden!important;color:#fff!important;background:linear-gradient(145deg,#4169e1 0%,#294bb4 53%,#172d73 100%)!important;border-radius:0 0 27px 27px!important;box-shadow:0 14px 30px rgba(31,56,139,.19)!important}
-.dashboard-hero-grid{position:absolute!important;inset:0!important;opacity:.12!important;background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px)!important;background-size:28px 28px!important;mask-image:linear-gradient(to bottom,#000,transparent 94%)!important}.dashboard-orb{position:absolute!important;border-radius:50%!important;background:rgba(255,255,255,.08)!important}.dashboard-orb-one{width:190px!important;height:190px!important;right:-78px!important;top:-72px!important}.dashboard-orb-two{width:115px!important;height:115px!important;left:-45px!important;bottom:-40px!important}
-.dashboard-hero-top{position:relative!important;z-index:1!important;min-height:103px!important;display:grid!important;grid-template-columns:minmax(0,1fr) 46%!important;align-items:center!important;gap:8px!important}.dashboard-greeting{min-width:0!important;align-self:center!important;justify-self:stretch!important;padding:0!important;text-align:center!important}.dashboard-greeting>span{display:block!important;margin:0 0 2px!important;color:rgba(255,255,255,.7)!important;font-size:8px!important;font-weight:650!important;letter-spacing:.07em!important;text-transform:uppercase!important}.dashboard-greeting h1{margin:0!important;overflow:hidden!important;color:#fff!important;font-size:22px!important;line-height:1.2!important;font-weight:750!important;letter-spacing:-.025em!important;text-overflow:ellipsis!important;white-space:nowrap!important}.dashboard-greeting h1 span{font-size:18px!important}.dashboard-greeting p{margin:4px 0 0!important;color:rgba(255,255,255,.72)!important;font-size:9px!important}.dashboard-profile-visual{position:relative!important;min-width:0!important;height:101px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;align-self:center!important;justify-self:stretch!important}.dashboard-avatar-halo{position:absolute!important;top:0!important;width:94px!important;height:94px!important;border-radius:50%!important;background:radial-gradient(circle,rgba(255,255,255,.19),rgba(255,255,255,.035) 68%,transparent 70%)!important}.dashboard-avatar-frame{position:relative!important;z-index:1!important;width:78px!important;height:78px!important;min-width:78px!important;min-height:78px!important;max-width:78px!important;max-height:78px!important;border:3px solid rgba(255,255,255,.94)!important;border-radius:50%!important;display:grid!important;place-items:center!important;overflow:visible!important;color:#3156d3!important;background:linear-gradient(145deg,#eef3ff,#dce6ff)!important;box-shadow:0 10px 23px rgba(12,30,81,.28)!important;font-size:37px!important}.dashboard-avatar-photo{position:absolute!important;inset:0!important;width:72px!important;height:72px!important;min-width:72px!important;min-height:72px!important;max-width:72px!important;max-height:72px!important;border-radius:50%!important;display:block!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}.dashboard-avatar-status{position:absolute!important;right:0!important;bottom:4px!important;width:13px!important;height:13px!important;border:2px solid #fff!important;border-radius:50%!important;background:#2bb673!important}.dashboard-avatar-caption{position:relative!important;z-index:2!important;margin-top:-3px!important;padding:3px 8px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:99px!important;display:flex!important;align-items:center!important;gap:4px!important;color:#fff!important;background:rgba(17,39,100,.72)!important;box-shadow:0 4px 11px rgba(12,30,81,.22)!important;font-size:7px!important;line-height:1!important;font-weight:650!important;letter-spacing:.03em!important}.dashboard-avatar-caption i{color:#7ce3ac!important;font-size:8px!important}
-.dashboard-student-summary{position:absolute!important;right:15px!important;bottom:13px!important;left:15px!important;z-index:1!important;display:grid!important;grid-template-columns:1fr 1fr!important;padding:10px 4px!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:15px!important;background:rgba(15,35,90,.25)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important}.dashboard-student-summary>div{min-width:0!important;padding:0 11px!important}.dashboard-student-summary>div+div{border-left:1px solid rgba(255,255,255,.16)!important}.dashboard-student-summary span{display:flex!important;align-items:center!important;gap:5px!important;color:rgba(255,255,255,.66)!important;font-size:7px!important;line-height:1.2!important;text-transform:uppercase!important;letter-spacing:.055em!important}.dashboard-student-summary strong{display:block!important;margin-top:4px!important;overflow:hidden!important;color:#fff!important;font-size:11px!important;line-height:1.2!important;font-weight:700!important;text-overflow:ellipsis!important;white-space:nowrap!important}
-.dashboard-content{padding:0 14px!important}.dashboard-section-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:21px 2px 9px!important}.dashboard-section-heading span{display:block!important;color:#26354e!important;font-size:14px!important;font-weight:750!important}.dashboard-section-heading small{display:block!important;margin-top:1px!important;color:#98a2b3!important;font-size:9px!important}.dashboard-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.dashboard-action{position:relative!important;min-width:0!important;min-height:125px!important;padding:13px!important;border:1px solid #e8ecf3!important;border-radius:18px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;color:#253858!important;text-decoration:none!important;background:#fff!important;box-shadow:0 7px 22px rgba(42,55,92,.06)!important;overflow:hidden!important;transition:transform .16s ease,box-shadow .18s ease!important}.dashboard-action:active{transform:scale(.975)!important}.dashboard-action:before{content:""!important;position:absolute!important;right:-24px!important;bottom:-28px!important;width:75px!important;height:75px!important;border-radius:50%!important;background:#f5f7fc!important}.dashboard-action-wide{grid-column:1/-1!important;min-height:91px!important;display:grid!important;grid-template-columns:46px minmax(0,1fr) 31px!important;align-items:center!important;gap:11px!important}.dashboard-action-link{position:absolute!important;inset:0!important;z-index:0!important;display:block!important}.dashboard-action-icon{position:relative!important;z-index:1!important;width:43px!important;height:43px!important;min-width:43px!important;max-width:43px!important;border-radius:13px!important;display:grid!important;place-items:center!important;font-size:19px!important}.tone-blue{color:#3156d3!important;background:#e8eeff!important}.tone-green{color:#139466!important;background:#e4f8ef!important}.tone-purple{color:#7445c7!important;background:#f0e9ff!important}.tone-amber{color:#d78a00!important;background:#fff4dc!important}.tone-red{color:#d14d4d!important;background:#ffeceb!important}.dashboard-action-copy{position:relative!important;z-index:1!important;min-width:0!important;margin-top:auto!important}.dashboard-action-wide .dashboard-action-copy{margin-top:0!important}.dashboard-action-copy strong{display:block!important;color:#253858!important;font-size:12px!important;line-height:1.3!important;font-weight:700!important}.dashboard-action-copy small{display:block!important;margin-top:3px!important;color:#98a2b3!important;font-size:8px!important;line-height:1.35!important}.dashboard-action-arrow{position:absolute!important;z-index:1!important;right:11px!important;top:11px!important;width:27px!important;height:27px!important;border-radius:9px!important;display:grid!important;place-items:center!important;color:#7c8aa1!important;background:#f3f6fa!important;font-size:11px!important}.dashboard-action-wide .dashboard-action-arrow{position:relative!important;right:auto!important;top:auto!important;width:31px!important;height:31px!important}.dashboard-action-badge{position:absolute!important;z-index:2!important;right:10px!important;bottom:10px!important;min-width:28px!important;height:28px!important;padding:0 8px!important;border:2px solid #fff!important;border-radius:999px!important;display:grid!important;place-items:center!important;color:#fff!important;background:linear-gradient(145deg,#e34850,#c92d40)!important;box-shadow:0 8px 18px rgba(227,72,80,.23)!important;font-size:11px!important;line-height:1!important;font-weight:800!important;text-decoration:none!important}.dashboard-action-wide .dashboard-action-badge{bottom:auto!important;top:11px!important}
-.school-heading{margin-top:23px!important}.dashboard-school-card{padding:14px!important;border:1px solid #e8ecf3!important;border-radius:18px!important;color:#253858!important;background:linear-gradient(135deg,#fff,#f8faff)!important;box-shadow:0 7px 22px rgba(42,55,92,.055)!important}.school-card-head{display:flex!important;align-items:center!important;gap:11px!important;padding-bottom:12px!important}.school-card-icon{width:42px!important;height:42px!important;min-width:42px!important;border-radius:13px!important;display:grid!important;place-items:center!important;color:#fff!important;background:linear-gradient(145deg,#4169e1,#294bb4)!important;font-size:19px!important;box-shadow:0 6px 14px rgba(49,86,211,.22)!important}.school-card-head>div{min-width:0!important}.school-card-head strong{display:block!important;overflow:hidden!important;color:#253858!important;font-size:12px!important;line-height:1.3!important;font-weight:700!important;text-overflow:ellipsis!important;white-space:nowrap!important}.school-card-head small{display:block!important;margin-top:2px!important;color:#98a2b3!important;font-size:8px!important}.school-detail-row{display:flex!important;align-items:flex-start!important;gap:9px!important;padding:9px 2px!important;border-top:1px solid #eef1f6!important;color:#69768a!important;font-size:9px!important;line-height:1.45!important}.school-detail-row i{margin-top:1px!important;color:#3156d3!important;font-size:12px!important}.school-detail-row span{min-width:0!important;overflow-wrap:anywhere!important}
-:root[data-theme="dark"] .student-dashboard-app{color:#e7ecf4!important;background:#111827!important}:root[data-theme="dark"] .dashboard-section-heading span,:root[data-theme="dark"] .dashboard-action,:root[data-theme="dark"] .dashboard-action-copy strong,:root[data-theme="dark"] .dashboard-school-card,:root[data-theme="dark"] .school-card-head strong{color:#e7ecf4!important}:root[data-theme="dark"] .dashboard-action,:root[data-theme="dark"] .dashboard-school-card{background:#1b2433!important;border-color:#2c3748!important;box-shadow:none!important}:root[data-theme="dark"] .dashboard-action:before,:root[data-theme="dark"] .dashboard-action-arrow{background:#222e42!important}:root[data-theme="dark"] .school-detail-row{border-color:#303b4c!important;color:#aab4c3!important}
-@media(max-width:359px){.dashboard-hero{padding-left:12px!important;padding-right:12px!important}.dashboard-hero-top{grid-template-columns:minmax(0,1fr) 43%!important}.dashboard-avatar-frame{width:72px!important;height:72px!important;min-width:72px!important;min-height:72px!important;max-width:72px!important;max-height:72px!important}.dashboard-avatar-photo{width:66px!important;height:66px!important;min-width:66px!important;min-height:66px!important;max-width:66px!important;max-height:66px!important}.dashboard-avatar-halo{width:88px!important;height:88px!important}.dashboard-student-summary{left:12px!important;right:12px!important}.dashboard-content{padding-left:11px!important;padding-right:11px!important}.dashboard-actions{gap:8px!important}.dashboard-action{padding:11px!important}}
+/* ==========================================================================
+   ARISE ERP - NATIVE STUDENT MOBILE DASHBOARD (EXACT ADMIN MOBILE THEME)
+   ========================================================================== */
+
+/* 1. Top Hero Snapshot Card */
+.native-hero-card {
+    background: linear-gradient(135deg, #001833 0%, #002C54 55%, #0a4275 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 4px;
+    padding: 12px 14px;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 20, 40, 0.25);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.native-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+    pointer-events: none;
+}
+.native-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.hero-user-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.hero-avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.hero-avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.hero-user-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+}
+.hero-user-sub {
+    font-size: 9.5px;
+    color: #93c5fd;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+.hero-session-pill {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #bae6fd !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* Dual Live Radar in Hero */
+.hero-dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: rgba(0, 15, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+}
+.hero-radar-col {
+    display: flex;
+    flex-direction: column;
+}
+.hero-radar-col:first-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    padding-right: 6px;
+}
+.hero-radar-tag {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.hero-radar-val {
+    font-size: 17px;
+    font-weight: 800;
+    color: #38bdf8;
+    line-height: 1.2;
+    margin: 2px 0 1px;
+}
+.hero-radar-meta {
+    font-size: 9.5px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+/* Hero Fast Action Buttons */
+.hero-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.hero-action-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: transform .12s ease;
+}
+.hero-action-btn:active {
+    transform: scale(0.96);
+}
+.act-btn-admission {
+    background: #ffffff;
+    color: #002C54 !important;
+    border: 1px solid #ffffff;
+}
+.act-btn-fee {
+    background: #10b981;
+    color: #ffffff !important;
+    border: 1px solid #10b981;
+}
+.act-btn-expense {
+    background: #f43f5e;
+    color: #ffffff !important;
+    border: 1px solid #f43f5e;
+}
+.act-btn-help {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* 2. 8-Tile Compact App Launcher Grid */
+.native-launcher-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.native-launcher-tile {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all .12s ease;
+    position: relative;
+}
+.native-launcher-tile:active {
+    transform: scale(0.94);
+    background: #f1f5f9;
+    border-color: #0284c7;
+}
+.launcher-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+.launcher-tile-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #334155;
+    text-align: center;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding: 0 2px;
+}
+.launcher-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 8px;
+    font-weight: 800;
+    border-radius: 2px;
+    padding: 1px 4px;
+    line-height: 1;
+}
+
+/* Circular Gradients */
+.circle-grad-1 { background: linear-gradient(135deg, #0284c7, #0369a1); }
+.circle-grad-2 { background: linear-gradient(135deg, #10b981, #059669); }
+.circle-grad-3 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.circle-grad-4 { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.circle-grad-5 { background: linear-gradient(135deg, #eab308, #ca8a04); }
+.circle-grad-6 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.circle-grad-7 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.circle-grad-8 { background: linear-gradient(135deg, #64748b, #475569); }
+
+/* 3. Dual Symmetrical Radar Row */
+.native-radar-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.native-radar-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    text-decoration: none !important;
+    color: inherit !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.native-radar-box:active {
+    background: #f8fafc;
+}
+.radar-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+.radar-box-tag {
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: .03em;
+}
+.radar-icon-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+.radar-box-number {
+    font-size: 17px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.15;
+    margin: 2px 0;
+}
+.radar-box-sub {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* 4. Segment Navigation Pills */
+.native-segments-bar {
+    display: flex;
+    background: #e2e8f0;
+    padding: 3px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    gap: 2px;
+}
+.native-seg-btn {
+    flex: 1;
+    padding: 6.5px 2px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    border: none;
+    background: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s ease;
+    user-select: none;
+    white-space: nowrap;
+}
+.native-seg-btn.active {
+    background: #002C54;
+    color: #ffffff;
+    font-weight: 800;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Feed View Container for Tab Switching */
+.native-feed-view {
+    display: none;
+}
+.native-feed-view.active-feed {
+    display: block !important;
+}
+
+/* 5. Sharp Section Cards */
+.sharp-section-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.sharp-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.sharp-card-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #002C54;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.sharp-card-link {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #0284c7;
+    text-decoration: none !important;
+}
+
+/* 6. Financial Breakdown (Dual Symmetrical Boxes) */
+.fin-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.fin-metric-box {
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+}
+.fin-metric-box.box-income {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+.fin-metric-box.box-expense {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+.fin-metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+.fin-metric-title {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+.box-income .fin-metric-title { color: #166534; }
+.box-expense .fin-metric-title { color: #991b1b; }
+.fin-metric-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+.box-income .fin-metric-icon { background: #dcfce7; color: #16a34a; }
+.box-expense .fin-metric-icon { background: #fee2e2; color: #dc2626; }
+.fin-metric-value {
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 2px 0 1px;
+}
+.box-income .fin-metric-value { color: #15803d; }
+.box-expense .fin-metric-value { color: #b91c1c; }
+.fin-metric-sub {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Progress & Meta Bar */
+.fin-progress-bar-wrap {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 6px 0 4px;
+}
+.fin-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #10b981;
+}
+.fin-summary-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 10.5px;
+    color: #334155;
+    margin-top: 6px;
+}
+
+/* 7. Attendance Matrix Grid */
+.matrix-pills-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.matrix-status-cell {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 6px 4px;
+    text-align: center;
+}
+.matrix-status-tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+.matrix-status-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.15;
+    margin-top: 1px;
+}
+.cell-present { background: #f0fdf4; border-color: #bbf7d0; }
+.cell-present .matrix-status-val { color: #16a34a; }
+.cell-absent { background: #fef2f2; border-color: #fecaca; }
+.cell-absent .matrix-status-val { color: #dc2626; }
+.cell-leave { background: #fffbeb; border-color: #fde68a; }
+.cell-leave .matrix-status-val { color: #d97706; }
+.cell-half { background: #faf5ff; border-color: #e9d5ff; }
+.cell-half .matrix-status-val { color: #9333ea; }
+.cell-holiday { background: #f0f9ff; border-color: #bae6fd; }
+.cell-holiday .matrix-status-val { color: #0284c7; }
+
+/* 8. Notice & List Items */
+.native-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-decoration: none !important;
+    color: inherit;
+}
+.native-list-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.item-circle-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.item-info-col {
+    flex: 1;
+    overflow: hidden;
+}
+.item-primary-txt {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.item-secondary-txt {
+    font-size: 9.5px;
+    color: #64748b;
+    margin-top: 1px;
+}
 </style>
 
+{{-- 1. Top Hero Snapshot Card --}}
+<div class="native-hero-card">
+    <div class="native-hero-top">
+        <div class="hero-user-cluster">
+            <div class="hero-avatar-circle">
+                @if(!empty($dashboardAvatar))
+                    <img src="{{ $dashboardAvatar }}" alt="{{ $studentName }}">
+                @else
+                    <i class="fa fa-user"></i>
+                @endif
+            </div>
+            <div>
+                <div class="hero-user-title">{{ $greeting }}, {{ $firstName }}! 👋</div>
+                <div class="hero-user-sub"><i class="fa fa-calendar-o mr-1"></i>{{ now()->format('l, d M Y') }}</div>
+            </div>
+        </div>
+        <div class="hero-session-pill">
+            <i class="fa fa-graduation-cap"></i> {{ $className }} &bull; {{ $sessionName }}
+        </div>
+    </div>
+
+    {{-- Dual Radar Glance --}}
+    <div class="hero-dual-grid">
+        <div class="hero-radar-col">
+            <span class="hero-radar-tag">
+                <i class="fa fa-check-circle" style="color: {{ $todayStatusColor }};"></i> Attendance Status
+            </span>
+            <div class="hero-radar-val" style="color: {{ $todayStatusColor }};">
+                {{ $todayStatusLabel }}
+            </div>
+            <span class="hero-radar-meta">
+                {{ $monthPresentCount }}/{{ $monthTotalDays }} Days Present ({{ $monthAttendancePercent }}%)
+            </span>
+        </div>
+        <div class="hero-radar-col">
+            <span class="hero-radar-tag">
+                <i class="fa fa-inr text-warning"></i> Fee Status
+            </span>
+            <div class="hero-radar-val">
+                ₹ {{ number_format($pendingFees, 0) }}
+            </div>
+            <span class="hero-radar-meta">
+                Paid: ₹ {{ number_format($collectedFees, 0) }} ({{ $feePercent }}%)
+            </span>
+        </div>
+    </div>
+
+    {{-- Fast Action Buttons in Hero --}}
+    <div class="hero-actions-bar">
+        <a href="{{ url('AttendanceView_student') }}" class="hero-action-btn act-btn-admission">
+            <i class="fa fa-calendar-check-o"></i> Attendance
+        </a>
+        <a href="{{ url('fees_history') }}" class="hero-action-btn act-btn-fee">
+            <i class="fa fa-inr"></i> Pay Fees
+        </a>
+        <a href="{{ url('student/result-card') }}" class="hero-action-btn act-btn-expense">
+            <i class="fa fa-file-text-o"></i> Result
+        </a>
+        <a href="{{ url('student-complaints') }}" class="hero-action-btn act-btn-help">
+            <i class="fa fa-comments-o"></i> Helpdesk
+        </a>
+    </div>
+</div>
+
+{{-- 2. 8-Tile Compact App Launcher Grid --}}
+<div class="native-launcher-grid">
+    {{-- 1. Attendance --}}
+    <a href="{{ url('AttendanceView_student') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-1">
+            <i class="fa fa-calendar-check-o"></i>
+        </div>
+        <span class="launcher-tile-title">Attendance</span>
+    </a>
+
+    {{-- 2. Fees --}}
+    <a href="{{ url('fees_history') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-2">
+            <i class="fa fa-inr"></i>
+        </div>
+        <span class="launcher-tile-title">Fees History</span>
+    </a>
+
+    {{-- 3. Exam Result --}}
+    <a href="{{ url('student/result-card') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-6">
+            <i class="fa fa-file-text-o"></i>
+        </div>
+        <span class="launcher-tile-title">Exam Result</span>
+    </a>
+
+    {{-- 4. Homework --}}
+    <a href="{{ url('student_homework') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-4">
+            <i class="fa fa-book"></i>
+        </div>
+        @if($activeHomeworkCount > 0)
+            <span class="launcher-badge">{{ $activeHomeworkCount }}</span>
+        @endif
+        <span class="launcher-tile-title">Homework</span>
+    </a>
+
+    {{-- 5. Notices --}}
+    <a href="{{ url('student-notices') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-3">
+            <i class="fa fa-bullhorn"></i>
+        </div>
+        @if($notificationCount > 0)
+            <span class="launcher-badge">{{ $notificationCount > 9 ? '9+' : $notificationCount }}</span>
+        @endif
+        <span class="launcher-tile-title">Notices</span>
+    </a>
+
+    {{-- 6. Timetable --}}
+    <a href="{{ url('timetable') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-7">
+            <i class="fa fa-calendar"></i>
+        </div>
+        <span class="launcher-tile-title">Time Table</span>
+    </a>
+
+    {{-- 7. Downloads --}}
+    <a href="{{ url('student_download_center') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-5">
+            <i class="fa fa-download"></i>
+        </div>
+        <span class="launcher-tile-title">Downloads</span>
+    </a>
+
+    {{-- 8. Complaints --}}
+    <a href="{{ url('student-complaints') }}" class="native-launcher-tile">
+        <div class="launcher-icon-circle circle-grad-8">
+            <i class="fa fa-comments-o"></i>
+        </div>
+        <span class="launcher-tile-title">Helpdesk</span>
+    </a>
+</div>
+
+{{-- 3. Dual Symmetrical Radar Shortcuts Row --}}
+<div class="native-radar-row">
+    <a href="{{ url('applyLeaveStudent') }}" class="native-radar-box">
+        <div class="radar-box-header">
+            <span class="radar-box-tag">Leave Request</span>
+            <div class="radar-icon-dot" style="background:#fee2e2;color:#dc2626;"><i class="fa fa-calendar-minus-o"></i></div>
+        </div>
+        <div class="radar-box-number" style="font-size:15px;color:#dc2626;">Apply Leave</div>
+        <span class="radar-box-sub">Submit student leave application</span>
+    </a>
+
+    <a href="{{ url('my_id_card') }}" class="native-radar-box">
+        <div class="radar-box-header">
+            <span class="radar-box-tag">Student ID</span>
+            <div class="radar-icon-dot" style="background:#e0f2fe;color:#0284c7;"><i class="fa fa-id-card-o"></i></div>
+        </div>
+        <div class="radar-box-number" style="font-size:15px;color:#0284c7;"># {{ $admissionNo }}</div>
+        <span class="radar-box-sub">Digital ID Card & QR</span>
+    </a>
+</div>
+
+{{-- 4. Segment Navigation Pills --}}
+<div class="native-segments-bar">
+    <button type="button" class="native-seg-btn active" data-target="feed-overview">Overview</button>
+    <button type="button" class="native-seg-btn" data-target="feed-attendance">Attendance</button>
+    <button type="button" class="native-seg-btn" data-target="feed-fees">Fees</button>
+    <button type="button" class="native-seg-btn" data-target="feed-notices">Notices</button>
+</div>
+
+{{-- 5. FEED CONTENT: TAB 1 (OVERVIEW) --}}
+<div class="native-feed-view active-feed" id="feed-overview">
+
+    {{-- Attendance Summary Card --}}
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-calendar-check-o text-primary"></i> Monthly Attendance ({{ now()->format('F') }})
+            </h3>
+            <a href="{{ url('AttendanceView_student') }}" class="sharp-card-link">View Full &rarr;</a>
+        </div>
+        <div class="matrix-pills-row">
+            <div class="matrix-status-cell cell-present">
+                <div class="matrix-status-tag">Present</div>
+                <div class="matrix-status-val">{{ $monthPresentCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-absent">
+                <div class="matrix-status-tag">Absent</div>
+                <div class="matrix-status-val">{{ $monthAbsentCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-leave">
+                <div class="matrix-status-tag">Leave</div>
+                <div class="matrix-status-val">{{ $monthLeaveCount }}</div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Fees Summary Card --}}
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-inr text-success"></i> Fees Overview
+            </h3>
+            <a href="{{ url('fees_history') }}" class="sharp-card-link">Fees Ledger &rarr;</a>
+        </div>
+        <div class="fin-metrics-grid">
+            <div class="fin-metric-box box-income">
+                <div class="fin-metric-header">
+                    <span class="fin-metric-title">Paid Amount</span>
+                    <span class="fin-metric-icon"><i class="fa fa-check"></i></span>
+                </div>
+                <div class="fin-metric-value">₹ {{ number_format($collectedFees, 0) }}</div>
+                <span class="fin-metric-sub">Cleared Fees</span>
+            </div>
+            <div class="fin-metric-box box-expense">
+                <div class="fin-metric-header">
+                    <span class="fin-metric-title">Due Balance</span>
+                    <span class="fin-metric-icon"><i class="fa fa-clock-o"></i></span>
+                </div>
+                <div class="fin-metric-value">₹ {{ number_format($pendingFees, 0) }}</div>
+                <span class="fin-metric-sub">Pending Amount</span>
+            </div>
+        </div>
+        <div class="fin-progress-bar-wrap">
+            <div class="fin-progress-fill" style="width: {{ min(100, $feePercent) }}%;"></div>
+        </div>
+        <div class="fin-summary-strip">
+            <span>Total Assigned: <strong>₹ {{ number_format($assignedFees, 0) }}</strong></span>
+            <span class="badge" style="background:#e0f2fe;color:#0369a1;">{{ $feePercent }}% Paid</span>
+        </div>
+    </div>
+
+    {{-- Recent Notices Card --}}
+    @if($notices->count() > 0)
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-bullhorn text-warning"></i> Latest Notices
+            </h3>
+            <a href="{{ url('student-notices') }}" class="sharp-card-link">All Notices &rarr;</a>
+        </div>
+        @foreach($notices as $notice)
+            @php
+                $noticeTitle = $notice->title ?? $notice->name ?? 'School Notice';
+                $noticeDate = !empty($notice->date) ? \Carbon\Carbon::parse($notice->date)->format('d M') : (!empty($notice->created_at) ? \Carbon\Carbon::parse($notice->created_at)->format('d M') : date('d M'));
+            @endphp
+            <a href="{{ url('student-notices') }}" class="native-list-item">
+                <div class="item-circle-badge" style="background:#fef3c7;color:#d97706;">
+                    <i class="fa fa-bell-o"></i>
+                </div>
+                <div class="item-info-col">
+                    <div class="item-primary-txt">{{ $noticeTitle }}</div>
+                    <div class="item-secondary-txt"><i class="fa fa-clock-o mr-1"></i>{{ $noticeDate }}</div>
+                </div>
+                <i class="fa fa-chevron-right text-muted" style="font-size:10px;"></i>
+            </a>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- Student Profile Quick Details Card --}}
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-user text-primary"></i> Student Profile
+            </h3>
+            <a href="{{ url('profileStudent') }}" class="sharp-card-link">Edit Profile &rarr;</a>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
+            <div style="background:#f8fafc;padding:6px 8px;border-radius:4px;border:1px solid #e2e8f0;">
+                <span style="color:#64748b;font-size:9.5px;display:block;">Admission No</span>
+                <strong style="color:#002C54;">{{ $admissionNo }}</strong>
+            </div>
+            <div style="background:#f8fafc;padding:6px 8px;border-radius:4px;border:1px solid #e2e8f0;">
+                <span style="color:#64748b;font-size:9.5px;display:block;">Class & Section</span>
+                <strong style="color:#002C54;">{{ $className }}</strong>
+            </div>
+            <div style="background:#f8fafc;padding:6px 8px;border-radius:4px;border:1px solid #e2e8f0;">
+                <span style="color:#64748b;font-size:9.5px;display:block;">Father's Name</span>
+                <strong style="color:#002C54;">{{ $dashboardStudent->father_name ?? '-' }}</strong>
+            </div>
+            <div style="background:#f8fafc;padding:6px 8px;border-radius:4px;border:1px solid #e2e8f0;">
+                <span style="color:#64748b;font-size:9.5px;display:block;">Mobile</span>
+                <strong style="color:#002C54;">{{ $dashboardStudent->mobile ?? '-' }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- 5. FEED CONTENT: TAB 2 (ATTENDANCE) --}}
+<div class="native-feed-view" id="feed-attendance">
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-calendar-check-o text-primary"></i> Attendance Status Matrix
+            </h3>
+            <span class="badge" style="background:#dcfce7;color:#15803d;padding:3px 8px;">Month: {{ now()->format('F Y') }}</span>
+        </div>
+        <div class="matrix-pills-row" style="grid-template-columns:repeat(3, 1fr);margin-bottom:8px;">
+            <div class="matrix-status-cell cell-present">
+                <div class="matrix-status-tag">Present</div>
+                <div class="matrix-status-val">{{ $monthPresentCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-absent">
+                <div class="matrix-status-tag">Absent</div>
+                <div class="matrix-status-val">{{ $monthAbsentCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-leave">
+                <div class="matrix-status-tag">Leave</div>
+                <div class="matrix-status-val">{{ $monthLeaveCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-half">
+                <div class="matrix-status-tag">Half Day</div>
+                <div class="matrix-status-val">{{ $monthHalfDayCount }}</div>
+            </div>
+            <div class="matrix-status-cell cell-holiday">
+                <div class="matrix-status-tag">Holiday</div>
+                <div class="matrix-status-val">{{ $monthHolidayCount }}</div>
+            </div>
+            <div class="matrix-status-cell" style="background:#f1f5f9;border-color:#cbd5e1;">
+                <div class="matrix-status-tag">Total Days</div>
+                <div class="matrix-status-val">{{ $monthTotalDays }}</div>
+            </div>
+        </div>
+        <a href="{{ url('AttendanceView_student') }}" class="btn btn-primary" style="width:100%;gap:6px;font-size:11.5px;">
+            <i class="fa fa-calendar"></i> Open Complete Attendance Calendar
+        </a>
+    </div>
+</div>
+
+{{-- 5. FEED CONTENT: TAB 3 (FEES) --}}
+<div class="native-feed-view" id="feed-fees">
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-inr text-success"></i> Fees & Ledger Summary
+            </h3>
+            <span class="badge" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;">Session {{ $sessionName }}</span>
+        </div>
+        <div class="fin-metrics-grid">
+            <div class="fin-metric-box box-income">
+                <div class="fin-metric-header">
+                    <span class="fin-metric-title">Paid Fees</span>
+                    <span class="fin-metric-icon"><i class="fa fa-check"></i></span>
+                </div>
+                <div class="fin-metric-value">₹ {{ number_format($collectedFees, 0) }}</div>
+                <span class="fin-metric-sub">Receipts Cleared</span>
+            </div>
+            <div class="fin-metric-box box-expense">
+                <div class="fin-metric-header">
+                    <span class="fin-metric-title">Due Amount</span>
+                    <span class="fin-metric-icon"><i class="fa fa-exclamation"></i></span>
+                </div>
+                <div class="fin-metric-value">₹ {{ number_format($pendingFees, 0) }}</div>
+                <span class="fin-metric-sub">Balance Pending</span>
+            </div>
+        </div>
+        <div class="fin-progress-bar-wrap">
+            <div class="fin-progress-fill" style="width: {{ min(100, $feePercent) }}%;"></div>
+        </div>
+        <div class="fin-summary-strip" style="margin-bottom:10px;">
+            <span>Total Fees Assigned: <strong>₹ {{ number_format($assignedFees, 0) }}</strong></span>
+            <span style="color:#0284c7;font-weight:700;">{{ $feePercent }}% Completed</span>
+        </div>
+        <a href="{{ url('fees_history') }}" class="btn btn-primary" style="width:100%;gap:6px;font-size:11.5px;">
+            <i class="fa fa-receipt"></i> View Detailed Fees Receipts & Payments
+        </a>
+    </div>
+</div>
+
+{{-- 5. FEED CONTENT: TAB 4 (NOTICES) --}}
+<div class="native-feed-view" id="feed-notices">
+    <div class="sharp-section-card">
+        <div class="sharp-card-header">
+            <h3 class="sharp-card-title">
+                <i class="fa fa-bullhorn text-warning"></i> School Notices & Circulars
+            </h3>
+            <a href="{{ url('student-notices') }}" class="sharp-card-link">Refresh &rarr;</a>
+        </div>
+        @forelse($notices as $notice)
+            @php
+                $noticeTitle = $notice->title ?? $notice->name ?? 'Notice Announcement';
+                $noticeDate = !empty($notice->date) ? \Carbon\Carbon::parse($notice->date)->format('d M Y') : (!empty($notice->created_at) ? \Carbon\Carbon::parse($notice->created_at)->format('d M Y') : date('d M Y'));
+                $noticeDesc = strip_tags($notice->description ?? $notice->message ?? '');
+            @endphp
+            <div style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;">
+                    <strong style="font-size:12px;color:#002C54;">{{ $noticeTitle }}</strong>
+                    <span style="font-size:9px;color:#64748b;white-space:nowrap;"><i class="fa fa-clock-o mr-1"></i>{{ $noticeDate }}</span>
+                </div>
+                @if(!empty($noticeDesc))
+                    <p style="font-size:11px;color:#475569;margin:0;line-height:1.4;">{{ \Illuminate\Support\Str::limit($noticeDesc, 120) }}</p>
+                @endif
+            </div>
+        @empty
+            <div style="text-align:center;padding:20px;color:#94a3b8;">
+                <i class="fa fa-bell-slash-o" style="font-size:24px;margin-bottom:6px;display:block;"></i>
+                <span>No announcements posted yet</span>
+            </div>
+        @endforelse
+        <div style="margin-top:10px;">
+            <a href="{{ url('student-notices') }}" class="btn btn-secondary" style="width:100%;gap:6px;">
+                <i class="fa fa-envelope-o"></i> View Notice Board
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
-window.addEventListener('load', function () {
-    localStorage.setItem('user', JSON.stringify({
-        id: @json((string) Session::get('id')),
-        modal: @json((string) (Session::get('modal_name') ?: 'User'))
-    }));
+document.addEventListener("DOMContentLoaded", function() {
+    // Segment Feed Switching
+    const segButtons = document.querySelectorAll(".native-seg-btn");
+    const feedViews = document.querySelectorAll(".native-feed-view");
+
+    segButtons.forEach(btn => {
+        btn.addEventListener("click", function() {
+            segButtons.forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+
+            const targetId = this.getAttribute("data-target");
+            feedViews.forEach(view => {
+                if (view.id === targetId) {
+                    view.classList.add("active-feed");
+                } else {
+                    view.classList.remove("active-feed");
+                }
+            });
+        });
+    });
 });
 </script>
 @endsection
