@@ -253,16 +253,16 @@
 
 /* Precise Baseline Heights Matching Pre-Printed Labels */
 .id-row-class {
-    top: 66.2%;
+    top: 65.3%;
 }
 .id-row-srno {
-    top: 70.2%;
+    top: 69.3%;
 }
 .id-row-phone {
-    top: 74.2%;
+    top: 73.3%;
 }
 .id-row-address {
-    top: 78.3%;
+    top: 77.4%;
 }
 
 .seal-img {
