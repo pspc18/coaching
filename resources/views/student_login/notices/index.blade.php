@@ -288,7 +288,7 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px 11px;
+    padding: 8px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
     transition: transform .1s ease, border-color .1s ease;
@@ -311,20 +311,20 @@
 /* Card Header matching admissionView */
 .student-card-header {
     display: flex;
-    align-items: flex-start;
-    gap: 9px;
-    margin-bottom: 8px;
-    padding-bottom: 7px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
     border-bottom: 1px solid #f1f5f9;
 }
 .student-avatar-box {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     overflow: hidden;
     flex-shrink: 0;
@@ -352,11 +352,11 @@
     cursor: pointer;
 }
 .student-name {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
     color: #002C54;
-    line-height: 1.35;
-    margin-bottom: 3px;
+    line-height: 1.3;
+    margin-bottom: 2px;
     word-break: break-word;
 }
 .student-meta-chips {
@@ -366,19 +366,20 @@
     align-items: center;
 }
 .mob-meta-chip {
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 600;
     color: #64748b;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 3px;
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    line-height: 1.2;
 }
 .mob-meta-chip i {
-    font-size: 9px;
+    font-size: 8.5px;
     color: #94a3b8;
 }
 
@@ -386,7 +387,7 @@
 .mob-status-pill {
     font-size: 9px;
     font-weight: 700;
-    padding: 2px 7px;
+    padding: 2px 6px;
     border-radius: 3px;
     display: inline-flex;
     align-items: center;
@@ -410,17 +411,18 @@
     border: 1px solid #cbd5e1;
 }
 
-/* Notice Content Body (Clean 3-Line Clamp) */
+/* Notice Content Body (Clean 3-Line Clamp with Standard Margins) */
 .notice-content-body {
-    padding: 2px 0 6px 0;
+    padding: 0;
+    margin: 0;
 }
 .notice-text-content {
     font-size: 11.5px;
-    line-height: 1.5;
+    line-height: 1.45;
     color: #334155;
     word-break: break-word;
-    white-space: pre-line;
-    margin-bottom: 0;
+    white-space: normal;
+    margin: 0;
 }
 .notice-text-content.is-truncated {
     display: -webkit-box;
@@ -429,20 +431,25 @@
     line-clamp: 3;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-height: calc(1.5em * 3); /* exactly 3 lines */
+}
+.notice-text-content.is-expanded {
+    display: block;
+    white-space: pre-line;
 }
 .btn-read-toggle {
     background: none;
     border: none;
-    padding: 4px 0 2px;
-    font-size: 11px;
+    padding: 2px 0 0 0;
+    margin-top: 3px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #0284c7;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     outline: none;
+    line-height: 1;
 }
 .btn-read-toggle:hover {
     text-decoration: underline;
@@ -450,17 +457,17 @@
 
 /* Attachment Box */
 .notice-attach-wrapper {
-    margin-top: 6px;
-    margin-bottom: 4px;
+    margin-top: 5px;
+    margin-bottom: 0;
 }
 .mob-pdf-btn {
     background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 6px 9px;
+    border-radius: 3px;
+    padding: 5px 8px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     text-decoration: none !important;
     transition: all .12s ease;
 }
@@ -469,7 +476,7 @@
     border-color: #0284c7;
 }
 .mob-pdf-icon {
-    font-size: 19px;
+    font-size: 17px;
     color: #dc2626;
     flex-shrink: 0;
 }
@@ -478,25 +485,25 @@
     min-width: 0;
 }
 .mob-pdf-title {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #0f172a;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 .mob-pdf-size {
-    font-size: 9px;
+    font-size: 8.5px;
     color: #64748b;
     font-weight: 600;
 }
 .mob-pdf-download {
-    font-size: 11px;
+    font-size: 10px;
     color: #0284c7;
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #e0f2fe;
     display: flex;
@@ -509,12 +516,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 7px;
+    padding-top: 5px;
     margin-top: 6px;
     border-top: 1px solid #f1f5f9;
 }
 .card-time-meta {
-    font-size: 9.5px;
+    font-size: 9px;
     color: #94a3b8;
     font-weight: 600;
     display: inline-flex;
@@ -523,20 +530,20 @@
 }
 .card-action-btns {
     display: flex;
-    gap: 5px;
+    gap: 4px;
 }
 .mob-btn-action {
-    height: 26px;
-    padding: 0 10px;
+    height: 24px;
+    padding: 0 9px;
     border-radius: 3px;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     text-align: center;
     text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     border: 1px solid #002C54;
     background: #002C54;
     color: #ffffff !important;
@@ -915,11 +922,9 @@
                     </span>
                 </div>
 
-                {{-- Content Body (Clean 3-Line Clamped Snippet) --}}
+                {{-- Content Body (Clean 3-Line Clamped Snippet with tight standard padding) --}}
                 <div class="notice-content-body">
-                    <div class="notice-text-content is-truncated" id="notice-msg-{{ $notice->id }}">
-                        {{ $compactMessage ?: 'No notice description available.' }}
-                    </div>
+                    <div class="notice-text-content is-truncated" id="notice-msg-{{ $notice->id }}">{{ $compactMessage ?: 'No notice description available.' }}</div>
 
                     {{-- Read More Button (Dynamically shown ONLY if content exceeds 3 lines) --}}
                     <button type="button" 
@@ -1099,9 +1104,11 @@ function toggleNoticeText(btn, msgId) {
     const isTruncated = msgEl.classList.contains('is-truncated');
     if (isTruncated) {
         msgEl.classList.remove('is-truncated');
+        msgEl.classList.add('is-expanded');
         btn.innerHTML = '<i class="fa fa-angle-up"></i> Show Less';
     } else {
         msgEl.classList.add('is-truncated');
+        msgEl.classList.remove('is-expanded');
         btn.innerHTML = '<i class="fa fa-angle-down"></i> Read More';
     }
 }
@@ -1115,7 +1122,7 @@ function updateReadMoreVisibility() {
 
         // If currently truncated, compare scrollHeight against clientHeight
         if (textEl.classList.contains('is-truncated')) {
-            if (textEl.scrollHeight > (textEl.clientHeight + 2)) {
+            if (textEl.scrollHeight > (textEl.clientHeight + 1)) {
                 toggleBtn.style.display = 'inline-flex';
             } else {
                 toggleBtn.style.display = 'none';
