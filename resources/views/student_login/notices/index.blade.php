@@ -64,7 +64,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 8px;
 }
 .mob-radar-col {
     background: rgba(255, 255, 255, 0.08);
@@ -96,40 +95,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-/* Fast Action Bar */
-.mob-actions-bar {
-    display: flex;
-    gap: 6px;
-}
-.mob-act-btn {
-    flex: 1;
-    height: 32px;
-    padding: 0 10px;
-    border-radius: 4px;
-    font-size: 11.5px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    text-decoration: none !important;
-    border: none;
-    cursor: pointer;
-    transition: all .12s ease;
-}
-.mob-act-btn-add {
-    background: #0284c7;
-    color: #ffffff !important;
-}
-.mob-act-btn-filter {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-}
-.mob-act-btn-add:active, .mob-act-btn-filter:active {
-    transform: scale(0.96);
 }
 
 /* 2. Compact Search & Filter Toolbar with Sticky Support */
@@ -384,6 +349,7 @@
 .student-header-info {
     flex: 1;
     min-width: 0;
+    cursor: pointer;
 }
 .student-name {
     font-size: 13px;
@@ -416,7 +382,7 @@
     color: #94a3b8;
 }
 
-/* Status Badges matching admissionView */
+/* Status Badges */
 .mob-status-pill {
     font-size: 9px;
     font-weight: 700;
@@ -444,22 +410,26 @@
     border: 1px solid #cbd5e1;
 }
 
-/* Notice Content Body */
+/* Notice Content Body (Clean 3-Line Clamp) */
 .notice-content-body {
     padding: 2px 0 6px 0;
 }
 .notice-text-content {
     font-size: 11.5px;
-    line-height: 1.55;
+    line-height: 1.5;
     color: #334155;
-    white-space: pre-line;
     word-break: break-word;
+    white-space: pre-line;
+    margin-bottom: 0;
 }
 .notice-text-content.is-truncated {
     display: -webkit-box;
-    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: calc(1.5em * 3); /* exactly 3 lines */
 }
 .btn-read-toggle {
     background: none;
@@ -472,6 +442,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    outline: none;
 }
 .btn-read-toggle:hover {
     text-decoration: underline;
@@ -538,12 +509,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 6px;
+    padding-top: 7px;
     margin-top: 6px;
     border-top: 1px solid #f1f5f9;
 }
 .card-time-meta {
-    font-size: 9px;
+    font-size: 9.5px;
     color: #94a3b8;
     font-weight: 600;
     display: inline-flex;
@@ -556,7 +527,7 @@
 }
 .mob-btn-action {
     height: 26px;
-    padding: 0 8px;
+    padding: 0 10px;
     border-radius: 3px;
     font-size: 10.5px;
     font-weight: 700;
@@ -566,19 +537,14 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #334155 !important;
+    border: 1px solid #002C54;
+    background: #002C54;
+    color: #ffffff !important;
     cursor: pointer;
     transition: all .12s ease;
 }
 .mob-btn-action:active {
     transform: scale(0.96);
-}
-.mob-btn-action-primary {
-    background: #002C54;
-    border-color: #002C54;
-    color: #ffffff !important;
 }
 
 /* Empty State */
@@ -652,36 +618,178 @@
     border-color: #e2e8f0;
 }
 
-/* Modal Styling */
-.modal-content.mob-modal-content {
-    border-radius: 6px;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+/* ==========================================================================
+   5. Mobile Custom Bottom Sheet Modal
+   Matching admissionView?layout=mobile (.mob-filter-sheet)
+   ========================================================================== */
+.mob-notice-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
+    z-index: 2050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
-.mob-modal-header {
-    background: #002C54;
+.mob-notice-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+.mob-notice-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 6px 6px 0 0;
+    border-top: 2px solid #0284c7;
+    z-index: 2051;
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
+}
+.mob-notice-sheet.show {
+    bottom: 0;
+}
+.mob-sheet-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     padding: 10px 14px;
-    border-bottom: 1px solid #cbd5e1;
+    border-radius: 4px 4px 0 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.mob-modal-header .modal-title {
+.mob-sheet-title {
     font-size: 13px;
     font-weight: 800;
     color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 7px;
 }
-.mob-modal-close {
-    background: none;
-    border: none;
+.mob-sheet-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
     font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    opacity: 0.8;
+    transition: background .12s ease;
 }
-.mob-modal-close:hover {
-    opacity: 1;
+.mob-sheet-close:active {
+    background: rgba(255, 255, 255, 0.25);
+}
+.mob-sheet-body {
+    padding: 13px 14px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+.sheet-meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.sheet-meta-pill {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.sheet-notice-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.35;
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    word-break: break-word;
+}
+.sheet-notice-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 11px 12px;
+}
+.sheet-notice-text {
+    font-size: 12px;
+    line-height: 1.65;
+    color: #1e293b;
+    white-space: pre-line;
+    word-break: break-word;
+}
+.sheet-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+.mob-sheet-footer {
+    padding: 9px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.btn-sheet-close {
+    height: 30px;
+    padding: 0 12px;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-sheet-action {
+    height: 30px;
+    padding: 0 12px;
+    background: #0284c7;
+    color: #ffffff !important;
+    border: 1px solid #0284c7;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-sheet-close:active, .btn-sheet-action:active {
+    transform: scale(0.96);
 }
 </style>
 @endsection
@@ -689,7 +797,7 @@
 @section('content')
 <div class="arise-mobile-container" style="padding-bottom: 30px;">
 
-    {{-- 1. Glassmorphic Navy Hero Card --}}
+    {{-- 1. Glassmorphic Navy Hero Card (Clean Metrics Glance, no redundant action buttons) --}}
     <div class="mob-hero-card">
         <div class="mob-hero-top">
             <div class="mob-hero-title">
@@ -722,16 +830,6 @@
                 <div class="mob-radar-val" style="color: #94a3b8;">{{ $expiredNotices }}</div>
                 <span class="mob-radar-meta">Completed Notices</span>
             </div>
-        </div>
-
-        {{-- Fast Action Bar --}}
-        <div class="mob-actions-bar">
-            <a href="{{ url('student-notices') }}" class="mob-act-btn mob-act-btn-add">
-                <i class="fa fa-refresh"></i> Refresh Feed
-            </a>
-            <a href="{{ url('student-notices?filter=active') }}" class="mob-act-btn mob-act-btn-filter">
-                <i class="fa fa-bolt"></i> Active Only ({{ $activeNotices }})
-            </a>
         </div>
     </div>
 
@@ -823,11 +921,13 @@
 
                 $rawMessage = (string) $notice->message;
                 $cleanMessage = trim(strip_tags($rawMessage));
-                $isLong = mb_strlen($cleanMessage) > 200;
+                // Collapse excessive line breaks for snippet display
+                $compactMessage = preg_replace("/[\r\n]{2,}/", "\n", $cleanMessage);
+
                 $publishedAt = $notice->published_at ? \Carbon\Carbon::parse($notice->published_at) : null;
                 $publisherName = trim(optional($notice->creator)->first_name . ' ' . optional($notice->creator)->last_name);
                 if (empty($publisherName)) {
-                    $publisherName = 'School Administration';
+                    $publisherName = 'Arise Education Point';
                 }
             @endphp
 
@@ -841,7 +941,7 @@
                     <div class="student-avatar-box {{ $avatarClass }}">
                         <i class="fa {{ $noticeStatus === 'active' ? 'fa-bullhorn' : ($noticeStatus === 'upcoming' ? 'fa-calendar-check-o' : 'fa-archive') }}"></i>
                     </div>
-                    <div class="student-header-info">
+                    <div class="student-header-info" onclick="openNoticeSheet({{ $notice->id }})">
                         <div class="student-name">{{ $notice->title }}</div>
                         <div class="student-meta-chips">
                             <span class="mob-meta-chip">
@@ -857,17 +957,20 @@
                     </span>
                 </div>
 
-                {{-- Content Body --}}
+                {{-- Content Body (Clean 3-Line Clamped Snippet) --}}
                 <div class="notice-content-body">
-                    <div class="notice-text-content {{ $isLong ? 'is-truncated' : '' }}" id="notice-msg-{{ $notice->id }}">
-                        {{ $cleanMessage ?: 'No notice description available.' }}
+                    <div class="notice-text-content is-truncated" id="notice-msg-{{ $notice->id }}">
+                        {{ $compactMessage ?: 'No notice description available.' }}
                     </div>
 
-                    @if($isLong)
-                        <button type="button" class="btn-read-toggle" onclick="toggleNoticeText(this, 'notice-msg-{{ $notice->id }}')">
-                            <i class="fa fa-angle-down"></i> Read More
-                        </button>
-                    @endif
+                    {{-- Read More Button (Dynamically shown ONLY if content exceeds 3 lines) --}}
+                    <button type="button" 
+                            class="btn-read-toggle" 
+                            id="read-toggle-{{ $notice->id }}" 
+                            style="display: none;" 
+                            onclick="toggleNoticeText(this, 'notice-msg-{{ $notice->id }}')">
+                        <i class="fa fa-angle-down"></i> Read More
+                    </button>
 
                     {{-- Attachment if available --}}
                     @if(!empty($notice->attachment_path))
@@ -899,16 +1002,13 @@
                         @endif
                     </div>
                     <div class="card-action-btns">
-                        <button type="button" class="mob-btn-action" onclick="copyNoticeText({{ $notice->id }})" title="Copy Notice Text">
-                            <i class="fa fa-copy"></i> Copy
-                        </button>
-                        <button type="button" class="mob-btn-action mob-btn-action-primary" onclick="openNoticeModal({{ $notice->id }})" title="Full View">
-                            <i class="fa fa-expand"></i> View
+                        <button type="button" class="mob-btn-action" onclick="openNoticeSheet({{ $notice->id }})" title="View Details">
+                            <i class="fa fa-eye"></i> View
                         </button>
                     </div>
                 </div>
 
-                {{-- Hidden Data for Modal --}}
+                {{-- Hidden Data for Bottom Sheet Modal --}}
                 <div id="notice-data-{{ $notice->id }}" style="display:none;"
                      data-id="{{ $notice->id }}"
                      data-title="{{ $notice->title }}"
@@ -919,7 +1019,7 @@
                      data-publisher="{{ $publisherName }}"
                      data-published-time="{{ $publishedAt ? $publishedAt->format('d M Y, h:i A') : $fromDate->format('d M Y') }}"
                      data-attachment="{{ !empty($notice->attachment_path) ? url('notice-management/'.$notice->id.'/attachment') : '' }}"
-                     data-attachment-name="{{ $notice->attachment_name ?: 'Notice Document.pdf' }}">
+                     data-attachment-name="{{ $notice->attachment_name ?: 'Notice Circular.pdf' }}">
                     <div class="full-message">{{ $cleanMessage }}</div>
                 </div>
 
@@ -939,7 +1039,7 @@
                         You are up to date! There are no notices posted for your account right now.
                     @endif
                 </p>
-                <a href="{{ url('student-notices') }}" class="mob-act-btn mob-act-btn-add" style="display: inline-flex; width: auto; padding: 0 16px;">
+                <a href="{{ url('student-notices') }}" style="display: inline-flex; height: 32px; padding: 0 14px; background: #002C54; color: #fff; border-radius: 4px; font-size: 11.5px; font-weight: 700; align-items: center; gap: 5px; text-decoration: none;">
                     <i class="fa fa-refresh"></i> View All Circulars
                 </a>
             </div>
@@ -955,62 +1055,63 @@
 
 </div>
 
-{{-- 5. Full Notice Reader Modal --}}
-<div class="modal fade" id="noticeDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 440px; margin: 16px auto;">
-        <div class="modal-content mob-modal-content">
-            <div class="mob-modal-header">
-                <div class="modal-title d-flex align-items-center gap-2">
-                    <i class="fa fa-bullhorn text-warning"></i>
-                    <span>Notice Details</span>
-                </div>
-                <button type="button" class="mob-modal-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fa fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body" style="padding: 14px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span id="modalNoticeStatus" class="mob-status-pill"></span>
-                    <span id="modalNoticeDates" style="font-size: 10px; font-weight: 600; color: #64748b;"></span>
-                </div>
-                
-                <h5 id="modalNoticeTitle" style="font-size: 14px; font-weight: 800; color: #002C54; line-height: 1.35; margin-bottom: 10px;"></h5>
+{{-- ==========================================================================
+     5. Mobile Custom Bottom Sheet Modal (Matching admissionView?layout=mobile)
+     ========================================================================== --}}
+<div class="mob-notice-modal-backdrop" id="mobNoticeBackdrop" onclick="closeNoticeSheet()"></div>
+<div class="mob-notice-sheet" id="mobNoticeSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-bullhorn" style="color: #38bdf8;"></i>
+            <span>Notice Details</span>
+        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeNoticeSheet()" aria-label="Close">&times;</button>
+    </div>
 
-                <div id="modalNoticeBody" style="font-size: 12px; line-height: 1.6; color: #334155; white-space: pre-line; word-break: break-word; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px; max-height: 320px; overflow-y: auto; margin-bottom: 10px;"></div>
+    <div class="mob-sheet-body">
+        {{-- Status & Meta Badges Row --}}
+        <div class="sheet-meta-bar">
+            <span id="sheetNoticeStatus" class="mob-status-pill"></span>
+            <span id="sheetNoticeDates" class="sheet-meta-pill"></span>
+            <span id="sheetNoticePublisher" class="sheet-meta-pill"></span>
+        </div>
 
-                <div id="modalNoticeAttachment" style="display:none; margin-bottom: 10px;">
-                    <a id="modalAttachmentLink" href="#" target="_blank" class="mob-pdf-btn">
-                        <i class="fa fa-file-pdf-o mob-pdf-icon"></i>
-                        <div class="mob-pdf-info">
-                            <div class="mob-pdf-title" id="modalAttachmentName">Attachment Document.pdf</div>
-                            <div class="mob-pdf-size">Tap to view / download PDF</div>
-                        </div>
-                        <div class="mob-pdf-download">
-                            <i class="fa fa-download"></i>
-                        </div>
-                    </a>
-                </div>
+        {{-- Notice Title --}}
+        <h3 id="sheetNoticeTitle" class="sheet-notice-title"></h3>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 8px;">
-                    <span><i class="fa fa-user-circle-o"></i> <span id="modalNoticePublisher"></span></span>
-                    <span><i class="fa fa-clock-o"></i> <span id="modalNoticePublished"></span></span>
+        {{-- Notice Content Box --}}
+        <div class="sheet-notice-card">
+            <div id="sheetNoticeBody" class="sheet-notice-text"></div>
+        </div>
+
+        {{-- Attachment Download Pill if available --}}
+        <div id="sheetNoticeAttachment" style="display: none; margin-top: 10px;">
+            <a id="sheetAttachmentLink" href="#" target="_blank" class="mob-pdf-btn">
+                <i class="fa fa-file-pdf-o mob-pdf-icon"></i>
+                <div class="mob-pdf-info">
+                    <div class="mob-pdf-title" id="sheetAttachmentName">Notice Circular.pdf</div>
+                    <div class="mob-pdf-size">Tap to view / download PDF circular</div>
                 </div>
-            </div>
-            <div class="modal-footer" style="padding: 8px 14px; background: #f8fafc; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between;">
-                <button type="button" class="mob-btn-action" data-bs-dismiss="modal">
-                    Close
-                </button>
-                <button type="button" class="mob-btn-action mob-btn-action-primary" id="modalCopyBtn">
-                    <i class="fa fa-copy"></i> Copy Text
-                </button>
-            </div>
+                <div class="mob-pdf-download">
+                    <i class="fa fa-download"></i>
+                </div>
+            </a>
+        </div>
+
+        {{-- Published Timestamp --}}
+        <div class="sheet-timestamp">
+            <i class="fa fa-clock-o"></i> <span id="sheetNoticePublished"></span>
         </div>
     </div>
-</div>
 
-{{-- Toast Notification --}}
-<div id="mobToast" style="position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%); background: #002C54; color: #ffffff; padding: 7px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; z-index: 99999; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
-    <i class="fa fa-check-circle text-success me-1"></i> <span id="mobToastText">Copied to clipboard</span>
+    <div class="mob-sheet-footer">
+        <button type="button" class="btn-sheet-close" onclick="closeNoticeSheet()">
+            <i class="fa fa-times"></i> Close
+        </button>
+        <a id="sheetDownloadBtn" href="#" target="_blank" class="btn-sheet-action" style="display: none;">
+            <i class="fa fa-download"></i> Open PDF
+        </a>
+    </div>
 </div>
 
 @endsection
@@ -1056,7 +1157,25 @@ function toggleNoticeText(btn, msgId) {
     }
 }
 
-// 3. Clear Search Helper
+// 3. Auto-detect if content exceeds 3 lines, ONLY show Read More if needed
+function updateReadMoreVisibility() {
+    document.querySelectorAll('.student-mob-card').forEach(function(card) {
+        const textEl = card.querySelector('.notice-text-content');
+        const toggleBtn = card.querySelector('.btn-read-toggle');
+        if (!textEl || !toggleBtn) return;
+
+        // If currently truncated, compare scrollHeight against clientHeight
+        if (textEl.classList.contains('is-truncated')) {
+            if (textEl.scrollHeight > (textEl.clientHeight + 2)) {
+                toggleBtn.style.display = 'inline-flex';
+            } else {
+                toggleBtn.style.display = 'none';
+            }
+        }
+    });
+}
+
+// 4. Clear Search Helper
 function clearNoticeSearch() {
     const input = document.getElementById('noticeSearchInput');
     if (input) input.value = '';
@@ -1064,61 +1183,8 @@ function clearNoticeSearch() {
     if (form) form.submit();
 }
 
-// 4. Quick Copy Notice Text
-function copyNoticeText(noticeId) {
-    const dataEl = document.getElementById('notice-data-' + noticeId);
-    if (!dataEl) return;
-
-    const title = dataEl.getAttribute('data-title') || '';
-    const msg = dataEl.querySelector('.full-message') ? dataEl.querySelector('.full-message').innerText : '';
-    const fullText = title + "\n\n" + msg;
-
-    copyToClipboard(fullText, 'Notice text copied!');
-}
-
-function copyToClipboard(text, successMsg) {
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(function() {
-            showToast(successMsg || 'Copied to clipboard');
-        }).catch(function() {
-            fallbackCopy(text, successMsg);
-        });
-    } else {
-        fallbackCopy(text, successMsg);
-    }
-}
-
-function fallbackCopy(text, successMsg) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-        document.execCommand('copy');
-        showToast(successMsg || 'Copied to clipboard');
-    } catch (err) {
-        showToast('Unable to copy');
-    }
-    document.body.removeChild(textArea);
-}
-
-function showToast(msg) {
-    const toast = document.getElementById('mobToast');
-    const toastText = document.getElementById('mobToastText');
-    if (!toast || !toastText) return;
-    toastText.innerText = msg;
-    toast.style.display = 'block';
-    setTimeout(function() {
-        toast.style.display = 'none';
-    }, 2000);
-}
-
-// 5. Open Notice Detail Modal
-function openNoticeModal(noticeId) {
+// 5. Open Custom Mobile Bottom Sheet Modal
+function openNoticeSheet(noticeId) {
     const dataEl = document.getElementById('notice-data-' + noticeId);
     if (!dataEl) return;
 
@@ -1133,37 +1199,45 @@ function openNoticeModal(noticeId) {
     const attachmentName = dataEl.getAttribute('data-attachment-name');
     const message = dataEl.querySelector('.full-message') ? dataEl.querySelector('.full-message').innerText : '';
 
-    document.getElementById('modalNoticeTitle').innerText = title;
-    document.getElementById('modalNoticeDates').innerText = dates;
-    document.getElementById('modalNoticeBody').innerText = message;
-    document.getElementById('modalNoticePublisher').innerText = publisher;
-    document.getElementById('modalNoticePublished').innerText = publishedTime;
+    document.getElementById('sheetNoticeTitle').innerText = title;
+    document.getElementById('sheetNoticeDates').innerHTML = '<i class="fa fa-calendar"></i> ' + dates;
+    document.getElementById('sheetNoticePublisher').innerHTML = '<i class="fa fa-user-circle-o"></i> ' + publisher;
+    document.getElementById('sheetNoticeBody').innerText = message;
+    document.getElementById('sheetNoticePublished').innerText = 'Published: ' + publishedTime;
 
-    const statusPill = document.getElementById('modalNoticeStatus');
+    const statusPill = document.getElementById('sheetNoticeStatus');
     statusPill.className = 'mob-status-pill ' + statusClass;
     statusPill.innerHTML = '<i class="fa ' + statusIcon + '"></i> ' + status;
 
-    const attachWrap = document.getElementById('modalNoticeAttachment');
+    const attachWrap = document.getElementById('sheetNoticeAttachment');
+    const downloadBtn = document.getElementById('sheetDownloadBtn');
     if (attachmentUrl) {
         attachWrap.style.display = 'block';
-        document.getElementById('modalAttachmentLink').href = attachmentUrl;
-        document.getElementById('modalAttachmentName').innerText = attachmentName;
+        document.getElementById('sheetAttachmentLink').href = attachmentUrl;
+        document.getElementById('sheetAttachmentName').innerText = attachmentName;
+
+        downloadBtn.style.display = 'inline-flex';
+        downloadBtn.href = attachmentUrl;
     } else {
         attachWrap.style.display = 'none';
+        downloadBtn.style.display = 'none';
     }
 
-    document.getElementById('modalCopyBtn').onclick = function() {
-        copyNoticeText(noticeId);
-    };
-
-    const modalEl = document.getElementById('noticeDetailModal');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
+    // Show backdrop and slide up sheet
+    document.getElementById('mobNoticeBackdrop').classList.add('show');
+    document.getElementById('mobNoticeSheet').classList.add('show');
+    document.body.style.overflow = 'hidden';
 }
 
-// 6. Fast Client-side instant filter on current page results
+function closeNoticeSheet() {
+    const backdrop = document.getElementById('mobNoticeBackdrop');
+    const sheet = document.getElementById('mobNoticeSheet');
+    if (backdrop) backdrop.classList.remove('show');
+    if (sheet) sheet.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// 6. DOM Event Listeners
 document.addEventListener('DOMContentLoaded', function () {
     // Sticky Tracker Listeners
     window.addEventListener('scroll', checkStickyTracker, { passive: true });
@@ -1172,7 +1246,16 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('orientationchange', checkStickyTracker, { passive: true });
     setTimeout(checkStickyTracker, 80);
 
-    // Instant search filtering as student types
+    // Initial check for Read More visibility
+    updateReadMoreVisibility();
+    window.addEventListener('resize', updateReadMoreVisibility);
+
+    // Close sheet on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeNoticeSheet();
+    });
+
+    // Real-time client-side filter as student types
     const searchInput = document.getElementById('noticeSearchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -1188,6 +1271,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     card.style.display = 'none';
                 }
             });
+            setTimeout(updateReadMoreVisibility, 50);
         });
     }
 });
