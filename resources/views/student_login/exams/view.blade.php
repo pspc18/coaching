@@ -1,80 +1,1054 @@
 @php
     $getUser = Helper::getUser();
+    $className = optional($getUser)->ClassTypes->name ?? 'Student';
+    $currentSessionName = Session::get('session_name') ?? date('Y');
+
     $formatMarks = function ($value) {
+        if (!is_numeric($value)) return $value;
         $formatted = number_format((float) $value, 2, '.', '');
         return rtrim(rtrim($formatted, '0'), '.');
     };
+
+    $calculateGrade = function ($pct) {
+        if ($pct >= 85) return 'A+';
+        if ($pct >= 75) return 'A';
+        if ($pct >= 60) return 'B';
+        if ($pct >= 50) return 'C';
+        if ($pct >= 33) return 'D';
+        return 'E';
+    };
+
+    $calculateStatus = function ($pct) {
+        if ($pct >= 75) return ['label' => 'Distinction', 'border' => '#16a34a', 'color' => '#16a34a', 'bg' => '#dcfce7'];
+        if ($pct >= 60) return ['label' => '1st Division', 'border' => '#0284c7', 'color' => '#0284c7', 'bg' => '#e0f2fe'];
+        if ($pct >= 33) return ['label' => 'Passed', 'border' => '#f59e0b', 'color' => '#d97706', 'bg' => '#fef3c7'];
+        return ['label' => 'Needs Work', 'border' => '#f43f5e', 'color' => '#e11d48', 'bg' => '#ffe4e6'];
+    };
+
     $reportPercentages = $examReports->map(function ($report) {
         return (float) ($report->result['percentage'] ?? 0);
     });
+
     $averagePercentage = $reportPercentages->count() ? round($reportPercentages->avg(), 1) : 0;
     $bestPercentage = $reportPercentages->count() ? round($reportPercentages->max(), 1) : 0;
+
+    $ranks = $examReports->map(function ($report) {
+        $r = $report->single_subject_mode ? ($report->result['subject_rank'] ?? null) : ($report->result['overall_rank'] ?? null);
+        return is_numeric($r) ? (int)$r : null;
+    })->filter();
+    $bestRank = $ranks->count() ? $ranks->min() : null;
+
+    $distinctionCount = $examReports->filter(fn($r) => (float)($r->result['percentage'] ?? 0) >= 75)->count();
+    $firstClassCount = $examReports->filter(fn($r) => (float)($r->result['percentage'] ?? 0) >= 60 && (float)($r->result['percentage'] ?? 0) < 75)->count();
+    $passedCount = $examReports->filter(fn($r) => (float)($r->result['percentage'] ?? 0) >= 33 && (float)($r->result['percentage'] ?? 0) < 60)->count();
 @endphp
 
 @extends('student_login.layout.app')
+
 @section('title', 'Exam Results')
 @section('page_title', 'EXAM RESULTS')
-@section('page_sub', Session::get('first_name').' · '.($getUser['ClassTypes']['name'] ?? 'Student'))
+@section('page_sub', Session::get('first_name') . ' · ' . $className)
+
+@section('styles')
+<style>
+/* ==========================================================================
+   ARISE ERP - NATIVE MOBILE EXAM RESULTS
+   Exact Layout, Typography & CSS matching admissionView?layout=mobile
+   ========================================================================== */
+
+/* 1. Glassmorphic Navy Hero Card */
+.mob-hero-card {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mob-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.mob-hero-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-session-pill {
+    font-size: 9.5px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 4-Column Metrics Glance (2x2 Grid) */
+.mob-dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.mob-radar-col {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+.mob-radar-tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.mob-radar-val {
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    margin: 2px 0 1px;
+}
+.mob-radar-meta {
+    font-size: 9px;
+    color: #cbd5e1;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 2. Compact Search & Filter Toolbar with Sticky Support */
+.mob-tracker-container {
+    margin-bottom: 8px;
+    position: relative;
+}
+.mob-search-toolbar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all .2s ease;
+}
+
+/* Sticky Fixed Toolbar when Scrolled Past */
+.mob-search-toolbar.is-fixed {
+    position: fixed !important;
+    top: 52px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 16px) !important;
+    max-width: 584px !important;
+    z-index: 990 !important;
+    background: rgba(0, 44, 84, 0.96) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    box-shadow: 0 6px 20px rgba(0, 20, 40, 0.35) !important;
+}
+
+.mob-search-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.mob-search-input-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.mob-search-input-wrap i.search-icon {
+    position: absolute;
+    left: 9px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+.mob-search-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 28px 0 28px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+    transition: border-color .15s ease;
+}
+.mob-search-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+.mob-search-clear-btn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+}
+.mob-results-badge {
+    height: 30px;
+    padding: 0 9px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* Category Filter Tabs Bar */
+.mob-filter-tabs-row {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    padding-bottom: 1px;
+}
+.mob-filter-tabs-row::-webkit-scrollbar {
+    display: none;
+}
+.mob-filter-btn {
+    padding: 4px 9px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #475569;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .15s ease;
+    cursor: pointer;
+}
+.mob-filter-btn .count-tag {
+    font-size: 9px;
+    background: #e2e8f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #334155;
+}
+.mob-filter-btn.active-filter {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+}
+.mob-filter-btn.active-filter .count-tag {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+/* Fixed state adjustments for toolbar */
+.mob-search-toolbar.is-fixed .mob-search-row {
+    margin-bottom: 5px;
+}
+.mob-search-toolbar.is-fixed .mob-search-input {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+.mob-search-toolbar.is-fixed .mob-search-input::placeholder {
+    color: #94a3b8;
+}
+.mob-search-toolbar.is-fixed .mob-results-badge {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #38bdf8;
+}
+.mob-search-toolbar.is-fixed .mob-filter-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+}
+.mob-search-toolbar.is-fixed .mob-filter-btn .count-tag {
+    background: rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+}
+.mob-search-toolbar.is-fixed .mob-filter-btn.active-filter {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+.mob-search-toolbar.is-fixed .mob-filter-btn.active-filter .count-tag {
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: #ffffff !important;
+}
+
+/* 3. Feed List & Exam Card Item */
+.student-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 24px;
+}
+.student-mob-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    position: relative;
+    transition: transform .1s ease, border-color .1s ease;
+}
+
+/* Card Header */
+.exam-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.exam-title-cluster {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    min-width: 0;
+    flex: 1;
+}
+.exam-icon-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #001833, #002C54);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.exam-title-text {
+    min-width: 0;
+    flex: 1;
+}
+.exam-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.25;
+    margin: 0 0 3px;
+    word-break: break-word;
+}
+.exam-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 600;
+    flex-wrap: wrap;
+}
+.exam-meta-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.exam-meta-row i {
+    color: #0284c7;
+    font-size: 10px;
+}
+
+/* Score Pill Badge */
+.exam-score-badge {
+    text-align: right;
+    flex-shrink: 0;
+}
+.score-pill {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.1;
+    display: inline-block;
+    border: 1px solid;
+}
+.score-pill-sub {
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    margin-top: 2px;
+    display: block;
+}
+
+/* 4. Score Ribbon Grid */
+.exam-metrics-ribbon {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+}
+.ribbon-item {
+    text-align: center;
+}
+.ribbon-item:not(:last-child) {
+    border-right: 1px solid #e2e8f0;
+}
+.ribbon-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+    line-height: 1.2;
+}
+.ribbon-value {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-top: 1px;
+}
+.ribbon-value.highlight-green {
+    color: #16a34a;
+}
+.ribbon-value.highlight-blue {
+    color: #0284c7;
+}
+
+/* Visual Progress Bar */
+.exam-progress-wrap {
+    margin-bottom: 9px;
+}
+.progress-bar-track {
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .4s ease;
+}
+
+/* Action Strip */
+.exam-action-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-toggle-subjects {
+    flex: 1;
+    height: 30px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all .15s ease;
+}
+.btn-toggle-subjects:active {
+    background: #e2e8f0;
+}
+.btn-toggle-subjects i.chevron-icon {
+    font-size: 10px;
+    transition: transform .2s ease;
+}
+.student-mob-card.is-expanded .btn-toggle-subjects i.chevron-icon {
+    transform: rotate(180deg);
+}
+.student-mob-card.is-expanded .btn-toggle-subjects {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+
+/* 5. Expandable Subject Breakdown */
+.exam-detail-drawer {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #cbd5e1;
+    animation: drawerFadeIn .2s ease;
+}
+.student-mob-card.is-expanded .exam-detail-drawer {
+    display: block;
+}
+@keyframes drawerFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.drawer-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    margin: 0 0 7px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.subject-item-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+}
+.subject-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.subject-name-cluster {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+}
+.subject-index-tag {
+    font-size: 9px;
+    font-weight: 800;
+    background: #002C54;
+    color: #ffffff;
+    padding: 2px 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.subject-name-text {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.subject-marks-badge {
+    text-align: right;
+    flex-shrink: 0;
+}
+.subject-marks-val {
+    font-size: 12px;
+    font-weight: 800;
+    color: #002C54;
+}
+.subject-marks-max {
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Component Breakdown Pills */
+.subject-components-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+.component-pill {
+    font-size: 9px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: #475569;
+    font-weight: 600;
+}
+.component-pill b {
+    color: #002C54;
+    font-weight: 800;
+}
+
+/* Mini Subject Progress */
+.subject-progress-track {
+    height: 3px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+.subject-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+}
+
+/* Empty State Card */
+.mob-empty-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 30px 16px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 10px;
+}
+.mob-empty-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+}
+.mob-empty-sub {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.45;
+    margin: 0 auto;
+    max-width: 280px;
+}
+</style>
+@endsection
 
 @section('content')
-<style>
-  .stu-results{--sr-primary:#3156d3;--sr-purple:#6954c8;--sr-success:#139466;--sr-warning:#d78a00;min-height:calc(100vh - 126px);padding:14px 14px 106px;background:var(--stu-page,#f3f6fb);color:var(--stu-text,#253858)}
-  .sr-hero{position:relative;overflow:hidden;padding:18px;border-radius:20px;background:linear-gradient(135deg,#6954c8,#3156d3 58%,#203d9a);color:#fff;box-shadow:0 13px 30px rgba(49,55,154,.24)}.sr-hero:before,.sr-hero:after{content:"";position:absolute;border-radius:50%;border:26px solid rgba(255,255,255,.06)}.sr-hero:before{width:155px;height:155px;right:-62px;top:-76px}.sr-hero:after{width:95px;height:95px;left:-55px;bottom:-66px}.sr-hero-main{position:relative;z-index:1;display:flex;align-items:center;gap:14px}.sr-ring{--score:0deg;position:relative;width:82px;height:82px;flex:0 0 82px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(#8ff0c8 var(--score),rgba(255,255,255,.17) 0)}.sr-ring:before{content:"";position:absolute;width:65px;height:65px;border-radius:50%;background:#4c4db1}.sr-ring-value{position:relative;z-index:1;text-align:center;font-size:19px;font-weight:800;line-height:1}.sr-ring-value small{display:block;margin-top:5px;font-size:7px;text-transform:uppercase;letter-spacing:.08em;opacity:.75}.sr-hero-copy{min-width:0}.sr-hero-copy span{display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;opacity:.72}.sr-hero-copy h1{font-size:20px;font-weight:750;margin:3px 0}.sr-hero-copy p{font-size:10px;line-height:1.4;margin:0;opacity:.8}.sr-hero-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);margin-top:15px;padding-top:13px;border-top:1px solid rgba(255,255,255,.15)}.sr-hero-stat{text-align:center;border-right:1px solid rgba(255,255,255,.15)}.sr-hero-stat:last-child{border:0}.sr-hero-stat strong{display:block;font-size:16px}.sr-hero-stat span{font-size:8px;text-transform:uppercase;letter-spacing:.06em;opacity:.72}
-  .sr-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:21px 2px 10px}.sr-section-head h2{font-size:15px;font-weight:750;margin:0}.sr-section-head p{font-size:10px;color:var(--stu-muted,#98a2b3);margin:2px 0 0}.sr-count{flex:0 0 auto;padding:5px 8px;border-radius:9px;background:var(--stu-primary-soft,#e8eeff);color:var(--sr-primary);font-size:8px;font-weight:700}
-  .sr-exam-card{position:relative;overflow:hidden;margin-bottom:11px;background:var(--stu-surface,#fff);border:1px solid var(--stu-border,#edf0f6);border-radius:18px;box-shadow:var(--stu-shadow,0 7px 24px rgba(42,55,92,.06))}.sr-exam-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(#6954c8,#3156d3)}.sr-exam-toggle{width:100%;display:block;padding:14px 13px 13px 16px;border:0;background:transparent;color:inherit;text-align:left}.sr-exam-top{display:flex;align-items:flex-start;gap:11px}.sr-exam-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;background:#eeeafd;color:var(--sr-purple);font-size:18px}.sr-exam-info{min-width:0;flex:1}.sr-exam-info h3{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:0 0 5px;font-size:14px;font-weight:730;line-height:1.35}.sr-exam-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:var(--stu-muted,#98a2b3);font-size:8px}.sr-exam-meta span{display:flex;align-items:center;gap:4px}.sr-percentage{flex:0 0 auto;min-width:52px;padding:7px 6px;border-radius:12px;background:#e4f8ef;color:var(--sr-success);font-size:14px;font-weight:800;text-align:center}.sr-percentage small{display:block;font-size:7px;font-weight:650;text-transform:uppercase;letter-spacing:.04em}.sr-exam-overview{display:grid;grid-template-columns:1.45fr 1fr 26px;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--stu-border,#edf0f6)}.sr-score-label small,.sr-rank-label small{display:block;margin-bottom:3px;color:var(--stu-muted,#98a2b3);font-size:7px;font-weight:650;text-transform:uppercase;letter-spacing:.06em}.sr-score-label strong,.sr-rank-label strong{font-size:12px}.sr-score-track{height:5px;margin-top:7px;overflow:hidden;border-radius:5px;background:var(--stu-primary-soft,#e8eeff)}.sr-score-track i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#6954c8,#3156d3)}.sr-chevron{width:26px;height:26px;display:grid;place-items:center;border-radius:9px;background:var(--stu-primary-soft,#e8eeff);color:var(--sr-primary);font-size:11px;transition:transform .2s}.sr-exam-card.is-open .sr-chevron{transform:rotate(180deg)}
-  .sr-exam-body{display:none;padding:0 13px 14px 16px}.sr-exam-card.is-open .sr-exam-body{display:block;animation:srOpen .2s ease}@keyframes srOpen{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}.sr-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:13px;border-top:1px solid var(--stu-border,#edf0f6)}.sr-summary-item{min-width:0;padding:10px;border-radius:13px;background:var(--stu-page,#f3f6fb)}.sr-summary-item span{display:block;margin-bottom:4px;color:var(--stu-muted,#98a2b3);font-size:8px;text-transform:uppercase;letter-spacing:.04em}.sr-summary-item strong{display:block;overflow:hidden;text-overflow:ellipsis;font-size:13px;white-space:nowrap}.sr-subject-heading{margin:16px 1px 8px}.sr-subject-heading h4{font-size:13px;font-weight:720;margin:0}.sr-subject-heading p{font-size:9px;color:var(--stu-muted,#98a2b3);margin:2px 0 0}.sr-subject-list{display:flex;flex-direction:column;gap:7px}.sr-subject{padding:11px;border:1px solid var(--stu-border,#edf0f6);border-radius:14px;background:var(--stu-surface,#fff)}.sr-subject-head{display:flex;align-items:center;gap:9px}.sr-subject-number{width:29px;height:29px;flex:0 0 29px;display:grid;place-items:center;border-radius:9px;background:var(--stu-primary-soft,#e8eeff);color:var(--sr-primary);font-size:9px;font-weight:750}.sr-subject-name{min-width:0;flex:1}.sr-subject-name strong{display:block;overflow:hidden;text-overflow:ellipsis;font-size:11px;white-space:nowrap}.sr-subject-name small{font-size:8px;color:var(--stu-muted,#98a2b3)}.sr-subject-score{text-align:right}.sr-subject-score strong{display:block;color:var(--sr-success);font-size:12px}.sr-subject-score span{font-size:8px;color:var(--stu-muted,#98a2b3)}.sr-subject-progress{height:4px;margin:8px 0 0;border-radius:4px;background:var(--stu-primary-soft,#e8eeff);overflow:hidden}.sr-subject-progress i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#6954c8,#3156d3)}.sr-components{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.sr-component{padding:4px 7px;border-radius:7px;background:var(--stu-page,#f3f6fb);font-size:8px;color:var(--stu-muted,#98a2b3)}.sr-component b{color:var(--stu-text,#253858)}
-  .sr-empty{padding:42px 20px;text-align:center;background:var(--stu-surface,#fff);border:1px solid var(--stu-border,#edf0f6);border-radius:19px}.sr-empty-icon{width:62px;height:62px;display:grid;place-items:center;margin:0 auto 13px;border-radius:19px;background:#eeeafd;color:var(--sr-purple);font-size:27px}.sr-empty h3{font-size:15px;margin:0 0 5px}.sr-empty p{max-width:290px;margin:0 auto;font-size:10px;line-height:1.5;color:var(--stu-muted,#98a2b3)}
-  [data-theme=dark] .stu-results{--stu-page:#0f1728;--stu-surface:#182337;--stu-text:#f2f5fb;--stu-muted:#9da9bd;--stu-border:#29364c;--stu-primary-soft:#24365f}[data-theme=dark] .sr-exam-icon,[data-theme=dark] .sr-empty-icon{background:#302d59;color:#bcb0ff}[data-theme=dark] .sr-percentage{background:#193c34;color:#76dcb4}
-</style>
+<div class="native-dashboard-container">
 
-<section class="stu-results">
-  <div class="sr-hero">
-    <div class="sr-hero-main">
-      <div class="sr-ring" style="--score:{{ min(100, $averagePercentage) * 3.6 }}deg"><div class="sr-ring-value">{{ $formatMarks($averagePercentage) }}%<small>Average</small></div></div>
-      <div class="sr-hero-copy"><span>Academic performance</span><h1>My results</h1><p>{{ $examReports->count() ? 'Review your published exam performance and subject-wise marks.' : 'Published exam results will appear here.' }}</p></div>
-    </div>
-    <div class="sr-hero-stats"><div class="sr-hero-stat"><strong>{{ $examReports->count() }}</strong><span>Published</span></div><div class="sr-hero-stat"><strong>{{ $formatMarks($bestPercentage) }}%</strong><span>Best score</span></div><div class="sr-hero-stat"><strong>{{ $getUser['ClassTypes']['name'] ?? '—' }}</strong><span>Class</span></div></div>
-  </div>
-
-  <div class="sr-section-head"><div><h2>Published results</h2><p>Tap an exam to see subject details</p></div><span class="sr-count">{{ $examReports->count() }} {{ \Illuminate\Support\Str::plural('EXAM', $examReports->count()) }}</span></div>
-
-  <div class="sr-exam-list">
-    @forelse($examReports as $report)
-      @php
-        $result=$report->result;
-        $rank=$report->single_subject_mode?($result['subject_rank']??null):($result['overall_rank']??null);
-        $examDate=!empty($report->assigned_exam_date)?\Carbon\Carbon::parse($report->assigned_exam_date)->format('d M Y'):null;
-        $obtained=(float)($result['total_obtained']??0); $maximum=(float)($result['total_maximum']??0);
-        $percentage=(float)($result['percentage']??($maximum>0?($obtained/$maximum)*100:0)); $subjects=$result['subject_rows']??[];
-      @endphp
-      <article class="sr-exam-card">
-        <button type="button" class="sr-exam-toggle" aria-expanded="false" aria-controls="exam-result-{{ $report->exam->id ?? $loop->index }}">
-          <span class="sr-exam-top"><span class="sr-exam-icon"><i class="bi bi-file-earmark-bar-graph"></i></span><span class="sr-exam-info"><h3>{{ $report->exam->name ?? 'Exam' }}</h3><span class="sr-exam-meta"><span><i class="bi bi-calendar3"></i>{{ $examDate ?? 'Date not set' }}</span><span><i class="bi bi-journals"></i>{{ count($subjects) }} {{ \Illuminate\Support\Str::plural('subject', count($subjects)) }}</span></span></span><span class="sr-percentage">{{ $formatMarks($percentage) }}%<small>Score</small></span></span>
-          <span class="sr-exam-overview"><span class="sr-score-label"><small>Marks obtained</small><strong>{{ $formatMarks($obtained) }} / {{ $formatMarks($maximum) }}</strong><span class="sr-score-track"><i style="width:{{ min(100,max(0,$percentage)) }}%"></i></span></span><span class="sr-rank-label"><small>Class rank</small><strong>#{{ $rank ?: '—' }}</strong></span><span class="sr-chevron"><i class="bi bi-chevron-down"></i></span></span>
-        </button>
-        <div class="sr-exam-body" id="exam-result-{{ $report->exam->id ?? $loop->index }}">
-          <div class="sr-summary-grid"><div class="sr-summary-item"><span>Total marks</span><strong>{{ $formatMarks($obtained) }}</strong></div><div class="sr-summary-item"><span>Maximum</span><strong>{{ $formatMarks($maximum) }}</strong></div><div class="sr-summary-item"><span>Class rank</span><strong>{{ $rank ?: '—' }} / {{ $report->summary['total_students'] ?? 0 }}</strong></div><div class="sr-summary-item"><span>Top score</span><strong>{{ $formatMarks($report->summary['topper_score'] ?? 0) }}</strong></div></div>
-          <div class="sr-subject-heading"><h4>Subject-wise performance</h4><p>Marks and assessment components</p></div>
-          <div class="sr-subject-list">
-            @foreach($subjects as $subject)
-              @php
-                $subjectMaximum=(float)($subject['maximum_marks']??0); $numericMarks=(float)($subject['numeric_marks']??0);
-                $subjectPercentage=$subjectMaximum>0&&is_numeric($subject['display_marks']??null)?round(($numericMarks/$subjectMaximum)*100,1):null;
-              @endphp
-              <div class="sr-subject"><div class="sr-subject-head"><span class="sr-subject-number">{{ str_pad($loop->iteration,2,'0',STR_PAD_LEFT) }}</span><span class="sr-subject-name"><strong>{{ $subject['name'] }}</strong><small>{{ $subjectPercentage!==null?$formatMarks($subjectPercentage).'% performance':'Marks not numeric' }}</small></span><span class="sr-subject-score"><strong>{{ $subject['display_marks'] }}</strong><span>out of {{ $formatMarks($subjectMaximum) }}</span></span></div>@if($subjectPercentage!==null)<div class="sr-subject-progress"><i style="width:{{ min(100,max(0,$subjectPercentage)) }}%"></i></div>@endif<div class="sr-components">@foreach(['R'=>$subject['r_marks']??null,'W'=>$subject['w_marks']??null,'L'=>$subject['l_marks']??null] as $label=>$value)@if($value!==null&&$value!=='')<span class="sr-component">{{ $label }}: <b>{{ $value }}</b></span>@endif @endforeach</div></div>
-            @endforeach
-          </div>
+    {{-- 1. Glassmorphic Navy Hero Card --}}
+    <div class="mob-hero-card">
+        <div class="mob-hero-top">
+            <div class="mob-hero-title">
+                <i class="fa fa-trophy text-warning"></i>
+                <span>Academic Results</span>
+            </div>
+            <span class="mob-session-pill">
+                <i class="fa fa-graduation-cap"></i> {{ $currentSessionName }}
+            </span>
         </div>
-      </article>
-    @empty
-      <div class="sr-empty"><div class="sr-empty-icon"><i class="bi bi-bar-chart-line"></i></div><h3>Results not published yet</h3><p>Your exam-wise results will appear here after marks are entered and officially published by the school.</p></div>
-    @endforelse
-  </div>
-</section>
+
+        <div class="mob-dual-grid">
+            {{-- Metric 1: Overall Average --}}
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-pie-chart text-info"></i> Overall Avg
+                </span>
+                <div class="mob-radar-val" style="color: {{ $averagePercentage >= 60 ? '#38bdf8' : '#f59e0b' }};">
+                    {{ $formatMarks($averagePercentage) }}%
+                </div>
+                <span class="mob-radar-meta">Grade {{ $calculateGrade($averagePercentage) }} &bull; Performance</span>
+            </div>
+
+            {{-- Metric 2: Best Score --}}
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-star text-warning"></i> Best Score
+                </span>
+                <div class="mob-radar-val" style="color: #10b981;">
+                    {{ $formatMarks($bestPercentage) }}%
+                </div>
+                <span class="mob-radar-meta">Top Exam Performance</span>
+            </div>
+
+            {{-- Metric 3: Published Exams --}}
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-file-text-o text-warning"></i> Total Exams
+                </span>
+                <div class="mob-radar-val">
+                    {{ $examReports->count() }}
+                </div>
+                <span class="mob-radar-meta">{{ $examReports->count() ? 'Results Published' : 'None Published' }}</span>
+            </div>
+
+            {{-- Metric 4: Best Class Rank --}}
+            <div class="mob-radar-col">
+                <span class="mob-radar-tag">
+                    <i class="fa fa-trophy text-warning"></i> Best Rank
+                </span>
+                <div class="mob-radar-val" style="color: {{ $bestRank ? '#38bdf8' : '#cbd5e1' }};">
+                    {{ $bestRank ? '#' . $bestRank : '—' }}
+                </div>
+                <span class="mob-radar-meta">{{ $bestRank ? 'In Class Standing' : 'Standing N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- 2. Compact Search & Filter Toolbar with Sticky Support --}}
+    <div class="mob-tracker-container" id="examStickyTracker">
+        <div class="mob-search-toolbar" id="examSearchToolbar">
+            <div class="mob-search-row">
+                <div class="mob-search-input-wrap">
+                    <i class="fa fa-search search-icon"></i>
+                    <input type="text"
+                           id="examSearchInput"
+                           class="mob-search-input"
+                           placeholder="Search exam or subject..."
+                           autocomplete="off">
+                    <button type="button" id="examClearBtn" class="mob-search-clear-btn" style="display:none;">
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                </div>
+                <span class="mob-results-badge" id="examCountDisplay">
+                    <i class="fa fa-file-text-o"></i> <span id="visibleExamCount">{{ $examReports->count() }}</span>
+                </span>
+            </div>
+
+            <div class="mob-filter-tabs-row" id="examFilterTabs">
+                <button type="button" class="mob-filter-btn active-filter" data-filter="all">
+                    <span>All</span>
+                    <span class="count-tag">{{ $examReports->count() }}</span>
+                </button>
+                @if($distinctionCount > 0)
+                <button type="button" class="mob-filter-btn" data-filter="distinction">
+                    <i class="fa fa-circle" style="color:#16a34a;font-size:7px;"></i>
+                    <span>75%+ Distinction</span>
+                    <span class="count-tag">{{ $distinctionCount }}</span>
+                </button>
+                @endif
+                @if($firstClassCount > 0)
+                <button type="button" class="mob-filter-btn" data-filter="first">
+                    <i class="fa fa-circle" style="color:#0284c7;font-size:7px;"></i>
+                    <span>60%+ 1st Div</span>
+                    <span class="count-tag">{{ $firstClassCount }}</span>
+                </button>
+                @endif
+                @if($passedCount > 0)
+                <button type="button" class="mob-filter-btn" data-filter="passed">
+                    <i class="fa fa-circle" style="color:#f59e0b;font-size:7px;"></i>
+                    <span>Passed</span>
+                    <span class="count-tag">{{ $passedCount }}</span>
+                </button>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- 3. Feed List of Exam Result Cards --}}
+    <div class="student-feed-list" id="examFeedList">
+        @forelse($examReports as $report)
+            @php
+                $result = $report->result;
+                $rank = $report->single_subject_mode ? ($result['subject_rank'] ?? null) : ($result['overall_rank'] ?? null);
+                $examDate = !empty($report->assigned_exam_date) ? \Carbon\Carbon::parse($report->assigned_exam_date)->format('d M Y') : null;
+                $obtained = (float) ($result['total_obtained'] ?? 0);
+                $maximum = (float) ($result['total_maximum'] ?? 0);
+                $percentage = (float) ($result['percentage'] ?? ($maximum > 0 ? ($obtained / $maximum) * 100 : 0));
+                $subjects = $result['subject_rows'] ?? [];
+
+                $statusInfo = $calculateStatus($percentage);
+                $filterCategory = 'passed';
+                if ($percentage >= 75) {
+                    $filterCategory = 'distinction';
+                } elseif ($percentage >= 60) {
+                    $filterCategory = 'first';
+                } elseif ($percentage < 33) {
+                    $filterCategory = 'fail';
+                }
+
+                $subjectNamesConcat = collect($subjects)->pluck('name')->implode(' ');
+                $topperMarks = (float) ($report->summary['topper_score'] ?? 0);
+                $totalStudents = (int) ($report->summary['total_students'] ?? 0);
+            @endphp
+
+            <article class="student-mob-card exam-card-item"
+                     data-exam-name="{{ strtolower($report->exam->name ?? '') }}"
+                     data-subjects="{{ strtolower($subjectNamesConcat) }}"
+                     data-category="{{ $filterCategory }}"
+                     style="border-left: 3px solid {{ $statusInfo['border'] }};">
+
+                {{-- Card Header --}}
+                <div class="exam-card-header">
+                    <div class="exam-title-cluster">
+                        <div class="exam-icon-circle">
+                            <i class="fa fa-graduation-cap"></i>
+                        </div>
+                        <div class="exam-title-text">
+                            <h3 class="exam-title">{{ $report->exam->name ?? 'Examination' }}</h3>
+                            <div class="exam-meta-row">
+                                <span><i class="fa fa-calendar-o"></i> {{ $examDate ?? 'Date not set' }}</span>
+                                <span><i class="fa fa-book"></i> {{ count($subjects) }} Subjects</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Score Pill Badge --}}
+                    <div class="exam-score-badge">
+                        <span class="score-pill" style="background: {{ $statusInfo['bg'] }}; color: {{ $statusInfo['color'] }}; border-color: {{ $statusInfo['border'] }};">
+                            {{ $formatMarks($percentage) }}%
+                        </span>
+                        <span class="score-pill-sub" style="color: {{ $statusInfo['color'] }};">
+                            {{ $statusInfo['label'] }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Key Performance Ribbon --}}
+                <div class="exam-metrics-ribbon">
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Obtained</span>
+                        <span class="ribbon-value highlight-green">{{ $formatMarks($obtained) }} <span style="font-size:9.5px;color:#64748b;">/ {{ $formatMarks($maximum) }}</span></span>
+                    </div>
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Class Rank</span>
+                        <span class="ribbon-value highlight-blue">#{{ $rank ?: '—' }} <span style="font-size:9.5px;color:#64748b;">/ {{ $totalStudents ?: '—' }}</span></span>
+                    </div>
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Topper</span>
+                        <span class="ribbon-value">{{ $formatMarks($topperMarks) }}</span>
+                    </div>
+                </div>
+
+                {{-- Visual Progress Bar --}}
+                <div class="exam-progress-wrap">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill"
+                             style="width: {{ min(100, max(0, $percentage)) }}%; background: {{ $statusInfo['border'] }};">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action Strip --}}
+                <div class="exam-action-strip">
+                    <button type="button" class="btn-toggle-subjects" aria-expanded="false">
+                        <span>Subject Marks ({{ count($subjects) }})</span>
+                        <i class="fa fa-chevron-down chevron-icon"></i>
+                    </button>
+                </div>
+
+                {{-- Expandable Subject Details --}}
+                <div class="exam-detail-drawer">
+                    <div class="drawer-section-title">
+                        <span><i class="fa fa-list-ol mr-1"></i> Subject-Wise Breakdown</span>
+                        <span>Marks / Max</span>
+                    </div>
+
+                    <div class="subject-list-container">
+                        @foreach($subjects as $subject)
+                            @php
+                                $subMax = (float) ($subject['maximum_marks'] ?? 0);
+                                $subNumeric = (float) ($subject['numeric_marks'] ?? 0);
+                                $subPercentage = $subMax > 0 && is_numeric($subject['display_marks'] ?? null)
+                                    ? round(($subNumeric / $subMax) * 100, 1)
+                                    : null;
+                                $subColor = $subPercentage !== null && $subPercentage >= 60 ? '#16a34a' : ($subPercentage !== null && $subPercentage >= 33 ? '#0284c7' : '#e11d48');
+                            @endphp
+
+                            <div class="subject-item-card">
+                                <div class="subject-top-row">
+                                    <div class="subject-name-cluster">
+                                        <span class="subject-index-tag">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="subject-name-text">{{ $subject['name'] }}</span>
+                                    </div>
+                                    <div class="subject-marks-badge">
+                                        <span class="subject-marks-val" style="color: {{ $subColor }};">{{ $subject['display_marks'] }}</span>
+                                        <span class="subject-marks-max">/ {{ $formatMarks($subMax) }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Optional Component Breakdown (Written, Oral, Lab) --}}
+                                @php
+                                    $components = array_filter([
+                                        'Written' => $subject['w_marks'] ?? null,
+                                        'Oral/Practical' => $subject['r_marks'] ?? null,
+                                        'Lab' => $subject['l_marks'] ?? null,
+                                    ], fn($v) => $v !== null && $v !== '');
+                                @endphp
+
+                                @if(!empty($components))
+                                    <div class="subject-components-row">
+                                        @foreach($components as $cLabel => $cVal)
+                                            <span class="component-pill">{{ $cLabel }}: <b>{{ $cVal }}</b></span>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                @if($subPercentage !== null)
+                                    <div class="subject-progress-track">
+                                        <div class="subject-progress-fill" style="width: {{ min(100, max(0, $subPercentage)) }}%; background: {{ $subColor }};"></div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </article>
+        @empty
+            <div class="mob-empty-card">
+                <div class="mob-empty-icon">
+                    <i class="fa fa-trophy"></i>
+                </div>
+                <h3 class="mob-empty-title">Results Not Published Yet</h3>
+                <p class="mob-empty-sub">
+                    Official exam results will appear here as soon as marks are entered and published by the administration.
+                </p>
+            </div>
+        @endforelse
+
+        {{-- Client-side Filter No Matches Fallback --}}
+        <div class="mob-empty-card" id="noFilterMatchesCard" style="display: none;">
+            <div class="mob-empty-icon">
+                <i class="fa fa-search"></i>
+            </div>
+            <h3 class="mob-empty-title">No Matching Results</h3>
+            <p class="mob-empty-sub">
+                No examinations matched your search criteria. Try a different term or clear the filter.
+            </p>
+        </div>
+    </div>
+
+</div>
 @endsection
 
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.sr-exam-toggle').forEach(function(button){button.addEventListener('click',function(){var card=button.closest('.sr-exam-card'),open=!card.classList.contains('is-open');card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',open?'true':'false')})})});
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Sticky Toolbar Tracker on Scroll
+    var tracker = document.getElementById('examStickyTracker');
+    var toolbar = document.getElementById('examSearchToolbar');
+    var isFixed = false;
+
+    function handleScroll() {
+        if (!tracker || !toolbar) return;
+        var rect = tracker.getBoundingClientRect();
+        // 52px top bar offset in native app layout
+        if (rect.top <= 52 && !isFixed) {
+            toolbar.classList.add('is-fixed');
+            isFixed = true;
+        } else if (rect.top > 52 && isFixed) {
+            toolbar.classList.remove('is-fixed');
+            isFixed = false;
+        }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    // 2. Expand/Collapse Subject Breakdown
+    document.querySelectorAll('.btn-toggle-subjects').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var card = this.closest('.student-mob-card');
+            if (!card) return;
+            var isExpanded = card.classList.contains('is-expanded');
+            card.classList.toggle('is-expanded', !isExpanded);
+            this.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+        });
+    });
+
+    // 3. Fast Client-side Search and Filter Tabs
+    var searchInput = document.getElementById('examSearchInput');
+    var clearBtn = document.getElementById('examClearBtn');
+    var filterBtns = document.querySelectorAll('.mob-filter-btn');
+    var examCards = document.querySelectorAll('.exam-card-item');
+    var noMatchesCard = document.getElementById('noFilterMatchesCard');
+    var countDisplay = document.getElementById('visibleExamCount');
+
+    var currentFilter = 'all';
+    var currentSearch = '';
+
+    function applyFilters() {
+        var visibleCount = 0;
+
+        examCards.forEach(function (card) {
+            var name = card.getAttribute('data-exam-name') || '';
+            var subs = card.getAttribute('data-subjects') || '';
+            var cat = card.getAttribute('data-category') || '';
+
+            var matchesFilter = (currentFilter === 'all') || (cat === currentFilter);
+            var matchesSearch = true;
+
+            if (currentSearch.trim().length > 0) {
+                var q = currentSearch.toLowerCase().trim();
+                matchesSearch = (name.indexOf(q) !== -1) || (subs.indexOf(q) !== -1);
+            }
+
+            if (matchesFilter && matchesSearch) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (countDisplay) {
+            countDisplay.textContent = visibleCount;
+        }
+
+        if (noMatchesCard) {
+            noMatchesCard.style.display = (visibleCount === 0 && examCards.length > 0) ? 'block' : 'none';
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            currentSearch = this.value;
+            if (clearBtn) {
+                clearBtn.style.display = this.value.length > 0 ? 'block' : 'none';
+            }
+            applyFilters();
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            if (searchInput) {
+                searchInput.value = '';
+                currentSearch = '';
+                this.style.display = 'none';
+                searchInput.focus();
+                applyFilters();
+            }
+        });
+    }
+
+    filterBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            filterBtns.forEach(function (b) { b.classList.remove('active-filter'); });
+            this.classList.add('active-filter');
+            currentFilter = this.getAttribute('data-filter') || 'all';
+            applyFilters();
+        });
+    });
+});
 </script>
 @endsection

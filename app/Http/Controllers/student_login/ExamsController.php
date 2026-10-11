@@ -18,7 +18,18 @@ class ExamsController extends Controller
 {
     public function resultCard(Request $request)
     {
-        $admission = Admission::where('id', Session::get('id'))
+        $admission = Admission::select([
+                'id',
+                'admissionNo',
+                'first_name',
+                'last_name',
+                'father_name',
+                'roll_no',
+                'class_type_id',
+                'session_id',
+                'branch_id',
+            ])
+            ->where('id', Session::get('id'))
             ->where('session_id', Session::get('session_id'))
             ->where('branch_id', Session::get('branch_id'))
             ->first();
@@ -59,75 +70,84 @@ class ExamsController extends Controller
 
                 $examIds = $examIds->intersect($publishedExamIds)->values();
             } else {
-                // Results remain private until the publication feature is installed.
                 $examIds = collect();
             }
 
-            $exams = Exam::whereIn('id', $examIds)
-                ->where('session_id', $admission->session_id)
-                ->where('branch_id', $admission->branch_id)
-                ->orderBy('id', 'desc')
-                ->get();
+            if ($examIds->isNotEmpty()) {
+                $exams = Exam::select(['id', 'name', 'session_id', 'branch_id'])
+                    ->whereIn('id', $examIds)
+                    ->where('session_id', $admission->session_id)
+                    ->where('branch_id', $admission->branch_id)
+                    ->orderBy('id', 'desc')
+                    ->get();
 
-            $subjects = Subject::where('class_type_id', $admission->class_type_id)
-                ->where('session_id', $admission->session_id)
-                ->where('branch_id', $admission->branch_id)
-                ->orderBy('sort_by')
-                ->get();
+                $subjects = Subject::select(['id', 'name', 'sort_by', 'other_subject', 'class_type_id'])
+                    ->where('class_type_id', $admission->class_type_id)
+                    ->where('session_id', $admission->session_id)
+                    ->where('branch_id', $admission->branch_id)
+                    ->orderBy('sort_by')
+                    ->get();
 
-            $classStudents = Admission::where('class_type_id', $admission->class_type_id)
-                ->where('session_id', $admission->session_id)
-                ->where('branch_id', $admission->branch_id)
-                ->where('status', 1)
-                ->orderBy('first_name')
-                ->get([
-                    'id',
-                    'admissionNo',
-                    'first_name',
-                    'last_name',
-                    'father_name',
-                    'roll_no',
-                    'class_type_id',
-                ]);
+                $classStudents = Admission::select([
+                        'id',
+                        'admissionNo',
+                        'first_name',
+                        'last_name',
+                        'father_name',
+                        'roll_no',
+                        'class_type_id',
+                    ])
+                    ->where('class_type_id', $admission->class_type_id)
+                    ->where('session_id', $admission->session_id)
+                    ->where('branch_id', $admission->branch_id)
+                    ->where('status', 1)
+                    ->orderBy('first_name')
+                    ->get();
 
-            $reportController = app(ReportController::class);
-            $examReports = $exams->map(function ($exam) use (
-                $reportController,
-                $admission,
-                $classStudents,
-                $subjects
-            ) {
-                $assignedExamDate = AssignExam::where('exam_id', $exam->id)
+                // Batch fetch assigned exam dates to prevent N+1 queries
+                $assignedExamDates = AssignExam::whereIn('exam_id', $examIds)
                     ->where('class_type_id', $admission->class_type_id)
                     ->where('session_id', $admission->session_id)
                     ->where('branch_id', $admission->branch_id)
                     ->whereNull('deleted_at')
-                    ->value('exam_date');
+                    ->pluck('exam_date', 'exam_id');
 
-                $report = $reportController->prepareExamWiseReportData(
-                    (int) $exam->id,
-                    (int) $admission->class_type_id,
+                $reportController = app(ReportController::class);
+                $examReports = $exams->map(function ($exam) use (
+                    $reportController,
+                    $admission,
                     $classStudents,
-                    $subjects
-                );
+                    $subjects,
+                    $assignedExamDates
+                ) {
+                    $assignedExamDate = $assignedExamDates->get($exam->id);
 
-                $studentRow = collect($report['rows'])->firstWhere('student_id', $admission->id);
-                if (!$studentRow) {
-                    return null;
-                }
+                    $report = $reportController->prepareExamWiseReportData(
+                        (int) $exam->id,
+                        (int) $admission->class_type_id,
+                        $classStudents,
+                        $subjects
+                    );
 
-                return (object) [
-                    'exam' => $exam,
-                    'assigned_exam_date' => $assignedExamDate,
-                    'result' => $studentRow,
-                    'summary' => $report['summary'],
-                    'single_subject_mode' => $report['single_subject_mode'],
-                ];
-            })->filter()->values();
+                    $studentRow = collect($report['rows'])->firstWhere('student_id', $admission->id);
+                    if (!$studentRow) {
+                        return null;
+                    }
+
+                    return (object) [
+                        'exam' => $exam,
+                        'assigned_exam_date' => $assignedExamDate,
+                        'result' => $studentRow,
+                        'summary' => $report['summary'],
+                        'single_subject_mode' => $report['single_subject_mode'],
+                    ];
+                })->filter()->values();
+            }
         }
 
         return view('student_login.exams.view', [
             'examReports' => $examReports,
+            'student' => $admission,
         ]);
     }
 }
