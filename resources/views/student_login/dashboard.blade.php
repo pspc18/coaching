@@ -204,15 +204,19 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     padding: 8px 10px;
-    margin-bottom: 10px;
+    margin-bottom: 0;
 }
 .hero-radar-col {
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
 }
 .hero-radar-col:first-child {
     border-right: 1px solid rgba(255, 255, 255, 0.12);
     padding-right: 6px;
+}
+.hero-radar-col:last-child {
+    padding-left: 2px;
 }
 .hero-radar-tag {
     font-size: 9.5px;
@@ -241,49 +245,61 @@
     font-weight: 500;
 }
 
-/* Hero Fast Action Buttons */
-.hero-actions-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.hero-action-btn {
-    flex: 1;
-    padding: 6px 4px;
-    border-radius: 4px;
-    font-size: 10.5px;
+/* Pay Fees Button inside Due Fees Box */
+.hero-due-pay-btn {
+    position: relative;
+    overflow: hidden;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 11px;
     font-weight: 700;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     text-decoration: none !important;
     line-height: 1.2;
-    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    animation: payBtnPulse 2.2s infinite ease-in-out;
     transition: transform .12s ease;
 }
-.hero-action-btn:active {
+.hero-due-pay-btn:active {
     transform: scale(0.96);
 }
-.act-btn-fee {
-    background: #10b981;
-    color: #ffffff !important;
-    border: 1px solid #10b981;
+.hero-due-pay-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transform: rotate(25deg);
+    animation: payShimmerSweep 2.8s infinite ease-in-out;
 }
-.act-btn-hw {
-    background: #ffffff;
-    color: #002C54 !important;
-    border: 1px solid #ffffff;
+
+@keyframes payBtnPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65), 0 2px 6px rgba(0, 0, 0, 0.25);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 3px 12px rgba(16, 185, 129, 0.5);
+        transform: scale(1.02);
+    }
 }
-.act-btn-exam {
-    background: #8b5cf6;
-    color: #ffffff !important;
-    border: 1px solid #8b5cf6;
-}
-.act-btn-notice {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+
+@keyframes payShimmerSweep {
+    0% {
+        left: -60%;
+    }
+    35%, 100% {
+        left: 140%;
+    }
 }
 
 /* 2. 8-Tile Compact App Launcher Grid */
@@ -731,23 +747,12 @@
                 ₹ {{ number_format($pendingFees, 0) }}
             </div>
             <span class="hero-radar-meta">{{ $feePercent }}% Paid &bull; ₹ {{ number_format($collectedFees, 0) }}</span>
+            @if($pendingFees > 0)
+                <a href="{{ url('fees_history') }}" class="hero-due-pay-btn">
+                    <i class="fa fa-inr"></i> Pay Fees
+                </a>
+            @endif
         </div>
-    </div>
-
-    {{-- Hero Fast Action Buttons --}}
-    <div class="hero-actions-bar">
-        <a href="{{ url('fees_history') }}" class="hero-action-btn act-btn-fee">
-            <i class="fa fa-inr"></i> Pay Fees
-        </a>
-        <a href="{{ url('student_homework') }}" class="hero-action-btn act-btn-hw">
-            <i class="fa fa-book"></i> Homework
-        </a>
-        <a href="{{ url('student/result-card') }}" class="hero-action-btn act-btn-exam">
-            <i class="fa fa-trophy"></i> Results
-        </a>
-        <a href="{{ url('student-notices') }}" class="hero-action-btn act-btn-notice">
-            <i class="fa fa-bullhorn"></i> Notices
-        </a>
     </div>
 </div>
 
