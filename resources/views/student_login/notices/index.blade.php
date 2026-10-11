@@ -619,8 +619,7 @@
 }
 
 /* ==========================================================================
-   5. Mobile Custom Bottom Sheet Modal
-   Matching admissionView?layout=mobile (.mob-filter-sheet)
+   5. Mobile Custom Bottom Sheet Modal (Matching admissionView?layout=mobile)
    ========================================================================== */
 .mob-notice-modal-backdrop {
     position: fixed;
@@ -666,6 +665,7 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 .mob-sheet-title {
     font-size: 13px;
@@ -693,30 +693,45 @@
 .mob-sheet-close:active {
     background: rgba(255, 255, 255, 0.25);
 }
-.mob-sheet-body {
-    padding: 13px 14px;
-    overflow-y: auto;
-    flex: 1;
-    -webkit-overflow-scrolling: touch;
+
+/* FIXED POSITION TOP STRIP (Status Tag, Date Range & Published On remain pinned) */
+.mob-sheet-fixed-meta {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    z-index: 2;
 }
-.sheet-meta-bar {
+.sheet-fixed-meta-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
     align-items: center;
-    margin-bottom: 10px;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 .sheet-meta-pill {
     font-size: 9.5px;
     font-weight: 600;
     color: #475569;
-    background: #f1f5f9;
+    background: #ffffff;
     border: 1px solid #cbd5e1;
     padding: 2px 7px;
     border-radius: 3px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+.sheet-pub-pill {
+    color: #64748b;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+/* MOVEABLE / SCROLLABLE BODY */
+.mob-sheet-body {
+    padding: 13px 14px 20px 14px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 .sheet-notice-title {
     font-size: 14px;
@@ -741,63 +756,13 @@
     white-space: pre-line;
     word-break: break-word;
 }
-.sheet-timestamp {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 9.5px;
-    font-weight: 600;
-    color: #94a3b8;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-}
-.mob-sheet-footer {
-    padding: 9px 14px;
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-.btn-sheet-close {
-    height: 30px;
-    padding: 0 12px;
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.btn-sheet-action {
-    height: 30px;
-    padding: 0 12px;
-    background: #0284c7;
-    color: #ffffff !important;
-    border: 1px solid #0284c7;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 700;
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.btn-sheet-close:active, .btn-sheet-action:active {
-    transform: scale(0.96);
-}
 </style>
 @endsection
 
 @section('content')
 <div class="arise-mobile-container" style="padding-bottom: 30px;">
 
-    {{-- 1. Glassmorphic Navy Hero Card (Clean Metrics Glance, no redundant action buttons) --}}
+    {{-- 1. Glassmorphic Navy Hero Card (Clean Metrics Glance) --}}
     <div class="mob-hero-card">
         <div class="mob-hero-top">
             <div class="mob-hero-title">
@@ -925,10 +890,6 @@
                 $compactMessage = preg_replace("/[\r\n]{2,}/", "\n", $cleanMessage);
 
                 $publishedAt = $notice->published_at ? \Carbon\Carbon::parse($notice->published_at) : null;
-                $publisherName = trim(optional($notice->creator)->first_name . ' ' . optional($notice->creator)->last_name);
-                if (empty($publisherName)) {
-                    $publisherName = 'Arise Education Point';
-                }
             @endphp
 
             <div class="student-mob-card {{ $cardClass }}" 
@@ -936,7 +897,7 @@
                  data-title="{{ strtolower($notice->title) }}" 
                  data-message="{{ strtolower($cleanMessage) }}">
                 
-                {{-- Header --}}
+                {{-- Header (Clean Date Badge only, redundant school name removed) --}}
                 <div class="student-card-header">
                     <div class="student-avatar-box {{ $avatarClass }}">
                         <i class="fa {{ $noticeStatus === 'active' ? 'fa-bullhorn' : ($noticeStatus === 'upcoming' ? 'fa-calendar-check-o' : 'fa-archive') }}"></i>
@@ -946,9 +907,6 @@
                         <div class="student-meta-chips">
                             <span class="mob-meta-chip">
                                 <i class="fa fa-calendar"></i> {{ $fromDate->format('d M') }} – {{ $toDate->format('d M Y') }}
-                            </span>
-                            <span class="mob-meta-chip">
-                                <i class="fa fa-user-circle-o"></i> {{ $publisherName }}
                             </span>
                         </div>
                     </div>
@@ -1016,7 +974,6 @@
                      data-status-class="{{ $pillClass }}"
                      data-status-icon="{{ $statusIcon }}"
                      data-dates="{{ $fromDate->format('d M Y') }} – {{ $toDate->format('d M Y') }}"
-                     data-publisher="{{ $publisherName }}"
                      data-published-time="{{ $publishedAt ? $publishedAt->format('d M Y, h:i A') : $fromDate->format('d M Y') }}"
                      data-attachment="{{ !empty($notice->attachment_path) ? url('notice-management/'.$notice->id.'/attachment') : '' }}"
                      data-attachment-name="{{ $notice->attachment_name ?: 'Notice Circular.pdf' }}">
@@ -1057,9 +1014,12 @@
 
 {{-- ==========================================================================
      5. Mobile Custom Bottom Sheet Modal (Matching admissionView?layout=mobile)
+     Fixed Top Strip: Status Tag, Date Range & Published On
+     Moveable / Scrollable Body: Notice Title, Body Message & Attachment
      ========================================================================== --}}
 <div class="mob-notice-modal-backdrop" id="mobNoticeBackdrop" onclick="closeNoticeSheet()"></div>
 <div class="mob-notice-sheet" id="mobNoticeSheet">
+    {{-- Header --}}
     <div class="mob-sheet-header">
         <div class="mob-sheet-title">
             <i class="fa fa-bullhorn" style="color: #38bdf8;"></i>
@@ -1068,14 +1028,17 @@
         <button type="button" class="mob-sheet-close" onclick="closeNoticeSheet()" aria-label="Close">&times;</button>
     </div>
 
-    <div class="mob-sheet-body">
-        {{-- Status & Meta Badges Row --}}
-        <div class="sheet-meta-bar">
+    {{-- FIXED POSITION META STRIP (Status Tag, Date Range, Published On remain pinned) --}}
+    <div class="mob-sheet-fixed-meta">
+        <div class="sheet-fixed-meta-row">
             <span id="sheetNoticeStatus" class="mob-status-pill"></span>
             <span id="sheetNoticeDates" class="sheet-meta-pill"></span>
-            <span id="sheetNoticePublisher" class="sheet-meta-pill"></span>
+            <span id="sheetNoticePublished" class="sheet-meta-pill sheet-pub-pill"></span>
         </div>
+    </div>
 
+    {{-- MOVEABLE / SCROLLABLE BODY --}}
+    <div class="mob-sheet-body">
         {{-- Notice Title --}}
         <h3 id="sheetNoticeTitle" class="sheet-notice-title"></h3>
 
@@ -1085,7 +1048,7 @@
         </div>
 
         {{-- Attachment Download Pill if available --}}
-        <div id="sheetNoticeAttachment" style="display: none; margin-top: 10px;">
+        <div id="sheetNoticeAttachment" style="display: none; margin-top: 12px;">
             <a id="sheetAttachmentLink" href="#" target="_blank" class="mob-pdf-btn">
                 <i class="fa fa-file-pdf-o mob-pdf-icon"></i>
                 <div class="mob-pdf-info">
@@ -1097,20 +1060,6 @@
                 </div>
             </a>
         </div>
-
-        {{-- Published Timestamp --}}
-        <div class="sheet-timestamp">
-            <i class="fa fa-clock-o"></i> <span id="sheetNoticePublished"></span>
-        </div>
-    </div>
-
-    <div class="mob-sheet-footer">
-        <button type="button" class="btn-sheet-close" onclick="closeNoticeSheet()">
-            <i class="fa fa-times"></i> Close
-        </button>
-        <a id="sheetDownloadBtn" href="#" target="_blank" class="btn-sheet-action" style="display: none;">
-            <i class="fa fa-download"></i> Open PDF
-        </a>
     </div>
 </div>
 
@@ -1193,35 +1142,35 @@ function openNoticeSheet(noticeId) {
     const statusClass = dataEl.getAttribute('data-status-class');
     const statusIcon = dataEl.getAttribute('data-status-icon');
     const dates = dataEl.getAttribute('data-dates');
-    const publisher = dataEl.getAttribute('data-publisher');
     const publishedTime = dataEl.getAttribute('data-published-time');
     const attachmentUrl = dataEl.getAttribute('data-attachment');
     const attachmentName = dataEl.getAttribute('data-attachment-name');
     const message = dataEl.querySelector('.full-message') ? dataEl.querySelector('.full-message').innerText : '';
 
-    document.getElementById('sheetNoticeTitle').innerText = title;
-    document.getElementById('sheetNoticeDates').innerHTML = '<i class="fa fa-calendar"></i> ' + dates;
-    document.getElementById('sheetNoticePublisher').innerHTML = '<i class="fa fa-user-circle-o"></i> ' + publisher;
-    document.getElementById('sheetNoticeBody').innerText = message;
-    document.getElementById('sheetNoticePublished').innerText = 'Published: ' + publishedTime;
-
+    // Fixed Meta elements (PINNED at top)
     const statusPill = document.getElementById('sheetNoticeStatus');
     statusPill.className = 'mob-status-pill ' + statusClass;
     statusPill.innerHTML = '<i class="fa ' + statusIcon + '"></i> ' + status;
 
+    document.getElementById('sheetNoticeDates').innerHTML = '<i class="fa fa-calendar"></i> ' + dates;
+    document.getElementById('sheetNoticePublished').innerHTML = '<i class="fa fa-clock-o"></i> ' + publishedTime;
+
+    // Moveable / Scrollable body elements
+    document.getElementById('sheetNoticeTitle').innerText = title;
+    document.getElementById('sheetNoticeBody').innerText = message;
+
     const attachWrap = document.getElementById('sheetNoticeAttachment');
-    const downloadBtn = document.getElementById('sheetDownloadBtn');
     if (attachmentUrl) {
         attachWrap.style.display = 'block';
         document.getElementById('sheetAttachmentLink').href = attachmentUrl;
         document.getElementById('sheetAttachmentName').innerText = attachmentName;
-
-        downloadBtn.style.display = 'inline-flex';
-        downloadBtn.href = attachmentUrl;
     } else {
         attachWrap.style.display = 'none';
-        downloadBtn.style.display = 'none';
     }
+
+    // Reset scroll to top of notice body
+    const bodyEl = document.querySelector('.mob-sheet-body');
+    if (bodyEl) bodyEl.scrollTop = 0;
 
     // Show backdrop and slide up sheet
     document.getElementById('mobNoticeBackdrop').classList.add('show');
