@@ -876,14 +876,8 @@
 
 {{-- 3. Role / User Type Segment Control --}}
 <div class="mob-role-segment">
-    <button type="button" class="mob-role-btn {{ empty($userTypeFilter) || $userTypeFilter === 'all' ? 'active' : '' }}" data-type="">
-        <i class="fa fa-users"></i> All Persons
-    </button>
-    <button type="button" class="mob-role-btn {{ ($userTypeFilter ?? '') === 'student' ? 'active' : '' }}" data-type="student">
-        <i class="fa fa-graduation-cap"></i> Students Only
-    </button>
-    <button type="button" class="mob-role-btn {{ ($userTypeFilter ?? '') === 'staff' ? 'active' : '' }}" data-type="staff">
-        <i class="fa fa-briefcase"></i> Staff Only
+    <button type="button" class="mob-role-btn active" data-type="staff">
+        <i class="fa fa-briefcase"></i> Staff / User Leaves
     </button>
 </div>
 

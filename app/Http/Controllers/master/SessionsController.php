@@ -278,6 +278,7 @@ class SessionsController extends Controller
             HomeworkDocuments::where('session_id', $deleteId)->delete();
             HomeworkReview::where('session_id', $deleteId)->delete();
             HourlyHomework::where('session_id', $deleteId)->delete();
+            \App\Models\Master\LeaveManagement::where('session_id', $deleteId)->delete();
             Penalty::where('session_id', $deleteId)->delete();
             RecycleBin::where('session_id', $deleteId)->delete();
             RegistrationTerms::where('session_id', $deleteId)->delete();

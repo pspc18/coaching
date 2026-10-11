@@ -556,9 +556,7 @@ select.excel-col-filter option {
                                     <th></th>
                                     <th>
                                         <select class="excel-col-filter" id="filter-type">
-                                            <option value="">All Types</option>
-                                            <option value="student" {{ ($userTypeFilter ?? '') === 'student' ? 'selected' : '' }}>Student</option>
-                                            <option value="staff" {{ ($userTypeFilter ?? '') === 'staff' ? 'selected' : '' }}>Staff</option>
+                                            <option value="staff" selected>Staff / User</option>
                                         </select>
                                     </th>
                                     <th>
