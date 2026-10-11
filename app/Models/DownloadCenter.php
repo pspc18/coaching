@@ -18,4 +18,14 @@ class DownloadCenter extends Model
         return $data;
     }
 
+    public function ClassType()
+    {
+        return $this->belongsTo('App\Models\ClassType', 'class_type_id')->withDefault(['name' => 'All Classes']);
+    }
+
+    public function User()
+    {
+        return $this->belongsTo('App\Models\User', 'user_id')->withDefault(['first_name' => 'Faculty']);
+    }
+
 }

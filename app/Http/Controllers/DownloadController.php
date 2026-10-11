@@ -231,17 +231,20 @@ class DownloadController extends Controller
 {
     $file = DownloadCenter::find($id);
 
-    if (!$file) {
+    if (!$file || empty($file->content_file)) {
         return back()->with('error', 'File not found.');
     }
 
     $filePath = env('IMAGE_UPLOAD_PATH').'download_center/'.$file->content_file;
+    $fallbackPath = base_path('schoolimage/download_center/'.$file->content_file);
 
-    if (!file_exists($filePath)) {
-        return back()->with('error', 'File not found on server.');
+    if (file_exists($filePath)) {
+        return response()->download($filePath, basename($file->content_file));
+    } elseif (file_exists($fallbackPath)) {
+        return response()->download($fallbackPath, basename($file->content_file));
     }
 
-    return response()->download($filePath, basename($file->content_file));
+    return back()->with('error', 'File not found on server.');
 }
 
 }    
