@@ -15,11 +15,12 @@
 
     $notificationCount = 0;
     if (!empty($studentId)) {
-        $notificationCount = DB::table('notifications')
+        $notificationCount = (int) DB::table('notifications')
             ->where('admission_id', $studentId)
             ->where('show_status', 1)
             ->count();
     }
+    $unreadAlerts = $notificationCount;
 
     $mobileLogoFile = $getSetting->left_logo ?? '';
     $mobileLogoUrl = !empty($mobileLogoFile)

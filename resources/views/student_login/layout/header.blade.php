@@ -12,13 +12,7 @@
         : '';
     $headerFirmInitial = strtoupper(mb_substr(trim($headerSetting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 
-    $unreadAlerts = 0;
-    if (!empty(Session::get('id'))) {
-        $unreadAlerts = DB::table('notifications')
-            ->where('admission_id', (int) Session::get('id'))
-            ->where('show_status', 1)
-            ->count();
-    }
+    $alertsCount = $unreadAlerts ?? ($notificationCount ?? 0);
     $hasSiblings = count($siblingsList ?? []) > 0;
 @endphp
 
@@ -58,8 +52,8 @@
         {{-- Alerts / Notifications --}}
         <a href="{{ url('notificationFatchStudent') }}" class="top-icon-pill {{ request()->is('notificationFatchStudent*') || request()->is('notification_detail_stu*') ? 'active' : '' }}" title="Notifications">
             <i class="fa fa-bell-o"></i>
-            @if($unreadAlerts > 0)
-                <span class="top-badge-pulse">{{ $unreadAlerts > 9 ? '9+' : $unreadAlerts }}</span>
+            @if($alertsCount > 0)
+                <span class="top-badge-pulse">{{ $alertsCount > 9 ? '9+' : $alertsCount }}</span>
             @endif
         </a>
 

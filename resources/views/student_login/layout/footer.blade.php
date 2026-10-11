@@ -1,11 +1,5 @@
 @php
-    $dockAlertsCount = 0;
-    if (!empty(Session::get('id'))) {
-        $dockAlertsCount = DB::table('notifications')
-            ->where('admission_id', (int) Session::get('id'))
-            ->where('show_status', 1)
-            ->count();
-    }
+    $dockAlertsCount = $unreadAlerts ?? ($notificationCount ?? 0);
 @endphp
 
 <nav class="mobile-bottom-dock">
