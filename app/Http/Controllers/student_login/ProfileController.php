@@ -19,7 +19,8 @@ class ProfileController extends Controller
 {
    public function profileEdit(Request $request)
    {
-    $data = Admission::findOrFail(Session::get('id'));
+    $studentId = Session::get('id');
+    $data = Admission::with(['ClassTypes', 'Section', 'Gender', 'City', 'State'])->findOrFail($studentId);
 
     if ($request->boolean('delete_photo')) {
 
@@ -83,7 +84,26 @@ class ProfileController extends Controller
         ]);
     }
 
-    return view('student_login.profile', ["data" => $data]);
+    $profileFields = [
+        $data->image,
+        $data->mobile,
+        $data->email,
+        $data->address,
+        $data->father_name,
+        $data->mother_name,
+        $data->dob,
+        $data->aadhaar,
+        $data->blood_group,
+    ];
+    $completedFields = collect($profileFields)->filter(function ($value) { return !empty($value); })->count();
+    $profileCompletion = (int) round(($completedFields / count($profileFields)) * 100);
+
+    return view('student_login.profile', [
+        "data" => $data,
+        "profileCompletion" => $profileCompletion,
+        "completedFields" => $completedFields,
+        "totalFields" => count($profileFields),
+    ]);
    }
 
     public function changePassword(Request $request)
