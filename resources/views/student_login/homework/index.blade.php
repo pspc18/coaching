@@ -929,7 +929,7 @@
                 <i class="fa fa-book text-warning"></i> My Homework & Tasks
             </div>
             <span class="mob-session-pill">
-                <i class="fa fa-graduation-cap"></i> {{ $className }} · {{ $currentSessionName }}
+                <i class="fa fa-graduation-cap"></i> {{ $currentSessionName }}
             </span>
         </div>
 
