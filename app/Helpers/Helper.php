@@ -440,6 +440,16 @@ class Helper{
          ->orderBy('users.role_id')->get();
           return $users ;
       }
+
+    public static function getAllUsers(){
+        $users = User::select('users.*', 'role.name as role_name')
+            ->leftjoin('role', 'role.id', 'users.role_id')
+            ->whereNull('users.deleted_at');
+        if (Session::has('branch_id')) {
+            $users->where('users.branch_id', Session::get('branch_id'));
+        }
+        return $users->orderBy('users.first_name', 'ASC')->get();
+    }
     public static function sendMail($tmplale,$data) {
                 /*Mail::send($tmplale, $data, function($message) use ($data) {
                     $message->from(getenv('MAIL_FROM_ADDRESS'));
