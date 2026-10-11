@@ -3,7 +3,6 @@
   //$getSection = Helper::getSection();
   $getCountry = Helper::getCountry();
   $role = Helper::roleType();
-  $actionPermission = Helper::actionPermission();
   //dd($data);
 @endphp
 

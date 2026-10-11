@@ -1819,6 +1819,20 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
                 ];
             }
             
+            public static function actionPermission($sidebar_id = null)
+            {
+                if (!empty($sidebar_id)) {
+                    return self::permissioncheck($sidebar_id);
+                }
+                return (object)[
+                    'add' => true,
+                    'edit' => true,
+                    'delete' => true,
+                    'view' => true,
+                    'print' => true,
+                ];
+            }
+            
             
             
             public static function CarryForwardFees($admissionId)
