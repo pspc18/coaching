@@ -783,13 +783,44 @@ document.addEventListener("DOMContentLoaded", function() {
             else if (statusKey === 'halfday') chipClass = "chip-halfday";
             else if (statusKey === 'holiday') chipClass = "chip-holiday";
 
-            const formattedDate = item.formatted_date || formatDMY(item.date);
+            // Determine Event Title and Sub-Info (No redundant repeated dates)
+            let eventTitle = item.label;
+            let subInfo = "";
 
-            let punchInfo = "";
-            if (item.in_time || item.out_time) {
-                punchInfo = `<i class="fa fa-clock-o" style="margin-right: 5px; color: #64748b;"></i><span>In: ${item.in_time || '--'} &bull; Out: ${item.out_time || '--'}</span>`;
+            if (statusKey === 'holiday') {
+                if (item.event && item.event !== 'Sunday') {
+                    eventTitle = item.event;
+                    subInfo = `<i class="fa fa-calendar-check-o" style="margin-right: 5px; color: #0284c7;"></i><span>Holiday &bull; ${item.day}</span>`;
+                } else if (item.day === 'Sun') {
+                    eventTitle = "Sunday Holiday";
+                    subInfo = `<i class="fa fa-calendar-check-o" style="margin-right: 5px; color: #0284c7;"></i><span>Weekly Off</span>`;
+                } else {
+                    eventTitle = "Holiday";
+                    subInfo = `<i class="fa fa-calendar-check-o" style="margin-right: 5px; color: #0284c7;"></i><span>School Holiday</span>`;
+                }
+            } else if (statusKey === 'present' || statusKey === 'late' || statusKey === 'early_out') {
+                eventTitle = item.label;
+                if (item.in_time || item.out_time) {
+                    subInfo = `<i class="fa fa-clock-o" style="margin-right: 5px; color: #15803d;"></i><span>In: ${item.in_time || '--'} &bull; Out: ${item.out_time || '--'}</span>`;
+                } else {
+                    subInfo = `<i class="fa fa-check-circle" style="margin-right: 5px; color: #15803d;"></i><span>Full Day Attendance</span>`;
+                }
+            } else if (statusKey === 'absent') {
+                eventTitle = "Absent";
+                subInfo = `<i class="fa fa-times-circle" style="margin-right: 5px; color: #dc2626;"></i><span>Not Marked / Absent</span>`;
+            } else if (statusKey === 'leave') {
+                eventTitle = "Student Leave";
+                subInfo = `<i class="fa fa-calendar-minus-o" style="margin-right: 5px; color: #d97706;"></i><span>Approved Student Leave</span>`;
+            } else if (statusKey === 'halfday') {
+                eventTitle = "Half Day";
+                if (item.in_time || item.out_time) {
+                    subInfo = `<i class="fa fa-clock-o" style="margin-right: 5px; color: #7e22ce;"></i><span>In: ${item.in_time || '--'} &bull; Out: ${item.out_time || '--'}</span>`;
+                } else {
+                    subInfo = `<i class="fa fa-adjust" style="margin-right: 5px; color: #7e22ce;"></i><span>Half Day Attendance</span>`;
+                }
             } else {
-                punchInfo = `<i class="fa fa-calendar-o" style="margin-right: 5px; color: #64748b;"></i><span>${formattedDate}</span>`;
+                eventTitle = item.label;
+                subInfo = `<i class="fa fa-info-circle" style="margin-right: 5px; color: #64748b;"></i><span>${item.label}</span>`;
             }
 
             html += `
@@ -800,10 +831,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
                     <div class="item-info-col">
                         <div class="item-primary-txt">
-                            <span>${formattedDate}</span>
+                            <span>${eventTitle}</span>
                             <span class="status-chip ${chipClass}">${item.label}</span>
                         </div>
-                        <div class="item-secondary-txt">${punchInfo}</div>
+                        <div class="item-secondary-txt">${subInfo}</div>
                     </div>
                 </div>`;
         });

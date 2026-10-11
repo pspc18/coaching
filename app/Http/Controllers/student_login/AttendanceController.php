@@ -72,7 +72,7 @@ class AttendanceController extends Controller
             ->get()
             ->keyBy(fn ($item) => Carbon::parse($item->date)->format('Y-m-d'));
 
-        $calendarRows = Weekendcalendar::select('weekendcalendar.date', 'attendance_status.name as status_name')
+        $calendarRows = Weekendcalendar::select('weekendcalendar.date', 'weekendcalendar.event_schedule', 'attendance_status.name as status_name')
             ->leftJoin('attendance_status', 'attendance_status.id', '=', 'weekendcalendar.attendance_status')
             ->where('weekendcalendar.branch_id', $branchId)
             ->where('weekendcalendar.session_id', $sessionId)
@@ -85,7 +85,10 @@ class AttendanceController extends Controller
             $date = Carbon::parse($row->date)->format('Y-m-d');
             $status = $this->normalizeStatus($row->status_name);
             if ($status && (!isset($calendar[$date]) || $status === 'holiday')) {
-                $calendar[$date] = $status;
+                $calendar[$date] = [
+                    'status' => $status,
+                    'event' => $row->event_schedule,
+                ];
             }
         }
 
@@ -98,10 +101,13 @@ class AttendanceController extends Controller
         for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
             $dateKey = $date->toDateString();
             $mark = $records->get($dateKey);
-            $status = $mark ? $this->normalizeStatus($mark->status) : ($calendar[$dateKey] ?? '');
+            $calEntry = $calendar[$dateKey] ?? null;
+            $status = $mark ? $this->normalizeStatus($mark->status) : ($calEntry['status'] ?? '');
+            $eventSchedule = $calEntry['event'] ?? null;
 
             if (!$status && $date->isSunday()) {
                 $status = 'holiday';
+                $eventSchedule = $eventSchedule ?: 'Sunday';
             }
             if (!$status) {
                 continue;
@@ -128,6 +134,7 @@ class AttendanceController extends Controller
                 'day' => $date->format('D'),
                 'status' => $status,
                 'label' => $label,
+                'event' => $eventSchedule,
                 'in_time' => $mark && $mark->in_time ? Carbon::parse($mark->in_time)->format('h:i A') : null,
                 'out_time' => $mark && $mark->out_time ? Carbon::parse($mark->out_time)->format('h:i A') : null,
             ];
