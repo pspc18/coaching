@@ -33,14 +33,12 @@ Route::match(['get','post'],'edit_class/{id}', 'master\ClassController@edit');
 Route::match(['get','post'],'class_delete', 'master\ClassController@delete');
 Route::match(['get','post'],'save-selected-classes', 'master\ClassController@saveSelectedClasses');
 
-
-
-
-
-
-
-
-
+// Support Complaints
+Route::get('complaints-management', 'master\SupportComplaintController@index');
+Route::get('complaints-management/{id}', 'master\SupportComplaintController@show')->where('id', '[0-9]+');
+Route::post('complaints-management/{id}/reply', 'master\SupportComplaintController@reply')->where('id', '[0-9]+');
+Route::post('complaints-management/{id}/status', 'master\SupportComplaintController@status')->where('id', '[0-9]+');
+Route::get('support-complaint-attachment/{replyId}', 'master\SupportComplaintController@attachment')->where('replyId', '[0-9]+');
 
 //GatePassController
 Route::match(['get','post'],'gate_pass_view', 'master\GatePassController@view');
