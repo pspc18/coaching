@@ -2,7 +2,7 @@
     $sidebarStudent = $getUser ?? Helper::getUser();
     $sidebarName = trim(($sidebarStudent->first_name ?? '') . ' ' . ($sidebarStudent->last_name ?? ''));
     if (empty($sidebarName)) $sidebarName = 'Student';
-    $sidebarClass = optional($sidebarStudent->ClassTypes)->name ?? '-';
+    $sidebarClass = optional($sidebarStudent)->ClassTypes->name ?? '-';
     $sidebarAdmissionNo = $sidebarStudent->admissionNo ?? '-';
     $sidebarAvatar = !empty($sidebarStudent->image)
         ? env('IMAGE_SHOW_PATH') . '/profile/' . $sidebarStudent->image

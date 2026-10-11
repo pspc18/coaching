@@ -7,7 +7,7 @@
     $studentId = Session::get('id');
     $studentName = trim(($getUser->first_name ?? '') . ' ' . ($getUser->last_name ?? ''));
     if (empty($studentName)) $studentName = 'Student';
-    $className = optional($getUser->ClassTypes)->name ?? '-';
+    $className = optional($getUser)->ClassTypes->name ?? '-';
     $sessionName = Session::get('session_name') ?? date('Y');
     $studentAvatar = !empty($getUser->image)
         ? env('IMAGE_SHOW_PATH') . '/profile/' . $getUser->image

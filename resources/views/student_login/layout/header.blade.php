@@ -3,7 +3,7 @@
     $headerStudent = $getUser ?? Helper::getUser();
     $headerName = trim(($headerStudent->first_name ?? '').' '.($headerStudent->last_name ?? ''));
     if (empty($headerName)) $headerName = 'Student';
-    $headerClassName = optional($headerStudent->ClassTypes)->name ?? '-';
+    $headerClassName = optional($headerStudent)->ClassTypes->name ?? '-';
     $headerSession = Session::get('session_name') ?? date('Y');
     
     $headerLogoFile = $headerSetting->left_logo ?? '';

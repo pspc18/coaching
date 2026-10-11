@@ -8,21 +8,20 @@
     $className = optional($data->ClassTypes)->name ?? (optional($getUser->ClassTypes)->name ?? '-');
     $sectionName = optional($data->Section)->name ?? '-';
     $sessionName = Session::get('session_name') ?? date('Y');
-    $imageUrl = !empty($data->image)
-        ? env('IMAGE_SHOW_PATH').'/profile/'.$data->image
-        : asset('public/assets/student_login/img/user_icon.png');
+    
     $hasPhoto = !empty($data->image);
+    $imageUrl = $hasPhoto ? env('IMAGE_SHOW_PATH').'/profile/'.$data->image : '';
 
     $profileCompletion = $profileCompletion ?? 85;
     $completedFields = $completedFields ?? 7;
     $totalFields = $totalFields ?? 9;
-    $canEditProfile = (int) Session::get('role_id') !== 3;
+    $canEditProfile = true;
 @endphp
 @extends('student_login.layout.app')
 
 @section('title', 'My Profile')
 @section('page_title', 'MY PROFILE')
-@section('page_sub', $fullName.' · '.$className)
+@section('page_sub', $fullName)
 
 @section('styles')
 <style>
@@ -74,44 +73,44 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 0 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 0 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     margin-bottom: 8px;
 }
 .mob-avatar-wrap {
     position: relative;
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     flex-shrink: 0;
 }
 .mob-avatar-img {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     border-radius: 4px;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
     object-fit: cover;
     background: #0f172a;
-    display: block;
 }
 .mob-avatar-placeholder {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     border-radius: 4px;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
     background: #0284c7;
     color: #ffffff;
-    display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
 }
 .mob-avatar-cam-btn {
     position: absolute;
     bottom: -3px;
     right: -3px;
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
     border-radius: 3px;
     background: #f59e0b;
     color: #ffffff;
@@ -119,20 +118,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9.5px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    z-index: 2;
 }
 .mob-avatar-spinner {
     position: absolute;
     inset: 0;
-    background: rgba(0, 24, 51, 0.75);
+    background: rgba(0, 24, 51, 0.8);
     border-radius: 4px;
     display: none;
     align-items: center;
     justify-content: center;
     color: #38bdf8;
     font-size: 14px;
+    z-index: 3;
 }
 .mob-profile-id-info {
     flex: 1;
@@ -150,7 +151,7 @@
 .mob-profile-meta-row {
     font-size: 10px;
     color: #cbd5e1;
-    margin-top: 2px;
+    margin-top: 3px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -202,7 +203,7 @@
     text-overflow: ellipsis;
 }
 
-/* Hero Progress Strip matching admissionView */
+/* Hero Progress Strip */
 .mob-hero-progress-strip {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
@@ -237,7 +238,7 @@
     transition: width .4s ease;
 }
 
-/* Fast Action Bar matching admissionView */
+/* Fast Action Bar */
 .mob-actions-bar {
     display: flex;
     gap: 6px;
@@ -316,7 +317,7 @@
     transform: scale(0.96);
 }
 
-/* 3. Feed List & Card Item matching admissionView */
+/* 3. Feed List & Card Item */
 .student-feed-list {
     display: flex;
     flex-direction: column;
@@ -461,7 +462,7 @@
     color: #b45309;
 }
 
-/* Card Details Grid matching .student-meta-grid */
+/* Card Details Grid */
 .student-meta-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -496,7 +497,7 @@
     grid-column: span 2;
 }
 
-/* Card Actions Row matching .student-card-actions */
+/* Card Actions Row */
 .student-card-actions {
     display: flex;
     gap: 5px;
@@ -538,7 +539,7 @@
     color: #334155 !important;
 }
 
-/* Modals matching Native Theme */
+/* Modals */
 .mob-modal .modal-content {
     border-radius: 4px;
     border: 1px solid #cbd5e1;
@@ -677,15 +678,34 @@
     {{-- Hero Profile Identity Header --}}
     <div class="mob-profile-id-box">
         <div class="mob-avatar-wrap">
-            <img src="{{ $imageUrl }}" alt="{{ $fullName }}" id="heroAvatarImg" class="mob-avatar-img {{ $hasPhoto ? '' : 'd-none' }}">
-            <div id="heroAvatarPlaceholder" class="mob-avatar-placeholder {{ $hasPhoto ? 'd-none' : '' }}">
-                {{ strtoupper(substr($fullName, 0, 1)) ?: 'S' }}
-            </div>
-            @if($canEditProfile)
-                <button type="button" class="mob-avatar-cam-btn" id="changePhotoBtn" title="Change Photo" aria-label="Change photo">
-                    <i class="fa fa-camera"></i>
-                </button>
+            @if($hasPhoto)
+                <img 
+                    src="{{ $imageUrl }}" 
+                    alt="{{ $fullName }}" 
+                    id="heroAvatarImg" 
+                    class="mob-avatar-img"
+                    style="display: block;"
+                    onerror="this.style.display='none'; document.getElementById('heroAvatarPlaceholder').style.display='flex';"
+                >
+                <div id="heroAvatarPlaceholder" class="mob-avatar-placeholder" style="display: none;">
+                    {{ strtoupper(substr($fullName, 0, 1)) ?: 'S' }}
+                </div>
+            @else
+                <img 
+                    id="heroAvatarImg" 
+                    class="mob-avatar-img" 
+                    style="display: none;" 
+                    alt="{{ $fullName }}"
+                >
+                <div id="heroAvatarPlaceholder" class="mob-avatar-placeholder" style="display: flex;">
+                    {{ strtoupper(substr($fullName, 0, 1)) ?: 'S' }}
+                </div>
             @endif
+
+            <button type="button" class="mob-avatar-cam-btn" id="changePhotoBtn" title="Change Photo" aria-label="Change photo">
+                <i class="fa fa-camera"></i>
+            </button>
+
             <div class="mob-avatar-spinner" id="avatarLoader">
                 <i class="fa fa-spinner fa-spin"></i>
             </div>
@@ -693,11 +713,10 @@
         <div class="mob-profile-id-info">
             <div class="mob-profile-name" id="heroStudentName">{{ $fullName }}</div>
             <div class="mob-profile-meta-row">
-                <span>Class: <b>{{ $className }}</b></span>
-                <span>• Sec: <b>{{ $sectionName }}</b></span>
+                <span>Adm No: <b>#{{ $data->admissionNo ?: '-' }}</b></span>
                 <span>• Session: <b>{{ $sessionName }}</b></span>
             </div>
-            <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">
+            <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">
                 {{ $getSetting->name ?? 'Coaching Institute' }}
             </div>
         </div>
@@ -714,20 +733,20 @@
                 #{{ $data->admissionNo ?: '-' }}
             </div>
             <span class="mob-radar-meta">
-                Roll No: {{ $data->roll_no ?: '-' }}
+                Enrollment ID
             </span>
         </div>
 
-        {{-- Radar 2: Class & Section --}}
+        {{-- Radar 2: Roll Number / UID (Class name NOT repeated here) --}}
         <div class="mob-radar-col">
             <span class="mob-radar-tag">
-                <i class="fa fa-graduation-cap text-success"></i> Academic Class
+                <i class="fa fa-id-card-o text-success"></i> Roll Number
             </span>
             <div class="mob-radar-val" style="color: #34d399;">
-                {{ $className }}
+                {{ $data->roll_no ?: '-' }}
             </div>
             <span class="mob-radar-meta">
-                Section: {{ $sectionName }}
+                UID: {{ $data->userName ?: '-' }}
             </span>
         </div>
 
@@ -753,7 +772,7 @@
                 {{ $profileCompletion }}%
             </div>
             <span class="mob-radar-meta">
-                {{ $completedFields }}/{{ $totalFields }} fields verified
+                {{ $completedFields }}/{{ $totalFields }} verified
             </span>
         </div>
     </div>
@@ -771,11 +790,9 @@
 
     {{-- Fast Action Bar matching admissionView --}}
     <div class="mob-actions-bar">
-        @if($canEditProfile)
-            <button type="button" class="mob-act-btn mob-act-btn-add" data-bs-toggle="modal" data-bs-target="#editContactModal">
-                <i class="fa fa-pencil-square-o"></i> Edit Contact
-            </button>
-        @endif
+        <button type="button" class="mob-act-btn mob-act-btn-add" data-bs-toggle="modal" data-bs-target="#editContactModal">
+            <i class="fa fa-pencil-square-o"></i> Edit Contact
+        </button>
         <button type="button" class="mob-act-btn mob-act-btn-filter" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
             <i class="fa fa-shield"></i> Password & Security
         </button>
@@ -802,9 +819,7 @@
 </div>
 
 {{-- Hidden File Input for Photo Upload --}}
-@if($canEditProfile)
-    <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
-@endif
+<input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
 
 {{-- 3. Detailed Information Cards Feed --}}
 <div class="student-feed-list">
@@ -822,7 +837,7 @@
                 </div>
                 <div class="student-pills-wrap">
                     <span class="student-adm-badge">DOB: {{ !empty($data->dob) ? date('d-M-Y', strtotime($data->dob)) : '-' }}</span>
-                    <span class="student-class-badge">{{ optional($data->Gender)->name ?: 'Student' }}</span>
+                    <span class="student-adm-badge">{{ optional($data->Gender)->name ?: 'Student' }}</span>
                 </div>
             </div>
         </div>
@@ -864,10 +879,10 @@
             <div class="student-header-info">
                 <div class="student-name-row">
                     <span class="student-mob-name">Parents & Guardians</span>
-                    <span class="student-status-badge status-badge-active">Parental Info</span>
+                    <span class="student-status-badge status-badge-active">Family Record</span>
                 </div>
                 <div class="student-pills-wrap">
-                    <span class="student-adm-badge">Family Record</span>
+                    <span class="student-adm-badge">Parent Details</span>
                 </div>
             </div>
         </div>
@@ -910,11 +925,11 @@
             </div>
             <div class="student-header-info">
                 <div class="student-name-row">
-                    <span class="student-mob-name">Contact & Address</span>
+                    <span class="student-mob-name">Contact & Residence</span>
                     <span class="student-status-badge status-badge-warning">Editable</span>
                 </div>
                 <div class="student-pills-wrap">
-                    <span class="student-adm-badge">Residence Info</span>
+                    <span class="student-adm-badge">Address Info</span>
                 </div>
             </div>
         </div>
@@ -942,16 +957,14 @@
             </div>
         </div>
 
-        @if($canEditProfile)
-            <div class="student-card-actions">
-                <button type="button" class="mob-btn-action btn-act-edit" data-bs-toggle="modal" data-bs-target="#editContactModal">
-                    <i class="fa fa-pencil"></i> Edit Contact Details
-                </button>
-            </div>
-        @endif
+        <div class="student-card-actions">
+            <button type="button" class="mob-btn-action btn-act-edit" data-bs-toggle="modal" data-bs-target="#editContactModal">
+                <i class="fa fa-pencil"></i> Edit Contact Details
+            </button>
+        </div>
     </div>
 
-    {{-- CARD 4: Academic & Institute Details --}}
+    {{-- CARD 4: Academic & Institute Details (CLASS NAME SHOWN HERE) --}}
     <div class="student-mob-card card-academic profile-section" data-category="academic">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-academic">
@@ -959,20 +972,19 @@
             </div>
             <div class="student-header-info">
                 <div class="student-name-row">
-                    <span class="student-mob-name">Academic & Institute</span>
+                    <span class="student-mob-name">Academic Record</span>
                     <span class="student-status-badge status-badge-active">Enrolled</span>
                 </div>
                 <div class="student-pills-wrap">
                     <span class="student-adm-badge">Adm #{{ $data->admissionNo ?: '-' }}</span>
-                    <span class="student-class-badge">{{ $className }}</span>
                 </div>
             </div>
         </div>
 
         <div class="student-meta-grid">
             <div class="student-meta-item">
-                <i class="fa fa-book"></i>
-                <div><span>Class: </span><br><b>{{ $className }}</b></div>
+                <i class="fa fa-book text-primary"></i>
+                <div><span>Enrolled Class: </span><br><b style="color: #002C54;">{{ $className }}</b></div>
             </div>
             <div class="student-meta-item">
                 <i class="fa fa-columns"></i>
@@ -980,7 +992,7 @@
             </div>
             <div class="student-meta-item">
                 <i class="fa fa-sort-numeric-asc"></i>
-                <div><span>Roll No: </span><br><b>{{ $data->roll_no ?: '-' }}</b></div>
+                <div><span>Roll Number: </span><br><b>{{ $data->roll_no ?: '-' }}</b></div>
             </div>
             <div class="student-meta-item">
                 <i class="fa fa-calendar-check-o"></i>
@@ -988,7 +1000,7 @@
             </div>
             <div class="student-meta-item student-meta-full">
                 <i class="fa fa-university text-primary"></i>
-                <div><span>Institute / Branch: </span><br><b>{{ $getSetting->name ?? 'Coaching Center' }}</b></div>
+                <div><span>Institute / Center: </span><br><b>{{ $getSetting->name ?? 'Coaching Center' }}</b></div>
             </div>
         </div>
     </div>
@@ -1001,11 +1013,11 @@
             </div>
             <div class="student-header-info">
                 <div class="student-name-row">
-                    <span class="student-mob-name">Login & Security</span>
+                    <span class="student-mob-name">Login Credentials</span>
                     <span class="student-status-badge status-badge-active">Protected</span>
                 </div>
                 <div class="student-pills-wrap">
-                    <span class="student-adm-badge">UID: {{ $data->userName ?: '-' }}</span>
+                    <span class="student-adm-badge">Security</span>
                 </div>
             </div>
         </div>
@@ -1025,7 +1037,7 @@
             <button type="button" class="mob-btn-action btn-act-profile" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                 <i class="fa fa-key"></i> Change Password
             </button>
-            @if($canEditProfile && !empty($data->image))
+            @if(!empty($data->image))
                 <button type="button" class="mob-btn-action btn-act-edit" id="removePhotoBtn" style="color: #ef4444 !important; border-color: #fca5a5;">
                     <i class="fa fa-trash-o"></i> Remove Photo
                 </button>
@@ -1046,7 +1058,6 @@
 </div>
 
 {{-- MODAL 1: Edit Contact Information --}}
-@if($canEditProfile)
 <div class="modal fade mob-modal" id="editContactModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1091,7 +1102,6 @@
         </div>
     </div>
 </div>
-@endif
 
 {{-- MODAL 2: Change Password --}}
 <div class="modal fade mob-modal" id="changePasswordModal" tabindex="-1" aria-hidden="true">
@@ -1234,10 +1244,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (heroAvatarImg) {
                     heroAvatarImg.src = result.image_url;
-                    heroAvatarImg.classList.remove('d-none');
+                    heroAvatarImg.style.display = 'block';
                 }
                 if (heroAvatarPlaceholder) {
-                    heroAvatarPlaceholder.classList.add('d-none');
+                    heroAvatarPlaceholder.style.display = 'none';
                 }
 
                 if (window.StudentModal) {
@@ -1283,8 +1293,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 const result = await response.json();
                 if (response.ok) {
-                    if (heroAvatarImg) heroAvatarImg.classList.add('d-none');
-                    if (heroAvatarPlaceholder) heroAvatarPlaceholder.classList.remove('d-none');
+                    if (heroAvatarImg) heroAvatarImg.style.display = 'none';
+                    if (heroAvatarPlaceholder) heroAvatarPlaceholder.style.display = 'flex';
                     removePhotoBtn.style.display = 'none';
 
                     if (window.StudentModal) {
