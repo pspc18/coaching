@@ -9,12 +9,13 @@ use App\Models\Master\Weekendcalendar;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Session;
+use Helper;
 
 class AttendanceController extends Controller
 {
     public function view()
     {
-        return view('student_login.attendence');
+        return Helper::view('student_login.attendence');
     }
 
     private function studentAttendanceIds(Admission $student): array
