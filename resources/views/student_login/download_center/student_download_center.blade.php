@@ -871,20 +871,17 @@
             <i class="fa fa-eye" style="color: #38bdf8;"></i>
             <span>Document Preview</span>
         </div>
-        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+        <div class="d-flex align-items-center gap-2">
+            <a href="#" id="previewModalDownloadBtn" class="mob-sheet-close" style="font-size: 12px; text-decoration: none;" target="_blank" download title="Download File">
+                <i class="fa fa-download"></i>
+            </a>
+            <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+        </div>
     </div>
 
     {{-- Moveable / Scrollable Body --}}
     <div class="mob-sheet-body text-center p-2" id="previewFileModalBody">
         {{-- Injected dynamically --}}
-    </div>
-
-    {{-- Sheet Footer --}}
-    <div class="mob-sheet-footer d-flex justify-content-between">
-        <button type="button" class="btn-file-action btn-file-preview" style="height: 29px; padding: 0 12px; font-size: 11px;" onclick="closeActiveSheet()">Close</button>
-        <a href="#" id="previewModalDownloadBtn" class="btn-file-action btn-file-download" style="height: 29px; padding: 0 12px; font-size: 11px;" target="_blank" download>
-            <i class="fa fa-download me-1"></i> Download File
-        </a>
     </div>
 </div>
 
@@ -897,20 +894,17 @@
             <i class="fa fa-youtube-play text-danger"></i>
             <span>Video Lesson</span>
         </div>
-        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+        <div class="d-flex align-items-center gap-2">
+            <a href="#" id="videoExternalLinkBtn" class="mob-sheet-close" style="font-size: 12px; text-decoration: none;" target="_blank" rel="noopener" title="Open in YouTube">
+                <i class="fa fa-external-link"></i>
+            </a>
+            <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+        </div>
     </div>
 
     {{-- Moveable / Scrollable Body --}}
     <div class="mob-sheet-body p-2" id="videoPlayerModalBody">
         {{-- Video iframe injected dynamically --}}
-    </div>
-
-    {{-- Sheet Footer --}}
-    <div class="mob-sheet-footer d-flex justify-content-between">
-        <button type="button" class="btn-file-action btn-file-preview" style="height: 29px; padding: 0 12px; font-size: 11px;" onclick="closeActiveSheet()">Close</button>
-        <a href="#" id="videoExternalLinkBtn" class="btn-video-watch" style="height: 29px; padding: 0 12px; font-size: 11px;" target="_blank" rel="noopener">
-            <i class="fa fa-external-link me-1"></i> Open in YouTube
-        </a>
     </div>
 </div>
 @endsection
