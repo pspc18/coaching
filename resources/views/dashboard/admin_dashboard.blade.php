@@ -145,7 +145,7 @@
                                     <strong>₹ {{ number_format($expenseStats['total'] ?? 0, 0) }}</strong>
                                 </div>
                             </div>
-                            <form action="{{ url('fees/index') }}" method="post" class="mt-3">
+                            <form action="{{ url('ca_report') }}" method="post" class="mt-3">
                                 @csrf
                                 <input type="hidden" name="starting" value="{{ now()->toDateString() }}">
                                 <input type="hidden" name="ending" value="{{ now()->toDateString() }}">

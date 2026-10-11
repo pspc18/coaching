@@ -17,7 +17,7 @@
                      <div class="card-header bg-primary">
                     <h3 class="card-title"><i class="fa fa-edit"></i> &nbsp; {{ __('fees.Edit Collected Fees') }}</h3>
                     <div class="card-tools">
-                    <a href="{{url('fees/index')}}" class="btn btn-primary  btn-sm" ><i class="fa fa-eye"></i> {{ __('View') }} </a>
+                    <a href="{{url('ca_report')}}" class="btn btn-primary  btn-sm" ><i class="fa fa-eye"></i> {{ __('View') }} </a>
                      <a href="{{url('fee_dashboard')}}" class="btn btn-primary  btn-sm" ><i class="fa fa-arrow-left"></i> {{ __('common.Back') }} </a>
                     </div>
                     

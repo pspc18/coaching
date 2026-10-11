@@ -31,7 +31,7 @@
                         <div class="card-header bg-primary">
                         <h3 class="card-title"><i class="fa fa-money"></i> &nbsp; Collect Student Fees</h3>
                         <div class="card-tools">
-                        <a href="{{url('fees/index')}}" class="btn btn-primary  btn-sm" title="View Fees"><i class="fa fa-eye"></i> View</a>
+                        <a href="{{url('ca_report')}}" class="btn btn-primary  btn-sm" title="View Fees"><i class="fa fa-eye"></i> View</a>
                         <a href="{{url('fee_dashboard')}}" class="btn btn-primary  btn-sm" title="Back"><i class="fa fa-arrow-left"></i> Back</a>
                         </div>
                         

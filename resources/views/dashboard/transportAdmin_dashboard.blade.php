@@ -62,7 +62,7 @@ $task = Helper::task();
                 </a>
             </div>    
             <div class="col-12 col-sm-6 col-md-3">
-                <a href="{{ url('fees/index') }}">
+                <a href="{{ url('ca_report') }}">
                 <div class="info-box mb-3 text-dark">
                     <span class="info-box-icon bg-warning elevation-1"><i class="fa fa-money"></i></span>
                     <div class="info-box-content">

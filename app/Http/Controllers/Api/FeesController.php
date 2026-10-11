@@ -179,7 +179,7 @@ $feesDetails=	FeesDetail::Select('fees_detail.*','payment_modes.name as payment_
         $file_url = env('IMAGE_SHOW_PATH') . 'feesPaymentPdf' . '/' .$randomString.$fess_print->receipt_no . '.pdf';  
         
         FeesDetail::where('id',$id)->update(['fees_pdf_name' => $file_url]);
-        return redirect::to('fees/index')->with('message', 'PDF Generated Successfully !');
+        return redirect::to('ca_report')->with('message', 'PDF Generated Successfully !');
         
         // return view($printPreview, ['data' => $fess_print]);
         

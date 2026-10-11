@@ -17,8 +17,6 @@ use App\Models\FeesCollect;
 use App\Models\Sessions;
 use App\Models\PermissionMessages;
 use PDF;
-use App\Models\fees\FeesAdvance;
-use App\Models\fees\FeesAdvanceHistory;
 use App\Models\FeesDetail;
 use App\Models\FeesSetting;
 use App\Models\Invoice;
@@ -834,28 +832,6 @@ class FeesController extends Controller
                             $invoice->save();
                             $fees_details_invoice_id = $invoice->id;
                             $slip = $invoice->invoice_no;
-                            
- 
-    if ($request->advance_payment == 'yes') {
-        $existingData = FeesAdvance::where('unique_system_id', $data->unique_system_id)->first();
-        $balance = 0;
-        if (!empty($existingData)) {
-            $balance = $existingData->balance - $request->total_amount;
-            $existingData->balance = $balance ?? ''; 
-            $existingData->save();
-            $advancahistory = new FeesAdvanceHistory;
-            $advancahistory->debit = $request->total_amount; 
-            $advancahistory->user_id = Session::get('id'); 
-            $advancahistory->session_id = Session::get('session_id'); 
-            $advancahistory->unique_system_id = $data->unique_system_id; 
-            $advancahistory->branch_id = Session::get('branch_id'); 
-            $advancahistory->date = $request->date; 
-            $advancahistory->details = "Amount debited for this Receipt No . =" . $request->slip_no; 
-            $advancahistory->fees_advance_id = $existingData->id; 
-            $advancahistory->save();
-        }
-    }
-
                         }
                     }
                     
@@ -1122,58 +1098,6 @@ public function sendReceiptOnWhatsapp(Request $request)
 ]);
 
 }
-
- 
-            public function viewFees(Request $request){
-                $serach['name'] = $request->name;
-                $serach['class_type_id'] = $request->class_type_id;
-                $serach['starting'] = $request->starting;
-                $serach['ending'] = $request->ending;
-                $serach['user_id'] = $request->user_id;
-                $serach['admission_no'] = $request->admission_no;
-                $data =  FeesDetailsInvoices::select('fees_details_invoices.*','class.name as class_name','admissions.admissionNo','admissions.first_name'
-                ,'admissions.last_name','users.first_name as users_first_name'
-                ,'users.last_name as users_last_name','admissions.father_name','admissions.school','payment_modes.name as payment_mode','payment_modes.id as payment_mode_id')
-                ->leftjoin('admissions as admissions', 'admissions.id', 'fees_details_invoices.admission_id')
-                ->leftjoin('class_types as class','class.id','admissions.class_type_id')
-                ->leftjoin('payment_modes','payment_modes.id','fees_details_invoices.payment_mode')
-                ->leftjoin('users','users.id','fees_details_invoices.user_id')
-                ->where('fees_details_invoices.session_id', Session::get('session_id'))
-                ->where('fees_details_invoices.branch_id', Session::get('branch_id'))
-                ->where('fees_details_invoices.status', '!=', 2);
-                if ($request->isMethod('post')) {
-                    if (!empty($request->name)) {
-                        $data = $data->where('admissions.first_name', 'LIKE', '%' . $request->name . '%')
-                        ->orwhere('admissions.last_name', 'LIKE', '%' . $request->name . '%')
-                        ->orwhere('admissions.father_name', 'LIKE', '%' . $request->name . '%')
-                        ->orwhere('admissions.mother_name', 'LIKE', '%' . $request->name . '%')
-                        ->orwhere('admissions.admissionNo', $request->name)
-                        ->orwhere('admissions.mobile', 'LIKE', '%' . $request->name . '%')
-                        ->orwhere('admissions.aadhaar', $request->name)
-                        ->orwhere('admissions.email', 'LIKE', '%' . $request->name . '%');
-                    }
-                    if (!empty($request->starting)) {
-                        $data = $data->whereBetween('fees_details_invoices.payment_date', [$request->starting, $request->ending]);
-                    }
-                    if (!empty($request->class_type_id)) {
-                        $data = $data->where("admissions.class_type_id", $request->class_type_id);
-                    }
-                    if (!empty($request->user_id)) {
-                        $data = $data->where("fees_details_invoices.user_id", $request->user_id);
-                    }
-                }
-                else{
-                    $data = $data->whereBetween('fees_details_invoices.payment_date', [date('Y-m-d'), date('Y-m-d')]);
-                    $serach['starting'] = date('Y-m-d');
-                    $serach['ending'] = date('Y-m-d');
-                }
-                if (Session::get('role_id') > 1) {
-                    $data = $data->where('fees_details_invoices.user_id', Session::get('id'));
-                }
-                $data = $data->where('admissions.school','=',1)->orderBy('fees_details_invoices.id', 'DESC')->get();
-                
-                return view('fees.fees_collect.index', ['data' => $data, 'serach' => $serach]);
-            }
     
             public function AssignFeesEdit(Request $request,$id){
                 $data = FeesAssignDetail::select('fees_assign_details.*','fees_group.id as feesGroupId')
@@ -1287,7 +1211,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 file_put_contents(env('IMAGE_UPLOAD_PATH'). 'feesPaymentPdf' . '/' .$randomString.$fess_print->receipt_no . '.pdf', $pdf->output());
                 $file_url = env('IMAGE_SHOW_PATH') . 'feesPaymentPdf' . '/' .$randomString.$fess_print->receipt_no . '.pdf';  
                 FeesDetail::where('id',$id)->update(['fees_pdf_name' => $file_url]);
-                return redirect::to('fees/index')->with('message', 'PDF Generated Successfully !');
+                return redirect::to('ca_report')->with('message', 'PDF Generated Successfully !');
                 // return view($printPreview, ['data' => $fess_print]);
                 // return view('print_file.student_print.print_fees', ['data' => $fess_print]);
             }

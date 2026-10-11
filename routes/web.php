@@ -278,7 +278,6 @@ Route::match(['get', 'post'], 'save_template', 'IdCardController@save_template')
 
 //FeesController
 Route::match(['get', 'post'], 'fee_dashboard', 'fees\FeesController@feeDashboard');
-Route::match(['get', 'post'], 'fees/index', 'fees\FeesController@viewFees');
 
 //Fees Settings
 Route::match(['get', 'post'], 'fees/settings', 'fees\FeesController@feesSettings');
@@ -307,11 +306,6 @@ Route::match(['get', 'post'], 'feesMasterEdit/{id}', 'fees\FeesMasterController@
 
 //Fees Collect
 Route::match(['get', 'post'], 'Fees/add', 'fees\FeesController@addFees');
-
-//AdvanceFees
-Route::match(['get', 'post'], 'AdvanceFees', 'fees\AdvanceFeesController@AdvanceFees');
-Route::match(['get', 'post'], 'AddAdvanceFees', 'fees\AdvanceFeesController@AddAdvanceFees');
-Route::match(['get', 'post'], 'viewAdvanceFees', 'fees\AdvanceFeesController@viewAdvanceFees');
 
 //Download Center
 Route::match(['get', 'post'], 'download_center', 'DownloadController@downloadCenter');
@@ -454,14 +448,6 @@ Route::match(['get', 'post'], 'updateAssignedFees', 'fees\FeesController@updateA
 
 
 Route::match(['get', 'post'], 'feesMasterDelete', 'fees\FeesMasterController@feesMasterDelete');
-//AdvanceFees
-
-
-
-//RefundFees
-Route::match(['get', 'post'], 'refund_fees', 'fees\RefundFeesController@RefundFees');
-Route::match(['get', 'post'], 'AddrefundFees', 'fees\RefundFeesController@AddRefundFees');
-Route::match(['get', 'post'], 'viewrefundFees', 'fees\RefundFeesController@viewRefundFees');
 
 
 
