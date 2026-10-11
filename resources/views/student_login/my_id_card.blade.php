@@ -8,8 +8,8 @@
     $className = $student->class_name ?? ($getUser['ClassTypes']['name'] ?? '-');
     $currentSessionName = Session::get('session_name') ?? date('Y');
 
-    $cardWidth  = isset($design['cardWidth']) ? $design['cardWidth'].'mm' : '70mm';
-    $cardHeight = isset($design['cardHeight']) ? $design['cardHeight'].'mm' : '100mm';
+    $cardWidth  = isset($design['cardWidth']) ? $design['cardWidth'].'mm' : '54mm';
+    $cardHeight = isset($design['cardHeight']) ? $design['cardHeight'].'mm' : '86mm';
     $bgWidthPercent  = $design['bgWidthPercent'] ?? 100;
     $bgHeightPercent = $design['bgHeightPercent'] ?? 100;
 
@@ -21,6 +21,15 @@
     $sealUrl = !empty($template->seal_sign)
         ? $imageShowPath . '/setting/seal_sign/' . $template->seal_sign
         : $imageShowPath . '/setting/seal_sign/default/seal.png';
+
+    // Calculate optimal font size for name to stay centered and never wrap
+    $nameLen = mb_strlen($studentName);
+    $nameFontSize = ($nameLen > 24) ? '10.5px' : (($nameLen > 18) ? '11.5px' : '13px');
+
+    // Values to display matching template fields
+    $rollNoVal = !empty($student->roll_no) ? $student->roll_no : ($student->admissionNo ?? '');
+    $phoneVal = $student->mobile ?? '';
+    $addressVal = $student->address ?? '';
 @endphp
 
 @extends('student_login.layout.app')
@@ -33,7 +42,7 @@
 <style>
 /* ==========================================================================
    STUDENT ID CARD - NATIVE MOBILE THEME REDESIGN
-   Centered Card Stage, Letter Avatar Fallback & Action Toolbar
+   Centered Card Stage, Pixel-Matched Background Text & Dynamic Avatar
    ========================================================================== */
 
 /* 1. Hero Card */
@@ -160,43 +169,105 @@
     border: 1px solid rgba(0, 0, 0, 0.14);
     border-radius: 8px;
     overflow: hidden;
-    padding: 2mm;
     background-color: #ffffff;
     box-sizing: border-box;
 }
 
-.id-field {
+/* Photo Frame - Horizontally Centered inside Circular Frame */
+.id-photo-frame {
     position: absolute;
-    line-height: 1.25;
-    white-space: nowrap;
+    top: 26.8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 81px;
+    height: 81px;
+    border-radius: 50%;
+    overflow: hidden;
+    z-index: 5;
+    box-sizing: border-box;
 }
-
-.id-image {
-    position: absolute;
+.id-photo-frame img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-}
-
-.seal-img {
-    position: absolute;
-    object-fit: contain;
+    border-radius: 50%;
+    display: block;
 }
 
 /* Letter Avatar Fallback Box */
 .id-letter-avatar {
-    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
     background: linear-gradient(135deg, #0284c7 0%, #002C54 100%);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
+    font-size: 34px;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     text-transform: uppercase;
-    border: 1.5px solid rgba(255, 255, 255, 0.5);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
     user-select: none;
-    z-index: 5;
     box-sizing: border-box;
+}
+
+/* Student Name - Perfectly Centered Horizontally between Photo Circle & STUDENT badge */
+.id-student-name {
+    position: absolute;
+    top: 53.6%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: {{ $nameFontSize }};
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    color: #0b1727;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+    line-height: 1.15;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+/* Details Rows - Aligned Right after the Colons on Background Image */
+.id-row-value {
+    position: absolute;
+    left: 36.5%;
+    max-width: 58%;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Precise Baseline Heights Matching Pre-Printed Labels */
+.id-row-class {
+    top: 66.2%;
+}
+.id-row-srno {
+    top: 70.2%;
+}
+.id-row-phone {
+    top: 74.2%;
+}
+.id-row-address {
+    top: 78.3%;
+}
+
+.seal-img {
+    position: absolute;
+    object-fit: contain;
 }
 
 /* Download Overlay */
@@ -295,86 +366,57 @@
         <div class="id-card-wrapper">
             <div class="id-card" id="studentCard" style="width: {{ $cardWidth }}; height: {{ $cardHeight }}; background-image: url('{{ $bgImageUrl }}');">
 
-                {{-- Student Photo or First Letter Avatar Fallback --}}
-                @php
-                    $imgPos = collect($design['positions'])->firstWhere('field', 'image');
-                    $imgVisible = collect($design['fields'])->firstWhere('field', 'image')['visible'] ?? true;
-                    $imgWidth = $design['studentImgWidth'] ?? 100;
-                    $imgHeight = $design['studentImgHeight'] ?? 120;
-                    $imgRadius = $imgPos['borderRadius'] ?? '0px';
-                    $letterFontSize = round($imgHeight * 0.42);
-                @endphp
-
-                @if($imgPos && $imgVisible)
+                {{-- Student Photo or First Letter Avatar Fallback (Centered in Circular Frame) --}}
+                <div class="id-photo-frame">
                     @if($hasPhoto)
                         <img src="{{ $studentPhotoUrl }}"
-                             class="id-image"
                              id="studentPhotoElement"
                              alt="{{ $studentName }}"
                              crossorigin="anonymous"
-                             onerror="this.style.display='none'; var fa=document.getElementById('studentLetterAvatar'); if(fa) fa.style.display='flex';"
-                             style="top: {{ $imgPos['top'] }}; left: {{ $imgPos['left'] }};
-                                    width: {{ $imgWidth }}px;
-                                    height: {{ $imgHeight }}px;
-                                    border-radius: {{ $imgRadius }};">
-                        {{-- Fallback Letter Avatar (Hidden by default, shown if image 404s/fails) --}}
-                        <div id="studentLetterAvatar"
-                             class="id-letter-avatar"
-                             style="display: none; top: {{ $imgPos['top'] }}; left: {{ $imgPos['left'] }};
-                                    width: {{ $imgWidth }}px;
-                                    height: {{ $imgHeight }}px;
-                                    border-radius: {{ $imgRadius }};
-                                    font-size: {{ $letterFontSize }}px;">
+                             onerror="this.style.display='none'; var fa=document.getElementById('studentLetterAvatar'); if(fa) fa.style.display='flex';">
+                        <div id="studentLetterAvatar" class="id-letter-avatar" style="display: none;">
                             <span>{{ $firstLetter }}</span>
                         </div>
                     @else
-                        {{-- No Photo in DB: Show First Letter Avatar Directly --}}
-                        <div id="studentLetterAvatar"
-                             class="id-letter-avatar"
-                             style="display: flex; top: {{ $imgPos['top'] }}; left: {{ $imgPos['left'] }};
-                                    width: {{ $imgWidth }}px;
-                                    height: {{ $imgHeight }}px;
-                                    border-radius: {{ $imgRadius }};
-                                    font-size: {{ $letterFontSize }}px;">
+                        <div id="studentLetterAvatar" class="id-letter-avatar" style="display: flex;">
                             <span>{{ $firstLetter }}</span>
                         </div>
                     @endif
-                @endif
+                </div>
 
-                {{-- Dynamic Fields Positioned as per Template Design --}}
-                @foreach($design['positions'] as $pos)
-                    @if($pos['field'] !== 'image' && $pos['field'] !== 'seal')
-                        @php $visible = collect($design['fields'])->firstWhere('field', $pos['field'])['visible'] ?? true; @endphp
-                        @if($visible)
-                            <div class="id-field"
-                                 style="top: {{ $pos['top'] }}; left: {{ $pos['left'] }};
-                                        font-size: {{ $pos['fontSize'] ?? '14px' }};
-                                        color: {{ $pos['color'] ?? '#000000' }};
-                                        font-weight: 600;">
-                                @switch($pos['field'])
-                                    @case('name') {{ $student->first_name }} {{ $student->last_name }} @break
-                                    @case('srno') {{ $student->admissionNo }} @break
-                                    @case('father') {{ $student->father_name }} @break
-                                    @case('mother') {{ $student->mother_name ?? '' }} @break
-                                    @case('class') {{ $student->class_name }} @break
-                                    @case('dob') {{ !empty($student->dob) ? \Carbon\Carbon::parse($student->dob)->format('d-m-Y') : '' }} @break
-                                    @case('phone') {{ $student->mobile }} @break
-                                    @case('address') {{ $student->address }} @break
-                                    @default {{ $student->{$pos['field']} ?? '' }}
-                                @endswitch
-                            </div>
-                        @endif
-                    @endif
-                @endforeach
+                {{-- Student Name: Perfectly Centered Horizontally Across Card --}}
+                <div class="id-student-name" title="{{ $studentName }}">
+                    {{ $studentName }}
+                </div>
 
-                {{-- Authorized Seal / Signature --}}
-                @php $sealPos = collect($design['positions'])->firstWhere('field', 'seal'); @endphp
-                @if($sealPos && (collect($design['fields'])->firstWhere('field', 'seal')['visible'] ?? false))
+                {{-- Field Row 1: Class (Aligned exactly with "Class :" in Background Image) --}}
+                <div class="id-row-value id-row-class" title="{{ $className }}">
+                    {{ $className }}
+                </div>
+
+                {{-- Field Row 2: Roll No (Aligned exactly with "Roll No :" in Background Image) --}}
+                <div class="id-row-value id-row-srno" title="{{ $rollNoVal }}">
+                    {{ $rollNoVal }}
+                </div>
+
+                {{-- Field Row 3: Mobile (Aligned exactly with "Mobile :" in Background Image) --}}
+                <div class="id-row-value id-row-phone" title="{{ $phoneVal }}">
+                    {{ $phoneVal }}
+                </div>
+
+                {{-- Field Row 4: Address (Aligned exactly with "Address :" in Background Image) --}}
+                <div class="id-row-value id-row-address" title="{{ $addressVal }}">
+                    {{ $addressVal }}
+                </div>
+
+                {{-- Authorized Seal / Signature (if configured in template) --}}
+                @php $sealPos = collect($design['positions'] ?? [])->firstWhere('field', 'seal'); @endphp
+                @if($sealPos && (collect($design['fields'] ?? [])->firstWhere('field', 'seal')['visible'] ?? false))
                     <img src="{{ $sealUrl }}"
                          class="seal-img"
                          alt="Seal"
                          crossorigin="anonymous"
-                         style="top: {{ $sealPos['top'] }}; left: {{ $sealPos['left'] }};
+                         style="top: {{ $sealPos['top'] ?? '85%' }}; left: {{ $sealPos['left'] ?? '70%' }};
                                 width: {{ $design['sealWidth'] ?? 60 }}px;
                                 height: {{ $design['sealHeight'] ?? 30 }}px;">
                 @endif
