@@ -28,6 +28,7 @@
 /* ==========================================================================
    ARISE ERP - NATIVE MOBILE STUDENT PROFILE
    Exact Layout, Typography & CSS matching admissionView?layout=mobile
+   and Sticky Wizard Navigation matching admissionAdd?layout=mobile
    ========================================================================== */
 
 html, body {
@@ -281,13 +282,18 @@ body.modal-open {
     transform: scale(0.96);
 }
 
-/* 2. Compact Segment Toolbar - Fully Horizontal Scrollable */
+/* 2. Interactive Step / Tab Tracker Container (Fixed on Scroll like admissionAdd?layout=mobile) */
+.mob-tracker-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 8px;
+}
 .mob-search-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     padding: 5px 6px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     display: flex;
     gap: 5px;
     align-items: center;
@@ -298,9 +304,28 @@ body.modal-open {
     touch-action: pan-x;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     scrollbar-width: none;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .mob-search-toolbar::-webkit-scrollbar {
     display: none;
+}
+
+/* Fixed Sticky Mode matching admissionAdd wizard step */
+.mob-search-toolbar.is-fixed {
+    position: fixed !important;
+    top: 52px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 16px) !important;
+    max-width: 464px !important;
+    z-index: 999 !important;
+    margin: 0 !important;
+    background: rgba(0, 24, 51, 0.96) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid #0284c7 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 6px 18px rgba(0, 20, 40, 0.45) !important;
 }
 .mob-filter-btn {
     flex: 0 0 auto;
@@ -328,6 +353,19 @@ body.modal-open {
 }
 .mob-filter-btn:active {
     transform: scale(0.96);
+}
+
+/* Buttons style when toolbar is fixed on dark navy */
+.mob-search-toolbar.is-fixed .mob-filter-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+}
+.mob-search-toolbar.is-fixed .mob-filter-btn.active-filter {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
 }
 
 /* 3. Feed List & Card Item */
@@ -851,23 +889,25 @@ body.modal-open {
     </div>
 </div>
 
-{{-- 2. Compact Segment Toolbar (Horizontally Scrollable) --}}
-<div class="mob-search-toolbar">
-    <button type="button" class="mob-filter-btn active-filter" data-filter="all" onclick="filterSections('all', this)">
-        <i class="fa fa-th-large"></i> All Info
-    </button>
-    <button type="button" class="mob-filter-btn" data-filter="personal" onclick="filterSections('personal', this)">
-        <i class="fa fa-user"></i> Personal
-    </button>
-    <button type="button" class="mob-filter-btn" data-filter="family" onclick="filterSections('family', this)">
-        <i class="fa fa-users"></i> Parents
-    </button>
-    <button type="button" class="mob-filter-btn" data-filter="contact" onclick="filterSections('contact', this)">
-        <i class="fa fa-phone"></i> Contact
-    </button>
-    <button type="button" class="mob-filter-btn" data-filter="academic" onclick="filterSections('academic', this)">
-        <i class="fa fa-graduation-cap"></i> Academic
-    </button>
+{{-- 2. Compact Segment Toolbar (Sticky when scrolled past, matching admissionAdd wizard tracker) --}}
+<div class="mob-tracker-container" id="trackerContainer">
+    <div class="mob-search-toolbar" id="mobStepTracker">
+        <button type="button" class="mob-filter-btn active-filter" data-filter="all" onclick="filterSections('all', this)">
+            <i class="fa fa-th-large"></i> All Info
+        </button>
+        <button type="button" class="mob-filter-btn" data-filter="personal" onclick="filterSections('personal', this)">
+            <i class="fa fa-user"></i> Personal
+        </button>
+        <button type="button" class="mob-filter-btn" data-filter="family" onclick="filterSections('family', this)">
+            <i class="fa fa-users"></i> Parents
+        </button>
+        <button type="button" class="mob-filter-btn" data-filter="contact" onclick="filterSections('contact', this)">
+            <i class="fa fa-phone"></i> Contact
+        </button>
+        <button type="button" class="mob-filter-btn" data-filter="academic" onclick="filterSections('academic', this)">
+            <i class="fa fa-graduation-cap"></i> Academic
+        </button>
+    </div>
 </div>
 
 {{-- Hidden File Input for Photo Upload --}}
@@ -1216,6 +1256,69 @@ body.modal-open {
 </div>
 
 <script>
+let isClickScrolling = false;
+
+function checkStickyTracker() {
+    const container = document.getElementById('trackerContainer');
+    const tracker = document.getElementById('mobStepTracker');
+    if (!container || !tracker) return;
+
+    const containerTop = container.getBoundingClientRect().top + window.pageYOffset;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const triggerPoint = containerTop - 52;
+
+    if (scrollY >= triggerPoint && triggerPoint > 0) {
+        if (!tracker.classList.contains('is-fixed')) {
+            const h = tracker.offsetHeight;
+            container.style.minHeight = h + 'px';
+            tracker.classList.add('is-fixed');
+        }
+    } else {
+        if (tracker.classList.contains('is-fixed')) {
+            tracker.classList.remove('is-fixed');
+            container.style.minHeight = '';
+        }
+    }
+}
+
+// Auto update active tab on scroll (like wizard step in admissionAdd)
+function onUserScroll() {
+    checkStickyTracker();
+    if (isClickScrolling) return;
+
+    const scrollPos = (window.pageYOffset || document.documentElement.scrollTop || 0) + 120;
+    const sPersonal = document.getElementById('card-personal');
+    const sFamily = document.getElementById('card-family');
+    const sContact = document.getElementById('card-contact');
+    const sAcademic = document.getElementById('card-academic');
+
+    let activeCat = 'all';
+    if (sAcademic && scrollPos >= (sAcademic.offsetTop - 20)) {
+        activeCat = 'academic';
+    } else if (sContact && scrollPos >= (sContact.offsetTop - 20)) {
+        activeCat = 'contact';
+    } else if (sFamily && scrollPos >= (sFamily.offsetTop - 20)) {
+        activeCat = 'family';
+    } else if (sPersonal && scrollPos >= (sPersonal.offsetTop - 20)) {
+        activeCat = 'personal';
+    } else {
+        activeCat = 'all';
+    }
+
+    document.querySelectorAll('.mob-filter-btn').forEach(function(btn) {
+        if (btn.getAttribute('data-filter') === activeCat) {
+            if (!btn.classList.contains('active-filter')) {
+                btn.classList.add('active-filter');
+                try {
+                    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                } catch(e) {}
+            }
+        } else {
+            btn.classList.remove('active-filter');
+        }
+    });
+}
+
 function filterSections(cat, btn) {
     document.querySelectorAll('.mob-filter-btn').forEach(function(b) {
         b.classList.remove('active-filter');
@@ -1227,23 +1330,23 @@ function filterSections(cat, btn) {
         } catch(e) {}
     }
 
-    // Keep all cards visible so vertical scrolling is NEVER stopped!
-    document.querySelectorAll('.profile-section').forEach(function(s) {
-        s.style.display = 'block';
-    });
-
     if (cat === 'all') {
+        isClickScrolling = true;
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(function() { isClickScrolling = false; }, 400);
         return;
     }
 
     const targetCard = document.getElementById('card-' + cat);
     if (targetCard) {
-        const topOffset = targetCard.getBoundingClientRect().top + window.pageYOffset - 58;
-        window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
+        isClickScrolling = true;
+        // Offset by 52px header + ~40px sticky toolbar + 8px gap = ~100px
+        const targetOffset = targetCard.getBoundingClientRect().top + window.pageYOffset - 98;
+        window.scrollTo({ top: Math.max(0, targetOffset), behavior: 'smooth' });
         targetCard.style.boxShadow = '0 0 0 2px #0284c7';
         setTimeout(function() {
             targetCard.style.boxShadow = '';
+            isClickScrolling = false;
         }, 1200);
     }
 }
@@ -1253,6 +1356,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrf = csrfMeta ? csrfMeta.content : '';
     const profileUrl = @json(url('profileStudent'));
     const passwordUrl = @json(route('student.profile.change-password'));
+
+    // Attach sticky tracker scroll listeners
+    window.addEventListener('scroll', onUserScroll, { passive: true });
+    window.addEventListener('touchmove', onUserScroll, { passive: true });
+    window.addEventListener('resize', checkStickyTracker, { passive: true });
+    window.addEventListener('orientationchange', checkStickyTracker, { passive: true });
+    setTimeout(checkStickyTracker, 80);
 
     // Prevent any modal from locking body scroll permanently
     document.querySelectorAll('.mob-modal').forEach(function(modal) {
