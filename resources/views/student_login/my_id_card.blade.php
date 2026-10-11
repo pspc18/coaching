@@ -251,18 +251,18 @@
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Precise Baseline Heights Matching Pre-Printed Labels */
+/* Precise Baseline Heights Matching Pre-Printed Labels (Shifted 1px up) */
 .id-row-class {
-    top: 65.4%;
+    top: 65.1%;
 }
 .id-row-srno {
-    top: 69.4%;
+    top: 69.1%;
 }
 .id-row-phone {
-    top: 73.4%;
+    top: 73.1%;
 }
 .id-row-address {
-    top: 77.5%;
+    top: 77.2%;
 }
 
 .seal-img {
