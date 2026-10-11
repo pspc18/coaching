@@ -180,6 +180,38 @@
     gap: 6px;
     line-height: 1.25 !important;
 }
+.sharp-card-title i {
+    margin-right: 6px;
+    font-size: 13px;
+}
+.activity-count-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    border-radius: 4px !important;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+}
+.matrix-badge-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    border-radius: 4px !important;
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    box-shadow: none !important;
+}
 .sharp-card-link {
     font-size: 10.5px !important;
     font-weight: 700 !important;
@@ -436,7 +468,15 @@
 .item-secondary-txt {
     font-size: 9.5px;
     color: #64748b;
-    margin-top: 1px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.item-secondary-txt i {
+    font-size: 10px;
+    margin-right: 5px;
+    color: #64748b;
 }
 .status-chip {
     padding: 2px 7px;
@@ -476,7 +516,7 @@
         </button>
         <div class="hero-month-title">
             <span class="hero-month-name" id="heroMonthLabel">Loading…</span>
-            <span class="hero-month-sub"><i class="fa fa-calendar-check-o mr-1"></i>Monthly Attendance Record</span>
+            <span class="hero-month-sub"><i class="fa fa-calendar-check-o" style="margin-right: 5px;"></i>Monthly Attendance Record</span>
         </div>
         <button type="button" class="hero-month-btn" id="nextMonthBtn" title="Next Month">
             <i class="fa fa-chevron-right"></i>
@@ -487,14 +527,14 @@
     <div class="hero-dual-grid">
         <div class="hero-radar-col">
             <span class="hero-radar-tag">
-                <i class="fa fa-pie-chart text-info"></i> Attendance Rate
+                <i class="fa fa-pie-chart text-info" style="margin-right: 5px;"></i> Attendance Rate
             </span>
             <div class="hero-radar-val" id="heroRateVal" style="color: #4ade80;">0%</div>
             <span class="hero-radar-meta" id="heroCreditMeta">0 Days Credited</span>
         </div>
         <div class="hero-radar-col">
             <span class="hero-radar-tag">
-                <i class="fa fa-calendar-o text-warning"></i> Working Days
+                <i class="fa fa-calendar-o text-warning" style="margin-right: 5px;"></i> Working Days
             </span>
             <div class="hero-radar-val" id="heroWorkingDaysVal">0 <small style="font-size:11px;font-weight:600;color:#94a3b8;">Days</small></div>
             <span class="hero-radar-meta" id="heroAbsentMeta">0 Days Absent</span>
@@ -513,7 +553,7 @@
         <h3 class="sharp-card-title">
             <i class="fa fa-th-large text-primary"></i> Status Matrix Breakdown
         </h3>
-        <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:9.5px;padding:3px 6px;" id="matrixBadge">
+        <span class="matrix-badge-pill" id="matrixBadge">
             {{ now()->format('M Y') }}
         </span>
     </div>
@@ -586,7 +626,7 @@
         <h3 class="sharp-card-title">
             <i class="fa fa-clock-o text-primary"></i> Daily Activity Timeline
         </h3>
-        <span class="badge" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:9.5px;" id="activityCountBadge">
+        <span class="activity-count-badge" id="activityCountBadge">
             0 Records
         </span>
     </div>
@@ -640,6 +680,21 @@ document.addEventListener("DOMContentLoaded", function() {
         return a.getFullYear() === b.getFullYear() &&
                a.getMonth() === b.getMonth() &&
                a.getDate() === b.getDate();
+    }
+
+    // Format YYYY-MM-DD into d-M-Y (e.g. 25-Oct-2026)
+    function formatDMY(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            const y = parts[0];
+            const m = parseInt(parts[1], 10);
+            const d = parts[2];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const mName = months[m - 1] || parts[1];
+            return `${d}-${mName}-${y}`;
+        }
+        return dateStr;
     }
 
     // Render Calendar Tiles
@@ -728,11 +783,13 @@ document.addEventListener("DOMContentLoaded", function() {
             else if (statusKey === 'halfday') chipClass = "chip-halfday";
             else if (statusKey === 'holiday') chipClass = "chip-holiday";
 
+            const formattedDate = item.formatted_date || formatDMY(item.date);
+
             let punchInfo = "";
             if (item.in_time || item.out_time) {
-                punchInfo = `<i class="fa fa-clock-o mr-1"></i> In: ${item.in_time || '--'} &bull; Out: ${item.out_time || '--'}`;
+                punchInfo = `<i class="fa fa-clock-o" style="margin-right: 5px; color: #64748b;"></i><span>In: ${item.in_time || '--'} &bull; Out: ${item.out_time || '--'}</span>`;
             } else {
-                punchInfo = `<i class="fa fa-calendar-o mr-1"></i> ${item.date}`;
+                punchInfo = `<i class="fa fa-calendar-o" style="margin-right: 5px; color: #64748b;"></i><span>${formattedDate}</span>`;
             }
 
             html += `
@@ -743,7 +800,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     </div>
                     <div class="item-info-col">
                         <div class="item-primary-txt">
-                            <span>${item.date}</span>
+                            <span>${formattedDate}</span>
                             <span class="status-chip ${chipClass}">${item.label}</span>
                         </div>
                         <div class="item-secondary-txt">${punchInfo}</div>

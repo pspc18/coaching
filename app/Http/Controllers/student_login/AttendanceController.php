@@ -124,6 +124,7 @@ class AttendanceController extends Controller
 
             $details[] = [
                 'date' => $dateKey,
+                'formatted_date' => $date->format('d-M-Y'),
                 'day' => $date->format('D'),
                 'status' => $status,
                 'label' => $label,
