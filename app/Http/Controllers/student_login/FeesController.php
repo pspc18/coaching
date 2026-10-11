@@ -143,13 +143,36 @@ class FeesController extends Controller
             $feeReceipts = collect();
         }
 
+        $totalFees = round((float) $feeHeadLedger->sum('assigned_amount'), 2);
+        $totalDiscount = round((float) $feeHeadLedger->sum('discount'), 2);
+        $netPayable = max(0, round($totalFees - $totalDiscount, 2));
+        $paidFees = round((float) $feeHeadLedger->sum('paid_amount'), 2);
+        $dueAmount = round((float) $feeHeadLedger->sum('due_amount'), 2);
+        $finePaid = round((float) $feeHeadLedger->sum('fine_amount'), 2);
+        $paymentProgress = $netPayable > 0 ? min(100, (int) round(($paidFees / $netPayable) * 100)) : 100;
+
         $summary = [
-            'totalFees' => round((float) $feeHeadLedger->sum('assigned_amount'), 2),
-            'paidFees' => round((float) $feeHeadLedger->sum('paid_amount'), 2),
-            'discount' => round((float) $feeHeadLedger->sum('discount'), 2),
-            'currentSessionDue' => round((float) $feeHeadLedger->sum('due_amount'), 2),
-            'finePaid' => round((float) $feeHeadLedger->sum('fine_amount'), 2),
+            'totalFees' => $totalFees,
+            'paidFees' => $paidFees,
+            'discount' => $totalDiscount,
+            'netPayable' => $netPayable,
+            'currentSessionDue' => $dueAmount,
+            'finePaid' => $finePaid,
+            'paymentProgress' => $paymentProgress,
         ];
+
+        // Retrieve all sessions this student has been associated with
+        $sessionIds = collect([$currentAdmission->session_id]);
+        if (!empty($currentAdmission->unique_system_id)) {
+            $otherSessionIds = Admission::where('unique_system_id', $currentAdmission->unique_system_id)
+                ->where('branch_id', $currentAdmission->branch_id)
+                ->pluck('session_id');
+            $sessionIds = $sessionIds->merge($otherSessionIds)->unique();
+        }
+        $availableSessions = \DB::table('sessions')
+            ->whereIn('id', $sessionIds)
+            ->orderByDesc('from_year')
+            ->get(['id', 'from_year', 'to_year']);
 
         return view('student_login.fees_history', [
             'getFees' => $getFees,
@@ -157,6 +180,8 @@ class FeesController extends Controller
             'feeReceipts' => $feeReceipts,
             'summary' => $summary,
             'activeSessionId' => $activeSessionId,
+            'availableSessions' => $availableSessions,
+            'student' => $currentAdmission,
         ]);
     }
 
