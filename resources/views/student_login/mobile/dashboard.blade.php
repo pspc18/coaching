@@ -6,7 +6,9 @@
     $sessionId = (int) Session::get('session_id');
 
     $studentName = trim(($dashboardStudent->first_name ?? '').' '.($dashboardStudent->last_name ?? ''));
-    $firstName = $dashboardStudent->first_name ?? 'Student';
+    $rawFirstName = trim((string) ($dashboardStudent->first_name ?? 'Student'));
+    $firstNameWords = preg_split('/\s+/', $rawFirstName);
+    $firstName = !empty($firstNameWords[0]) ? $firstNameWords[0] : 'Student';
     $className = optional($dashboardStudent->ClassTypes)->name ?? '-';
     $admissionNo = $dashboardStudent->admissionNo ?? '-';
     $sessionName = Session::get('session_name') ?? date('Y');
@@ -170,10 +172,13 @@
     object-fit: cover;
 }
 .hero-user-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .hero-user-sub {
     font-size: 9.5px;
