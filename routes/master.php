@@ -78,10 +78,7 @@ Route::match(['get','post'],'role/user_permission_save/{user_id}', 'master\RoleC
 Route::match(['get','post'],'user/permissions/{id}', 'UserController@user_permission');
 Route::match(['get','post'],'user/module_status', 'UserController@module_status');
 
-//Rule Controller
- Route::match(['get','post'],'rules_add', 'master\RuleController@add');
- Route::match(['get','post'],'rules_edit/{id}', 'master\RuleController@edit');
-Route::match(['get','post'],'rules_delete', 'master\RuleController@delete');
+
 
 
 //Session Start
@@ -223,13 +220,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
     
    
    
-
-//RuleController
-   
-   
-    
-    
-    
 
 //GatePassController
     

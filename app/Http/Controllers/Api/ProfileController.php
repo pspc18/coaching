@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Models\WebUser;
 use App\Models\User;
-use App\Models\Master\Rule;
 use App\Models\Master\GatePass;
 use App\Models\ManagedNotice;
 use App\Models\Admission;
@@ -171,18 +170,8 @@ class ProfileController extends BaseController
     
     
       public function schoolRules(Request $request){
-    
-      $data = Rule::select('rules.*','role.name as role_name')
-        ->leftjoin('role','role.id','rules.role_id')->where('rules.role_id',3)->get();
-           if(!empty($data))
-            {
-                  return $this->sendResponseData($data, 'success');
-            }
-            else
-            {
-                  return $this->sendError('Validation Error.', 'Error');
-            }
-}
+          return response()->json(['status' => true, 'message' => 'Success', 'data' => []], 200);
+      }
       public function noticeBoard(Request $request){
     
         $data = ManagedNotice::where('status', 'approved')

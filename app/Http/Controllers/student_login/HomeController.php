@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\student_login;
 use Illuminate\Validation\Validator; 
 use App\Models\User;
-use App\Models\Master\Rule;
 use App\Models\Admission;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\GatePass;
@@ -21,23 +20,11 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 
 {
-           
-            public function myteachers(Request $request){
-                return view('student_login.my_teachers', ['data' => collect([])]);
-            }
-            
-            public function galleryView(Request $request){
-                return view('student_login.gallery',['data'=>[]]); 
-            }   
-             public function subjectView(Request $request){
-                $data = Subject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
-                ->where('class_type_id',Session::get('class_type_id'))->orderBy('id', 'DESC')->get();
-                return view('student_login.subject',compact('data'));
-            }
-            public function ruleView(){
-                $data = Rule::get();
-                return view('student_login.rules', ['data' => $data]);
-            }
+    public function subjectView(Request $request){
+        $data = Subject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
+        ->where('class_type_id',Session::get('class_type_id'))->orderBy('id', 'DESC')->get();
+        return view('student_login.subject',compact('data'));
+    }
             
             public function gatePassView(){
                 $admissionNo = Admission::where('session_id', Session::get('session_id'))->where('id', Session::get('id'));

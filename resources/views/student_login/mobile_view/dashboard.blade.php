@@ -134,23 +134,7 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
                 </a>
             </div>
             
-            <div class="col-3 mt-3">
-                <a href="{{ url('gallery_view_student') }}" class="text-dark">
-                    <div class="dashboard-card bg-blue text-white">
-                        <i class="fa fa-image"></i>
-                    </div>
-                    <p class="mt-2">Gallery</p>
-                </a>
-            </div>
-            
-            <div class="col-3 mt-3">
-                <a href="{{ url('rule_view') }}" class="text-dark">
-                    <div class="dashboard-card bg-orange text-white">
-                        <i class="fa fa-check-square"></i>
-                    </div>
-                    <p class="mt-2">Rules</p>
-                </a>
-            </div>
+
             <!-- Add more icons here -->
         </div>
     </div>

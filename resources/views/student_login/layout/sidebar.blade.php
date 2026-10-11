@@ -17,11 +17,8 @@
         ['name' => 'Notices & Alerts', 'url' => 'student-notices', 'icon' => 'fa-bullhorn', 'color' => '#f59e0b'],
         ['name' => 'Download Center', 'url' => 'student_download_center', 'icon' => 'fa-download', 'color' => '#eab308'],
         ['name' => 'Complaints / Support', 'url' => 'student-complaints', 'icon' => 'fa-comments-o', 'color' => '#64748b'],
-        ['name' => 'My Teachers', 'url' => 'my_teachers', 'icon' => 'fa-users', 'color' => '#0284c7'],
         ['name' => 'Subjects', 'url' => 'student_subject_view', 'icon' => 'fa-list-alt', 'color' => '#8b5cf6'],
-        ['name' => 'Rules & Guidelines', 'url' => 'rule_view', 'icon' => 'fa-shield', 'color' => '#10b981'],
         ['name' => 'Gate Pass', 'url' => 'student_gate_pass_view', 'icon' => 'fa-sign-out', 'color' => '#f59e0b'],
-        ['name' => 'Photo Gallery', 'url' => 'gallery_view_student', 'icon' => 'fa-picture-o', 'color' => '#6366f1'],
         ['name' => 'My ID Card', 'url' => 'my_id_card', 'icon' => 'fa-id-card-o', 'color' => '#0284c7'],
         ['name' => 'Profile & Password', 'url' => 'profileStudent', 'icon' => 'fa-user-circle', 'color' => '#64748b'],
     ];
