@@ -239,10 +239,10 @@
     position: absolute;
     left: 36.5%;
     max-width: 58%;
-    font-size: 9.5px;
+    font-size: 8.5px;
     font-weight: 700;
     color: #111827;
-    line-height: 1;
+    line-height: 1.15;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -253,16 +253,16 @@
 
 /* Precise Baseline Heights Matching Pre-Printed Labels */
 .id-row-class {
-    top: 65.3%;
+    top: 65.4%;
 }
 .id-row-srno {
-    top: 69.3%;
+    top: 69.4%;
 }
 .id-row-phone {
-    top: 73.3%;
+    top: 73.4%;
 }
 .id-row-address {
-    top: 77.4%;
+    top: 77.5%;
 }
 
 .seal-img {
