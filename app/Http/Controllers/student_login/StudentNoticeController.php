@@ -14,26 +14,44 @@ class StudentNoticeController extends Controller
     {
         abort_unless((int) Session::get('role_id') === 3, 403);
 
+        $studentId = (int) Session::get('id');
+        $branchId = (int) Session::get('branch_id');
+        $sessionId = (int) Session::get('session_id');
+
         $filter = strtolower(trim((string) $request->query('filter', 'all')));
         if (!in_array($filter, ['all', 'active', 'upcoming', 'expired'], true)) {
             $filter = 'all';
         }
 
+        $search = trim((string) $request->query('search', ''));
         $today = Carbon::today()->toDateString();
-        $query = ManagedNotice::query()
-            ->with(['creator', 'recipients' => function ($query) {
-                $query->where('recipient_type', 'student')
-                    ->where('recipient_id', (int) Session::get('id'));
-            }])
+
+        // High-performance base query with only necessary columns and light eager loading
+        $baseQuery = ManagedNotice::query()
+            ->select([
+                'id',
+                'title',
+                'message',
+                'attachment_path',
+                'attachment_name',
+                'attachment_size',
+                'from_date',
+                'to_date',
+                'created_by',
+                'published_at',
+                'status',
+            ])
+            ->with(['creator:id,first_name,last_name'])
             ->where('status', 'approved')
-            ->where('branch_id', (int) Session::get('branch_id'))
-            ->where('session_id', (int) Session::get('session_id'))
-            ->whereHas('recipients', function ($query) {
-                $query->where('recipient_type', 'student')
-                    ->where('recipient_id', (int) Session::get('id'));
+            ->where('branch_id', $branchId)
+            ->where('session_id', $sessionId)
+            ->whereHas('recipients', function ($q) use ($studentId) {
+                $q->where('recipient_type', 'student')
+                  ->where('recipient_id', $studentId);
             });
 
-        $noticeCounts = (clone $query)
+        // Fast aggregate metric counts across student's circulars
+        $noticeCounts = (clone $baseQuery)
             ->setEagerLoads([])
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw('SUM(CASE WHEN from_date <= ? AND to_date >= ? THEN 1 ELSE 0 END) as active_count', [$today, $today])
@@ -41,18 +59,27 @@ class StudentNoticeController extends Controller
             ->selectRaw('SUM(CASE WHEN to_date < ? THEN 1 ELSE 0 END) as expired_count', [$today])
             ->first();
 
-        if ($filter === 'active') {
-            $query->whereDate('from_date', '<=', $today)->whereDate('to_date', '>=', $today);
-        } elseif ($filter === 'upcoming') {
-            $query->whereDate('from_date', '>', $today);
-        } elseif ($filter === 'expired') {
-            $query->whereDate('to_date', '<', $today);
+        // Apply text search keyword filter
+        if ($search !== '') {
+            $baseQuery->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                  ->orWhere('message', 'LIKE', "%{$search}%");
+            });
         }
 
-        $notices = $query->orderByDesc('published_at')->orderByDesc('id')
-            ->paginate(15)
-            ->appends(['filter' => $filter]);
+        // Apply tab status filter
+        if ($filter === 'active') {
+            $baseQuery->whereDate('from_date', '<=', $today)->whereDate('to_date', '>=', $today);
+        } elseif ($filter === 'upcoming') {
+            $baseQuery->whereDate('from_date', '>', $today);
+        } elseif ($filter === 'expired') {
+            $baseQuery->whereDate('to_date', '<', $today);
+        }
 
-        return view('student_login.notices.index', compact('notices', 'filter', 'today', 'noticeCounts'));
+        $notices = $baseQuery->orderByDesc('published_at')->orderByDesc('id')
+            ->paginate(12)
+            ->appends($request->query());
+
+        return view('student_login.notices.index', compact('notices', 'filter', 'search', 'today', 'noticeCounts'));
     }
 }
