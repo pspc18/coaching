@@ -7,7 +7,6 @@ use App\Models\Admission;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
-use App\Models\Subject;
 use Session;
 use Hash;
 use Str;
@@ -18,13 +17,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
-
 {
-    public function subjectView(Request $request){
-        $data = Subject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
-        ->where('class_type_id',Session::get('class_type_id'))->orderBy('id', 'DESC')->get();
-        return view('student_login.subject',compact('data'));
-    }
             
             public function gatePassView(){
                 $admissionNo = Admission::where('session_id', Session::get('session_id'))->where('id', Session::get('id'));

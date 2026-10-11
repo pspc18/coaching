@@ -250,15 +250,6 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
 
             
             <div class="col-3 mt-3">
-                <a href="{{ url('student_subject_view') }}" class="text-dark">
-                    <div class="dashboard-card bg-yellow text-white">
-                        <i class="fa fa-book"></i>
-                    </div>
-                    <p class="mt-2">Subjects</p>
-                </a>
-            </div>
-            
-            <div class="col-3 mt-3">
                 <a href="{{ url('download_center') }}" class="text-dark">
                     <div class="dashboard-card bg-green text-white">
                         <i class="fa fa-download"></i>

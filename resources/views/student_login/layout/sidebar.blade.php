@@ -17,7 +17,6 @@
         ['name' => 'Notices & Alerts', 'url' => 'student-notices', 'icon' => 'fa-bullhorn', 'color' => '#f59e0b'],
         ['name' => 'Download Center', 'url' => 'student_download_center', 'icon' => 'fa-download', 'color' => '#eab308'],
         ['name' => 'Complaints / Support', 'url' => 'student-complaints', 'icon' => 'fa-comments-o', 'color' => '#64748b'],
-        ['name' => 'Subjects', 'url' => 'student_subject_view', 'icon' => 'fa-list-alt', 'color' => '#8b5cf6'],
         ['name' => 'Gate Pass', 'url' => 'student_gate_pass_view', 'icon' => 'fa-sign-out', 'color' => '#f59e0b'],
         ['name' => 'My ID Card', 'url' => 'my_id_card', 'icon' => 'fa-id-card-o', 'color' => '#0284c7'],
         ['name' => 'Profile & Password', 'url' => 'profileStudent', 'icon' => 'fa-user-circle', 'color' => '#64748b'],
