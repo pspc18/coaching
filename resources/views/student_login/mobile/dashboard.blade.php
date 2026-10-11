@@ -798,16 +798,7 @@
             <span class="launcher-badge">{{ $notices->count() }}</span>
         @endif
     </a>
-
-    {{-- 6. Timetable --}}
-    <a href="{{ url('timetable') }}" class="native-launcher-tile">
-        <div class="launcher-icon-circle circle-grad-6">
-            <i class="fa fa-calendar"></i>
-        </div>
-        <span class="launcher-tile-title">Time Table</span>
-    </a>
-
-    {{-- 7. Downloads --}}
+    {{-- 6. Downloads --}}
     <a href="{{ url('student_download_center') }}" class="native-launcher-tile">
         <div class="launcher-icon-circle circle-grad-7">
             <i class="fa fa-download"></i>

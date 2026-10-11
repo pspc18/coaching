@@ -247,15 +247,7 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
                     <p class="mt-2">Home Work</p>
                 </a>
             </div>
-            
-            <div class="col-3 mt-3">
-                <a href="{{ url('timetable') }}" class="text-dark">
-                    <div class="dashboard-card bg-pink text-white">
-                        <i class="fa fa-calendar-plus-o"></i>
-                    </div>
-                    <p class="mt-2">Time Table</p>
-                </a>
-            </div>
+
             
             <div class="col-3 mt-3">
                 <a href="{{ url('student_subject_view') }}" class="text-dark">

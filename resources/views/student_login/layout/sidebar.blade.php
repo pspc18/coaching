@@ -13,7 +13,6 @@
         ['name' => 'Attendance', 'url' => 'AttendanceView_student', 'icon' => 'fa-calendar-check-o', 'color' => '#0284c7'],
         ['name' => 'Fees History', 'url' => 'fees_history', 'icon' => 'fa-inr', 'color' => '#10b981'],
         ['name' => 'Homework', 'url' => 'student_homework', 'icon' => 'fa-book', 'color' => '#f43f5e'],
-        ['name' => 'Time Table', 'url' => 'timetable', 'icon' => 'fa-calendar', 'color' => '#6366f1'],
         ['name' => 'Exam Results', 'url' => 'student/result-card', 'icon' => 'fa-file-text-o', 'color' => '#8b5cf6'],
         ['name' => 'Notices & Alerts', 'url' => 'student-notices', 'icon' => 'fa-bullhorn', 'color' => '#f59e0b'],
         ['name' => 'Download Center', 'url' => 'student_download_center', 'icon' => 'fa-download', 'color' => '#eab308'],

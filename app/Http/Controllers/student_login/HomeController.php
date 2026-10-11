@@ -26,18 +26,7 @@ class HomeController extends Controller
                 return view('student_login.my_teachers', ['data' => collect([])]);
             }
             
-             public function timetableView(){
-                $data = TeacherSubject::select('teacher_subjects.*', 'subject.name as subjectName', 'users.first_name', 'users.last_name', 'class_types.name as className', 'time_periods.from_time', 'time_periods.to_time')
-                    ->leftjoin('users', 'users.id', 'teacher_subjects.user_id')
-                    ->leftjoin('class_types', 'class_types.id', 'teacher_subjects.class_type_id')
-                    ->leftjoin('time_periods', 'time_periods.id', 'teacher_subjects.time_period_id')
-                    ->leftjoin('subject', 'subject.id', 'teacher_subjects.subject_id')
-                    ->where('teacher_subjects.class_type_id', Session::get('class_type_id'))
-                    ->where('teacher_subjects.session_id', Session::get('session_id'))
-                    ->get();
-                return view('student_login.timetable', ['data' => $data]);
-            }
-              public function galleryView(Request $request){
+            public function galleryView(Request $request){
                 return view('student_login.gallery',['data'=>[]]); 
             }   
              public function subjectView(Request $request){
