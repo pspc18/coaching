@@ -210,6 +210,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    gap: 5px;
 }
 .hero-radar-col:first-child {
     border-right: 1px solid rgba(255, 255, 255, 0.12);
@@ -227,22 +228,25 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    line-height: 1.35;
 }
 .hero-radar-val {
     font-size: 17px;
     font-weight: 800;
     color: #38bdf8;
-    line-height: 1.2;
-    margin: 2px 0 1px;
+    line-height: 1.3;
+    margin: 0;
 }
 .hero-radar-val.status-text-val {
     font-size: 13.5px;
     letter-spacing: -0.01em;
+    line-height: 1.3;
 }
 .hero-radar-meta {
     font-size: 9.5px;
     color: #cbd5e1;
     font-weight: 500;
+    line-height: 1.35;
 }
 
 /* Pay Fees Button inside Due Fees Box */
@@ -251,10 +255,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    margin: 2px 0 1px;
+    margin: 0;
 }
 .hero-due-row .hero-radar-val {
     margin: 0;
+    line-height: 1.3;
 }
 .hero-due-pay-btn {
     position: relative;
