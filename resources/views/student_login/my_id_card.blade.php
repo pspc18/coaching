@@ -93,61 +93,47 @@
     color: #cbd5e1;
 }
 
-/* 2. Action Toolbar */
-.mob-id-toolbar {
+/* 2. Centered ID Card Stage */
+.mob-id-stage {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
+    width: 100%;
+    padding: 6px 4px 16px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
-.mob-id-btn {
-    height: 32px;
-    padding: 0 16px;
+
+.mob-id-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.mob-id-btn-download {
+    height: 36px;
+    padding: 0 20px;
     border-radius: 6px;
-    font-size: 11.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 7px;
     text-decoration: none;
-    border: 1px solid transparent;
+    border: 1px solid #0284c7;
     cursor: pointer;
-    transition: all 0.18s ease;
-}
-.mob-id-btn-download {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
     color: #ffffff !important;
-    border-color: #0284c7;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+    transition: all 0.18s ease;
 }
 .mob-id-btn-download:hover,
 .mob-id-btn-download:active {
     background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
     transform: translateY(-1px);
-}
-.mob-id-btn-print {
-    background: #ffffff;
-    color: #002C54 !important;
-    border-color: #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-.mob-id-btn-print:hover {
-    background: #f8fafc;
-}
-
-/* 3. Centered ID Card Viewport */
-.mob-id-viewport {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 220px);
-    width: 100%;
-    padding: 8px 4px 24px;
-    box-sizing: border-box;
-    overflow-x: auto;
 }
 
 .id-card-wrapper {
@@ -314,14 +300,13 @@
         background: #ffffff !important;
     }
     .mob-hero-card,
-    .mob-id-toolbar,
+    .mob-id-actions,
     .mobile-header,
     .mobile-bottom-nav,
     .mob-drawer {
         display: none !important;
     }
-    .mob-id-viewport {
-        min-height: auto !important;
+    .mob-id-stage {
         padding: 0 !important;
         display: block !important;
     }
@@ -351,18 +336,8 @@
         </div>
     </div>
 
-    {{-- 2. Action Toolbar --}}
-    <div class="mob-id-toolbar">
-        <button type="button" class="mob-id-btn mob-id-btn-download" id="downloadIdCardBtn">
-            <i class="fa fa-download"></i> Download ID Card
-        </button>
-        <button type="button" class="mob-id-btn mob-id-btn-print" onclick="window.print()">
-            <i class="fa fa-print"></i> Print
-        </button>
-    </div>
-
-    {{-- 3. Center Screen ID Card Stage --}}
-    <div class="mob-id-viewport">
+    {{-- 2. Center Screen ID Card Stage --}}
+    <div class="mob-id-stage">
         <div class="id-card-wrapper">
             <div class="id-card" id="studentCard" style="width: {{ $cardWidth }}; height: {{ $cardHeight }}; background-image: url('{{ $bgImageUrl }}');">
 
@@ -430,6 +405,13 @@
                 </div>
 
             </div>
+        </div>
+
+        {{-- Download ID Card Button below ID Card --}}
+        <div class="mob-id-actions">
+            <button type="button" class="mob-id-btn-download" id="downloadIdCardBtn">
+                <i class="fa fa-download"></i> Download ID Card
+            </button>
         </div>
     </div>
 
