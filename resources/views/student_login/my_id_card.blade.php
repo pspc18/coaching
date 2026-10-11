@@ -149,9 +149,6 @@
 .id-card {
     position: relative;
     margin: 0 auto;
-    background-size: {{ $bgWidthPercent }}% {{ $bgHeightPercent }}%;
-    background-repeat: no-repeat;
-    background-position: center;
     border: 1px solid rgba(0, 0, 0, 0.14);
     border-radius: 8px;
     overflow: hidden;
@@ -159,12 +156,23 @@
     box-sizing: border-box;
 }
 
-/* Photo Frame - Horizontally Centered inside Circular Frame */
+/* Background Image Layer (Always captured by html2canvas without CORS block) */
+.id-card-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    z-index: 1;
+    pointer-events: none;
+    display: block;
+}
+
+/* Photo Frame - Horizontally Centered inside Circular Frame (No transform to avoid canvas distortion) */
 .id-photo-frame {
     position: absolute;
     top: 26.8%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: calc(50% - 40.5px);
     width: 81px;
     height: 81px;
     border-radius: 50%;
@@ -340,6 +348,9 @@
     <div class="mob-id-stage">
         <div class="id-card-wrapper">
             <div class="id-card" id="studentCard" style="width: {{ $cardWidth }}; height: {{ $cardHeight }}; background-image: url('{{ $bgImageUrl }}');">
+                @if(!empty($bgImageUrl))
+                    <img src="{{ $bgImageUrl }}" class="id-card-bg-img" alt="Background">
+                @endif
 
                 {{-- Student Photo or First Letter Avatar Fallback (Centered in Circular Frame) --}}
                 <div class="id-photo-frame">
@@ -438,7 +449,7 @@ $(document).ready(function() {
                 if (overlay) overlay.style.opacity = "0";
 
                 html2canvas(card, {
-                    backgroundColor: null,
+                    backgroundColor: '#ffffff',
                     scale: 3, // Crisp HD export
                     useCORS: true,
                     allowTaint: true,
