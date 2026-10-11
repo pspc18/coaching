@@ -368,11 +368,6 @@ Route::match(['get', 'post'], 'addSetting', 'SettingsController@addSetting');
 Route::match(['get', 'post'], 'addVillageList', 'SettingsController@addVillageList');
 Route::match(['get', 'post'], 'deleteVillageList', 'SettingsController@deleteVillageList');
 
-//Store Management
-Route::match(['get', 'post'], 'storeDashboard', 'StoreController@storeDashboard');
-Route::match(['get', 'post'], 'viewStoreRequest', 'StoreController@viewStoreRequest');
-Route::match(['get', 'post'], 'addStoreItem', 'StoreController@addStoreItem');
-Route::match(['get', 'post'], 'addStationaryRequest', 'StoreController@addStationaryRequest');
 
 
 
@@ -518,7 +513,6 @@ Route::match(['get', 'post'], 'feesCounterView', 'fees\FeesCounterController@fee
 	
 	Route::match(['get', 'post'], 'student_fees_onclick', 'fees\FeesController@studentFeesOnclick');
 	Route::match(['get', 'post'], 'student_pay_submit', 'fees\FeesController@studentPaySubmit');
-	Route::match(['get', 'post'], 'inventoryPaySubmit', 'fees\FeesController@inventoryPaySubmit');
 	Route::match(['get', 'post'], 'fees_search_data', 'fees\FeesController@feesSearchData');
 	Route::match(['get', 'post'], 'print_payement/{id}', 'fees\FeesController@printPayement');
 	Route::match(['get', 'post'], 'printFeesInvoice', 'fees\FeesController@printFeesInvoice');
@@ -555,18 +549,6 @@ Route::match(['get', 'post'], 'feesCounterView', 'fees\FeesCounterController@fee
 
 
 
-
- // Store Management
-    
-    
-    
-    Route::match(['get', 'post'], 'deleteStoreItem', 'StoreController@deleteStoreItem');
-    
-    
-    Route::match(['get', 'post'], 'storeReceipt/{receipt_no}', 'StoreController@storeReceipt');
-    Route::match(['get', 'post'], 'editInvoiceInventory/{receipt_no}', 'StoreController@editInvoiceInventory');
-    Route::match(['get', 'post'], 'deleteInvoiceInventory', 'StoreController@deleteInvoiceInventory');
-    Route::match(['get', 'post'], 'deleteReceiptInventory', 'StoreController@deleteReceiptInventory');
     
 
 

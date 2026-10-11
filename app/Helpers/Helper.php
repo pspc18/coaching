@@ -22,9 +22,6 @@ use App\Models\exam\digital\SukaDigital;
 use App\Models\exam\digital\UploadByDigital;
 use App\Models\exam\digital\QuestionTypeDigital;
 use App\Models\exam\digital\LevelDigital;
-use App\Models\StoreItem;
-use App\Models\StoreItemRequest;
-use App\Models\StoreBillingDetail;
 use App\Models\TotalDays;
 use App\Models\WhatsappApiResponse;
 use App\Models\StudentAttendance;
@@ -437,27 +434,6 @@ class Helper{
             'data' => $responses,
             'message_id' => $responses[0]['result']['message_id'] ?? null,
         ];
-    }
-    
-    
-    public static function getInventoryAmount($receipt,$admissionId) {
-        
-     $amount =   StoreItemRequest::where('admission_id',$admissionId)->where('receipt_no',$receipt)->get();
-   
-     $total['total'] = 0;
-     $total['paid'] = 0;
-        if(!empty($amount))
-        {
-            foreach($amount as $item)
-            {
-               $total['total'] += $item->qty*$item->price; 
-            }
-            
-        }
-        
-        $total['paid'] = StoreBillingDetail::where('admission_id',$admissionId)->where('receipt_no',$receipt)->sum('amount');
-        
-        return $total;
     }
     
      public static function getUsers(){

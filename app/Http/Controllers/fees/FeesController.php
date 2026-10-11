@@ -22,9 +22,6 @@ use App\Models\fees\FeesAdvanceHistory;
 use App\Models\FeesDetail;
 use App\Models\FeesSetting;
 use App\Models\Invoice;
-use App\Models\StoreItem;
-use App\Models\StoreItemRequest;
-use App\Models\StoreBillingDetail;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\Branch;
 use App\Models\Master\PaymentMode;
@@ -621,11 +618,7 @@ class FeesController extends Controller
                             ->where('type', 'FeesSlip')
                             ->first();
 
-                        $inventory = StoreItemRequest::where('session_id', $sessionId)
-                            ->where('branch_id', $branchId)
-                            ->where('admission_id', $admissionId)
-                            ->groupBy('receipt_no')
-                            ->get();
+                        $inventory = [];
 
                         // Get FeesSetting and compute running receipt number
                         $feesSetting = FeesSetting::getSetting($branchId, $sessionId);
@@ -659,48 +652,6 @@ class FeesController extends Controller
                         // No data found case
                         return response()->json(0);
                     }
-
-
- 
-            
-            public function inventoryPaySubmit(Request $request){
-                $enteredAmount = (Int)$request->get('enteredAmount');
-                $collectedData = $request->get('collectedData');
-                // Sort the array by 'pending' in ascending order
-                usort($collectedData, function ($a, $b) {
-                    return $a['pending'] - $b['pending'];
-                });
-                foreach ($collectedData as $item) {
-                    $pending = (Int)($item['pending'] ?? 0);
-                    $receipt = $item['receipt'];
-                    $admissionId = $item['admission_id'];
-                    if ($enteredAmount >= $pending) {
-                        // Deduct the full pending amount and save to the database
-                        $this->saveStoreReceipt($admissionId, $receipt, $pending);
-                        $enteredAmount -= $pending;
-                    }
-                    else {
-                        // Partial payment case, if enteredAmount is less than the pending amount
-                        $this->saveStoreReceipt($admissionId, $receipt, $enteredAmount);
-                        $enteredAmount = 0;
-                        break; // Exit the loop as no more amount left to allocate
-                    }
-                }
-            }
-            function saveStoreReceipt($admissionId, $receipt, $amount) {
-                if($amount > 0 ){
-                    $pay = new StoreBillingDetail;
-                    $pay->user_id = Session::get('id');
-                    $pay->session_id =Session::get('session_id');
-                    $pay->branch_id = Session::get('branch_id');
-                    $pay->fees_counter_id = Session::get('counter_id');
-                    $pay->admission_id = $admissionId;
-                    $pay->receipt_no = $receipt;
-                    $pay->amount = $amount;
-                    $pay->date = date('Y-m-d');
-                    $pay->save();
-                }
-            }
         
             public function studentPaySubmit(Request $request){ 
                
