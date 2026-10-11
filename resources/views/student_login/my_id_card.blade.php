@@ -15,12 +15,47 @@
 
     $imageShowPath = rtrim(env('IMAGE_SHOW_PATH') ?: config('app.image_show_path') ?: '', '/');
     $hasPhoto = !empty($student->image);
-    $studentPhotoUrl = $hasPhoto ? $imageShowPath . '/profile/' . $student->image : '';
 
-    $bgImageUrl = !empty($template->bg_image) ? $imageShowPath . '/id_template_bg/' . $template->bg_image : '';
-    $sealUrl = !empty($template->seal_sign)
-        ? $imageShowPath . '/setting/seal_sign/' . $template->seal_sign
-        : $imageShowPath . '/setting/seal_sign/default/seal.png';
+    // Helper to resolve local files to base64 data URIs so html2canvas captures background & photo without CORS issues
+    $toBase64 = function ($subPath, $fileName) {
+        if (empty($fileName)) {
+            return '';
+        }
+        $candidates = [
+            base_path('schoolimage/' . $subPath . '/' . $fileName),
+            base_path('schoolimage-1/' . $subPath . '/' . $fileName),
+            public_path('schoolimage/' . $subPath . '/' . $fileName),
+            public_path('schoolimage-1/' . $subPath . '/' . $fileName),
+            env('IMAGE_UPLOAD_PATH') . $subPath . '/' . $fileName,
+        ];
+        foreach ($candidates as $cand) {
+            if (!empty($cand) && file_exists($cand) && is_readable($cand)) {
+                $ext = strtolower(pathinfo($cand, PATHINFO_EXTENSION));
+                $mime = ($ext === 'png') ? 'image/png' : (($ext === 'webp') ? 'image/webp' : 'image/jpeg');
+                return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($cand));
+            }
+        }
+        return '';
+    };
+
+    if (empty($bgImageUrl) || (substr($bgImageUrl, 0, 5) !== 'data:')) {
+        $bgData = !empty($template->bg_image) ? $toBase64('id_template_bg', $template->bg_image) : '';
+        $bgImageUrl = !empty($bgData) ? $bgData : (!empty($template->bg_image) ? $imageShowPath . '/id_template_bg/' . $template->bg_image : '');
+    }
+
+    if (empty($studentPhotoUrl) || (substr($studentPhotoUrl, 0, 5) !== 'data:')) {
+        $photoData = $hasPhoto ? $toBase64('profile', $student->image) : '';
+        $studentPhotoUrl = !empty($photoData) ? $photoData : ($hasPhoto ? $imageShowPath . '/profile/' . $student->image : '');
+    }
+
+    if (empty($sealUrl) || (substr($sealUrl, 0, 5) !== 'data:')) {
+        $sealData = !empty($template->seal_sign) ? $toBase64('setting/seal_sign', $template->seal_sign) : '';
+        $sealUrl = !empty($sealData)
+            ? $sealData
+            : (!empty($template->seal_sign)
+                ? $imageShowPath . '/setting/seal_sign/' . $template->seal_sign
+                : $imageShowPath . '/setting/seal_sign/default/seal.png');
+    }
 
     // Calculate optimal font size for name to stay centered and never wrap
     $nameLen = mb_strlen($studentName);
@@ -159,10 +194,10 @@
 /* Background Image Layer (Always captured by html2canvas without CORS block) */
 .id-card-bg-img {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: fill;
     z-index: 1;
     pointer-events: none;
     display: block;
@@ -347,9 +382,9 @@
     {{-- 2. Center Screen ID Card Stage --}}
     <div class="mob-id-stage">
         <div class="id-card-wrapper">
-            <div class="id-card" id="studentCard" style="width: {{ $cardWidth }}; height: {{ $cardHeight }}; background-image: url('{{ $bgImageUrl }}');">
+            <div class="id-card" id="studentCard" style="width: {{ $cardWidth }}; height: {{ $cardHeight }};">
                 @if(!empty($bgImageUrl))
-                    <img src="{{ $bgImageUrl }}" class="id-card-bg-img" alt="Background">
+                    <img src="{{ $bgImageUrl }}" class="id-card-bg-img" id="studentCardBgImg" alt="Background">
                 @endif
 
                 {{-- Student Photo or First Letter Avatar Fallback (Centered in Circular Frame) --}}
@@ -445,46 +480,77 @@ $(document).ready(function() {
 
             if (overlay) overlay.classList.add("active");
 
-            setTimeout(function() {
-                if (overlay) overlay.style.opacity = "0";
+            // Ensure background image and photo are complete before capturing
+            const bgImg = document.getElementById("studentCardBgImg");
+            const photoImg = document.getElementById("studentPhotoElement");
 
-                html2canvas(card, {
-                    backgroundColor: '#ffffff',
-                    scale: 3, // Crisp HD export
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false
-                }).then(function(canvas) {
-                    const link = document.createElement("a");
-                    link.download = "{{ addslashes($student->first_name) }}_ID_Card_{{ $student->admissionNo }}.jpeg";
-                    link.href = canvas.toDataURL("image/jpeg", 0.95);
-                    link.click();
-
-                    if (overlay) {
-                        overlay.style.opacity = "";
-                        overlay.classList.remove("active");
-                    }
-                    downloadBtn.disabled = false;
-                    downloadBtn.innerHTML = originalBtnHtml;
-                }).catch(function(err) {
-                    if (overlay) {
-                        overlay.style.opacity = "";
-                        overlay.classList.remove("active");
-                    }
-                    downloadBtn.disabled = false;
-                    downloadBtn.innerHTML = originalBtnHtml;
-
-                    if (window.StudentModal && typeof window.StudentModal.open === "function") {
-                        StudentModal.open({
-                            type: "error",
-                            title: "Download Failed",
-                            message: "Unable to generate image of ID card. Please use Print option instead."
-                        });
-                    } else {
-                        alert("Unable to generate image of ID card. Please use Print option.");
-                    }
+            const waitImg = function(img) {
+                return new Promise(function(resolve) {
+                    if (!img || img.complete) return resolve();
+                    img.addEventListener("load", resolve, { once: true });
+                    img.addEventListener("error", resolve, { once: true });
                 });
-            }, 100);
+            };
+
+            Promise.all([waitImg(bgImg), waitImg(photoImg)]).then(function() {
+                setTimeout(function() {
+                    if (overlay) overlay.style.opacity = "0";
+
+                    html2canvas(card, {
+                        backgroundColor: "#ffffff",
+                        scale: 3, // Crisp HD export
+                        useCORS: true,
+                        allowTaint: false,
+                        logging: false,
+                        onclone: function(clonedDoc) {
+                            const clonedCard = clonedDoc.getElementById("studentCard");
+                            if (clonedCard) {
+                                clonedCard.style.overflow = "hidden";
+                                const clonedBg = clonedCard.querySelector(".id-card-bg-img");
+                                if (clonedBg) {
+                                    clonedBg.style.display = "block";
+                                    clonedBg.style.position = "absolute";
+                                    clonedBg.style.top = "0px";
+                                    clonedBg.style.left = "0px";
+                                    clonedBg.style.width = "100%";
+                                    clonedBg.style.height = "100%";
+                                    clonedBg.style.zIndex = "1";
+                                }
+                            }
+                        }
+                    }).then(function(canvas) {
+                        const link = document.createElement("a");
+                        link.download = "{{ addslashes($student->first_name) }}_ID_Card_{{ $student->admissionNo }}.jpeg";
+                        link.href = canvas.toDataURL("image/jpeg", 0.95);
+                        link.click();
+
+                        if (overlay) {
+                            overlay.style.opacity = "";
+                            overlay.classList.remove("active");
+                        }
+                        downloadBtn.disabled = false;
+                        downloadBtn.innerHTML = originalBtnHtml;
+                    }).catch(function(err) {
+                        console.error("ID Card export error:", err);
+                        if (overlay) {
+                            overlay.style.opacity = "";
+                            overlay.classList.remove("active");
+                        }
+                        downloadBtn.disabled = false;
+                        downloadBtn.innerHTML = originalBtnHtml;
+
+                        if (window.StudentModal && typeof window.StudentModal.open === "function") {
+                            StudentModal.open({
+                                type: "error",
+                                title: "Download Failed",
+                                message: "Unable to generate image of ID card. Please try again."
+                            });
+                        } else {
+                            alert("Unable to generate image of ID card.");
+                        }
+                    });
+                }, 100);
+            });
         });
     }
 });
