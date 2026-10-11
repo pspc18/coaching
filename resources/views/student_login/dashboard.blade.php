@@ -140,24 +140,25 @@
 .native-hero-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     margin-bottom: 10px;
 }
 .hero-user-cluster {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
 }
 .hero-avatar-circle {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: linear-gradient(135deg, #0284c7, #38bdf8);
     border: 2px solid rgba(255, 255, 255, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 16px;
     color: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     flex-shrink: 0;
@@ -169,29 +170,24 @@
     object-fit: cover;
 }
 .hero-user-title {
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 800;
     color: #ffffff;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 .hero-user-sub {
     font-size: 9.5px;
     color: #93c5fd;
     font-weight: 600;
     letter-spacing: .02em;
-}
-.hero-session-pill {
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #bae6fd !important;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    white-space: nowrap;
+    gap: 6px;
+    margin-top: 3px;
+}
+.hero-user-sub i {
+    font-size: 10.5px;
+    color: #38bdf8;
 }
 
 /* Dual Live Radar in Hero */
@@ -229,6 +225,10 @@
     color: #38bdf8;
     line-height: 1.2;
     margin: 2px 0 1px;
+}
+.hero-radar-val.status-text-val {
+    font-size: 13.5px;
+    letter-spacing: -0.01em;
 }
 .hero-radar-meta {
     font-size: 9.5px;
@@ -702,11 +702,8 @@
             </div>
             <div>
                 <div class="hero-user-title">{{ $greeting }}, {{ $firstName }}! 👋</div>
-                <div class="hero-user-sub"><i class="fa fa-calendar-o mr-1"></i>{{ now()->format('l, d M Y') }}</div>
+                <div class="hero-user-sub"><i class="fa fa-calendar-o"></i> <span>{{ now()->format('l, d M Y') }}</span></div>
             </div>
-        </div>
-        <div class="hero-session-pill">
-            <i class="fa fa-graduation-cap"></i> {{ $className }} &bull; {{ $sessionName }}
         </div>
     </div>
 
@@ -716,7 +713,9 @@
             <span class="hero-radar-tag">
                 <i class="fa fa-circle" style="color: {{ $todayStatusColor }}; font-size: 8px;"></i> Today's Attendance
             </span>
-            <div class="hero-radar-val" style="color: {{ $todayStatusColor }};">{{ $todayStatusLabel }}</div>
+            <div class="hero-radar-val {{ strlen($todayStatusLabel) > 8 ? 'status-text-val' : '' }}" style="color: {{ $todayStatusColor }};">
+                {{ $todayStatusLabel }}
+            </div>
             <span class="hero-radar-meta">{{ $monthAttendancePercent }}% Month Attendance</span>
         </div>
         <div class="hero-radar-col">
