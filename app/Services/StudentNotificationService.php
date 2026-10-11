@@ -82,22 +82,30 @@ class StudentNotificationService
 
     public function counts(int $admissionId, bool $unreadOnly = true): array
     {
-        $counts = [];
-
-        foreach ($this->allowedCategories() as $category) {
-            if ($category === 'all') {
-                continue;
-            }
-
-            $query = $this->applyCategory($this->baseQuery($admissionId), $category);
-            if ($unreadOnly) {
-                $query->where('message_seen', 0);
-            }
-
-            $counts[$category] = (int) $query->count();
+        $query = $this->baseQuery($admissionId);
+        if ($unreadOnly) {
+            $query->where('message_seen', 0);
         }
 
-        return $counts;
+        $row = $query
+            ->selectRaw("
+                COUNT(*) as all_count,
+                SUM(CASE WHEN (title = 'Attendance Marked' OR type IN ('attendance', 'attendance_marked', 'student')) THEN 1 ELSE 0 END) as attendance_count,
+                SUM(CASE WHEN type IN ('fee_payment', 'fee_revert') THEN 1 ELSE 0 END) as fees_count,
+                SUM(CASE WHEN type = 'exam_result' THEN 1 ELSE 0 END) as result_count,
+                SUM(CASE WHEN type = 'notice' THEN 1 ELSE 0 END) as notice_count,
+                SUM(CASE WHEN type IN ('complaint_reply', 'complaint_status') THEN 1 ELSE 0 END) as complaint_count
+            ")
+            ->first();
+
+        return [
+            'all' => (int) ($row->all_count ?? 0),
+            'attendance' => (int) ($row->attendance_count ?? 0),
+            'fees' => (int) ($row->fees_count ?? 0),
+            'result' => (int) ($row->result_count ?? 0),
+            'notice' => (int) ($row->notice_count ?? 0),
+            'complaint' => (int) ($row->complaint_count ?? 0),
+        ];
     }
 
     public function normalizeCategoryFromNotification(?string $type, ?string $title = null): string

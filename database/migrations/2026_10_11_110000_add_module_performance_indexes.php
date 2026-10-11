@@ -144,8 +144,9 @@ class AddModulePerformanceIndexes extends Migration
         // 9. Settings & Logs
         $this->addIndexIfNotExists('login_logs', ['user_id', 'branch_id', 'session_id', 'created_at'], 'idx_login_logs_user_branch_session');
 
-        // 10. Message Terminal
+        // 10. Message Terminal & Notifications
         $this->addIndexIfNotExists('message_queues', ['message_status', 'receiver_number'], 'idx_msg_queue_status_receiver');
+        $this->addIndexIfNotExists('notifications', ['admission_id', 'show_status', 'message_seen', 'id'], 'idx_notifications_admission_perf');
     }
 
     /**
@@ -212,5 +213,6 @@ class AddModulePerformanceIndexes extends Migration
         $this->dropIndexIfExists('login_logs', 'idx_login_logs_user_branch_session');
 
         $this->dropIndexIfExists('message_queues', 'idx_msg_queue_status_receiver');
+        $this->dropIndexIfExists('notifications', 'idx_notifications_admission_perf');
     }
 }

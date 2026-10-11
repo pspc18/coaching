@@ -56,8 +56,17 @@ class NotificationController extends Controller
             }
 
             $category = $this->normalizeCategory($request);
+            $search = trim((string) $request->query('search', ''));
 
             $query = $this->notificationQuery($category);
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('content', 'like', "%{$search}%");
+                });
+            }
+
             if ($filter === 'read') {
                 $query->where('message_seen', 1);
             } elseif ($filter === 'unread') {
@@ -65,20 +74,38 @@ class NotificationController extends Controller
             }
 
             $notifications = $query
+                ->select([
+                    'id',
+                    'admission_id',
+                    'managed_notice_id',
+                    'title',
+                    'content',
+                    'attachment_path',
+                    'attachment_name',
+                    'attachment_mime',
+                    'type',
+                    'message_seen',
+                    'created_at',
+                ])
                 ->orderBy('message_seen', 'asc')
                 ->orderByDesc('id')
-                ->paginate(20)
-                ->appends(['filter' => $filter, 'category' => $category]);
+                ->paginate(15)
+                ->appends(array_filter([
+                    'filter' => $filter !== 'all' ? $filter : null,
+                    'category' => $category !== 'all' ? $category : null,
+                    'search' => $search !== '' ? $search : null,
+                ]));
 
-            $unreadCount = (int) $this->notificationQuery($category)->where('message_seen', 0)->count();
             $categoryCounts = $this->notificationsService()->counts((int) Session::get('id'));
+            $unreadCount = (int) ($categoryCounts[$category] ?? $categoryCounts['all'] ?? 0);
 
             return view('student_login.notification.notification_list', compact(
                 'notifications',
                 'filter',
                 'unreadCount',
                 'category',
-                'categoryCounts'
+                'categoryCounts',
+                'search'
             ));
         }
 
@@ -117,14 +144,7 @@ class NotificationController extends Controller
         public function clearAllAttendanceNotifications(Request $request)
         {
             $query = $this->notificationQuery($this->normalizeCategory($request), true);
-            $notifications = $query->get();
-
-            foreach ($notifications as $notification) {
-                $notification->show_status = 0;
-                $notification->message_seen = 1;
-                $notification->save();
-                $notification->delete();
-            }
+            $deleted = $query->delete();
 
             $redirectUrl = url('notificationFatchStudent');
             $category = $this->normalizeCategory($request);
