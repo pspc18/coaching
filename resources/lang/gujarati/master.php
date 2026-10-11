@@ -15,7 +15,6 @@ return [
     'Prayer' => 'પ્રાર્થના',
     'Uniform' => 'યૂનિફોર્મ',
     'Rule' => 'નિયમ',
-    'Gate Pass' => 'ગેટ પાસ',
     'School Desk' => 'સ્કૂલ ડેસ્ક',
     'Books/Uniform' => 'પુસ્તકો/યૂનિફોર્મ',
     'Time Periods' => 'સમય અવધિ',
@@ -161,9 +160,6 @@ return [
     'Description' => 'વર્ણન',
     
     
-    //Gate Pass
-    'Gate Pass Add' => 'ગેટ પાસ ઉમેરો',
-    'View Gate Pass' => 'ગેટ પાસ જોવો',
     'Student Name' => 'વિદ્યાર્થી નું નામ',
     'OTP Send' => 'OTP મોકલો',
     'OTP' => 'OTP',

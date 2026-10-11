@@ -40,12 +40,7 @@ Route::post('complaints-management/{id}/reply', 'master\SupportComplaintControll
 Route::post('complaints-management/{id}/status', 'master\SupportComplaintController@status')->where('id', '[0-9]+');
 Route::get('support-complaint-attachment/{replyId}', 'master\SupportComplaintController@attachment')->where('replyId', '[0-9]+');
 
-//GatePassController
-Route::match(['get','post'],'gate_pass_view', 'master\GatePassController@view');
-Route::match(['get','post'],'gate_pass_add', 'master\GatePassController@add');
-Route::match(['get','post'],'gate_pass_delete', 'master\GatePassController@delete');
-Route::match(['get','post'],'gate_pass_edit/{id}', 'master\GatePassController@edit');
- 
+
 //MessageTemplate
 Route::match(['get','post'],'messageDashboard', 'master\message\MessageTemplateController@messageDashboard');
 Route::match(['get','post'],'messageType', 'master\message\MessageTemplateController@messageTypeAdd');
@@ -221,14 +216,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
    
    
 
-//GatePassController
-    
-    
-    
-    Route::match(['get','post'],'search_gate_pass', 'master\GatePassController@searchGetpassStudent');
-    Route::match(['get','post'],'getpass_add_click', 'master\GatePassController@getpass_add_click');
-    Route::match(['get','post'],'gate_pass_print/{id}', 'master\GatePassController@gatePassPrint');
-    Route::match(['get','post'],'gate_pass_otp', 'master\GatePassController@gate_pass_otp');
 
 //SubjectController
     

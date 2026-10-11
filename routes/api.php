@@ -49,7 +49,6 @@ Route::match(['get', 'post'], 'schoolDeskView', 'Api\ProfileController@schoolDes
 Route::match(['get', 'post'], 'schoolPrayer', 'Api\ProfileController@schoolPrayer');
 Route::match(['get', 'post'], 'schoolRules', 'Api\ProfileController@schoolRules');
 Route::match(['get', 'post'], 'schoolGallery', 'Api\ProfileController@schoolGallery');
-Route::match(['get', 'post'], 'gatePassView', 'Api\ProfileController@gatePassView');
 Route::match(['get', 'post'], 'noticeBoard', 'Api\ProfileController@noticeBoard');
 Route::match(['get', 'post'], 'complainBox', 'Api\ProfileController@complainBox');
 Route::match(['get', 'post'], 'addComplain', 'Api\ProfileController@addComplain');

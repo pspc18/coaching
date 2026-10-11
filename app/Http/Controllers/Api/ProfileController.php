@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Models\WebUser;
 use App\Models\User;
-use App\Models\Master\GatePass;
 use App\Models\ManagedNotice;
 use App\Models\Admission;
 use App\Models\StudentAttendance;
@@ -310,18 +309,6 @@ public function addLeave(Request $request){
         } catch (Exception $e) {
             return $this->sendError('Validation Error.', 'Error');
         }
-    }
-     public function gatePassView(Request $request){
-         $admission_id= $request->admission_id;
-        $data = GatePass::where('admissionNo',$admission_id)->get();
-          if(!empty($data))
-            {
-              return response()->json(['status' => true, 'message' => 'Success','data'=>$data], 200);
-            }
-            else
-            {
-                 return response()->json(['status' => false, 'message' => 'Error','data'=>[]], 200);
-            } 
     }
      public function complainBox(Request $request){
          $admission_id= $request->admission_id;

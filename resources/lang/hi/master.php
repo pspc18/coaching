@@ -13,7 +13,6 @@ return [
 'Prayer' => 'प्रार्थना',
 'Uniform' => 'वर्दी',
 'Rule' => 'नियम',
-'Gate Pass' => 'गेट पास',
 'School Desk' => 'स्कूल डेस्क',
 'Books/Uniform' => 'पुस्तकें/वर्दी',
 'Time Periods' => 'समय अवधि',
@@ -172,10 +171,6 @@ return [
 'View Rule' => 'नियम देखें',
 'Description' => 'विवरण',
 
-//For "Gate Pass":
-
-'Gate Pass Add' => 'गेट पास जोड़ें',
-'View Gate Pass' => 'गेट पास देखें',
 'Student Name' => 'छात्र का नाम',
 'OTP Send' => 'OTP भेजें',
 'OTP' => 'OTP',

@@ -560,7 +560,6 @@ class AuthController extends Controller
             DB::table('fill_min_max_marks')->truncate();
             DB::table('food_menu_lists')->truncate();
             DB::table('gallery')->truncate();
-            DB::table('gate_passes')->truncate();
             DB::table('heads')->truncate();
             DB::table('holidays')->truncate();
             DB::table('homeworks')->truncate();

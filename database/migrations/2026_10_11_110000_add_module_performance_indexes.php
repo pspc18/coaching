@@ -132,7 +132,6 @@ class AddModulePerformanceIndexes extends Migration
         $this->addIndexIfNotExists('users', ['branch_id', 'session_id'], 'idx_users_branch_session');
         $this->addIndexIfNotExists('role_permissions', ['role_id', 'sidebar_id'], 'idx_role_perm_role_sidebar');
         $this->addIndexIfNotExists('teacher_subjects', ['teacher_id', 'class_type_id', 'subject_id'], 'idx_teacher_subj_lookup');
-        $this->addIndexIfNotExists('gate_passes', ['branch_id', 'session_id'], 'idx_gate_passes_branch_session');
 
         // 7. Reception & Visitors
         $this->addIndexIfNotExists('enquirys', ['branch_id', 'session_id', 'enquiry_status'], 'idx_enquirys_branch_session');
@@ -203,7 +202,6 @@ class AddModulePerformanceIndexes extends Migration
         $this->dropIndexIfExists('users', 'idx_users_branch_session');
         $this->dropIndexIfExists('role_permissions', 'idx_role_perm_role_sidebar');
         $this->dropIndexIfExists('teacher_subjects', 'idx_teacher_subj_lookup');
-        $this->dropIndexIfExists('gate_passes', 'idx_gate_passes_branch_session');
 
         $this->dropIndexIfExists('enquirys', 'idx_enquirys_branch_session');
         $this->dropIndexIfExists('enquirys', 'idx_enquirys_mobile');

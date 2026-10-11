@@ -15,7 +15,6 @@ return [
      'Prayer' => 'Prayer', 
      'Uniform' => 'Uniform', 
      'Rule' => 'Rule', 
-     'Gate Pass' => 'Gate Pass', 
      'School Desk' => 'School Desk', 
      'Books/Uniform' => 'Books/Uniform',
      'Time Periods' => 'Time Periods', 
@@ -166,9 +165,6 @@ return [
     'Description' => 'Description',
     
     
- //Gate Pass   
-    'Gate Pass Add' =>'Gate Pass Add', 
-    'View Gate Pass' => 'View Gate Pass',
     'Student Name' => 'Student Name',
     'OTP Send' =>'OTP Send', 
     'OTP' =>'OTP', 

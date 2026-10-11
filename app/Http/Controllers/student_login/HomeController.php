@@ -5,7 +5,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\Admission;
 use App\Models\Master\TeacherSubject;
-use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
 use Session;
 use Hash;
@@ -18,21 +17,6 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-            
-            public function gatePassView(){
-                $admissionNo = Admission::where('session_id', Session::get('session_id'))->where('id', Session::get('id'));
-                $count = $admissionNo->count();
-                $data = "";
-                if ($count > 0) {
-                    $admissionNo = $admissionNo->first();
-                    $data = GatePass::where('admissionNo', $admissionNo->id)->get();
-                }
-                return view('student_login.gate_pass', ['data' => $data]);
-            }
-            
-            
-            
-            
     public function my_id_card(Request $request)
     {
         $student = Admission::select('admissions.*', 'class_types.name as class_name')
