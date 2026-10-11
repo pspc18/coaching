@@ -16,43 +16,6 @@
    ARISE ERP - NATIVE STUDENT ATTENDANCE CALENDAR (SHARP CARDS + NAVY THEME)
    ========================================================================== */
 
-/* 1. Page Sub-Header Strip */
-.native-page-nav-strip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 0 2px;
-}
-.page-back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #0284c7;
-    text-decoration: none !important;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 4px 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-.page-back-link:active {
-    background: #f1f5f9;
-}
-.page-tag-badge {
-    font-size: 9.5px;
-    font-weight: 700;
-    color: #64748b;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 4px 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
 
 /* 2. Top Hero Card - Attendance Snapshot */
 .native-hero-card {
@@ -503,15 +466,6 @@
 }
 </style>
 
-{{-- Sub-Header Navigation Strip --}}
-<div class="native-page-nav-strip">
-    <a href="{{ url('dashboard') }}" class="page-back-link">
-        <i class="fa fa-arrow-left"></i> Dashboard
-    </a>
-    <span class="page-tag-badge">
-        <i class="fa fa-graduation-cap text-primary"></i> {{ $className }}
-    </span>
-</div>
 
 {{-- 1. Top Hero Snapshot Card --}}
 <div class="native-hero-card">
