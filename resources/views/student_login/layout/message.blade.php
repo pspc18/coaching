@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded',function(){
     @if(Session::has('message'))
         StudentModal.open({type:'success',title:'Success',message:@json(session('message')),timer:2000,showConfirm:false});
     @elseif(Session::has('error'))
-        StudentModal.open({type:'error',title:'Unable to continue',message:@json(session('error'))});
+        StudentModal.open({type:'error',title:@json(str_contains(session('error') ?? '', 'File not found') ? 'File Not Available' : 'Unable to continue'),message:@json(session('error'))});
     @elseif(Session::has('warning'))
         StudentModal.open({type:'warning',title:'Please check',message:@json(session('warning'))});
     @elseif(Session::has('info'))

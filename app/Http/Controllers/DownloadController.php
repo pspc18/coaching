@@ -227,24 +227,39 @@ class DownloadController extends Controller
             //     }
 
 
-      public function download($id)
-{
-    $file = DownloadCenter::find($id);
+    public function download($id)
+    {
+        $file = DownloadCenter::find($id);
 
-    if (!$file || empty($file->content_file)) {
-        return back()->with('error', 'File not found.');
+        if (!$file || empty($file->content_file)) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'File not found on server.'], 404);
+            }
+            return back()->with('error', 'File not found on server.');
+        }
+
+        $possiblePaths = [
+            env('IMAGE_UPLOAD_PATH') . 'download_center/' . $file->content_file,
+            base_path('schoolimage/download_center/' . $file->content_file),
+            base_path('schoolimage-1/download_center/' . $file->content_file),
+            public_path('schoolimage/download_center/' . $file->content_file),
+            public_path('schoolimage-1/download_center/' . $file->content_file),
+            base_path('public/schoolimage/download_center/' . $file->content_file),
+            base_path('public/schoolimage-1/download_center/' . $file->content_file),
+            storage_path('app/public/download_center/' . $file->content_file),
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if (!empty($path) && file_exists($path)) {
+                return response()->download($path, basename($file->content_file));
+            }
+        }
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['status' => 'error', 'message' => 'File not found on server.'], 404);
+        }
+
+        return back()->with('error', 'File not found on server.');
     }
-
-    $filePath = env('IMAGE_UPLOAD_PATH').'download_center/'.$file->content_file;
-    $fallbackPath = base_path('schoolimage/download_center/'.$file->content_file);
-
-    if (file_exists($filePath)) {
-        return response()->download($filePath, basename($file->content_file));
-    } elseif (file_exists($fallbackPath)) {
-        return response()->download($fallbackPath, basename($file->content_file));
-    }
-
-    return back()->with('error', 'File not found on server.');
-}
 
 }    

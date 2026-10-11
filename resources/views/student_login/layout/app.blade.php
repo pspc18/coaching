@@ -281,6 +281,7 @@
     </div>
 </div>
 
+@include('student_login.layout.student_modal')
 @include('student_login.layout.message')
 
 <script>

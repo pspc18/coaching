@@ -622,18 +622,7 @@
 <div class="container-fluid px-2 py-1">
 
     {{-- Session Flash Alerts --}}
-    @if(session('message'))
-        <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-2" role="alert" style="font-size: 11.5px; border-radius: 4px;">
-            <i class="fa fa-check-circle me-1"></i> {{ session('message') }}
-            <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2" role="alert" style="font-size: 11.5px; border-radius: 4px;">
-            <i class="fa fa-exclamation-triangle me-1"></i> {{ session('error') }}
-            <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+
 
     {{-- 1. Signature Glassmorphic Navy Hero Card --}}
     <div class="mob-hero-card">
@@ -1116,6 +1105,82 @@ $(document).ready(function() {
 
         openSheet('videoPlayerModalSheet');
     };
+
+    // =========================================================================
+    // 6. Seamless File Download Handler with Modal Error Display
+    // =========================================================================
+    $(document).on('click', '.btn-file-download', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const downloadUrl = btn.attr('href');
+        if (!downloadUrl || downloadUrl === '#' || downloadUrl === 'javascript:void(0);') return;
+
+        const originalHtml = btn.html();
+        btn.css('pointer-events', 'none').html('<i class="fa fa-spinner fa-spin"></i> Downloading...');
+
+        fetch(downloadUrl, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, text/plain, */*'
+            }
+        })
+        .then(async response => {
+            btn.css('pointer-events', '').html(originalHtml);
+            const contentType = response.headers.get('content-type') || '';
+
+            if (!response.ok || contentType.includes('application/json')) {
+                let errorMsg = 'File not found on server.';
+                try {
+                    const data = await response.json();
+                    if (data && data.message) errorMsg = data.message;
+                } catch (err) {}
+
+                if (window.StudentModal && typeof window.StudentModal.open === 'function') {
+                    StudentModal.open({
+                        type: 'error',
+                        title: 'File Not Available',
+                        message: errorMsg
+                    });
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+
+            // Download file payload
+            const blob = await response.blob();
+            const disposition = response.headers.get('content-disposition') || '';
+            let filename = 'downloaded_file';
+            const filenameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+                filename = filenameMatch[1].replace(/['"]/g, '').trim();
+            }
+            const blobUrl = window.URL.createObjectURL(blob);
+            const tempLink = document.createElement('a');
+            tempLink.style.display = 'none';
+            tempLink.href = blobUrl;
+            tempLink.download = filename;
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            setTimeout(function() {
+                window.URL.revokeObjectURL(blobUrl);
+                tempLink.remove();
+            }, 800);
+        })
+        .catch(function(err) {
+            btn.css('pointer-events', '').html(originalHtml);
+            if (window.StudentModal && typeof window.StudentModal.open === 'function') {
+                StudentModal.open({
+                    type: 'error',
+                    title: 'File Not Available',
+                    message: 'File not found on server.'
+                });
+            } else {
+                alert('File not found on server.');
+            }
+        });
+    });
 
 });
 </script>
