@@ -246,29 +246,39 @@
 }
 
 /* Pay Fees Button inside Due Fees Box */
+.hero-due-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 2px 0 1px;
+}
+.hero-due-row .hero-radar-val {
+    margin: 0;
+}
 .hero-due-pay-btn {
     position: relative;
     overflow: hidden;
-    margin-top: 6px;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff !important;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    padding: 5px 8px;
+    padding: 3px 8px;
     border-radius: 4px;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
     text-decoration: none !important;
     line-height: 1.2;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 1px 6px rgba(16, 185, 129, 0.35);
     animation: payBtnPulse 2.2s infinite ease-in-out;
     transition: transform .12s ease;
 }
 .hero-due-pay-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 .hero-due-pay-btn::after {
     content: '';
@@ -743,15 +753,17 @@
             <span class="hero-radar-tag">
                 <i class="fa fa-inr text-warning"></i> Due Fees
             </span>
-            <div class="hero-radar-val" style="color: {{ $pendingFees > 0 ? '#f43f5e' : '#10b981' }};">
-                ₹ {{ number_format($pendingFees, 0) }}
+            <div class="hero-due-row">
+                <div class="hero-radar-val" style="color: {{ $pendingFees > 0 ? '#f43f5e' : '#10b981' }};">
+                    ₹ {{ number_format($pendingFees, 0) }}
+                </div>
+                @if($pendingFees > 0)
+                    <a href="{{ url('fees_history') }}" class="hero-due-pay-btn">
+                        Pay Now
+                    </a>
+                @endif
             </div>
             <span class="hero-radar-meta">{{ $feePercent }}% Paid &bull; ₹ {{ number_format($collectedFees, 0) }}</span>
-            @if($pendingFees > 0)
-                <a href="{{ url('fees_history') }}" class="hero-due-pay-btn">
-                    <i class="fa fa-inr"></i> Pay Fees
-                </a>
-            @endif
         </div>
     </div>
 </div>
