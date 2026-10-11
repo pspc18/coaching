@@ -13,6 +13,7 @@ Route::group(['middleware' => 'islogin'], function () {
         ->where('invoice', '[0-9]+')
         ->name('student.fees.receipt.download');
     Route::match(['get','post'],'student_homework','student_login\HomeworkController@view'); 
+    Route::match(['get','post'],'upload_homework_student','student_login\HomeworkController@uploadHomework')->name('student.homework.upload');
     Route::match(['get','post'],'homework/details_student/{id}','student_login\HomeworkController@homeworkDetails');
     Route::match(['get','post'],'particular/hw/details_student','student_login\HomeworkController@particularHomeworkDetails');
     Route::match(['get','post'],'student_subject_view', 'student_login\HomeController@subjectView');

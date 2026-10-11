@@ -447,16 +447,26 @@ class HomeworkController extends Controller
             }
             public function downloadHomework(Request $request,$id){
                 $upload_list = Homework::find($id);
-                if(File::exists(env('IMAGE_UPLOAD_PATH').'homework/'.$upload_list->content_file)){
-                    $image = 'schoolimage/homework/'.$upload_list['content_file'];
-                    return Response::download($image);               
-                }else{
-                    return redirect::to('assignments')->with('error', 'No File Found.');
+                if($upload_list && !empty($upload_list->content_file)){
+                    $primaryPath = env('IMAGE_UPLOAD_PATH') . 'homework/' . $upload_list->content_file;
+                    $fallbackPath = base_path('schoolimage/homework/' . $upload_list->content_file);
+                    if(File::exists($primaryPath)){
+                        return Response::download($primaryPath);
+                    } elseif(File::exists($fallbackPath)){
+                        return Response::download($fallbackPath);
+                    }
                 }
+                return redirect()->back()->with('error', 'Attachment file not found on server.');
             }    
             public function downloadAssignment(Request $request,$img_name){
-                $image = 'schoolimage/uploadHomework/'.$img_name; 
-                return Response::download($image);
+                $primaryPath = env('IMAGE_UPLOAD_PATH') . 'uploadHomework/' . $img_name;
+                $fallbackPath = base_path('schoolimage/uploadHomework/' . $img_name);
+                if(File::exists($primaryPath)){
+                    return Response::download($primaryPath);
+                } elseif(File::exists($fallbackPath)){
+                    return Response::download($fallbackPath);
+                }
+                return redirect()->back()->with('error', 'Assignment file not found on server.');
             } 
     
             public function delete(Request $request){
