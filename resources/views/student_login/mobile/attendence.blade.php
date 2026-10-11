@@ -638,13 +638,6 @@
     </div>
 </div>
 
-{{-- 5. Quick Apply Leave Action Card --}}
-<div style="margin-top: 4px; margin-bottom: 12px;">
-    <a href="{{ url('applyLeaveStudent') }}" class="btn btn-primary" style="width: 100%; gap: 8px; font-size: 11.5px; padding: 9px 12px;">
-        <i class="fa fa-calendar-minus-o"></i> Apply for Student Leave &rarr;
-    </a>
-</div>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const endpoint = @json(url('getAttendanceDatesStudent'));

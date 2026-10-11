@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Admission;
 use App\Models\AttendanceMark;
 use App\Models\AttendanceSetting;
-use App\Models\Master\LeaveManagement;
 use App\Models\Master\Weekendcalendar;
 use App\Models\User;
 use App\Models\UserAttendanceMarkingWindow;
@@ -177,83 +176,11 @@ class SelfAttendanceController extends Controller
         $selectedDate = $request->date ?? date('Y-m-d');
 
         if ($request->isMethod('post')) {
-            if ((int) $request->input('leave_mode', 0) === 1) {
-                $request->validate([
-                    'from_date' => 'required|date',
-                    'to_date' => 'required|date|after_or_equal:from_date',
-                    'reason' => 'nullable|string|max:1000',
-                ]);
-
-                if (!$uniqueId || !$entityModelId) {
-                    return response()->json(['ok' => false, 'message' => 'User not found.'], 422);
-                }
-
-                $fromDate = Carbon::parse($request->from_date)->startOfDay();
-                $toDate = Carbon::parse($request->to_date)->startOfDay();
-                $reason = trim((string) $request->reason);
-
-                if (!$canBackDateMarking && $fromDate->toDateString() < date('Y-m-d')) {
-                    return response()->json(['ok' => false, 'message' => 'Back date leave request is not allowed.'], 422);
-                }
-
-                $leave = new LeaveManagement();
-                $leave->session_id = $sessionId;
-                $leave->branch_id = $branchId;
-                $leave->user_id = $entityModelId;
-                $leave->user_type = $leaveUserType;
-                $leave->attendance_unique_id = (string) $uniqueId;
-                $leave->admission_id = null;
-                $leave->class_type_id = null;
-                $leave->subject = 'Self Attendance Leave';
-                $leave->from_date = $fromDate->toDateString();
-                $leave->to_date = $toDate->toDateString();
-                $leave->reason = $reason;
-                $leave->status = '2';
-                $leave->save();
-
+            if ((int) $request->input('leave_mode', 0) === 1 || (int) $request->input('leave_action_mode', 0) === 1) {
                 if ($request->ajax()) {
-                    return response()->json([
-                        'ok' => true,
-                        'message' => 'Leave request submitted for approval.',
-                    ]);
+                    return response()->json(['ok' => false, 'message' => 'Leave management is not supported.'], 422);
                 }
-
-                return redirect()->to(url('attendance/self?month=' . $month . '&year=' . $year))->with('message', 'Leave request submitted for approval.');
-            }
-
-            if ((int) $request->input('leave_action_mode', 0) === 1) {
-                $request->validate([
-                    'leave_id' => 'required|integer',
-                    'action' => 'required|in:cancel,delete',
-                ]);
-
-                $leave = LeaveManagement::where('id', (int) $request->leave_id)
-                    ->where('branch_id', $branchId)
-                    ->where('session_id', $sessionId)
-                    ->where('user_type', $leaveUserType)
-                    ->where('attendance_unique_id', (string) $uniqueId)
-                    ->first();
-
-                if (!$leave) {
-                    return response()->json(['ok' => false, 'message' => 'Leave request not found.'], 404);
-                }
-
-                if ((string) $leave->status === '1') {
-                    return response()->json(['ok' => false, 'message' => 'Approved leave cannot be cancelled or deleted by user.'], 422);
-                }
-
-                if ($request->action === 'cancel') {
-                    $leave->status = '3';
-                    $leave->save();
-                    $this->clearLeaveMarks((string) $uniqueId, $branchId, $sessionId, (string) $leave->from_date, (string) $leave->to_date);
-
-                    return response()->json(['ok' => true, 'message' => 'Leave cancelled successfully.']);
-                }
-
-                $this->clearLeaveMarks((string) $uniqueId, $branchId, $sessionId, (string) $leave->from_date, (string) $leave->to_date);
-                $leave->delete();
-
-                return response()->json(['ok' => true, 'message' => 'Leave deleted successfully.']);
+                return redirect()->back()->with('error', 'Leave management is not supported.');
             }
 
             if ($entityType === 'staff') {
@@ -363,18 +290,7 @@ class SelfAttendanceController extends Controller
 
         $calendarStatusByDate = $this->calendarStatusMap($branchId, $sessionId, $startDate, $endDate);
 
-        $leaveRequests = LeaveManagement::where('branch_id', $branchId)
-            ->where('session_id', $sessionId)
-            ->where('user_type', $leaveUserType)
-            ->where('attendance_unique_id', (string) $uniqueId)
-            ->orderByDesc('id')
-            ->get()
-            ->map(function ($row) {
-                $meta = $this->leaveStatusMeta($row->status);
-                $row->status_label = $meta['label'];
-                $row->status_class = $meta['class'];
-                return $row;
-            });
+        $leaveRequests = collect([]);
 
         $leaveCalendarByDate = [];
         foreach ($leaveRequests as $leaveRow) {

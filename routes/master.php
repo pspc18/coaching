@@ -291,12 +291,6 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
    
 
 
-
-//Student Leave 
-    Route::match(['get','post'],'leave_management', 'student_login\StuLeaveController@leaveManagement');
-    Route::match(['get','post'],'leaveAdd', 'student_login\StuLeaveController@leaveAdd');
-    Route::match(['get','post'],'leave_delete', 'student_login\StuLeaveController@leaveDelete');
-    Route::match(['get','post'],'leaveUpdate/{id}', 'student_login\StuLeaveController@leaveEdit');
  
 // //Fees Controller
 // Route::match(['get', 'post'], 'fees_history', 'student_login\FeesController@feesHistory');

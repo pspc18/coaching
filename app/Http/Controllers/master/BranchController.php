@@ -128,7 +128,6 @@ class BranchController extends Controller
         HomeworkDocuments::where('branch_id',$request->delete_id)->delete();
         HomeworkReview::where('branch_id',$request->delete_id)->delete();
         HourlyHomework::where('branch_id',$request->delete_id)->delete();
-        LeaveManagement::where('branch_id',$request->delete_id)->delete();
         Penalty::where('branch_id',$request->delete_id)->delete();
         RecycleBin::where('branch_id',$request->delete_id)->delete();
         RegistrationTerms::where('branch_id',$request->delete_id)->delete();

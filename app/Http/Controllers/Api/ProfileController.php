@@ -14,7 +14,6 @@ use App\Models\Expense;
 use App\Models\FeesDetail;
 use App\Models\Setting;
 use App\Models\SupportComplaint;
-use App\Models\Master\LeaveManagement;
 use Illuminate\Support\Facades\Auth;
 use Validator;
 use Hash;
@@ -236,37 +235,8 @@ public function addComplain(Request $request){
      }
     }  
 public function addLeave(Request $request){
-    $admission_id  = $request->admission_id;
-    $subject  = $request->subject;
-    $class_type_id = $request->class_type_id;
-    $message  = $request->message;
-    $from_date = $request->from_date;
-    $to_date  = $request->to_date;
-     if($request->isMethod('post')){
-         
-         $add = new LeaveManagement();
-         $add->reason =$message; 
-         $add->subject = $subject;
-        // $add->class_type_id= $class_type_id;
-         $add->admission_id = $admission_id;
-         $add->from_date = $from_date;
-         $add->to_date = $to_date;
-         $add->status = 2;
-         $add->save();
-          if(!empty($add))
-            {
-              return response()->json(['status' => true, 'message' => 'Success'], 200);
-            }
-            else
-            {
-                 return response()->json(['status' => false, 'message' => 'Error'], 200);
-            }
-         
-         
-     }
-     
-         
-    }  
+    return response()->json(['status' => false, 'message' => 'Leave management is not supported'], 400);
+}  
     
     
     public function profileEdit(Request $request){
@@ -377,15 +347,7 @@ public function addLeave(Request $request){
             } 
     }
      public function leaveBox(Request $request){
-         $admission_id= $request->admission_id;
-        $data = LeaveManagement::where('admission_id',$admission_id)->orderBy('id','DESC')->get();
-          if(!empty($data))
-            {
-              return response()->json(['status' => true, 'message' => 'Success','data'=>$data], 200);
-            }
-            else
-            {
-                 return response()->json(['status' => false, 'message' => 'Error','data'=>[]], 200);
-            } 
+        return response()->json(['status' => true, 'message' => 'Success', 'data' => []], 200);
     }
+}
 }

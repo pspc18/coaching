@@ -18,7 +18,6 @@
         ['name' => 'Notices & Alerts', 'url' => 'student-notices', 'icon' => 'fa-bullhorn', 'color' => '#f59e0b'],
         ['name' => 'Download Center', 'url' => 'student_download_center', 'icon' => 'fa-download', 'color' => '#eab308'],
         ['name' => 'Complaints / Support', 'url' => 'student-complaints', 'icon' => 'fa-comments-o', 'color' => '#64748b'],
-        ['name' => 'Apply Leave', 'url' => 'applyLeaveStudent', 'icon' => 'fa-calendar-minus-o', 'color' => '#f43f5e'],
         ['name' => 'My Teachers', 'url' => 'my_teachers', 'icon' => 'fa-users', 'color' => '#0284c7'],
         ['name' => 'Subjects', 'url' => 'student_subject_view', 'icon' => 'fa-list-alt', 'color' => '#8b5cf6'],
         ['name' => 'Rules & Guidelines', 'url' => 'rule_view', 'icon' => 'fa-shield', 'color' => '#10b981'],

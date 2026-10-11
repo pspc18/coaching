@@ -826,13 +826,13 @@
 
 {{-- 3. Dual Symmetrical Radar Shortcuts Row --}}
 <div class="native-radar-row">
-    <a href="{{ url('applyLeaveStudent') }}" class="native-radar-box">
+    <a href="{{ url('AttendanceView_student') }}" class="native-radar-box">
         <div class="radar-box-header">
-            <span class="radar-box-tag">Leave Desk</span>
-            <div class="radar-icon-dot" style="background:#fee2e2;color:#dc2626;"><i class="fa fa-calendar-minus-o"></i></div>
+            <span class="radar-box-tag">Attendance</span>
+            <div class="radar-icon-dot" style="background:#dcfce7;color:#16a34a;"><i class="fa fa-calendar-check-o"></i></div>
         </div>
-        <div class="radar-box-number" style="color:#dc2626;">{{ $monthLeaveCount }} <span style="font-size:11.5px;font-weight:700;color:#94a3b8;">Days</span></div>
-        <div class="radar-box-sub">Apply Student Leave</div>
+        <div class="radar-box-number" style="color:#16a34a;">{{ $monthPresentCount }} <span style="font-size:11.5px;font-weight:700;color:#94a3b8;">Days</span></div>
+        <div class="radar-box-sub">Attendance Overview</div>
     </a>
 
     <a href="{{ url('my_id_card') }}" class="native-radar-box">

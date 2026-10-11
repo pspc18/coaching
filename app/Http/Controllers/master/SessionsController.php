@@ -32,7 +32,6 @@ use App\Models\Master\Homework;
 use App\Models\Master\HomeworkDocuments;
 use App\Models\Master\HomeworkReview;
 use App\Models\Master\HourlyHomework;
-use App\Models\Master\LeaveManagement;
 use App\Models\Master\MessageTemplate;
 use App\Models\Master\MessageType;
 use App\Models\Master\Penalty;
@@ -279,7 +278,6 @@ class SessionsController extends Controller
             HomeworkDocuments::where('session_id', $deleteId)->delete();
             HomeworkReview::where('session_id', $deleteId)->delete();
             HourlyHomework::where('session_id', $deleteId)->delete();
-            LeaveManagement::where('session_id', $deleteId)->delete();
             Penalty::where('session_id', $deleteId)->delete();
             RecycleBin::where('session_id', $deleteId)->delete();
             RegistrationTerms::where('session_id', $deleteId)->delete();
