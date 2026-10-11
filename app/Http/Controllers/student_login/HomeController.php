@@ -5,7 +5,6 @@ use Illuminate\Validation\Validator;
 use App\Models\User;
 use App\Models\Master\Rule;
 use App\Models\Admission;
-use App\Models\Teacher;
 use App\Models\Master\TeacherSubject;
 use App\Models\Master\GatePass;
 use App\Models\IdCardTemplate;
@@ -24,48 +23,12 @@ class HomeController extends Controller
 {
            
             public function myteachers(Request $request){
-               
-                $branch = Session::all();
-               
-               
-           
-                $data = Teacher::select('teachers.*','doc.photo')
-                ->leftJoin('teacher_documents as doc','doc.teacher_id','teachers.id')
-                 ->leftJoin('users as user','user.teacher_id','teachers.id')
-                // ->where('teachers.class_type_id',Session::get('class_type_id'))
-                ->whereNotNull('teachers.class_type_id')
-                ->where('user.status',1);
-         
-            $data = $data->where('teachers.branch_id', Session::get('branch_id'));
-            // if (!empty(Session::get('admin_branch_id'))) {
-                //$data = $data->where('branch_id', Session::get('branch_id'));
-            //}
-         
-                 $tea = DB::table('teacher_subjects')
-                ->select('teacher_subjects.teacher_id')
-                ->leftJoin('teachers as teacher', 'teacher.id', '=', 'teacher_subjects.teacher_id')
-                ->leftJoin('users as user', 'user.teacher_id', '=', 'teacher.id')
-                ->where('teacher_subjects.branch_id', session('branch_id'))
-                ->where('teacher_subjects.class_type_id', session('class_type_id'))
-                ->where('user.status', 1)
-                ->whereNull('teacher_subjects.deleted_at')
-                ->groupBy('teacher_subjects.teacher_id')
-                ->pluck('teacher_id');
-                $explode = [];
-                    if ($tea->isNotEmpty()) {
-                        $explode = $tea->toArray(); 
-                    }
-                    if (!empty($explode)) {
-                        $data = $data->whereIn('teachers.id', $explode);
-                    }
-                
-                $data = $data->orderBy('teachers.id', 'DESC')->get();
-                return view('student_login.my_teachers', ['data' => $data]);
+                return view('student_login.my_teachers', ['data' => collect([])]);
             }
             
              public function timetableView(){
-                $data = TeacherSubject::select('teacher_subjects.*', 'subject.name as subjectName', 'teachers.first_name', 'teachers.last_name', 'class_types.name as className', 'time_periods.from_time', 'time_periods.to_time')
-                    ->leftjoin('teachers', 'teachers.id', 'teacher_subjects.teacher_id')
+                $data = TeacherSubject::select('teacher_subjects.*', 'subject.name as subjectName', 'users.first_name', 'users.last_name', 'class_types.name as className', 'time_periods.from_time', 'time_periods.to_time')
+                    ->leftjoin('users', 'users.id', 'teacher_subjects.user_id')
                     ->leftjoin('class_types', 'class_types.id', 'teacher_subjects.class_type_id')
                     ->leftjoin('time_periods', 'time_periods.id', 'teacher_subjects.time_period_id')
                     ->leftjoin('subject', 'subject.id', 'teacher_subjects.subject_id')

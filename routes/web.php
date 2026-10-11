@@ -105,20 +105,7 @@ Route::delete('user-notifications/clear-all', 'UserNotificationController@clearA
 
 
 
-//Staff
-Route::get('staff_file', 'StaffController@staffFile');
-Route::match(['get', 'post'], 'teachers/add', 'StaffController@add');
-Route::match(['get', 'post'], 'imageDeletestaff', 'StaffController@deleteImage');
-Route::match(['get', 'post'], 'teachers/index', 'StaffController@index');
-Route::get('joining_letter_print/{id}', 'StaffController@joiningLater');
-Route::get('teachers_idCard/{id}', 'StaffController@teachersidCard');
-Route::match(['get', 'post'], 'teachers/edit/{id}', 'StaffController@edit');
-Route::match(['get', 'post'], 'delete_staff', 'StaffController@delete');
-Route::match(['get', 'post'], 'teacher/image', 'StaffController@teacherUpdateImg');
-Route::match(['get', 'post'], 'staff_attendance_add', 'StaffAttendanceController@add');
-Route::match(['get', 'post'], 'staff/Attendance/view', 'StaffAttendanceController@view');
-Route::match(['get', 'post'], 'drop_index', 'StaffController@Dropindex');
-Route::match(['get', 'post'], 'getDataClassSubject', 'StaffController@getDataClassSubject');
+
 
 //Reception
 Route::match(['get', 'post'], 'reception_file', 'ReceptionController@receptionfile');
@@ -630,30 +617,7 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	
 
 
-	//staff
-		Route::match(['get', 'post'], 'checkClassTeacher', 'StaffController@checkClassTeacher');
-		Route::match(['get', 'post'], 'removeClassTeacher', 'StaffController@removeClassTeacher');
-	
 
-	Route::get('drop_teacher_letter/{id}', 'StaffController@dropTeacherPrint');
-
-	Route::get('attendance_panel', 'StaffController@attendancePanel');
-	Route::get('fill_attendance', 'StaffController@fillAttendance');
-	
-
-	
-	
-	
-	
-
-
-	
-	Route::match(['get', 'post'], 'SearchValueStaffAtten', 'StaffAttendanceController@searchValueStaffAtten');
-	Route::match(['get', 'post'], 'staff_attendance_save', 'StaffAttendanceController@staff_attendance_save');
-
-	Route::match(['get', 'post'], 'autoStaffAttendance', 'StaffAttendanceController@autoStaffAttendance');
-	
-	Route::post('Staff_categiry_data/{id}', 'StaffAttendanceController@StaffCategiryData');
 
 
 	//Settings

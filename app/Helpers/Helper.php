@@ -12,7 +12,6 @@ use App\Models\fees\FeesCounter;
 use App\Models\User;
 use App\Models\SidebarSub;
 use App\Models\FailedMessages;
-use App\Models\Teacher;
 use App\Models\Admission;
 use App\Models\exam\digital\ChapterDigital;
 use App\Models\exam\digital\ExamResultDigital;
@@ -26,7 +25,6 @@ use App\Models\TotalDays;
 use App\Models\WhatsappApiResponse;
 use App\Models\StudentAttendance;
 use App\Models\Master\TeacherSubject; 
-use App\Models\TeacherAttendance;
 use App\Models\Month;
 use App\Models\FeesReminder;
 use App\Models\Master\SubjectStreams; 
@@ -53,7 +51,6 @@ use App\Models\FeesAssign;
 use App\Models\FeesCollect;
 use App\Models\OnlinePaymentTransaction;
 use App\Models\AdmitCardNote;
-use App\Models\TeacherDocuments;
 use App\Models\UserPermission;
 use App\Models\AttendanceStatus;
 use App\Models\Master\Branch;
@@ -823,7 +820,7 @@ class Helper{
         {
             
             
-            $checkClassTeacher = Teacher::where('id',Session::get('teacher_id'))->first('class_type_id');
+            $checkClassTeacher = null;
          
             $classes = TeacherSubject::where('teacher_id',Session::get('teacher_id'))->groupBy('class_type_id')->get();
              $att = array();
@@ -1303,49 +1300,26 @@ protected static function activeStudentAttendanceIndex(): array
         return $att;
    } 
     public static function chartAttendanceTeachers(){
-        $att = array();
-      
-		 
-        $att['Present'] = $data=TeacherAttendance::where('date',date('Y-m-d'))->where('session_id',Session::get('session_id'))
-		 ->where('branch_id',Session::get('branch_id'))->where('attendance_status_id',1)->count();
-        $att['Absent'] = $data=TeacherAttendance::where('date',date('Y-m-d'))->where('session_id',Session::get('session_id'))
-		 ->where('branch_id',Session::get('branch_id'))->where('attendance_status_id',2)->count();
-        $att['Work_From_Home'] = $data=TeacherAttendance::where('date',date('Y-m-d'))->where('session_id',Session::get('session_id'))
-		 ->where('branch_id',Session::get('branch_id'))->where('attendance_status_id',3)->count();
-        $att['Half_Day'] = $data=TeacherAttendance::where('date',date('Y-m-d'))->where('session_id',Session::get('session_id'))
-		 ->where('branch_id',Session::get('branch_id'))->where('attendance_status_id',4)->count();
-        $att['Holiday'] = $data=TeacherAttendance::where('date',date('Y-m-d'))->where('session_id',Session::get('session_id'))
-		 ->where('branch_id',Session::get('branch_id'))->where('attendance_status_id',5)->count();
-        return $att;
-   } 
-
-
- 
+        return [
+            'Present' => 0,
+            'Absent' => 0,
+            'Work_From_Home' => 0,
+            'Half_Day' => 0,
+            'Holiday' => 0,
+        ];
+    } 
 
     public static function staffAtten($id,$monthId){
-        
-       
-        
-        $month = $monthId;
-        $year = date("Y");
-        $sundays=0;
-        if(!empty($monthId)){
-            $total_days=date('t', mktime(0, 0, 0, $month, 1, $year));
-            for($i=1;$i<=$total_days;$i++)
-            if(date('N',strtotime($year.'-'.$month.'-'.$i))==7)
-            $sundays++;             
-        }
-       
-       $staffAtten['P'] = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',1)->groupBy('date')->get()->count();
-       $staffAtten['A'] = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',3)->count();
-       $staffAtten['W'] = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',8)->groupBy('date')->get()->count();
-       $staffAtten['HF'] = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',4)->groupBy('date')->get()->count();
-       $staffAtten['H'] = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',5)->groupBy('date')->get()->count();
-       $recode = TeacherAttendance::where('staff_id',$id)->whereMonth('date',$monthId)->where('current_attendance_status_id',7)->groupBy('date')->get()->count();
-       $staffAtten['d'] = $recode*2;
-       $staffAtten['TotalDay'] = Carbon::now()->month($monthId)->daysInMonth; // 28
-       $staffAtten['Sunday'] = $sundays; // 28
-       return $staffAtten;
+        return [
+            'P' => 0,
+            'A' => 0,
+            'W' => 0,
+            'HF' => 0,
+            'H' => 0,
+            'd' => 0,
+            'TotalDay' => !empty($monthId) ? Carbon::now()->month($monthId)->daysInMonth : 0,
+            'Sunday' => 0,
+        ];
     } 
 
 
@@ -1388,8 +1362,7 @@ protected static function activeStudentAttendanceIndex(): array
     }  
     
      public static function getAllTeachers(){
-       $getAllTeachers = Teacher::whereNull('deleted_at')->where('branch_id',Session::get('branch_id'))->get();
-       return $getAllTeachers;
+       return collect([]);
    
     }
     

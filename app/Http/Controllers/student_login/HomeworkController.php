@@ -16,7 +16,6 @@ use App\Models\Setting;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Admission;
-use App\Models\Teacher;
 use App\Helpers\helper;
 use Session;
 use Hash;
@@ -45,7 +44,7 @@ class HomeworkController extends Controller
 
             public function uploadHomework(Request $request){
                 $adminMail = User::where('role_id','1')->get()->first();
-                $teacherMail = Teacher::where('class_type_id',Session::get('class_type_id'))->get()->first();
+                $teacherMail = null;
                 $stu = Admission::where('id',Session::get('id'))->get()->first();
                 if($request->isMethod('post')){
                     $request->validate([]);

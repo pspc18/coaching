@@ -16,7 +16,6 @@ use App\Models\Setting;
 use App\Models\exam\ExaminationScheduleDetail;
 
 use App\Models\Subject;
-use App\Models\Teacher;
 use App\Models\ClassType;
 use App\Models\Master\TeacherSubject;
 use Session;
@@ -223,7 +222,7 @@ if (isset($data[0])) {
                 }
                       if(Session::get('role_id') == 2)
             {
-                  $checkClassTeacher= Teacher::where('id',Session::get('teacher_id'))->where('class_type_id',$requestedClassId)->first();
+                  $checkClassTeacher= null;
                   
                    if(empty($checkClassTeacher))
               {

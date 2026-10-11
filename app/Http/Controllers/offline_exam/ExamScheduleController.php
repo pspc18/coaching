@@ -8,7 +8,6 @@ use App\Models\exam\AssignExam;
 use App\Models\exam\ExaminationSchedule;
 use App\Models\exam\ExaminationScheduleDetail;
 use App\Models\Master\TeacherSubject;
-use App\Models\Teacher;
 use App\Models\Subject;
 use Session;
 use Helper;
@@ -35,7 +34,7 @@ class ExamScheduleController extends Controller
               $data = Subject::where('class_type_id',$request->class_type_id)->orderBy('name','ASC');
             if(Session::get('role_id') == 2)
             {
-                  $checkClassTeacher= Teacher::where('id',Session::get('teacher_id'))->where('class_type_id',$request->class_type_id)->first();
+                  $checkClassTeacher= null;
                 
            if(empty($checkClassTeacher))
               {

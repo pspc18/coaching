@@ -13,7 +13,6 @@ use App\Models\Classs;
 use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\WhatsappSetting;
-use App\Models\Teacher;
 use App\Models\State;
 use App\Models\Remark;
 use App\Models\City;

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Auth;
 use App\Models\User;
-use App\Models\Teacher;
 use App\Models\Student;
 use App\Models\Admission;
 use App\Models\State;
@@ -621,10 +620,6 @@ class AuthController extends Controller
             DB::table('student_expense_details')->truncate();
             DB::table('subject')->truncate();
             DB::table('tc_certificates')->truncate();
-            DB::table('teachers')->truncate();
-            DB::table('teachers_accounts')->truncate();
-            DB::table('teacher_attendance')->truncate();
-            DB::table('teacher_documents')->truncate();
             DB::table('teacher_subjects')->truncate();
             DB::table('time_periods')->truncate();
             DB::table('time_tables')->truncate();

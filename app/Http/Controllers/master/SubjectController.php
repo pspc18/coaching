@@ -4,7 +4,6 @@ namespace App\Http\Controllers\master;
 
 use Illuminate\Validation\Validator; 
 use App\Models\User;
-use App\Models\TeacherCategory;
 use App\Models\Subject;
 use App\Models\Master\AllSubjects;
 use App\Models\ClassType;

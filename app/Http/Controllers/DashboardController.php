@@ -7,12 +7,10 @@ use App\Models\User;
 use App\Models\Dashboard;
 use App\Models\FeesMaster;
 use App\Models\StudentAttendance;
-use App\Models\Teacher;
 use App\Models\PermissionManagement;
 use App\Models\Enquiry;
 use App\Models\Admission;
 use App\Models\AttendanceMark;
-use App\Models\TeacherAttendance;
 use App\Models\ClassType;
 use App\Models\ManagedNotice;
 use App\Helpers\helper;
@@ -495,24 +493,13 @@ class DashboardController extends Controller
                 'notMarked' => array_column($classAttendanceRows, 'not_marked'),
             ];
 
-            $staffAttendance = TeacherAttendance::query()
-                ->whereDate('date', $today)
-                ->where('session_id', $sessionId)
-                ->where('branch_id', $branchId);
-            $staffPresent = (int) (clone $staffAttendance)->where('attendance_status_id', 1)->distinct('staff_id')->count('staff_id');
-            $staffAbsent = (int) (clone $staffAttendance)->where('attendance_status_id', 2)->distinct('staff_id')->count('staff_id');
-            $staffWfh = (int) (clone $staffAttendance)->where('attendance_status_id', 3)->distinct('staff_id')->count('staff_id');
-            $staffHalfDay = (int) (clone $staffAttendance)->where('attendance_status_id', 4)->distinct('staff_id')->count('staff_id');
-            $staffHoliday = (int) (clone $staffAttendance)->where('attendance_status_id', 5)->distinct('staff_id')->count('staff_id');
-            $staffTotalMarked = (int) (clone $staffAttendance)->distinct('staff_id')->count('staff_id');
-            $staffTotal = User::where('branch_id', $branchId)->where('status', 1)->count();
             $staffAttendanceBreakdown = [
-                'Present' => $staffPresent,
-                'Absent' => $staffAbsent,
-                'Work From Home' => $staffWfh,
-                'Half Day' => $staffHalfDay,
-                'Holiday' => $staffHoliday,
-                'Not Marked' => max(0, $staffTotal - $staffTotalMarked),
+                'Present' => 0,
+                'Absent' => 0,
+                'Work From Home' => 0,
+                'Half Day' => 0,
+                'Holiday' => 0,
+                'Not Marked' => 0,
             ];
 
             $assignedFees = (float) (\App\Models\fees\FeesAssignDetail::Collection() ?? 0);
@@ -795,9 +782,7 @@ class DashboardController extends Controller
         
         //$dateTime = date('l jS \of F Y');
         $dateTime = date('l');
-        $date = date('Y-m-d');
-       /* $adminMail = User::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('role_id','1')->get()->first();*/    
-        $staff = TeacherAttendance::with('Teacher')->where('session_id',5)->where('branch_id',1)->where('date',$date)->get();    
+        $staff = collect();    
             
          
 
@@ -853,16 +838,7 @@ class DashboardController extends Controller
                     $query->orWhere('address', 'like', '%' .$value. '%');
         		})->get();
 
-        $data['Teacher'] = Teacher::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
-                ->where(function($query) use ($value){
-    		        $query->where('first_name', 'like', '%' .$value. '%');
-                    $query->orWhere('last_name', 'like', '%' .$value. '%');
-                    $query->orWhere('mobile', 'like', '%' .$value. '%');
-                    $query->orWhere('aadhaar', 'like', '%' .$value. '%');
-                    $query->orWhere('email', 'like', '%' .$value. '%');
-                    $query->orWhere('father_name', 'like', '%' .$value. '%');
-                    $query->orWhere('address', 'like', '%' .$value. '%');
-        		})->get();
+        $data['Teacher'] = collect();
 
         $data['User'] = User::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))
                 ->where(function($query) use ($value){

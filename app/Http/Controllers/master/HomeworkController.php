@@ -16,7 +16,6 @@ use App\Models\Setting;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Admission;
-use App\Models\Teacher;
 use App\Helpers\helper;
 use Session;
 use Hash;
@@ -186,7 +185,7 @@ class HomeworkController extends Controller
                     $query->where('homeworks.class_type_id', Session::get('class_type_id'));
                 } elseif (Session::get('role_id') == 2) {
                     $teacherId = Session::get('teacher_id');
-                    $checkClassTeacher = Teacher::where('id', $teacherId)->first();
+                    $checkClassTeacher = null;
                     $teacherSubjects = TeacherSubject::where('teacher_id', $teacherId)->pluck('subject_id')->toArray();
                     if (!empty($checkClassTeacher) && !empty($checkClassTeacher->class_type_id)) {
                         $classSubIds = Subject::where('class_type_id', $checkClassTeacher->class_type_id)->pluck('id')->toArray();
@@ -472,7 +471,7 @@ class HomeworkController extends Controller
 
             public function uploadHomework(Request $request){
                 $adminMail = User::where('role_id','1')->get()->first();
-                $teacherMail = Teacher::where('class_type_id',Session::get('class_type_id'))->get()->first();
+                $teacherMail = null;
                 $stu = Admission::where('id',Session::get('id'))->get()->first();
                 if($request->isMethod('post')){
                     $request->validate([]);

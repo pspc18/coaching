@@ -37,10 +37,7 @@ class UploadHomework extends Model
 
     if (Session::get('role_id') == 2) {
 
-        $classTeacherOf = DB::table('teachers')
-            ->where('id', Session::get('teacher_id'))
-            ->whereNull('deleted_at')
-            ->first();
+        $classTeacherOf = null;
 
         if (!empty($classTeacherOf)) {
             $homework = $data->where('class_type_id', $classTeacherOf->class_type_id)->count();

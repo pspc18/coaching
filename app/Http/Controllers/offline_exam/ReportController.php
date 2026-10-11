@@ -13,7 +13,6 @@ use App\Models\exam\ExaminationSchedule;
 use App\Models\exam\ExaminationScheduleDetail;
 
 use App\Models\Subject;
-use App\Models\Teacher;
 use App\Models\ClassType;
 use App\Models\Master\Branch;
 use App\Models\Master\TeacherSubject;
@@ -1092,7 +1091,7 @@ class ReportController extends Controller
             ->whereNull('deleted_at');
 
         if (Session::get('role_id') == 2) {
-            $teachers = Teacher::where('id', Session::get('teacher_id'))->get(['class_type_id']);
+            $teachers = collect();
             $classTypeIds = [];
 
             foreach ($teachers as $teacher) {

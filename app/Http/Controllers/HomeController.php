@@ -13,7 +13,6 @@ use App\Models\Sessions;
 use App\Models\Admission;
 use App\Models\exam\AssignExam;
 use App\Models\Master\TeacherSubject;
-use App\Models\Teacher;
 use App\Models\Subject;
 use Session;
 use Hash;
@@ -136,7 +135,7 @@ class HomeController extends Controller
               if(Session::get('role_id') == 2)
             {
                 
-                      $checkClassTeacher= Teacher::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('id',Session::get('teacher_id'))->where('class_type_id',$id)->first();
+                      $checkClassTeacher= null;
                  $subjects = TeacherSubject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('teacher_id',Session::get('teacher_id'))->where('class_type_id', $id)->groupBy('subject_id')->get();
               
                 

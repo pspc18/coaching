@@ -9,7 +9,6 @@ use App\Models\BillCounter;
 use App\Models\AttendanceStatus;
 use App\Models\Master\TeacherSubject;
 use App\Models\Setting;
-use App\Models\TeacherAttendance;
 use App\Models\Master\MessageTemplate;
 use App\Models\City;
 use App\Models\Master\Branch;
@@ -529,11 +528,10 @@ class UserController extends Controller
         $data = User::select(
                 'users.*',
                 'role.name as role_name',
-                'staff.dob as staff_dob',
-                'staff.joining_date as staff_joining_date'
+                'users.dob as staff_dob',
+                'users.joining_date as staff_joining_date'
             )
             ->leftJoin('role', 'role.id', '=', 'users.role_id')
-            ->leftJoin('teachers as staff', 'staff.user_id', '=', 'users.id')
             ->where('users.id', $id)
             ->first(); 
         return view('print_file.staff_print.joining_letter_print', ['data' => $data]);
@@ -560,10 +558,6 @@ class UserController extends Controller
 
                 if (!$students) {
                     return Redirect::to('viewUser')->with('message', 'User not found.');
-                }
-
-                if (!empty($students->teacher_id)) {
-                    DB::table('teachers')->where('id', $students->teacher_id)->delete();
                 }
                 /*if(File::exists(env('IMAGE_UPLOAD_PATH').'profile/'.$students->image)){
                     File::delete(env('IMAGE_UPLOAD_PATH').'profile/'.$students->image);

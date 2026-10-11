@@ -28,7 +28,7 @@ class HourlyHomework extends Model
     }    
     
      public function Teacher(){
-        return $this->belongsTo('App\Models\Teacher','teacher_id');
+        return $this->belongsTo('App\Models\User','teacher_id')->withDefault();
     }    
     
     public static function todayHomework(){

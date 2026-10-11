@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\student_login;
 use Illuminate\Validation\Validator; 
 use App\Models\User;
-use App\Models\Teacher;
-use App\Models\TeacherDocuments;
 use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\Setting;
@@ -38,64 +36,21 @@ class TeacherController extends Controller
                public function index(Request $request){
                 $detect = new MobileDetect;
                 $search['name'] = $request->name;
-                $branch = Session::all();
-                //  dd($branch);
-                
-                
-           
-            $data = Teacher::select('teachers.*','doc.photo')
-            ->leftJoin('teacher_documents as doc','doc.teacher_id','teachers.id')
-             ->leftJoin('users as user','user.teacher_id','teachers.id')
-            // ->where('teachers.class_type_id',Session::get('class_type_id'))
-            ->whereNotNull('teachers.class_type_id')
-            ->where('user.status',1);
-          
-            $data = $data->where('teachers.branch_id', Session::get('branch_id'));
-            
-          
-                 $tea = DB::table('teacher_subjects')
-                ->select('teacher_subjects.teacher_id')
-                ->leftJoin('teachers as teacher', 'teacher.id', '=', 'teacher_subjects.teacher_id')
-                ->leftJoin('users as user', 'user.teacher_id', '=', 'teacher.id')
-                ->where('teacher_subjects.branch_id', session('branch_id'))
-                ->where('teacher_subjects.class_type_id', session('class_type_id'))
-                ->where('user.status', 1)
-                ->whereNull('teacher_subjects.deleted_at')
-                ->groupBy('teacher_subjects.teacher_id')
-                ->pluck('teacher_id');
-                $explode = [];
-                    if ($tea->isNotEmpty()) {
-                        $explode = $tea->toArray(); 
-                    }
-                    if (!empty($explode)) {
-                        $data = $data->whereIn('teachers.id', $explode);
-                    }
-                    
-                $data = $data->orderBy('teachers.id', 'DESC')->get();
+                $data = collect([]);
                 
                 if ($detect->isMobile() && !$detect->isTablet()) {
                      return view('student_login.mobile_view.teachers', ['data' => $data, 'search' => $search]);
                 }
                 
-                return view('staff.add_teachers.index', ['data' => $data, 'search' => $search]);
+                return view('student_login.my_teachers', ['data' => $data, 'search' => $search]);
             }
     
             
             
             public function checkClassTeacher(Request $request){
-                $data = Teacher::select('teachers.*','doc.photo','class.name as class_name')
-                ->leftJoin('teacher_documents as doc','doc.teacher_id','teachers.id')->leftJoin('class_types as class','teachers.class_type_id','class.id')
-                ->where('teachers.class_type_id',$request->class_type_id)->first();
-                if(!empty($data)){
-                    return response()->json([
-                        'teacher' =>  $data,
-                    ]);
-                }
-                else{
-                    return response()->json([
-                        'teacher' =>  null,
-                    ]);
-                }
+                return response()->json([
+                    'teacher' => null,
+                ]);
             }
             
            
