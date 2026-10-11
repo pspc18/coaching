@@ -30,18 +30,14 @@ Route::group(['middleware' => 'islogin'], function () {
     Route::match(['get', 'post'], 'student_download_center', 'student_login\DownloadCenterController@student_download_center');
     Route::get('student-notices', 'student_login\StudentNoticeController@index')
         ->name('student.notices.index');
-    Route::get('student-complaints', 'student_login\SupportComplaintController@index');
-    Route::get('student-complaints/create', 'student_login\SupportComplaintController@create');
-    Route::post('student-complaints', 'student_login\SupportComplaintController@store');
-    Route::get('student-complaints/{id}', 'student_login\SupportComplaintController@show')->where('id', '[0-9]+');
-    Route::post('student-complaints/{id}/reply', 'student_login\SupportComplaintController@reply')->where('id', '[0-9]+');
+
        
     Route::match(['get','post'],'applyLeaveStudent', 'student_login\StuLeaveController@leaveAdd');
     Route::match(['get','post'],'deleteLeaveStudent', 'student_login\StuLeaveController@leaveDelete');
     Route::match(['get','post'],'updateLeaveStudent/{id}', 'student_login\StuLeaveController@leaveEdit');
       
       //Teachers Controller 
-    Route::match(['get', 'post'], 'teachers_student/index', 'student_login\TeacherController@index');
+
     Route::match(['get', 'post'], '/student/result-card', 'student_login\ExamsController@resultCard');
     Route::match(['get','post'],'my_id_card', 'student_login\HomeController@my_id_card');
     

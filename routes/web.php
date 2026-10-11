@@ -319,8 +319,7 @@ Route::match(['get', 'post'], 'send_message_terminal', 'Sms_ServiceController@se
 Route::match(['get', 'post'], 'send_message', 'Sms_ServiceController@sendMessage');
 Route::match(['get', 'post'], 'resend_message', 'Sms_ServiceController@resendMessage');
 
-Route::match(['get', 'post'], 'happy_birthday', 'BirthdayController@happy_birthday');
-Route::match(['get', 'post'], 'send_wishes', 'BirthdayController@send_wishes');
+
 
 
 
@@ -464,7 +463,7 @@ Route::match(['get', 'post'], 'feesMasterDelete', 'fees\FeesMasterController@fee
 
   
 	Route::match(['get', 'post'], 'SubmitSchedule', 'offline_exam\ExamScheduleController@SubmitSchedule');
-  Route::match(['get', 'post'], 'examResultGraph', 'offline_exam\ExamResultController@examResultGraph');
+
 
 
 
@@ -578,15 +577,7 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 
 
 	
-	Route::match(['get', 'post'], 'add/task', 'ToDoListController@addTask');
-	Route::match(['get', 'post'], 'taskStatusChange', 'ToDoListController@taskStatusChange');
-	Route::match(['get', 'post'], 'to_do_assign', 'ToDoListController@toDoAssign');
-	Route::match(['get', 'post'], 'to_do_assign_view', 'ToDoListController@toDoAssignView');
-	Route::match(['get', 'post'], 'to_do_assign_edit/{id}', 'ToDoListController@toDoAssignEdit');
-	Route::match(['get', 'post'], 'to_do_assign_delete', 'ToDoListController@toDoAssignDelete');
-	Route::match(['get', 'post'], 'status/task', 'ToDoListController@statusTask');
-	Route::match(['get', 'post'], 'delete/task', 'ToDoListController@deleteTask');
-	Route::match(['get', 'post'], 'task_list', 'ToDoListController@taskList');
+
 
 	//user
 	Route::get('create-user', 'UserController@createuser');
@@ -641,9 +632,7 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 
 	
 
-	Route::match(['get', 'post'], 'school_calender_add', 'SchoolCalenderController@schoolCalenderAdd');
-	Route::match(['get', 'post'], 'calender_view', 'SchoolCalenderController@calendarView');
-	Route::match(['get', 'post'], 'getEvents', 'SchoolCalenderController@getEvents');
+
 	//examination panel start//
 	
 	Route::match(['get', 'post'], 'view/question', 'offline_exam\QuestionController@viewQuestion');	

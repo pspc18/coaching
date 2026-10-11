@@ -59,12 +59,6 @@ Route::match(['get', 'post'], 'getCountry', 'Api\DependentController@getCountry'
 Route::match(['get', 'post'], 'getState/{county_id}', 'Api\DependentController@getState');
 Route::match(['get', 'post'], 'getCity/{state_id}', 'Api\DependentController@getCity');
 
-Route::match(['get', 'post'], 'teacherList', 'Api\TeacherController@teacherList');
-Route::match(['get', 'post'], 'teacherDelete', 'Api\TeacherController@teacherDelete');
-Route::match(['get', 'post'], 'getAllTeacherCount', 'Api\TeacherController@getAllTeacherCount');
-Route::match(['get', 'post'], 'teacherEdit/{id}', 'Api\TeacherController@teacherEdit');
-Route::match(['get', 'post'], 'teacherAdd', 'Api\TeacherController@teacherAdd');
-
 
 Route::match(['get', 'post'], 'attendanceview', 'Api\StaffAttendanceController@view');
 Route::match(['get', 'post'], 'attendanceAdd', 'Api\StaffAttendanceController@add');
@@ -112,6 +106,4 @@ Route::match(['get', 'post'], 'studentSubjectList', 'Api\SubjectController@stude
 //download Controller
 Route::match(['get', 'post'], 'getDownloadCenter', 'Api\DownloadController@getDownloadCenter');
 Route::match(['get', 'post'], 'getStudyMaterial', 'Api\DownloadController@getStudyMaterial');
-//BooksUniform Controller
-Route::match(['get', 'post'], 'booksUniformShops', 'Api\BooksUniformController@booksUniformShops');
 

@@ -34,11 +34,7 @@ Route::match(['get','post'],'class_delete', 'master\ClassController@delete');
 Route::match(['get','post'],'save-selected-classes', 'master\ClassController@saveSelectedClasses');
 
 
-Route::get('complaints-management', 'master\SupportComplaintController@index');
-Route::get('complaints-management/{id}', 'master\SupportComplaintController@show')->where('id', '[0-9]+');
-Route::post('complaints-management/{id}/reply', 'master\SupportComplaintController@reply')->where('id', '[0-9]+');
-Route::post('complaints-management/{id}/status', 'master\SupportComplaintController@status')->where('id', '[0-9]+');
-Route::get('support-complaint-attachment/{replyId}', 'master\SupportComplaintController@attachment')->where('replyId', '[0-9]+');
+
 
 
 
@@ -296,11 +292,7 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
   
    
 
-//Recycle Bin
-   Route::match(['get','post'],'recycle_bin/add', 'master\RecycleBinController@add');
-   Route::match(['get','post'],'recycle_bin/view', 'master\RecycleBinController@view');
-   Route::match(['get','post'],'recycle_bin/delete', 'master\RecycleBinController@delete');
-   Route::match(['get','post'],'recycle_bin/edit/{id}', 'master\RecycleBinController@editRecycleBin');
+
 
 //Student Leave 
     Route::match(['get','post'],'leave_management', 'student_login\StuLeaveController@leaveManagement');
@@ -343,43 +335,7 @@ Route::match(['get','post'],'homework/export-submissions/{id}', 'master\Homework
 Route::match(['get','post'],'homework/detail/{id}','master\HomeworkController@hwDetailWithoutLogin');
 Route::match(['get','post'],'exam_result_email', 'ExaminationController@viewExamResultEmail');
 
-//Penalty
-Route::match(['get','post'],'penalty/add ', 'master\PenaltyController@add');
-Route::match(['get','post'],'penalty/index ', 'master\PenaltyController@index');
-Route::match(['get','post'],'penalty/edit/{id} ', 'master\PenaltyController@edit');
-Route::match(['get','post'],'penalty/delete', 'master\PenaltyController@delete');
 
-
-//Home_work 
-Route::match(['get','post'],'home_work  ', 'master\Home_WorkController@add');
-
-
-//Stork
-Route::match(['get','post'],'stork', 'master\StorkController@add');
-Route::match(['get','post'],'stork_view', 'master\StorkController@view');
-Route::match(['get','post'],'stork_edit/{id}', 'master\StorkController@edit');
-Route::match(['get','post'],'stork_delete', 'master\StorkController@delete');
-
-//Utilities  
-Route::match(['get','post'],'utilities', 'master\UtilitiesController@add');
-
-
-
-//Holiday 
-  Route::match(['get','post'],'holiday/add', 'master\HolidayController@add');
-  Route::match(['get','post'],'holiday/edit', 'master\HolidayController@edit');
-  Route::match(['get','post'],'holiday/view', 'master\HolidayController@view');
-//Paper_Setter 
-  Route::match(['get','post'],'paper_setter', 'master\PaperSetterController@add');
-//Sports 
-  Route::match(['get','post'],'sports', 'master\SportsController@add');
-  Route::match(['get','post'],'sports_view', 'master\SportsController@view');
-  Route::match(['get','post'],'sports_edit/{id}', 'master\SportsController@edit');
-
-//Personal Details 
-   Route::match(['get','post'],'personal_details', 'master\PersonalDetailsController@add');
-//School Calendar 
-  Route::match(['get','post'],'calendar', 'master\CalendarController@calendar');
 
 
 
@@ -409,13 +365,7 @@ Route::match(['get','post'],'particular/hourly/hw/details','master\HomeworkContr
 Route::match(['get','post'],'evaluate/hourly/homework','master\HomeworkController@evaluateHourlyHomework'); 
 
 
-//Email-Tamplate Update
-Route::match(['get','post' ],'EmailTamplate', 'master\EmailTamplateController@EmailTamplate');
-Route::match(['get','post' ],'EmailTamplateEdit/{id}', 'master\EmailTamplateController@EmailTamplateEdit');
 
-
-//Email Records
-Route::match(['get','post'],'email_records/view/{id}', 'master\EmailRecordsController@view');
 
 
 }); 

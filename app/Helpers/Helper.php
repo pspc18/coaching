@@ -54,13 +54,11 @@ use App\Models\UserPermission;
 use App\Models\AttendanceStatus;
 use App\Models\Master\Branch;
 use App\Models\Master\EnquiryStatus;
-use App\Models\Master\TimePeriods;
 use App\Models\Master\PaymentMode;
 use App\Models\Master\Role;
 use App\Models\Master\MessageContent;
 use App\Models\Master\MessageType;
 use App\Models\Expense;
-use App\Models\Master\SidebarPermission;
 use App\Models\Master\HomeworkReview;
 use App\Models\Master\HomeworkDocuments;
 use App\Models\exam\ExamResultDetail;
@@ -68,7 +66,6 @@ use App\Models\exam\ExamResult;
 use App\Models\exam\AssignExam;
 use App\Models\ExaminationScheduleDetail;
 use App\Models\Sessions;
-use App\Models\ToDoList;
 use App\Models\NotificationToken;
 use App\Models\Notification;
 use App\Models\MessageQueue;
@@ -1158,10 +1155,7 @@ class Helper{
   
 
     public static function task(){
-       // dd(Session::all());
-        
-        $task = ToDoList::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('status',1)->orderBy('id','DESC')->get();
-        return $task;
+        return collect([]);
     }
  
 
@@ -1364,8 +1358,7 @@ protected static function activeStudentAttendanceIndex(): array
     }
     
     public static function getTimePeriod(){
-        $getTimePeriod = TimePeriods::orderBy('id','ASC')->where('branch_id',Session::get('branch_id'))->whereNull('deleted_at')->get();
-        return $getTimePeriod;
+        return collect([]);
     }  
     
      public static function getAllTeachers(){

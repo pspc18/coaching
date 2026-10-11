@@ -37,10 +37,9 @@
                             $isLong = mb_strlen($content) > 140 || substr_count($content, "\n") > 2;
                             $isNotice = $notification->type === 'notice';
                             $isApprovalRequest = $notification->type === 'notice_approval_request';
-                            $managedNotice = $notification->managedNotice;
-                            $isComplaint = $notification->type === 'complaint_admin';
-                            $complaint = $notification->complaintContext;
-                            $complaintStudent = $complaint ? $complaint->student : null;
+                            $isComplaint = false;
+                            $complaint = null;
+                            $complaintStudent = null;
                         @endphp
                         <article class="notification-row {{ $isUnread ? 'is-unread' : '' }}" id="user-notification-{{ $notification->id }}">
                             <div class="notification-icon type-{{ $isComplaint ? 'complaint' : (($isNotice || $isApprovalRequest) ? 'notice' : 'default') }}"><i class="fa {{ $isComplaint ? 'fa-comments-o' : (($isNotice || $isApprovalRequest) ? 'fa-bullhorn' : 'fa-bell') }}"></i></div>
