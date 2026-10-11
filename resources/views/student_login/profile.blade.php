@@ -5,7 +5,7 @@
     if (empty($fullName)) {
         $fullName = 'Student';
     }
-    $className = optional($data->ClassTypes)->name ?? (optional($getUser->ClassTypes)->name ?? '-');
+    $className = optional($data->ClassTypes)->name ?? (optional($getUser)->ClassTypes->name ?? '-');
     $sectionName = optional($data->Section)->name ?? '-';
     $sessionName = Session::get('session_name') ?? date('Y');
     
@@ -29,6 +29,15 @@
    ARISE ERP - NATIVE MOBILE STUDENT PROFILE
    Exact Layout, Typography & CSS matching admissionView?layout=mobile
    ========================================================================== */
+
+html, body {
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+body.modal-open {
+    overflow: hidden !important;
+}
 
 /* 1. Glassmorphic Navy Hero Card */
 .mob-hero-card {
@@ -272,7 +281,7 @@
     transform: scale(0.96);
 }
 
-/* 2. Compact Segment Toolbar */
+/* 2. Compact Segment Toolbar - Fully Horizontal Scrollable */
 .mob-search-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -280,20 +289,23 @@
     padding: 5px 6px;
     margin-bottom: 8px;
     display: flex;
-    gap: 6px;
+    gap: 5px;
     align-items: center;
     overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    scrollbar-width: none;
 }
 .mob-search-toolbar::-webkit-scrollbar {
     display: none;
 }
 .mob-filter-btn {
-    flex: 1;
-    min-width: 65px;
-    height: 30px;
-    padding: 0 8px;
+    flex: 0 0 auto;
+    height: 28px;
+    padding: 0 10px;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
@@ -307,6 +319,7 @@
     gap: 4px;
     white-space: nowrap;
     transition: all .12s ease;
+    user-select: none;
 }
 .mob-filter-btn.active-filter {
     background: #002C54;
@@ -332,7 +345,7 @@
     padding: 9px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    transition: transform .1s ease, border-color .1s ease;
+    transition: transform .1s ease, border-color .15s ease, box-shadow .15s ease;
 }
 .student-mob-card:active {
     border-color: #94a3b8;
@@ -539,29 +552,64 @@
     color: #334155 !important;
 }
 
-/* Modals */
+/* Standalone Clean Modals (Independent of external bootstrap CSS) */
+.mob-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2100 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: rgba(0, 15, 30, 0.72) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+.mob-modal:not(.show) {
+    display: none !important;
+}
+.mob-modal.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.modal-backdrop {
+    display: none !important;
+}
+.mob-modal .modal-dialog {
+    width: 92%;
+    max-width: 440px;
+    margin: auto;
+}
 .mob-modal .modal-content {
     border-radius: 4px;
     border: 1px solid #cbd5e1;
-    box-shadow: 0 10px 30px rgba(0, 44, 84, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 44, 84, 0.25);
+    background: #ffffff;
+    overflow: hidden;
 }
 .mob-modal .modal-header {
     background: #002C54;
     color: #ffffff;
     padding: 10px 14px;
-    border-radius: 3px 3px 0 0;
     border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 .mob-modal .modal-title {
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 800;
     color: #ffffff;
     display: flex;
     align-items: center;
     gap: 6px;
+    margin: 0;
 }
 .mob-modal .btn-close {
-    filter: invert(1);
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
     opacity: 0.8;
 }
 .mob-modal .modal-body {
@@ -572,6 +620,10 @@
     padding: 8px 14px;
     background: #ffffff;
     border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
 }
 .mob-input-shell {
     position: relative;
@@ -737,7 +789,7 @@
             </span>
         </div>
 
-        {{-- Radar 2: Roll Number / UID (Class name NOT repeated here) --}}
+        {{-- Radar 2: Roll Number / UID --}}
         <div class="mob-radar-col">
             <span class="mob-radar-tag">
                 <i class="fa fa-id-card-o text-success"></i> Roll Number
@@ -799,7 +851,7 @@
     </div>
 </div>
 
-{{-- 2. Compact Segment Toolbar matching admissionView --}}
+{{-- 2. Compact Segment Toolbar (Horizontally Scrollable) --}}
 <div class="mob-search-toolbar">
     <button type="button" class="mob-filter-btn active-filter" data-filter="all" onclick="filterSections('all', this)">
         <i class="fa fa-th-large"></i> All Info
@@ -825,7 +877,7 @@
 <div class="student-feed-list">
 
     {{-- CARD 1: Personal Information --}}
-    <div class="student-mob-card card-personal profile-section" data-category="personal">
+    <div class="student-mob-card card-personal profile-section" id="card-personal" data-category="personal">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-personal">
                 <i class="fa fa-user"></i>
@@ -871,7 +923,7 @@
     </div>
 
     {{-- CARD 2: Family & Parents Information --}}
-    <div class="student-mob-card card-family profile-section" data-category="family">
+    <div class="student-mob-card card-family profile-section" id="card-family" data-category="family">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-family">
                 <i class="fa fa-users"></i>
@@ -918,7 +970,7 @@
     </div>
 
     {{-- CARD 3: Contact & Address Information --}}
-    <div class="student-mob-card card-contact profile-section" data-category="contact">
+    <div class="student-mob-card card-contact profile-section" id="card-contact" data-category="contact">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-contact">
                 <i class="fa fa-map-marker"></i>
@@ -964,8 +1016,8 @@
         </div>
     </div>
 
-    {{-- CARD 4: Academic & Institute Details (CLASS NAME SHOWN HERE) --}}
-    <div class="student-mob-card card-academic profile-section" data-category="academic">
+    {{-- CARD 4: Academic & Institute Details (CLASS NAME DISPLAYED HERE) --}}
+    <div class="student-mob-card card-academic profile-section" id="card-academic" data-category="academic">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-academic">
                 <i class="fa fa-graduation-cap"></i>
@@ -1006,7 +1058,7 @@
     </div>
 
     {{-- CARD 5: Account & Security --}}
-    <div class="student-mob-card card-navy profile-section" data-category="security">
+    <div class="student-mob-card card-navy profile-section" id="card-security" data-category="security">
         <div class="student-card-header">
             <div class="student-avatar-box avatar-security">
                 <i class="fa fa-shield"></i>
@@ -1066,7 +1118,9 @@
                     <h5 class="modal-title">
                         <i class="fa fa-pencil-square-o"></i> Edit Contact Details
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div id="contactErrors" class="mob-alert-box"></div>
@@ -1112,7 +1166,9 @@
                     <h5 class="modal-title">
                         <i class="fa fa-shield"></i> Change Account Password
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div id="passwordErrors" class="mob-alert-box"></div>
@@ -1164,16 +1220,32 @@ function filterSections(cat, btn) {
     document.querySelectorAll('.mob-filter-btn').forEach(function(b) {
         b.classList.remove('active-filter');
     });
-    if (btn) btn.classList.add('active-filter');
+    if (btn) {
+        btn.classList.add('active-filter');
+        try {
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        } catch(e) {}
+    }
 
-    const sections = document.querySelectorAll('.profile-section');
-    sections.forEach(function(s) {
-        if (cat === 'all' || s.getAttribute('data-category') === cat) {
-            s.style.display = 'block';
-        } else {
-            s.style.display = 'none';
-        }
+    // Keep all cards visible so vertical scrolling is NEVER stopped!
+    document.querySelectorAll('.profile-section').forEach(function(s) {
+        s.style.display = 'block';
     });
+
+    if (cat === 'all') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    const targetCard = document.getElementById('card-' + cat);
+    if (targetCard) {
+        const topOffset = targetCard.getBoundingClientRect().top + window.pageYOffset - 58;
+        window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
+        targetCard.style.boxShadow = '0 0 0 2px #0284c7';
+        setTimeout(function() {
+            targetCard.style.boxShadow = '';
+        }, 1200);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1181,6 +1253,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrf = csrfMeta ? csrfMeta.content : '';
     const profileUrl = @json(url('profileStudent'));
     const passwordUrl = @json(route('student.profile.change-password'));
+
+    // Prevent any modal from locking body scroll permanently
+    document.querySelectorAll('.mob-modal').forEach(function(modal) {
+        modal.addEventListener('hidden.bs.modal', function () {
+            document.body.style.overflow = '';
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+        });
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                if (window.bootstrap && bootstrap.Modal) {
+                    const inst = bootstrap.Modal.getInstance(modal);
+                    if (inst) inst.hide();
+                } else {
+                    modal.classList.remove('show');
+                    document.body.style.overflow = '';
+                    document.body.classList.remove('modal-open');
+                }
+            }
+        });
+    });
 
     function showErrors(box, payload, fallback) {
         const errors = payload && payload.errors ? Object.values(payload.errors).flat() : [payload.message || fallback];
@@ -1355,10 +1448,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (heroEmail) heroEmail.textContent = newEmail;
 
                 const modalEl = document.getElementById('editContactModal');
-                if (modalEl && window.bootstrap) {
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
                     const modalInst = bootstrap.Modal.getInstance(modalEl);
                     if (modalInst) modalInst.hide();
+                } else if (modalEl) {
+                    modalEl.classList.remove('show');
                 }
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
 
                 if (window.StudentModal) {
                     StudentModal.open({ type: 'success', title: 'Profile Updated', message: result.message, timer: 1800, showConfirm: false });
@@ -1443,10 +1541,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (text) text.textContent = 'Must contain at least 8 characters';
 
                 const modalEl = document.getElementById('changePasswordModal');
-                if (modalEl && window.bootstrap) {
+                if (modalEl && window.bootstrap && bootstrap.Modal) {
                     const modalInst = bootstrap.Modal.getInstance(modalEl);
                     if (modalInst) modalInst.hide();
+                } else if (modalEl) {
+                    modalEl.classList.remove('show');
                 }
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
 
                 if (window.StudentModal) {
                     StudentModal.success('Password changed', 'Use your new password the next time you sign in.');
