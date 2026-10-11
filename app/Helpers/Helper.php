@@ -8,7 +8,6 @@ use Session;
 use File;
 use Http;
 use App\Models\Admin;
-use App\Models\fees\FeesCounter;
 use App\Models\User;
 use App\Models\SidebarSub;
 use App\Models\FailedMessages;
@@ -665,9 +664,7 @@ class Helper{
   
    
    public static function getCounters(){
-       return Cache::remember('master_counters', 86400, function() {
-           return FeesCounter::get();
-       });
+       return collect([]);
    }
    
      public static function getExamType(){

@@ -364,39 +364,7 @@ class FeesController extends Controller
                 ]);
             }
                 
-            public function feesLedgerCollect(Request $request){
-                $serach['name'] = $request->name;
-                $serach['class_type_id'] = !empty($request->class_type_id) ? $request->class_type_id : 0;
-                $serach['sr_no'] = !empty($request->sr_no) ? $request->sr_no : "";
-                $srno = Admission::where('status', 1)->where('admission_type_id', 1)->where('branch_id', Session::get('branch_id'))->where('session_id', Session::get('session_id'))->where('school','=',1)->whereNotNull('ledger_no')->orderBy('ledger_no')->get();
-                if ($request->isMethod('post')) {
-                    $request->validate([
-                       // 'sr_no' => 'required',
-                    ]);
-                    $allstudents = Admission::where('branch_id', Session::get('branch_id'))->where('session_id', Session::get('session_id'))->where('status', 1)->where('admission_type_id', 1);
-                    // if ($request->class_type_id > 0) {
-                    // $allstudents = $allstudents->where('class_type_id',$request->class_type_id);
-                    // }
-                    // if ($request->class_type_id > 0 && $request->sr_no != '') {
-                    if ($request->sr_no != '') {
-                        $allstudents = $allstudents-> where('ledger_no',$request->sr_no);
-                    }
-                    if (!empty($request->name)) {
-                        $value = $request->name;
-                        $allstudents = $allstudents->where(function ($query) use ($value) {
-                            $query->orWhere('ledger_no', 'like', '%' . $value . '%');
-                            $query->orWhere('father_name', 'like', '%' . $value . '%');
-                            $query->orWhere('admissionNo', 'like', '%' . $value . '%');
-                            $query->orWhere('mobile', 'like', '%' . $value . '%');
-                            $query->orWhere('first_name', 'like', '%' . $value . '%');
-                            $query->orWhere('last_name', 'like', '%' . $value . '%');
-                        });
-                    }
-                    $allstudents = $allstudents->whereNotNull('ledger_no')->get();
-                    return  view('fees.fees_collect.byLedger', ['data' => $allstudents, 'serach' => $serach,'srno_post'=>$request->sr_no,'srno'=>$srno]);
-                }
-                return  view('fees.fees_collect.byLedger', ['serach' => $serach,'srno'=>$srno]);
-            }
+
 
             public function feesGroup(Request $request){
                 if ($request->isMethod('post')) {

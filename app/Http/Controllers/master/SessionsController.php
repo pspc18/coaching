@@ -19,7 +19,6 @@ use App\Models\exam\Question;
 use App\Models\examoffline\AssignOfflineExam;
 use App\Models\examoffline\ExamOffline;
 use App\Models\fees\FeesAssign;
-use App\Models\fees\FeesCounter;
 use App\Models\fees\FeesAssignDetail;
 use App\Models\Setting;
 use App\Models\Master\Branch;

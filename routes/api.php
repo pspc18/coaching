@@ -82,12 +82,6 @@ Route::match(['get', 'post'], 'addExam', 'Api\ExaminationController@addExam');
 Route::match(['get', 'post'], 'viewExam', 'Api\ExaminationController@viewExam');
 
 //fees controller
-Route::match(['get', 'post'], 'counterAdd', 'Api\FeesController@counterAdd');
-Route::match(['get', 'post'], 'counterAuth', 'Api\FeesController@counterAuth');
-Route::match(['get', 'post'], 'counterList', 'Api\FeesController@counterList');
-Route::match(['get', 'post'], 'counterDelete', 'Api\FeesController@counterDelete');
-
-Route::match(['get', 'post'], 'counterEdit/{id}', 'Api\FeesController@counterEdit');
 Route::match(['get', 'post'], 'paymentModes', 'Api\FeesController@paymentModes');
 Route::match(['get', 'post'], 'feesDetails', 'Api\FeesController@feesDetails');
 Route::match(['get', 'post'], 'studentFeesDetails', 'Api\FeesController@studentFeesDetails');

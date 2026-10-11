@@ -4,7 +4,6 @@ namespace App\Http\Controllers\fees;
 
 use Illuminate\Validation\Validator;
 use App\Models\Setting;
-use App\Models\fees\FeesCounter;
 use App\Models\fees\FeesAdvance;
 use App\Models\fees\FeesAdvanceHistory;
 use App\Models\Admission;

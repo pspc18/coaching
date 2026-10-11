@@ -286,7 +286,6 @@ Route::post('fees/settings/update', 'fees\FeesController@feesSettingsUpdate');
 Route::post('fees/settings/preview-receipt', 'fees\FeesController@previewReceiptNumber');
 
 //Fees ledger
-Route::match(['get', 'post'], 'fees/ledger/collect', 'fees\FeesController@feesLedgerCollect');
 	Route::match(['get', 'post'], 'ledger_update', 'fees\FeesController@ledgerUpdate');
 	Route::match(['get', 'post'], 'fees/ledger', 'fees\FeesController@feesLedger');
 	Route::match(['get', 'post'], 'fees_ledger_view', 'fees\FeesController@fees_ledger_view');
@@ -465,12 +464,7 @@ Route::match(['get', 'post'], 'AddrefundFees', 'fees\RefundFeesController@AddRef
 Route::match(['get', 'post'], 'viewrefundFees', 'fees\RefundFeesController@viewRefundFees');
 
 
-//Fees counter
-Route::match(['get', 'post'], 'feesCounterAdd', 'fees\FeesCounterController@feesCounter');
-Route::match(['get', 'post'], 'check_authentication', 'fees\FeesCounterController@checkAuthentication');
-Route::match(['get', 'post'], 'feesCounterEdit/{id}', 'fees\FeesCounterController@feesCounterEdit');
-Route::match(['get', 'post'], 'feesCounterDelete', 'fees\FeesCounterController@feesCounterDelete');
-Route::match(['get', 'post'], 'feesCounterView', 'fees\FeesCounterController@feesCounterview');
+
 
 
 //Student Dashboard

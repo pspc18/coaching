@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Models\WebUser;
-use App\Models\fees\FeesCounter;
 use App\Models\Master\PaymentMode;
 use App\Models\FeesDetail;
 use App\Models\BillCounter;
@@ -31,105 +30,6 @@ use Illuminate\Support\Facades\View;
 class FeesController extends BaseController
 {
 
-public function counterAdd(Request $request)
-{
-    try{
-           if ($request->isMethod('post')) {
-    $counter = new FeesCounter(); //model name
-    $counter->name = $request->name;
-    $counter->password = $request->password;
-    $counter->save();
-
-    return $this->sendResponseData($counter, 'success');
-    
-           }
-    } catch (Exception $e) {
-    return $this->sendError('Validation Error.', 'Error');
-    }
-}
-
-public function counterList(Request $request)
-	{
-	     try{
-	         
-	            if ($request->isMethod('post')) {
-	    
-	    $list = FeesCounter::where('session_id',1)->get();
-	    
-	    $data = array();
-            foreach ($list as $key => $item) {
-                $data[] = array(
-                    'key' => $key+1,
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'password' => $item->password,
-                );
-            }
-	   
-           
-	     return $this->sendResponseData($data, 'success');
-	     
-	            }
-        } catch (Exception $e) {
-            return $this->sendError('Validation Error.', 'Error');
-        }
-	    
-	}
-	
-		public function counterAuth(Request $request)
-	{
-
-	$counter = FeesCounter::where("id", $request->id)->where('password', $request->password)->first();
-
-
-
-		if ($counter) {
-	return response()->json(['status' => true, 'message' => 'Login Successfull','data'=>$counter], 200);
-		} else {
-			return response()->json(['status' => false, 'message' => 'No Counter Found'], 200);
-		}
-
-	}
-
-
-public function counterDelete(Request $request)
-	{
-	    try{
-	   
-	   $delete_id = $request->delete_id;
-	   
-	   $delete_data = FeesCounter::where('id',$delete_id)->delete();
-           
-	   return response()->json(['status' => true, 'message' => 'Counter Deleted Successfully'], 200);
-        } catch (Exception $e) {
-            return $this->sendError('Validation Error.', 'Error');
-        }
-	    
-	}
-	
-	
-		public function counterEdit(Request $request ,$id)
-	{
-	     try{
-	
-           $data = FeesCounter::where('id',$id)->first();
-           
-            if ($request->isMethod('post')) {
-               
-                
-               $data->name = $request->name;
-               $data->password = $request->password;
-          
-            $data->save();
-                
-            }
-	     return $this->sendResponseData($data, 'success');
-        } catch (Exception $e) {
-            return $this->sendError('Validation Error.', 'Error');
-        }
-	    
-	}
-	
 public function paymentModes(){
      
        try{
