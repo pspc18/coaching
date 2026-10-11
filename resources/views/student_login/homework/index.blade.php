@@ -65,7 +65,7 @@
     gap: 4px;
 }
 
-/* 4-KPI Metric Glance Grid (2x2) */
+/* 4-KPI Metric Glance Grid */
 .mob-metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -638,41 +638,147 @@
     line-height: 1.4;
 }
 
-/* Modal Styling */
-.modal-content.mob-modal-card {
-    border-radius: 6px;
-    border: 1px solid rgba(0, 44, 84, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 20, 40, 0.25);
-    overflow: hidden;
+/* ==========================================================================
+   4. NATIVE MOBILE BOTTOM-SHEET MODAL SYSTEM
+   Matches student-notices, admissionView?layout=mobile
+   Guaranteed hidden until triggered by user click
+   ========================================================================== */
+
+/* Hide any bootstrap modal default display */
+.modal:not(.show) {
+    display: none !important;
 }
-.mob-modal-card .modal-header {
+
+/* Backdrop */
+.mob-modal-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
+    z-index: 2050;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .22s ease-in-out, visibility .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.mob-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Slide-Up Sheet Container */
+.mob-modal-sheet {
+    display: flex;
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+    border-top: 3px solid #0284c7;
+    z-index: 2051;
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 88vh;
+    flex-direction: column;
+    box-shadow: 0 -8px 30px rgba(0, 20, 40, 0.4);
+    visibility: hidden;
+    pointer-events: none;
+}
+.mob-modal-sheet.show {
+    bottom: 0;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Sheet Header */
+.mob-sheet-header {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     padding: 10px 14px;
-    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
-.mob-modal-card .modal-title {
-    font-size: 13.5px;
+.mob-sheet-title {
+    font-size: 13px;
     font-weight: 800;
     color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
 }
-.mob-modal-card .btn-close-white {
-    filter: brightness(0) invert(1);
-    opacity: 0.85;
+.mob-sheet-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .12s ease;
 }
-.mob-modal-card .modal-body {
-    padding: 12px 14px;
-    max-height: 75vh;
-    overflow-y: auto;
-    font-size: 11.5px;
+.mob-sheet-close:active {
+    background: rgba(255, 255, 255, 0.25);
 }
-.mob-modal-card .modal-footer {
+
+/* FIXED POSITION TOP META STRIP (Pinned in sheet) */
+.mob-sheet-fixed-meta {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     padding: 8px 14px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+.sheet-fixed-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.sheet-meta-pill {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* MOVEABLE / SCROLLABLE BODY */
+.mob-sheet-body {
+    padding: 12px 14px 16px 14px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* SHEET FOOTER */
+.mob-sheet-footer {
+    padding: 9px 14px;
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 /* Upload Dropzone */
@@ -680,7 +786,7 @@
     border: 2px dashed #93c5fd;
     background: #f8fafc;
     border-radius: 4px;
-    padding: 16px 12px;
+    padding: 14px 12px;
     text-align: center;
     cursor: pointer;
     transition: all .2s;
@@ -691,9 +797,9 @@
     background: #eff6ff;
 }
 .mob-dropzone i {
-    font-size: 26px;
+    font-size: 24px;
     color: #0284c7;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 .mob-dropzone-text {
     font-size: 11px;
@@ -720,7 +826,7 @@
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
-    padding: 4px 7px;
+    padding: 5px 8px;
     font-size: 10.5px;
 }
 .mob-file-row-left {
@@ -745,7 +851,7 @@
     color: #ef4444;
     cursor: pointer;
     padding: 2px 4px;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 /* Submitted Documents Gallery Grid */
@@ -910,7 +1016,6 @@
                 $subDateFormatted = !empty($item->submission_date) ? date('d-m-Y', strtotime($item->submission_date)) : '-';
                 $rawSubDate = !empty($item->submission_date) ? date('Y-m-d', strtotime($item->submission_date)) : '';
 
-                // Extract homework type tags if formatted like [Homework] or [Project]
                 $cleanTitle = $item->title ?? 'Homework Assignment';
                 $typeTag = 'Homework';
                 if (preg_match('/^\[(.*?)\]\s*(.*)$/u', $cleanTitle, $matches)) {
@@ -1087,7 +1192,7 @@
                         {{-- View Submission Modal Button (if already submitted) --}}
                         @if($item->is_submitted && !empty($mySub))
                             <button type="button" class="btn-mob-action btn-mob-view" 
-                                    onclick="openSubmissionViewModal({{ $item->id }}, '{{ addslashes($cleanTitle) }}', '{{ addslashes($subjectName) }}')">
+                                    onclick="openSubmissionViewSheet({{ $item->id }}, '{{ addslashes($cleanTitle) }}', '{{ addslashes($subjectName) }}')">
                                 <i class="fa fa-file-text-o"></i> View My Work
                             </button>
                         @endif
@@ -1095,7 +1200,7 @@
                         {{-- Submit Assignment Button --}}
                         @if($canSubmit)
                             <button type="button" class="btn-mob-action btn-mob-submit {{ ($status === 'due_today' || $status === 'overdue') ? 'urgent' : '' }}"
-                                    onclick="openUploadModal({{ $item->id }}, '{{ addslashes($cleanTitle) }}', '{{ addslashes($subjectName) }}', '{{ $subDateFormatted }}')">
+                                    onclick="openUploadSheet({{ $item->id }}, '{{ addslashes($cleanTitle) }}', '{{ addslashes($subjectName) }}', '{{ $subDateFormatted }}')">
                                 <i class="fa fa-cloud-upload"></i> {{ $item->is_submitted ? 'Resubmit' : 'Submit Assignment' }}
                             </button>
                         @elseif(!$item->is_submitted && $isPastDeadline && !$isLateAllowed)
@@ -1155,150 +1260,159 @@
 </div>
 
 {{-- ==========================================================================
-     MODAL 1: SUBMIT ASSIGNMENT MODAL (SLIDE-UP / CENTERED)
+     SHARED MODAL BACKDROP (Single Native Backdrop for all bottom sheets)
      ========================================================================== --}}
-<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content mob-modal-card">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadModalLabel">
-                    <i class="fa fa-cloud-upload text-warning"></i> Submit Assignment
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="uploadHomeworkForm" action="{{ url('upload_homework_student') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="homework_id" id="modalHomeworkId" value="">
+<div class="mob-modal-backdrop" id="mobModalBackdrop" onclick="closeActiveSheet()"></div>
 
-                <div class="modal-body">
-                    {{-- Assignment Summary --}}
-                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 7px 9px; margin-bottom: 10px;">
-                        <div style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase;" id="modalSubjectName">Mathematics</div>
-                        <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 2px;" id="modalHwTitle">Assignment Title</div>
-                        <div style="font-size: 9.5px; color: #64748b;">Deadline: <b id="modalDueDate" class="text-danger">-</b></div>
-                    </div>
-
-                    {{-- Note / Message from Student --}}
-                    <div class="mb-2">
-                        <label class="form-label" style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">
-                            Message or Remarks for Teacher <span class="text-muted">(Optional)</span>
-                        </label>
-                        <textarea class="form-control" name="message" id="studentMessage" rows="2" 
-                                  placeholder="Type any questions or notes for your teacher..."
-                                  style="font-size: 11.5px; border-radius: 3px;"></textarea>
-                    </div>
-
-                    {{-- Multi-file Picker Dropzone --}}
-                    <div class="mb-2">
-                        <label class="form-label" style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">
-                            Attach Assignment Photos / Documents <span class="text-danger">*</span>
-                        </label>
-                        <div class="mob-dropzone" id="fileDropzone" onclick="document.getElementById('fileInput').click()">
-                            <i class="fa fa-cloud-upload"></i>
-                            <div class="mob-dropzone-text">Tap to Select Files or Photos</div>
-                            <div class="mob-dropzone-sub">Supports Camera, Images (JPG, PNG) & PDF</div>
-                        </div>
-                        <input type="file" id="fileInput" name="content_file[]" multiple accept="image/*,.pdf,.doc,.docx" style="display: none;">
-                    </div>
-
-                    {{-- Selected Files Preview List --}}
-                    <div class="mob-selected-files" id="selectedFilesList" style="display: none;"></div>
-
-                    <div id="uploadErrorAlert" class="alert alert-danger py-1 px-2 mb-0" style="display: none; font-size: 10.5px; border-radius: 3px;"></div>
-                </div>
-
-                <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn-mob-action btn-mob-view" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-mob-action btn-mob-submit" id="submitHwBtn">
-                        <span id="submitBtnSpinner" class="spinner-border spinner-border-sm me-1" style="display: none;" role="status" aria-hidden="true"></span>
-                        <i class="fa fa-check" id="submitBtnIcon"></i> <span id="submitBtnText">Submit Assignment</span>
-                    </button>
-                </div>
-            </form>
+{{-- ==========================================================================
+     MODAL SHEET 1: SUBMIT ASSIGNMENT (SLIDE-UP NATIVE MOBILE SHEET)
+     ========================================================================== --}}
+<div class="mob-modal-sheet" id="uploadModalSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-cloud-upload" style="color: #38bdf8;"></i>
+            <span>Submit Assignment</span>
         </div>
+        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+    </div>
+
+    {{-- Pinned Meta Summary --}}
+    <div class="mob-sheet-fixed-meta">
+        <div class="sheet-fixed-meta-row">
+            <span class="mob-subject-pill" id="modalSubjectName">Mathematics</span>
+            <span class="sheet-meta-pill" id="modalDueDateBadge"><i class="fa fa-hourglass-end text-danger"></i> Due: <b id="modalDueDate">-</b></span>
+        </div>
+        <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 4px;" id="modalHwTitle">Assignment Title</div>
+    </div>
+
+    <form id="uploadHomeworkForm" action="{{ url('upload_homework_student') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 0;">
+        @csrf
+        <input type="hidden" name="homework_id" id="modalHomeworkId" value="">
+
+        {{-- Scrollable Body --}}
+        <div class="mob-sheet-body">
+            {{-- Note / Message from Student --}}
+            <div class="mb-2">
+                <label class="form-label" style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">
+                    Message or Remarks for Teacher <span class="text-muted">(Optional)</span>
+                </label>
+                <textarea class="form-control" name="message" id="studentMessage" rows="2" 
+                          placeholder="Type any questions or notes for your teacher..."
+                          style="font-size: 11.5px; border-radius: 3px;"></textarea>
+            </div>
+
+            {{-- Multi-file Picker Dropzone --}}
+            <div class="mb-2">
+                <label class="form-label" style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">
+                    Attach Assignment Photos / Documents <span class="text-danger">*</span>
+                </label>
+                <div class="mob-dropzone" id="fileDropzone" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa fa-cloud-upload"></i>
+                    <div class="mob-dropzone-text">Tap to Select Files or Photos</div>
+                    <div class="mob-dropzone-sub">Supports Camera, Images (JPG, PNG) & PDF</div>
+                </div>
+                <input type="file" id="fileInput" name="content_file[]" multiple accept="image/*,.pdf,.doc,.docx" style="display: none;">
+            </div>
+
+            {{-- Selected Files Preview List --}}
+            <div class="mob-selected-files" id="selectedFilesList" style="display: none;"></div>
+
+            <div id="uploadErrorAlert" class="alert alert-danger py-1 px-2 mb-0" style="display: none; font-size: 10.5px; border-radius: 3px;"></div>
+        </div>
+
+        {{-- Sheet Footer --}}
+        <div class="mob-sheet-footer">
+            <button type="button" class="btn-mob-action btn-mob-view" onclick="closeActiveSheet()">Cancel</button>
+            <button type="submit" class="btn-mob-action btn-mob-submit" id="submitHwBtn">
+                <span id="submitBtnSpinner" class="spinner-border spinner-border-sm me-1" style="display: none;" role="status" aria-hidden="true"></span>
+                <i class="fa fa-check" id="submitBtnIcon"></i> <span id="submitBtnText">Submit Assignment</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+{{-- ==========================================================================
+     MODAL SHEET 2: VIEW MY SUBMISSION & EVALUATION (SLIDE-UP NATIVE SHEET)
+     ========================================================================== --}}
+<div class="mob-modal-sheet" id="viewSubmissionModalSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-file-text-o" style="color: #38bdf8;"></i>
+            <span>My Submission Details</span>
+        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
+    </div>
+
+    {{-- Pinned Meta Summary --}}
+    <div class="mob-sheet-fixed-meta">
+        <div class="sheet-fixed-meta-row">
+            <span class="mob-subject-pill" id="viewSubSubject">Subject</span>
+            <span class="sheet-meta-pill"><i class="fa fa-calendar-check-o text-success"></i> Submitted: <b id="viewSubDate" class="text-dark">-</b></span>
+        </div>
+        <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 4px;" id="viewSubTitle">Title</div>
+    </div>
+
+    {{-- Scrollable Body --}}
+    <div class="mob-sheet-body">
+        {{-- Teacher Evaluation Card (if evaluated) --}}
+        <div id="viewSubEvalCard" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 4px; padding: 8px 10px; margin-bottom: 10px;">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span style="font-size: 11px; font-weight: 800; color: #15803d;">
+                    <i class="fa fa-trophy text-warning"></i> Teacher Evaluation
+                </span>
+                <span style="font-size: 12px; font-weight: 800; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 3px;" id="viewSubMarksBadge">
+                    Marks: -
+                </span>
+            </div>
+            <div style="font-size: 11px; color: #166534; font-style: italic;" id="viewSubRemarksText">
+                "Great work!"
+            </div>
+        </div>
+
+        {{-- Student Message / Notes --}}
+        <div class="mb-2" id="viewSubMsgBox" style="display: none;">
+            <div style="font-size: 10.5px; font-weight: 700; color: #475569; margin-bottom: 2px;">Your Note:</div>
+            <div style="background: #f1f5f9; border-radius: 3px; padding: 6px 8px; font-size: 11px; color: #1e293b;" id="viewSubMsgText"></div>
+        </div>
+
+        {{-- Uploaded Documents / Photos --}}
+        <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+            Submitted Files & Photos:
+        </div>
+        <div class="mob-docs-grid" id="viewSubDocsGrid">
+            {{-- Dynamically populated --}}
+        </div>
+    </div>
+
+    {{-- Sheet Footer --}}
+    <div class="mob-sheet-footer">
+        <button type="button" class="btn-mob-action btn-mob-view w-100" onclick="closeActiveSheet()">Close</button>
     </div>
 </div>
 
 {{-- ==========================================================================
-     MODAL 2: VIEW MY SUBMISSION & TEACHER REMARKS MODAL
+     MODAL SHEET 3: PREVIEW ATTACHMENT (IMAGE / PDF INLINE VIEWER)
      ========================================================================== --}}
-<div class="modal fade" id="viewSubmissionModal" tabindex="-1" aria-labelledby="viewSubmissionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content mob-modal-card">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewSubmissionModalLabel">
-                    <i class="fa fa-file-text-o text-warning"></i> My Submission Details
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                {{-- Header info --}}
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 7px 9px; margin-bottom: 10px;">
-                    <div style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase;" id="viewSubSubject">Subject</div>
-                    <div style="font-size: 12.5px; font-weight: 800; color: #0f172a; margin-bottom: 2px;" id="viewSubTitle">Title</div>
-                    <div style="font-size: 10px; color: #64748b;">
-                        Submitted On: <b id="viewSubDate" class="text-dark">-</b>
-                    </div>
-                </div>
-
-                {{-- Teacher Evaluation Card (if evaluated) --}}
-                <div id="viewSubEvalCard" style="display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 4px; padding: 8px 10px; margin-bottom: 10px;">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span style="font-size: 11px; font-weight: 800; color: #15803d;">
-                            <i class="fa fa-trophy text-warning"></i> Teacher Evaluation
-                        </span>
-                        <span style="font-size: 12px; font-weight: 800; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 3px;" id="viewSubMarksBadge">
-                            Marks: -
-                        </span>
-                    </div>
-                    <div style="font-size: 11px; color: #166534; font-style: italic;" id="viewSubRemarksText">
-                        "Great work!"
-                    </div>
-                </div>
-
-                {{-- Student Message / Notes --}}
-                <div class="mb-2" id="viewSubMsgBox" style="display: none;">
-                    <div style="font-size: 10.5px; font-weight: 700; color: #475569; margin-bottom: 2px;">Your Note:</div>
-                    <div style="background: #f1f5f9; border-radius: 3px; padding: 6px 8px; font-size: 11px; color: #1e293b;" id="viewSubMsgText"></div>
-                </div>
-
-                {{-- Uploaded Documents / Photos --}}
-                <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">
-                    Submitted Files & Photos:
-                </div>
-                <div class="mob-docs-grid" id="viewSubDocsGrid">
-                    {{-- Dynamically populated --}}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-mob-action btn-mob-view w-100" data-bs-dismiss="modal">Close</button>
-            </div>
+<div class="mob-modal-sheet" id="previewFileModalSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title" id="previewFileModalTitle">
+            <i class="fa fa-eye" style="color: #38bdf8;"></i>
+            <span>Attachment Preview</span>
         </div>
+        <button type="button" class="mob-sheet-close" onclick="closeActiveSheet()" aria-label="Close">&times;</button>
     </div>
-</div>
 
-{{-- ==========================================================================
-     MODAL 3: PREVIEW ATTACHMENT MODAL (IMAGE / PDF)
-     ========================================================================== --}}
-<div class="modal fade" id="previewFileModal" tabindex="-1" aria-labelledby="previewFileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content mob-modal-card">
-            <div class="modal-header">
-                <h5 class="modal-title" id="previewFileModalLabel">
-                    <i class="fa fa-file-image-o text-warning"></i> Attachment Preview
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center p-2" id="previewFileModalBody">
-                {{-- Injected dynamically --}}
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn-mob-action btn-mob-view" data-bs-dismiss="modal">Close</button>
-                <a href="#" id="previewModalDownloadBtn" class="btn-mob-action btn-mob-submit" target="_blank" download>
-                    <i class="fa fa-download"></i> Download File
-                </a>
-            </div>
-        </div>
+    {{-- Scrollable Body --}}
+    <div class="mob-sheet-body text-center p-2" id="previewFileModalBody">
+        {{-- Injected dynamically --}}
+    </div>
+
+    {{-- Sheet Footer --}}
+    <div class="mob-sheet-footer d-flex justify-content-between">
+        <button type="button" class="btn-mob-action btn-mob-view" onclick="closeActiveSheet()">Close</button>
+        <a href="#" id="previewModalDownloadBtn" class="btn-mob-action btn-mob-submit" target="_blank" download>
+            <i class="fa fa-download"></i> Download File
+        </a>
     </div>
 </div>
 @endsection
@@ -1370,19 +1484,16 @@ $(document).ready(function() {
         }
     }
 
-    // Search input listener
     searchInput.on('input', function() {
         filterCards();
     });
 
-    // Clear search button
     clearBtn.on('click', function() {
         searchInput.val('');
         filterCards();
         searchInput.focus();
     });
 
-    // Filter Chips click
     $('.mob-filter-chip').on('click', function() {
         $('.mob-filter-chip').removeClass('active');
         $(this).addClass('active');
@@ -1415,13 +1526,48 @@ $(document).ready(function() {
     };
 
     // =========================================================================
-    // 3. File Input & Drag/Drop Handling for Upload Modal
+    // 3. Native Mobile Bottom-Sheet Modal Controller
+    // =========================================================================
+    let currentOpenSheet = null;
+
+    window.openSheet = function(sheetId) {
+        closeActiveSheet();
+        const sheet = document.getElementById(sheetId);
+        const backdrop = document.getElementById('mobModalBackdrop');
+        if (!sheet || !backdrop) return;
+
+        currentOpenSheet = sheetId;
+        backdrop.classList.add('show');
+        sheet.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeActiveSheet = function() {
+        if (currentOpenSheet) {
+            const sheet = document.getElementById(currentOpenSheet);
+            if (sheet) sheet.classList.remove('show');
+            currentOpenSheet = null;
+        }
+        const backdrop = document.getElementById('mobModalBackdrop');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    };
+
+    // Keyboard ESC listener
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && currentOpenSheet) {
+            closeActiveSheet();
+        }
+    });
+
+    // =========================================================================
+    // 4. File Input & Upload Modal Handler
     // =========================================================================
     const fileInput = document.getElementById('fileInput');
     const selectedFilesList = document.getElementById('selectedFilesList');
     let selectedFilesArray = [];
 
-    window.openUploadModal = function(hwId, title, subject, dueDate) {
+    window.openUploadSheet = function(hwId, title, subject, dueDate) {
         $('#modalHomeworkId').val(hwId);
         $('#modalHwTitle').text(title);
         $('#modalSubjectName').text(subject);
@@ -1429,12 +1575,10 @@ $(document).ready(function() {
         $('#studentMessage').val('');
         $('#uploadErrorAlert').hide().text('');
 
-        // Reset file array
         selectedFilesArray = [];
         updateFilePreviewList();
 
-        const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
-        uploadModal.show();
+        openSheet('uploadModalSheet');
     };
 
     if (fileInput) {
@@ -1498,12 +1642,12 @@ $(document).ready(function() {
     };
 
     function escapeHtml(text) {
-        return text.replace(/[&<>"']/g, function(m) {
+        return String(text).replace(/[&<>"']/g, function(m) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
     }
 
-    // Submit Homework Form via AJAX with fallback
+    // Submit Homework Form via AJAX
     $('#uploadHomeworkForm').on('submit', function(e) {
         e.preventDefault();
 
@@ -1545,7 +1689,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response && response.status) {
-                    $('#uploadModal').modal('hide');
+                    closeActiveSheet();
                     window.location.reload();
                 } else {
                     errBox.text(response.message || 'Error uploading assignment. Please try again.').show();
@@ -1570,9 +1714,9 @@ $(document).ready(function() {
     });
 
     // =========================================================================
-    // 4. View My Submission Modal
+    // 5. View My Submission Sheet Handler
     // =========================================================================
-    window.openSubmissionViewModal = function(hwId, title, subject) {
+    window.openSubmissionViewSheet = function(hwId, title, subject) {
         $('#viewSubTitle').text(title);
         $('#viewSubSubject').text(subject);
 
@@ -1640,8 +1784,7 @@ $(document).ready(function() {
                 grid.html('<div class="text-muted text-center py-2 col-12" style="font-size: 11px;">No file attachments found.</div>');
             }
 
-            const modal = new bootstrap.Modal(document.getElementById('viewSubmissionModal'));
-            modal.show();
+            openSheet('viewSubmissionModalSheet');
 
         } catch (e) {
             console.error('Error parsing submission data:', e);
@@ -1649,10 +1792,10 @@ $(document).ready(function() {
     };
 
     // =========================================================================
-    // 5. Preview Attachment Modal (Images / PDF)
+    // 6. Preview Attachment Sheet Handler (Images / PDF)
     // =========================================================================
     window.previewTeacherAttachment = function(fileUrl, fileType, title) {
-        $('#previewFileModalLabel').html('<i class="fa fa-eye text-warning"></i> ' + escapeHtml(title));
+        $('#previewFileModalTitle').html('<i class="fa fa-eye" style="color: #38bdf8;"></i> ' + escapeHtml(title));
         $('#previewModalDownloadBtn').attr('href', fileUrl);
 
         const body = $('#previewFileModalBody');
@@ -1672,8 +1815,7 @@ $(document).ready(function() {
             `);
         }
 
-        const modal = new bootstrap.Modal(document.getElementById('previewFileModal'));
-        modal.show();
+        openSheet('previewFileModalSheet');
     };
 
 });
