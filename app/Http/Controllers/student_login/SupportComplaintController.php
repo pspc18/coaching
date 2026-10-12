@@ -62,13 +62,29 @@ class SupportComplaintController extends Controller
             $filter = 'all';
         }
 
-        $query = $this->query();
-        $complaintCounts = (clone $query)
+        $category = strtolower(trim((string) $request->query('category', 'all')));
+        if ($category !== 'all' && !array_key_exists($category, SupportComplaint::CATEGORIES)) {
+            $category = 'all';
+        }
+
+        $search = trim((string) $request->query('search', ''));
+
+        $baseQuery = $this->query();
+
+        $complaintCounts = (clone $baseQuery)
             ->selectRaw('COUNT(*) as total_count')
             ->selectRaw("SUM(CASE WHEN status IN ('open','acknowledged','in_progress','reopened') THEN 1 ELSE 0 END) as active_count")
             ->selectRaw("SUM(CASE WHEN status = 'awaiting_user' THEN 1 ELSE 0 END) as awaiting_count")
             ->selectRaw("SUM(CASE WHEN status IN ('resolved','closed') THEN 1 ELSE 0 END) as resolved_count")
             ->first();
+
+        $categoryCounts = (clone $baseQuery)
+            ->selectRaw('category, COUNT(*) as cnt')
+            ->groupBy('category')
+            ->pluck('cnt', 'category')
+            ->toArray();
+
+        $query = clone $baseQuery;
 
         if ($filter === 'active') {
             $query->whereIn('status', ['open', 'acknowledged', 'in_progress', 'reopened']);
@@ -78,11 +94,34 @@ class SupportComplaintController extends Controller
             $query->whereIn('status', ['resolved', 'closed']);
         }
 
-        $complaints = $query->withCount('replies')
-            ->latest('last_replied_at')->latest()->paginate(15)
-            ->appends(['status' => $filter]);
+        if ($category !== 'all') {
+            $query->where('category', $category);
+        }
 
-        return view('student_login.support_complaints.index', compact('complaints', 'filter', 'complaintCounts'));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_no', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%");
+            });
+        }
+
+        $complaints = $query->withCount('replies')
+            ->with(['replies' => function ($q) {
+                $q->latest('id')->limit(1);
+            }])
+            ->latest('last_replied_at')
+            ->latest()
+            ->paginate(15)
+            ->appends($request->query());
+
+        return view('student_login.support_complaints.index', compact(
+            'complaints',
+            'filter',
+            'category',
+            'search',
+            'complaintCounts',
+            'categoryCounts'
+        ));
     }
 
     public function create()
