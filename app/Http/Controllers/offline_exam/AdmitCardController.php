@@ -28,33 +28,121 @@ class AdmitCardController extends Controller
         $search['section_id'] = $request->section_id;
         $search['exam_id'] = $request->exam_id;
 
-        
-         $students = Admission::where("session_id", Session::get("session_id"))
-                ->where("branch_id", Session::get("branch_id"))->where('status',1)->where('status',1);
-              
-                
+        $sessionId = Session::get("session_id");
+        $branchId = Session::get("branch_id");
 
-       if($request->isMethod('post')){
-           
-       if($request->class_type_id != '')
-       {
-           $students = $students->where("class_type_id", $request->class_type_id);
-           $exam =  AssignExam::select('assign_exams.*','exam.id as exam_id','exam.name as exam_name')
-                    	    ->leftjoin('exams as exam','assign_exams.exam_id','exam.id')
-                            ->where('assign_exams.class_type_id',$request->class_type_id)
-                            ->where('assign_exams.session_id',Session::get('session_id'))
-                            ->where('assign_exams.branch_id',Session::get('branch_id'))
-                            ->get();
-       }
-       
-         $students = $students->orderBy("first_name", "ASC")->get();
-         
-         return view('examination.offline_exam.admit_card.download_admit_card',['search'=>$search, 'exam'=>$exam,'data1'=> $students,'exam_id'=>$request->exam_id ?? '']);
-   
-          
-      }
-        
-        return view('examination.offline_exam.admit_card.download_admit_card',['search'=>$search, 'data1'=> $students,'exam_id'=>$request->exam_id ?? '']);
+        if ($request->ajax()) {
+            $classTypeId = $request->class_type_id;
+            $examId = $request->exam_id;
+
+            if (empty($classTypeId)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please select a Class.'
+                ], 422);
+            }
+
+            if (empty($examId)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please select an Examination.'
+                ], 422);
+            }
+
+            // Check if examination schedule exists for this class & exam
+            $scheduleExists = \DB::table('examination_schedules')
+                ->where('class_type_id', $classTypeId)
+                ->where('exam_id', $examId)
+                ->where('session_id', $sessionId)
+                ->where('branch_id', $branchId)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (!$scheduleExists) {
+                return response()->json([
+                    'status' => 'warning',
+                    'has_schedule' => false,
+                    'message' => 'Examination schedule has not been created for this exam yet. Please configure the schedule first.',
+                    'count' => 0,
+                    'students' => []
+                ]);
+            }
+
+            // Query students with optimized columns
+            $students = Admission::select(
+                'id',
+                'admissionNo',
+                'first_name',
+                'last_name',
+                'mobile',
+                'father_name',
+                'father_mobile',
+                'roll_no',
+                'class_type_id',
+                'image'
+            )
+            ->where('session_id', $sessionId)
+            ->where('branch_id', $branchId)
+            ->where('class_type_id', $classTypeId)
+            ->where('status', 1)
+            ->orderBy('first_name', 'ASC')
+            ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'has_schedule' => true,
+                'count' => $students->count(),
+                'students' => $students
+            ]);
+        }
+
+        $students = collect();
+        $exam = collect();
+
+        if ($request->isMethod('post') || $request->filled('class_type_id')) {
+            if (!empty($request->class_type_id)) {
+                $students = Admission::select(
+                    'id',
+                    'admissionNo',
+                    'first_name',
+                    'last_name',
+                    'mobile',
+                    'father_name',
+                    'father_mobile',
+                    'roll_no',
+                    'class_type_id',
+                    'image'
+                )
+                ->where('session_id', $sessionId)
+                ->where('branch_id', $branchId)
+                ->where('class_type_id', $request->class_type_id)
+                ->where('status', 1)
+                ->orderBy('first_name', 'ASC')
+                ->get();
+
+                $exam = AssignExam::select('assign_exams.*', 'exam.id as exam_id', 'exam.name as exam_name')
+                    ->leftJoin('exams as exam', 'assign_exams.exam_id', 'exam.id')
+                    ->where('assign_exams.class_type_id', $request->class_type_id)
+                    ->where('assign_exams.session_id', $sessionId)
+                    ->where('assign_exams.branch_id', $branchId)
+                    ->whereNull('assign_exams.deleted_at')
+                    ->get();
+            }
+
+            return view('examination.offline_exam.admit_card.download_admit_card', [
+                'search' => $search,
+                'exam' => $exam,
+                'data1' => $students,
+                'exam_id' => $request->exam_id ?? ''
+            ]);
+        }
+
+        return view('examination.offline_exam.admit_card.download_admit_card', [
+            'search' => $search,
+            'exam' => $exam,
+            'data1' => $students,
+            'exam_id' => $request->exam_id ?? ''
+        ]);
     }
     
 
@@ -128,6 +216,14 @@ class AdmitCardController extends Controller
                     $data->note = $request->note;
                     $data->status = 1;
                     $data->save();
+
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'status' => 'success',
+                            'message' => 'Admit Card Note updated successfully.'
+                        ]);
+                    }
+
                     return redirect::to('download_admit_card')->with('message', 'Note Edit Successfully');
                 }
                 else{
@@ -138,6 +234,14 @@ class AdmitCardController extends Controller
                     $note->note = $request->note;
                     $note->status = 1; 
                     $note->save();
+
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'status' => 'success',
+                            'message' => 'Admit Card Note added successfully.'
+                        ]);
+                    }
+
                     return redirect::to('download_admit_card')->with('message', 'Note Add Successfully');
                 }
             }
