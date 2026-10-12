@@ -9,7 +9,7 @@
     $headerLogoFile = $headerSetting->left_logo ?? '';
     $headerLogoUrl = !empty($headerLogoFile)
         ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($headerLogoFile)
-        : '';
+        : asset('public/assets/school/img/logo.png');
     $headerFirmInitial = strtoupper(mb_substr(trim($headerSetting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 
     $alertsCount = $unreadAlerts ?? ($notificationCount ?? 0);
@@ -24,7 +24,7 @@
                 src="{{ $headerLogoUrl }}" 
                 alt="Logo" 
                 class="top-bar-logo"
-                onerror="this.style.display='none'; var av=document.getElementById('studentTopBarAvatar'); if(av){av.style.display='flex';}"
+                onerror="if(this.dataset.triedFallback){ this.style.display='none'; var av=document.getElementById('studentTopBarAvatar'); if(av){av.style.display='flex';} } else { this.dataset.triedFallback=1; this.src='{{ asset('public/assets/school/img/logo.png') }}'; }"
             >
             <div id="studentTopBarAvatar" class="top-bar-logo top-bar-avatar" style="display: none;">
                 {{ $headerFirmInitial }}

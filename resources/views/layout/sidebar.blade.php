@@ -27,9 +27,9 @@
 <aside class="main-sidebar" id="sidebar">
     <div class="top_brand_section">
         <a href="{{ url('/') }}" style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; text-decoration: none;">
-            <img src="{{ env('IMAGE_SHOW_PATH').'/setting/left_logo/'.$getSetting->left_logo ?? '' }}" 
+            <img src="{{ env('IMAGE_SHOW_PATH').'/setting/left_logo/'.($getSetting->left_logo ?? '') }}" 
                  alt="" class="brand_img" 
-                 onerror="this.src='{{ env('IMAGE_SHOW_PATH').'default/no_image.png' }}'">
+                 onerror="if(this.dataset.triedFallback){ this.src='{{ env('IMAGE_SHOW_PATH').'default/no_image.png' }}'; } else { this.dataset.triedFallback=1; this.src='{{ asset('public/assets/school/img/logo.png') }}'; }">
             <span class="brand_title">{{ $getSetting->name ?? '' }}</span>
         </a>
         <button type="button" class="mobile-close-sidebar" aria-label="Close Sidebar">

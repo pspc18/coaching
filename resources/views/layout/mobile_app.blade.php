@@ -47,7 +47,7 @@
     $mobileLogoFile = $setting->left_logo ?? '';
     $mobileLogoUrl = !empty($mobileLogoFile)
         ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($mobileLogoFile)
-        : '';
+        : asset('public/assets/school/img/logo.png');
     $firmInitial = strtoupper(mb_substr(trim($setting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 @endphp
 <!DOCTYPE html>
@@ -934,7 +934,7 @@
                     src="{{ $mobileLogoUrl }}" 
                     alt="Logo" 
                     class="top-bar-logo"
-                    onerror="this.style.display='none'; var av=document.getElementById('mobileTopBarAvatar'); if(av){av.style.display='flex';}"
+                    onerror="if(this.dataset.triedFallback){ this.style.display='none'; var av=document.getElementById('mobileTopBarAvatar'); if(av){av.style.display='flex';} } else { this.dataset.triedFallback=1; this.src='{{ asset('public/assets/school/img/logo.png') }}'; }"
                 >
                 <div id="mobileTopBarAvatar" class="top-bar-logo top-bar-avatar" style="display: none;">
                     {{ $firmInitial }}
