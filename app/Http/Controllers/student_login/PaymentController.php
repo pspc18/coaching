@@ -127,6 +127,7 @@ class PaymentController extends Controller
                 'redirect_url' => $res['redirect_url'],
                 'merchant_order_id' => $merchantOrderId,
                 'amount' => $amount,
+                'env' => strtoupper(config('services.phonepe.env', env('PHONEPE_ENV', 'UAT'))),
                 'is_simulation' => $res['is_simulation'] ?? false,
             ]);
         }

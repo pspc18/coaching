@@ -177,6 +177,11 @@
         </div>
     </div>
 
+    {{-- UAT Sandbox Mode Notice --}}
+    <div id="phonePeUatNotice" style="display: none; background: #fffbeb; color: #92400e; padding: 8px 14px; font-size: 11px; text-align: center; border-bottom: 1px solid #fde68a; line-height: 1.4; font-weight: 500;">
+        <i class="fa fa-flask" style="color: #d97706;"></i> <strong>Sandbox Test Mode:</strong> Please test via <strong>Test UPI ID (e.g. success@ybl)</strong>, Cards, or NetBanking below. (Real PhonePe App requires Production mode).
+    </div>
+
     {{-- Frame Body & Responsive Viewport Scaler --}}
     <div class="mob-phonepe-frame-body" id="phonePeFrameBody">
         {{-- Loader with Arise / PhonePe branding --}}
@@ -957,7 +962,14 @@ function isMobileDevice() {
     return isMobileUA || (isTouchDevice && isNarrow);
 }
 
+var currentPhonePeUrl = '';
+var currentIsUat = false;
+
 function openPhonePeAppDirect() {
+    if (currentIsUat) {
+        var proceed = confirm("⚠️ UAT Sandbox Test Mode Notice:\n\nPhonePe's real consumer app (from Play Store) only processes Live/Production payments and will reject sandbox test transactions with 'Close and Retry'.\n\nFor Sandbox testing, please complete payment directly on screen using Test UPI ID (e.g. success@ybl) or Cards/NetBanking.\n\nDo you still want to attempt opening the PhonePe app?");
+        if (!proceed) return;
+    }
     if (currentPhonePeUrl) {
         window.top.location.href = currentPhonePeUrl;
     }
@@ -1002,21 +1014,14 @@ function submitPhonePePayment() {
     .then(function(response) {
         if (response.ok && response.data.status && response.data.redirect_url) {
             var redirectUrl = response.data.redirect_url;
-            var isMobile = isMobileDevice();
+            var isUat = (response.data.env === 'UAT');
 
-            if (isMobile) {
-                // Same-device mobile flow:
-                // Redirect top-level window so mobile browser can natively trigger
-                // PhonePe / GPay / Paytm App Intent (phonepe://, intent://) without iframe sandbox blocks
-                btn.innerHTML = '<i class="fa fa-bolt"></i> Opening PhonePe App...';
-                window.location.href = redirectUrl;
-            } else {
-                // Desktop / Laptop flow:
-                // Open in In-App Mobile Frame with scaled QR code so student/parent can scan from phone
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-                openPhonePeMobileFrame(redirectUrl);
-            }
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+
+            // Open inside unified in-app mobile frame so user stays inside Arise ERP
+            // and mobile intent hijacking ('Close and Retry') is prevented in Sandbox
+            openPhonePeMobileFrame(redirectUrl, isUat);
         } else {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -1029,8 +1034,6 @@ function submitPhonePePayment() {
         showPhonePeError('Network error connecting to payment gateway: ' + error.message);
     });
 }
-
-var currentPhonePeUrl = '';
 
 function applyPhonePeIframeScale() {
     var viewport = document.getElementById('phonePeScalerViewport');
@@ -1065,14 +1068,20 @@ window.addEventListener('orientationchange', function() {
     setTimeout(applyPhonePeIframeScale, 200);
 });
 
-function openPhonePeMobileFrame(url) {
+function openPhonePeMobileFrame(url, isUat) {
     closePhonePeModal();
     currentPhonePeUrl = url;
+    currentIsUat = !!isUat;
 
     var frameLayer = document.getElementById('phonePeFrameLayer');
     var iframe = document.getElementById('phonePeIframe');
     var loader = document.getElementById('phonePeFrameLoader');
     var popout = document.getElementById('phonePeExternalPopout');
+    var uatNotice = document.getElementById('phonePeUatNotice');
+
+    if (uatNotice) {
+        uatNotice.style.display = currentIsUat ? 'block' : 'none';
+    }
 
     if (loader) {
         loader.style.display = 'flex';
