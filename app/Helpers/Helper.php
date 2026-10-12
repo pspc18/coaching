@@ -463,15 +463,22 @@ class Helper{
     
     
      public static function getSiblings(){
-          $current = Admission::find(Session::get('id'));
+          $studentId = Session::get('id');
+          if (empty($studentId)) {
+              return collect([]);
+          }
+          $current = Admission::find($studentId);
+          if (!$current || empty($current->ledger_no)) {
+              return collect([]);
+          }
           $siblings = Admission::where('ledger_no', $current->ledger_no)
                     ->where('session_id', Session::get('session_id'))
                     ->where('branch_id', Session::get('branch_id'))
                     ->where('status', 1)
-                    ->where('id', '!=', Session::get('id'))
+                    ->where('id', '!=', $studentId)
                     ->whereNotNull('ledger_no')
                     ->get();
-                    return $siblings;
+          return $siblings;
      }
     
    

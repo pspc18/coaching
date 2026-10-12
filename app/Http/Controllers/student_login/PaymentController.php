@@ -170,12 +170,27 @@ class PaymentController extends Controller
             return redirect()->route('feesHistory')->withErrors(['error' => 'Invalid payment callback: Order ID missing.']);
         }
 
-        $order = OnlinePayment::where('merchant_order_id', $merchantOrderId)->first();
+        $order = OnlinePayment::with(['admission.ClassTypes', 'invoice'])
+            ->where('merchant_order_id', $merchantOrderId)
+            ->first();
+
         if (!$order) {
-            return redirect()->route('feesHistory')->withErrors(['error' => 'Payment transaction record not found.']);
+            return redirect('fees_history')->withErrors(['error' => 'Payment transaction record not found.']);
         }
 
-        $student = Admission::find($order->admission_id);
+        $student = $order->admission ?? Admission::find($order->admission_id);
+
+        // Keep student session active if it was dropped during gateway redirect
+        if ($student) {
+            if (!Session::has('id') || Session::get('id') != $student->id) {
+                Session::put('id', $student->id);
+                Session::put('role_id', 3);
+                Session::put('branch_id', $student->branch_id ?? 1);
+                Session::put('session_id', $order->session_id);
+                Session::put('first_name', $student->first_name);
+                Session::put('last_name', $student->last_name);
+            }
+        }
 
         // Check if simulation failure was triggered
         if ($simulationAction === 'fail') {
@@ -191,6 +206,15 @@ class PaymentController extends Controller
             ]);
         }
 
+        // Fast-path: If already settled and completed, directly render success view
+        if ($order->payment_status === 'COMPLETED') {
+            return view('student_login.payment.success', [
+                'order' => $order,
+                'student' => $student,
+                'invoice' => $order->invoice,
+            ]);
+        }
+
         // Verify status with PhonePe
         $statusRes = $this->phonePeService->checkPaymentStatus($order->merchant_order_id);
 
@@ -200,9 +224,12 @@ class PaymentController extends Controller
                 $this->settleSuccessfulPayment($order, $statusRes['transaction_id'] ?? ('TXN_' . time()));
             }
 
+            $freshOrder = $order->fresh(['admission.ClassTypes', 'invoice']);
+
             return view('student_login.payment.success', [
-                'order' => $order->fresh(),
+                'order' => $freshOrder,
                 'student' => $student,
+                'invoice' => $freshOrder->invoice,
             ]);
         }
 
