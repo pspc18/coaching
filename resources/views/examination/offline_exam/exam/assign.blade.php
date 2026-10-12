@@ -569,40 +569,285 @@
     border-left: 4px solid #0284c7;
 }
 
-/* Modals */
-.modal-content-dash {
-    border-radius: 3px;
-    border: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,.2);
-    overflow: hidden;
+/* ==========================================================================
+   STANDARD ERP THEME CONFIRMATION MODALS (100% SCREEN-CENTERED: modal-dialog-centered)
+   ========================================================================== */
+
+.theme-delete-modal-dialog {
+    max-width: 440px;
+    margin: 1.75rem auto;
 }
-.modal-header-dash {
-    background: #002C54;
-    color: #ffffff;
-    padding: 9px 14px;
+.theme-delete-modal-content {
+    border: none;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    background: #ffffff;
+}
+.theme-delete-modal-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 48px !important;
+    border-top-left-radius: 4px !important;
+    border-top-right-radius: 4px !important;
+}
+.theme-delete-title-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.theme-delete-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 3px !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    flex-shrink: 0 !important;
+}
+.theme-delete-headings {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+}
+.theme-delete-title {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.01em !important;
+}
+.theme-delete-subtitle {
+    font-size: 10px !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    margin: 2px 0 0 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+}
+.theme-delete-close {
+    color: #ffffff !important;
+    opacity: 0.9 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-radius: 3px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: all 0.15s ease !important;
+    padding: 0 !important;
+    outline: none !important;
+    line-height: 1 !important;
+}
+.theme-delete-close:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #ffffff !important;
+}
+.theme-delete-body {
+    padding: 18px 16px 14px !important;
+    background: #ffffff !important;
+}
+.theme-delete-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    font-size: 18px;
+    margin: 0 auto 10px auto;
+    border: 1px solid #fecaca;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
 }
-.modal-title-dash {
-    font-size: 13px;
-    font-weight: 700;
-    margin: 0;
-    color: #ffffff;
-}
-.modal-body-dash {
-    padding: 14px;
+.theme-delete-prompt {
     font-size: 12px;
+    color: #475569;
+    margin-bottom: 4px;
+}
+.theme-delete-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #002C54;
+    margin: 0 0 12px 0;
+    word-break: break-word;
+    line-height: 1.35;
+}
+.theme-delete-info-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11.5px;
     color: #334155;
+    margin-bottom: 12px;
+}
+.theme-delete-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+.theme-delete-info-label {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 11px;
+}
+.theme-delete-info-val {
+    color: #0f172a;
+    max-width: 65%;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11.5px;
+}
+.theme-delete-alert-warning {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-left: 3px solid #e53e3e;
+    border-radius: 2px;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10.5px;
+    color: #9b2c2c;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     line-height: 1.4;
 }
-.modal-footer-dash {
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    padding: 8px 14px;
+.theme-delete-alert-warning i {
+    margin-top: 2px;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+.theme-delete-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 9px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+}
+.theme-btn-cancel {
+    height: 29px;
+    font-size: 11.5px;
+    padding: 0 14px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none !important;
+}
+.theme-btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.theme-btn-confirm-delete {
+    height: 29px;
+    font-size: 11.5px;
+    padding: 0 16px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dc2626;
+    color: #ffffff;
+    border: 1px solid #b91c1c;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none !important;
+    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2);
+}
+.theme-btn-confirm-delete:hover {
+    background: #b91c1c;
+    border-color: #991b1b;
+    color: #ffffff;
+}
+
+/* Theme Navy Modal for Bulk Sync */
+.theme-navy-modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+}
+.theme-navy-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin: 0 auto 10px auto;
+    border: 1px solid #bae6fd;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}
+.theme-navy-alert {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 3px solid #0284c7;
+    border-radius: 2px;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10.5px;
+    color: #0369a1;
+    display: flex;
+    align-items: flex-start;
     gap: 8px;
+    line-height: 1.4;
+}
+.theme-btn-confirm-apply {
+    height: 29px;
+    font-size: 11.5px;
+    padding: 0 16px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d97706;
+    color: #ffffff;
+    border: 1px solid #b45309;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none !important;
+    box-shadow: 0 1px 2px rgba(217, 119, 6, 0.2);
+}
+.theme-btn-confirm-apply:hover {
+    background: #b45309;
+    border-color: #92400e;
+    color: #ffffff;
 }
 
 /* Row Flash Highlight */
@@ -937,34 +1182,61 @@
     </div>
 </div>
 
-{{-- Modal 1: Unassign Confirmation --}}
-<div class="modal fade" id="unassignModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content modal-content-dash">
-            <div class="modal-header-dash" style="background:#dc2626;">
-                <h5 class="modal-title-dash"><i class="fa fa-exclamation-triangle"></i> Confirm Unassign</h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+{{-- Modal 1: Unassign / Delete Confirmation Modal (Arise ERP Standard) --}}
+<div class="modal fade" id="unassignModal" tabindex="-1" role="dialog" aria-labelledby="unassignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered theme-delete-modal-dialog" role="document">
+        <div class="modal-content theme-delete-modal-content">
+            <div class="modal-header theme-delete-modal-header">
+                <div class="theme-delete-title-box">
+                    <div class="theme-delete-icon">
+                        <i class="fa fa-trash"></i>
+                    </div>
+                    <div class="theme-delete-headings">
+                        <h5 class="theme-delete-title" id="unassignModalLabel">Confirm Unassignment</h5>
+                        <p class="theme-delete-subtitle">Examination &bull; Class Assignment</p>
+                    </div>
+                </div>
+                <button type="button" class="theme-delete-close" data-dismiss="modal" aria-label="Close" title="Cancel">
+                    <i class="fa fa-times"></i>
+                </button>
             </div>
             <form id="unassignForm" action="{{ url('assign/delete/exam') }}" method="post">
                 @csrf
                 <input type="hidden" id="delete_exam_id" name="exam_id" value="{{ $data->id ?? '' }}">
                 <input type="hidden" id="delete_assign_id" name="assign_id" value="">
-                <div class="modal-body-dash">
-                    <p class="mb-1" style="font-size:13px; font-weight:600; color:#0f172a;">
-                        Are you sure you want to unassign this class?
-                    </p>
-                    <p class="text-muted mb-0" id="unassignClassNameText" style="font-size:11.5px;">
-                        Class: <strong>--</strong>
-                    </p>
-                    <small class="text-danger d-block mt-2">
-                        This class will be removed from this examination.
-                    </small>
-                </div>
-                <div class="modal-footer-dash">
-                    <button type="button" class="dash-btn dash-btn-outline" style="color:#475569 !important; border-color:#cbd5e1;" data-dismiss="modal">Cancel</button>
-                    <button type="submit" id="btnConfirmUnassign" class="dash-btn dash-btn-danger">
+                
+                <div class="modal-body theme-delete-body text-center">
+                    <div class="theme-delete-avatar">
                         <i class="fa fa-trash"></i>
-                        <span>Yes, Unassign</span>
+                    </div>
+                    <p class="theme-delete-prompt">Are you sure you want to unassign this class from the examination?</p>
+                    <h6 class="theme-delete-item-title" id="unassignClassNameTitle">Class Name</h6>
+                    
+                    <div class="theme-delete-info-card">
+                        <div class="theme-delete-info-row">
+                            <span class="theme-delete-info-label"><i class="fa fa-tag mr-1 text-primary"></i> Examination:</span>
+                            <span class="badge" style="font-size:10.5px; background:#002C54; color:#fff;">{{ $data->name ?? 'Exam' }}</span>
+                        </div>
+                        <div class="theme-delete-info-row">
+                            <span class="theme-delete-info-label"><i class="fa fa-graduation-cap mr-1 text-primary"></i> Target Class:</span>
+                            <strong class="theme-delete-info-val text-primary" id="unassignModalClassVal">-</strong>
+                        </div>
+                        <div class="theme-delete-info-row border-0 pb-0">
+                            <span class="theme-delete-info-label"><i class="fa fa-calendar mr-1 text-primary"></i> Scheduled Date:</span>
+                            <span class="theme-delete-info-val font-weight-bold" id="unassignModalDateVal">-</span>
+                        </div>
+                    </div>
+
+                    <div class="theme-delete-alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        <span><strong>Warning:</strong> Unassigning will remove this class from this examination schedule and student admit cards.</span>
+                    </div>
+                </div>
+
+                <div class="theme-delete-footer">
+                    <button type="button" class="theme-btn-cancel" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="theme-btn-confirm-delete" id="btnConfirmUnassign">
+                        <i class="fa fa-trash mr-1"></i> Yes, Unassign Class
                     </button>
                 </div>
             </form>
@@ -972,30 +1244,56 @@
     </div>
 </div>
 
-{{-- Modal 2: Bulk Apply Date Confirmation --}}
-<div class="modal fade" id="applyAllConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-        <div class="modal-content modal-content-dash">
-            <div class="modal-header-dash" style="background:#002C54;">
-                <h5 class="modal-title-dash"><i class="fa fa-calendar-check"></i> Bulk Date Confirmation</h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+{{-- Modal 2: Bulk Apply Date Confirmation (Arise ERP Standard) --}}
+<div class="modal fade" id="applyAllConfirmModal" tabindex="-1" role="dialog" aria-labelledby="bulkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered theme-delete-modal-dialog" role="document">
+        <div class="modal-content theme-delete-modal-content">
+            <div class="modal-header theme-delete-modal-header theme-navy-modal-header">
+                <div class="theme-delete-title-box">
+                    <div class="theme-delete-icon" style="background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.3);">
+                        <i class="fa fa-calendar-check"></i>
+                    </div>
+                    <div class="theme-delete-headings">
+                        <h5 class="theme-delete-title" id="bulkModalLabel">Bulk Date Synchronization</h5>
+                        <p class="theme-delete-subtitle">Apply Date to All Assigned Classes</p>
+                    </div>
+                </div>
+                <button type="button" class="theme-delete-close" data-dismiss="modal" aria-label="Close" title="Cancel">
+                    <i class="fa fa-times"></i>
+                </button>
             </div>
-            <div class="modal-body-dash">
-                <p class="mb-1" style="font-size:13px; font-weight:600; color:#0f172a;">
-                    Apply Scheduled Date to All Classes?
-                </p>
-                <p class="text-muted mb-1" style="font-size:11.5px;">
-                    Target Date: <strong id="bulkModalDatePreview" class="text-primary">--</strong>
-                </p>
-                <small class="text-muted d-block">
-                    This will synchronize and overwrite the exam date across all <strong id="bulkModalCountPreview">{{ $totalAssigned }}</strong> currently assigned classes.
-                </small>
-            </div>
-            <div class="modal-footer-dash">
-                <button type="button" class="dash-btn dash-btn-outline" style="color:#475569 !important; border-color:#cbd5e1;" data-dismiss="modal">Cancel</button>
-                <button type="button" id="btnConfirmBulkApply" class="dash-btn dash-btn-amber">
+            <div class="modal-body theme-delete-body text-center">
+                <div class="theme-navy-avatar">
                     <i class="fa fa-bolt"></i>
-                    <span>Yes, Apply to All</span>
+                </div>
+                <p class="theme-delete-prompt">Apply uniform exam date across all assigned classes?</p>
+                <h6 class="theme-delete-item-title" id="bulkModalDatePreviewTitle">Date: --</h6>
+                
+                <div class="theme-delete-info-card">
+                    <div class="theme-delete-info-row">
+                        <span class="theme-delete-info-label"><i class="fa fa-tag mr-1 text-primary"></i> Examination:</span>
+                        <span class="badge" style="font-size:10.5px; background:#002C54; color:#fff;">{{ $data->name ?? 'Exam' }}</span>
+                    </div>
+                    <div class="theme-delete-info-row">
+                        <span class="theme-delete-info-label"><i class="fa fa-calendar mr-1 text-primary"></i> New Exam Date:</span>
+                        <strong class="theme-delete-info-val text-primary" id="bulkModalDatePreview">-</strong>
+                    </div>
+                    <div class="theme-delete-info-row border-0 pb-0">
+                        <span class="theme-delete-info-label"><i class="fa fa-layer-group mr-1 text-primary"></i> Total Classes:</span>
+                        <span class="theme-delete-info-val font-weight-bold" id="bulkModalCountPreview">{{ $totalAssigned }} Classes</span>
+                    </div>
+                </div>
+
+                <div class="theme-navy-alert">
+                    <i class="fa fa-info-circle" style="margin-top:2px;"></i>
+                    <span>This operation will update the exam schedule date for all assigned classes simultaneously.</span>
+                </div>
+            </div>
+
+            <div class="theme-delete-footer">
+                <button type="button" class="theme-btn-cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" id="btnConfirmBulkApply" class="theme-btn-confirm-apply">
+                    <i class="fa fa-bolt mr-1"></i> Yes, Apply to All
                 </button>
             </div>
         </div>
@@ -1295,6 +1593,7 @@ $(document).ready(function() {
     $('#btnOpenBulkModal').on('click', function() {
         var chosenDate = $('#bulk_exam_date').val();
         $('#bulkModalDatePreview').text(chosenDate || 'Not selected');
+        $('#bulkModalDatePreviewTitle').text('Target Date: ' + (chosenDate || '--'));
     });
 
     // Bulk Apply To All Confirmation Action (AJAX)
@@ -1308,7 +1607,7 @@ $(document).ready(function() {
             return;
         }
 
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Applying...');
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Applying...');
 
         $.ajax({
             url: assignBaseUrl,
@@ -1318,7 +1617,7 @@ $(document).ready(function() {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(res) {
-                $btn.prop('disabled', false).html('<i class="fa fa-bolt"></i> Yes, Apply to All');
+                $btn.prop('disabled', false).html('<i class="fa fa-bolt mr-1"></i> Yes, Apply to All');
                 $('#applyAllConfirmModal').modal('hide');
 
                 if (res.status === 'success') {
@@ -1339,7 +1638,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                $btn.prop('disabled', false).html('<i class="fa fa-bolt"></i> Yes, Apply to All');
+                $btn.prop('disabled', false).html('<i class="fa fa-bolt mr-1"></i> Yes, Apply to All');
                 $('#applyAllConfirmModal').modal('hide');
                 var err = xhr.responseJSON ? xhr.responseJSON.message : 'Server error occurred.';
                 showToast(err, 'error');
@@ -1351,9 +1650,18 @@ $(document).ready(function() {
     $(document).on('click', '.btn-unassign-trigger', function() {
         var assignId = $(this).data('id');
         var className = $(this).data('name') || 'Class';
+        var dateVal = $(this).closest('tr').find('input[name="exam_date"]').val() 
+                      || $(this).closest('.mobile-card-item').find('input[name="exam_date"]').val() 
+                      || '';
+
+        if (!dateVal || dateVal.trim() === '') {
+            dateVal = 'Not Scheduled';
+        }
 
         $('#delete_assign_id').val(assignId);
-        $('#unassignClassNameText').html('Class: <strong>' + className + '</strong>');
+        $('#unassignClassNameTitle').text(className);
+        $('#unassignModalClassVal').text(className);
+        $('#unassignModalDateVal').text(dateVal);
         $('#unassignModal').modal('show');
     });
 
@@ -1364,7 +1672,7 @@ $(document).ready(function() {
         var $btn = $('#btnConfirmUnassign');
         var assignId = $('#delete_assign_id').val();
 
-        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Unassigning...');
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Unassigning...');
 
         $.ajax({
             url: deleteUrl,
