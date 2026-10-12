@@ -25,9 +25,7 @@
     <a href="{{ url('notificationFatchStudent') }}" class="dock-nav-item {{ request()->is('notificationFatchStudent*') || request()->is('notification_detail_stu*') ? 'active' : '' }}">
         <div class="dock-nav-icon">
             <i class="fa fa-bell-o"></i>
-            @if($dockAlertsCount > 0)
-                <span class="dock-badge-pulse">{{ $dockAlertsCount > 9 ? '9+' : $dockAlertsCount }}</span>
-            @endif
+            <span class="dock-badge-pulse" id="dockAlertsBadge" style="{{ $dockAlertsCount > 0 ? '' : 'display:none;' }}">{{ $dockAlertsCount > 9 ? '9+' : $dockAlertsCount }}</span>
         </div>
         <span>Alerts</span>
     </a>

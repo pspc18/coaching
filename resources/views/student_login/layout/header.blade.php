@@ -52,9 +52,7 @@
         {{-- Alerts / Notifications --}}
         <a href="{{ url('notificationFatchStudent') }}" class="top-icon-pill {{ request()->is('notificationFatchStudent*') || request()->is('notification_detail_stu*') ? 'active' : '' }}" title="Notifications">
             <i class="fa fa-bell-o"></i>
-            @if($alertsCount > 0)
-                <span class="top-badge-pulse">{{ $alertsCount > 9 ? '9+' : $alertsCount }}</span>
-            @endif
+            <span class="top-badge-pulse" id="headerAlertsBadge" style="{{ $alertsCount > 0 ? '' : 'display:none;' }}">{{ $alertsCount > 9 ? '9+' : $alertsCount }}</span>
         </a>
 
         {{-- Sibling Switch (if available) --}}

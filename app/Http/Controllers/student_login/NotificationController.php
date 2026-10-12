@@ -120,7 +120,13 @@ class NotificationController extends Controller
                 $notification->save();
             }
 
-            return response()->json(['ok' => true]);
+            $categoryCounts = $this->notificationsService()->counts((int) Session::get('id'));
+
+            return response()->json([
+                'ok' => true,
+                'unread_count' => (int) ($categoryCounts['all'] ?? 0),
+                'category_counts' => $categoryCounts,
+            ]);
         }
 
         public function markAllAttendanceRead(Request $request)

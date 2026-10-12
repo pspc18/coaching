@@ -15,10 +15,8 @@
 
     $notificationCount = 0;
     if (!empty($studentId)) {
-        $notificationCount = (int) DB::table('notifications')
-            ->where('admission_id', $studentId)
-            ->where('show_status', 1)
-            ->count();
+        $notificationCounts = app(\App\Services\StudentNotificationService::class)->counts((int) $studentId, true);
+        $notificationCount = (int) ($notificationCounts['all'] ?? 0);
     }
     $unreadAlerts = $notificationCount;
 
@@ -372,6 +370,34 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
+
+// Global Live Alert Badge Synchronizer
+window.updateStudentAlertBadges = function (count) {
+    var c = Math.max(0, parseInt(count, 10) || 0);
+    var displayTxt = c > 9 ? '9+' : c.toString();
+    var headerBadge = document.getElementById('headerAlertsBadge');
+    var dockBadge = document.getElementById('dockAlertsBadge');
+
+    if (headerBadge) {
+        if (c > 0) {
+            headerBadge.textContent = displayTxt;
+            headerBadge.style.display = '';
+        } else {
+            headerBadge.textContent = '0';
+            headerBadge.style.display = 'none';
+        }
+    }
+
+    if (dockBadge) {
+        if (c > 0) {
+            dockBadge.textContent = displayTxt;
+            dockBadge.style.display = '';
+        } else {
+            dockBadge.textContent = '0';
+            dockBadge.style.display = 'none';
+        }
+    }
+};
 </script>
 
 @yield('scripts')

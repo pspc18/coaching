@@ -1186,12 +1186,11 @@ body.mob-sheet-lock {
                     $badgeVal = (int) ($categoryCounts[$catKey] ?? 0);
                 @endphp
                 <a href="{{ $buildUrl(['category' => $catKey, 'filter' => $filter, 'search' => $currentSearch]) }}"
-                   class="mob-pill-btn {{ $isActive ? 'active' : '' }}">
+                   class="mob-pill-btn {{ $isActive ? 'active' : '' }}"
+                   data-category="{{ $catKey }}">
                     <i class="fa {{ $meta['icon'] }}"></i>
                     <span>{{ $meta['label'] }}</span>
-                    @if($badgeVal > 0)
-                        <span class="mob-pill-badge">{{ $badgeVal }}</span>
-                    @endif
+                    <span class="mob-pill-badge" id="catBadge-{{ $catKey }}" style="{{ $badgeVal > 0 ? '' : 'display:none;' }}">{{ $badgeVal }}</span>
                 </a>
             @endforeach
         </div>
@@ -1661,10 +1660,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Decrement Stat Badges
         const unreadStat = document.getElementById('statUnreadVal');
+        var newCount = 0;
         if (unreadStat) {
-            const current = Math.max(0, parseInt(unreadStat.textContent.trim(), 10) - 1);
-            unreadStat.textContent = current;
-            if (current === 0) {
+            newCount = Math.max(0, parseInt(unreadStat.textContent.trim(), 10) - 1);
+            unreadStat.textContent = newCount;
+            if (newCount === 0) {
                 unreadStat.classList.remove('danger-badge');
                 unreadStat.classList.add('success-badge');
             }
@@ -1679,12 +1679,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Optimistically update global header & footer dock badges
+        var headerBadge = document.getElementById('headerAlertsBadge');
+        if (headerBadge) {
+            var currentHeader = Math.max(0, (parseInt(headerBadge.textContent.trim(), 10) || 0) - 1);
+            if (typeof window.updateStudentAlertBadges === 'function') {
+                window.updateStudentAlertBadges(currentHeader);
+            }
+        }
+
         return fetch(readUrl, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(function (res) {
+            return res.json();
+        }).then(function (data) {
+            if (data && data.ok) {
+                if (typeof data.unread_count !== 'undefined') {
+                    if (typeof window.updateStudentAlertBadges === 'function') {
+                        window.updateStudentAlertBadges(data.unread_count);
+                    }
+                }
+                if (data.category_counts) {
+                    for (var cat in data.category_counts) {
+                        var catEl = document.getElementById('catBadge-' + cat);
+                        if (catEl) {
+                            var val = parseInt(data.category_counts[cat], 10) || 0;
+                            catEl.textContent = val;
+                            catEl.style.display = val > 0 ? '' : 'none';
+                        }
+                    }
+                }
             }
         }).catch(function (err) {
             console.error('Mark read failed:', err);
