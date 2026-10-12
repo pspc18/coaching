@@ -25,6 +25,13 @@
         'complaint' => ['label' => 'Complaints', 'icon' => 'fa-comments-o', 'color' => '#64748b'],
     ];
 
+    // If a category is selected, bring it to the front (left starting position)
+    if ($category !== 'all' && isset($categoryMeta[$category])) {
+        $selectedCat = [$category => $categoryMeta[$category]];
+        unset($categoryMeta[$category]);
+        $categoryMeta = $selectedCat + $categoryMeta;
+    }
+
     $buildUrl = function (array $params) {
         $params = array_filter($params, function ($value) {
             return $value !== null && $value !== '';
@@ -542,8 +549,9 @@
 
 .mob-notif-attach {
     display: inline-flex;
+    max-width: 100%;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     padding: 4px 8px;
     background: #eff6ff;
     border: 1px solid #bfdbfe;
@@ -551,13 +559,28 @@
     font-size: 10px;
     font-weight: 700;
     color: #1d4ed8;
-    text-decoration: none;
+    text-decoration: none !important;
     margin-bottom: 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+    vertical-align: middle;
 }
 
 .mob-notif-attach:hover {
     background: #dbeafe;
     color: #1e40af;
+}
+
+.mob-notif-attach span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+}
+
+.mob-notif-attach i {
+    flex-shrink: 0;
 }
 
 .mob-notif-footer {
@@ -1172,6 +1195,15 @@ body.mob-sheet-lock {
                 </a>
             @endforeach
         </div>
+        <script>
+            (function () {
+                var container = document.querySelector('.mob-pill-scroll');
+                var active = container ? container.querySelector('.mob-pill-btn.active') : null;
+                if (container && active) {
+                    container.scrollLeft = Math.max(0, active.offsetLeft - container.offsetLeft);
+                }
+            })();
+        </script>
 
         {{-- Status Filter (All / Unread / Read) --}}
         <div class="mob-status-tabs">
@@ -1574,6 +1606,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('notifSearchInput');
     const searchClear = document.getElementById('btnNotifSearchClear');
     const cards = document.querySelectorAll('.mob-notif-card');
+
+    // Auto-scroll active category pill to left start
+    const pillContainer = document.querySelector('.mob-pill-scroll');
+    if (pillContainer) {
+        const activePill = pillContainer.querySelector('.mob-pill-btn.active');
+        if (activePill) {
+            pillContainer.scrollLeft = Math.max(0, activePill.offsetLeft - pillContainer.offsetLeft);
+        }
+    }
 
     // 1. Live Instant Client Search Filter (Zero lag)
     let searchDebounceTimer = null;
