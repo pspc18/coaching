@@ -109,6 +109,7 @@
             margin: 0 auto 20px auto;
             padding: 3mm 4mm;
             box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -117,20 +118,14 @@
             page-break-inside: avoid;
         }
 
-        /* Admit Card Box (Exactly fits 2 per A4) */
+        /* Admit Card Box (Self-contained block layout: strictly prevents child overlap) */
         .admit-card {
             width: 100%;
-            height: 139mm;
-            max-height: 139mm;
-            min-height: 139mm;
+            box-sizing: border-box;
             border: 1.5px solid #0f172a;
             border-radius: 4px;
-            padding: 3mm 4mm;
+            padding: 2.5mm 3.5mm;
             background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
             position: relative;
         }
 
@@ -138,45 +133,45 @@
         .card-header {
             display: flex;
             align-items: center;
-            border-bottom: 1.5px solid #0f172a;
-            padding-bottom: 1.5mm;
-            margin-bottom: 1.5mm;
+            border-bottom: 1.2px solid #0f172a;
+            padding-bottom: 1.2mm;
+            margin-bottom: 1.2mm;
             gap: 10px;
         }
         .header-logo {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .header-logo img {
-            max-width: 48px;
-            max-height: 48px;
+            max-width: 44px;
+            max-height: 44px;
             object-fit: contain;
         }
         .header-info {
             flex: 1;
             text-align: center;
-            line-height: 1.2;
+            line-height: 1.15;
         }
         .school-name {
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: 800;
             text-transform: uppercase;
             color: #0f172a;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .school-address {
-            font-size: 8pt;
+            font-size: 7.5pt;
             font-weight: 500;
             color: #1f2937;
-            margin-bottom: 1.5px;
+            margin-bottom: 1px;
         }
         .school-contact {
-            font-size: 7.5pt;
+            font-size: 7pt;
             color: #374151;
         }
 
@@ -184,21 +179,22 @@
         .exam-banner {
             background: #0f172a;
             color: #ffffff;
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: 800;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             text-align: center;
-            padding: 2.2px 0;
+            padding: 1.8px 0;
             text-transform: uppercase;
             border-radius: 2px;
-            margin-bottom: 1.8mm;
+            margin-bottom: 1.5mm;
+            line-height: 1.2;
         }
 
         /* Candidate Details & Photo */
         .candidate-section {
             display: flex;
             gap: 8px;
-            margin-bottom: 1.8mm;
+            margin-bottom: 1.5mm;
             align-items: stretch;
         }
         .candidate-grid {
@@ -207,9 +203,9 @@
             border-collapse: collapse;
         }
         .candidate-grid td {
-            font-size: 8pt;
-            line-height: 1.3;
-            padding: 2px 2px;
+            font-size: 7.8pt;
+            line-height: 1.25;
+            padding: 1.5px 2px;
             vertical-align: middle;
         }
         .candidate-grid .label {
@@ -227,26 +223,26 @@
         .candidate-grid .value {
             color: #000000;
             font-weight: 700;
-            font-size: 8.5pt;
+            font-size: 8.2pt;
             width: 30%;
         }
         .candidate-grid .val-highlight {
             background: #f1f5f9;
-            padding: 1px 6px;
-            border-radius: 3px;
+            padding: 0.5px 5px;
+            border-radius: 2px;
             border: 1px solid #94a3b8;
             display: inline-block;
-            font-size: 9.5pt;
+            font-size: 9pt;
             font-weight: 800;
             color: #0f172a;
         }
 
         /* Photo Box */
         .photo-box {
-            width: 23mm;
-            height: 27mm;
+            width: 21mm;
+            height: 25mm;
             border: 1px dashed #64748b;
-            border-radius: 3px;
+            border-radius: 2px;
             flex-shrink: 0;
             overflow: hidden;
             display: flex;
@@ -263,32 +259,28 @@
             object-fit: cover;
         }
         .photo-placeholder {
-            font-size: 6.5pt;
+            font-size: 6.2pt;
             color: #64748b;
             font-weight: 700;
-            line-height: 1.2;
-            padding: 3px;
+            line-height: 1.15;
+            padding: 2px;
             text-transform: uppercase;
         }
 
-        /* Schedule Table (16 Fixed Rows, Fills Available Height Evenly) */
+        /* Schedule Table (16 Fixed Rows, Strict Flow Sizing) */
         .schedule-table-wrap {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            width: 100%;
             margin-bottom: 1.5mm;
-            min-height: 0;
         }
         .schedule-table {
             width: 100%;
-            height: 100%;
             border-collapse: collapse;
             table-layout: fixed;
         }
         .schedule-table th,
         .schedule-table td {
             border: 0.8px solid #0f172a;
-            padding: 1.5px 3.5px;
+            padding: 1px 3.5px;
             vertical-align: middle;
         }
         .schedule-table th {
@@ -296,14 +288,15 @@
             color: #0f172a;
             font-weight: 800;
             text-align: center;
-            font-size: 8pt;
-            height: 4.8mm;
+            font-size: 7.5pt;
+            height: 4.2mm;
             border-bottom: 1.2px solid #0f172a;
+            line-height: 1.1;
         }
         .schedule-table td {
-            font-size: 8pt;
+            font-size: 7.5pt;
             line-height: 1.15;
-            height: 4.3mm;
+            height: 4.0mm;
         }
         .schedule-table td.col-sr {
             width: 5%;
@@ -344,10 +337,10 @@
         /* Important Instructions */
         .instructions-box {
             background: #f8fafc;
-            border: 1px solid #cbd5e1;
+            border: 0.8px solid #cbd5e1;
             border-radius: 2px;
-            padding: 2px 6px;
-            font-size: 7.2pt;
+            padding: 1.5px 6px;
+            font-size: 7pt;
             line-height: 1.25;
             color: #1f2937;
             margin-bottom: 1.5mm;
@@ -362,7 +355,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            padding-top: 4mm;
+            padding-top: 5mm;
         }
         .sig-block {
             text-align: center;
@@ -374,7 +367,7 @@
             height: 1px;
         }
         .sig-title {
-            font-size: 8pt;
+            font-size: 7.8pt;
             font-weight: 800;
             color: #0f172a;
             text-transform: uppercase;
@@ -432,11 +425,6 @@
             }
             .a4-page:last-child {
                 page-break-after: avoid !important;
-            }
-            .admit-card {
-                height: 139mm !important;
-                max-height: 139mm !important;
-                min-height: 139mm !important;
             }
         }
     </style>
@@ -564,7 +552,7 @@
                             </div>
                         </div>
 
-                        {{-- 4. Examination Schedule Table (Reserved 16 Rows, Fills remaining card height) --}}
+                        {{-- 4. Examination Schedule Table (Reserved 16 Rows) --}}
                         <div class="schedule-table-wrap">
                             <table class="schedule-table">
                                 <thead>
@@ -610,12 +598,12 @@
                             </table>
                         </div>
 
-                        {{-- 5. Important Instructions --}}
+                        {{-- 5. Important Instructions (Placed strictly after table) --}}
                         <div class="instructions-box">
                             <b>Instructions:</b> 1. Candidate must carry this Admit Card &amp; ID card to examination hall daily. 2. Electronic items, smart watches &amp; mobile phones are strictly prohibited. 3. Reach examination room at least 15 minutes before reporting time.
                         </div>
 
-                        {{-- 6. Signatures Footer --}}
+                        {{-- 6. Signatures Footer (Placed strictly after instructions) --}}
                         <div class="signatures-footer">
                             <div class="sig-block">
                                 <div class="sig-line"></div>
