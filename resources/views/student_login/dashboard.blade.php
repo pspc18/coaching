@@ -100,7 +100,7 @@
     $alertCount = $unreadAlerts ?? ($notificationCount ?? 0);
 
     // 5. Active Homework Count
-    $activeHomeworkCount = \App\Models\Master\HomeWork::where('branch_id', $branchId)
+    $activeHomeworkCount = \App\Models\Master\Homework::where('branch_id', $branchId)
         ->where('session_id', $sessionId)
         ->where('class_type_id', $dashboardStudent->class_type_id ?? 0)
         ->count();
