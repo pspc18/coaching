@@ -253,6 +253,7 @@ Route::post('exam/result/reset-publication', 'offline_exam\ExamController@resetR
 Route::match(['get', 'post'], 'add/exam', 'offline_exam\ExamController@addExam');
 Route::post('copy/exam', 'offline_exam\ExamController@copyExam');
 Route::match(['get', 'post'], 'add/examination_schedule', 'offline_exam\ExamScheduleController@addExaminationSchedule');
+Route::match(['get', 'post'], 'get_examination_schedule_data', 'offline_exam\ExamScheduleController@getScheduleData');
 Route::match(['get', 'post'], 'download_admit_card', 'offline_exam\AdmitCardController@download_admit_card');
 Route::match(['get', 'post'], 'admit_card_notes', 'offline_exam\AdmitCardController@AdmitCardNotes');
 Route::match(['get', 'post'], 'fill_marks', 'offline_exam\FillMarkController@fillMarks');
