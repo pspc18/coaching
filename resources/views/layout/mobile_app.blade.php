@@ -58,7 +58,7 @@
     <meta name="theme-color" content="#001833">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>{{ $setting->name ?? 'ARISE ERP' }}</title>
+    <title>@hasSection('title')@yield('title') - @endif{{ $setting->name ?? 'Rusoft Education Point' }}</title>
     <link rel="icon" type="image/x-icon" href="{{ !empty($mobileLogoUrl) ? $mobileLogoUrl : asset('public/assets/school/img/logo.png') }}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">

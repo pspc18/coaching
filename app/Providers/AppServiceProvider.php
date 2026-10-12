@@ -96,5 +96,23 @@ class AppServiceProvider extends ServiceProvider
             $_ENV['SOFTWARE_TOKEN_NO'] = $tokenNo;
             $_SERVER['SOFTWARE_TOKEN_NO'] = $tokenNo;
         }
+
+        // Auto-sync legacy school name and logo in settings table if not yet updated on server
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                $legacySetting = \Illuminate\Support\Facades\DB::table('settings')
+                    ->where('name', 'like', '%Arise Education Point%')
+                    ->first();
+                if ($legacySetting) {
+                    \Illuminate\Support\Facades\DB::table('settings')->where('id', $legacySetting->id)->update([
+                        'name' => 'Rusoft Education Point',
+                        'left_logo' => 'rusoft_logo.png',
+                        'updated_at' => now(),
+                    ]);
+                    \Illuminate\Support\Facades\Cache::forget('app_setting_' . ($legacySetting->branch_id ?: 1));
+                    \Illuminate\Support\Facades\Cache::forget('app_setting_1');
+                }
+            }
+        } catch (\Throwable $e) {}
     }
 }
