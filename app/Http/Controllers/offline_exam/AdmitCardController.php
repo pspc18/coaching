@@ -197,7 +197,7 @@ class AdmitCardController extends Controller
               //$pdf = PDF::loadView('print_file.pdf.admit_card_all',['data'=>$data1,'school_data'=>$school_data]);
               $printPreview =    Helper::printPreview('Admit Card');
                //dd($printPreview);
-           return view('print_file.pdf.admit_card_all', ['data' => $data, 'school_data' => $school_data]);
+           return view('print_file.pdf.admit_card_all', ['data' => $data, 'school_data' => $school_data, 'exam_id' => $exam_id]);
             // return view('print_file.pdf.admit_card_all',['data'=>$data,'school_data'=>$school_data]);
 
          
