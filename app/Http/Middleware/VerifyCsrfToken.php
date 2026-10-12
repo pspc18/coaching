@@ -12,6 +12,8 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        //
+        'student/payment/phonepe-callback',
+        'student/payment/phonepe-webhook',
+        'api/phonepe/webhook',
     ];
 }

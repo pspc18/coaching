@@ -36,7 +36,15 @@ return [
         'merchant_website' => env('PAYTM_MERCHANT_WEBSITE'),
         'channel' => env('PAYTM_CHANNEL'),
         'industry_type' => env('PAYTM_INDUSTRY_TYPE'),
-],
-
+    ],
+    'phonepe' => [
+        'env' => env('PHONEPE_ENV', 'UAT'), // UAT or PRODUCTION
+        'merchant_id' => env('PHONEPE_MERCHANT_ID', 'SANDBOX_MERCHANT_ID'),
+        'client_id' => env('PHONEPE_CLIENT_ID', 'SANDBOX_CLIENT_ID'),
+        'client_secret' => env('PHONEPE_CLIENT_SECRET', 'SANDBOX_CLIENT_SECRET'),
+        'client_version' => env('PHONEPE_CLIENT_VERSION', '1'),
+        'uat_base_url' => env('PHONEPE_UAT_BASE_URL', 'https://api-preprod.phonepe.com/apis/pg-sandbox'),
+        'prod_base_url' => env('PHONEPE_PROD_BASE_URL', 'https://api.phonepe.com/apis/pg'),
+    ],
 
 ];

@@ -763,7 +763,7 @@
                     ₹ {{ number_format($pendingFees, 0) }}
                 </div>
                 @if($pendingFees > 0)
-                    <a href="{{ url('fees_history') }}" class="hero-due-pay-btn">
+                    <a href="javascript:void(0);" onclick="openPhonePeModal({{ $pendingFees }})" class="hero-due-pay-btn">
                         Pay Now
                     </a>
                 @endif
@@ -1060,4 +1060,6 @@ function switchNativeTab(targetId, btnElement) {
     }
 }
 </script>
+
+@include('student_login.payment.modal')
 @endsection

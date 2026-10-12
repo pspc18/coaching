@@ -326,4 +326,3 @@ public function addLeave(Request $request){
         return response()->json(['status' => true, 'message' => 'Success', 'data' => []], 200);
     }
 }
-}
