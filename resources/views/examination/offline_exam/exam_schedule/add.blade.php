@@ -745,18 +745,10 @@
                 @endif
             </div>
 
-            {{-- Footer Controls (Exam Center & Save) --}}
+            {{-- Footer Controls (Save) --}}
             <div class="sched-card-footer" id="scheduleFooter" style="{{ count($data) > 0 ? '' : 'display:none;' }}">
-                <div class="exam-center-wrap">
-                    <label class="form-label-custom" style="white-space:nowrap; margin-bottom:0;">
-                        <i class="fa fa-map-marker text-danger"></i> Exam Center:
-                    </label>
-                    <input type="text"
-                           class="form-control-custom"
-                           name="exam_center"
-                           id="exam_center"
-                           value="{{ $schedules->first()->exam_center ?? ($setting->address ?? '') }}"
-                           placeholder="Enter Examination Center Venue / Address">
+                <div class="text-muted" style="font-size:11px;">
+                    <i class="fa fa-info-circle text-primary"></i> Leaving exam date empty for any subject clears its schedule.
                 </div>
                 <div style="display:flex; gap: 8px;">
                     <button type="submit" class="dash-btn dash-btn-primary" id="btnSubmitSchedule" style="height:32px; font-size:12px; font-weight:700; padding:0 18px;">
@@ -866,13 +858,8 @@ $(document).ready(function () {
 
         var tableHtml = '';
         var cardsHtml = '';
-        var firstExamCenter = '';
 
         rows.forEach(function (row, idx) {
-            if (row.exam_center && !firstExamCenter) {
-                firstExamCenter = row.exam_center;
-            }
-
             var hasDate = (row.date && row.date.trim() !== '');
             var statusBadge = hasDate
                 ? '<span class="badge-pill-status scheduled status-pill-' + idx + '"><i class="fa fa-check"></i> Scheduled</span>'
@@ -925,10 +912,6 @@ $(document).ready(function () {
         $('#scheduleMobileCards').html(cardsHtml);
         $('#bulkTimingBar').show();
         $('#scheduleFooter').show();
-
-        if (firstExamCenter) {
-            $('#exam_center').val(firstExamCenter);
-        }
     }
 
     function renderEmptyUI() {

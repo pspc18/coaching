@@ -144,7 +144,6 @@ class ExamScheduleController extends Controller
                 'date'                    => $sched ? ($sched->date ?? '') : '',
                 'from_time'               => $sched ? ($sched->from_time ?? '') : '',
                 'to_time'                 => $sched ? ($sched->to_time ?? '') : '',
-                'exam_center'             => $sched ? ($sched->exam_center ?? '') : '',
                 'is_scheduled'            => $hasDate,
             ];
         }
@@ -168,7 +167,6 @@ class ExamScheduleController extends Controller
         if ($request->isMethod('post')) {
             $classTypeId = $request->class_type_id;
             $examId = $request->exam_id;
-            $examCenter = $request->exam_center ?? '';
 
             if (empty($classTypeId) || empty($examId)) {
                 if ($request->ajax()) {
@@ -219,7 +217,6 @@ class ExamScheduleController extends Controller
                         $schedule->date = $date;
                         $schedule->from_time = $fromTime;
                         $schedule->to_time = $toTime;
-                        $schedule->exam_center = $examCenter;
                         $schedule->save();
                     }
                 }
