@@ -11,6 +11,10 @@
     $studentAdmissionNo = $student->admissionNo ?? $getUser->admissionNo ?? Session::get('id');
     $className = optional($getUser->ClassTypes)->name ?? 'Student';
     $currentSessionName = Session::get('session_name') ?? date('Y');
+
+    // For PhonePe payment modal integration
+    $pendingFees = $currentDue;
+    $dashboardStudent = $student ?? $getUser;
 @endphp
 @extends('student_login.layout.app')
 
@@ -97,6 +101,75 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Outstanding Due Pay Now Button matching Dashboard */
+.hero-due-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 1px 0 2px 0;
+}
+.hero-due-row .mob-radar-val {
+    margin: 0;
+    line-height: 1.2;
+}
+.hero-due-pay-btn {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 1px 6px rgba(16, 185, 129, 0.35);
+    animation: payBtnPulse 2.2s infinite ease-in-out;
+    transition: transform .12s ease;
+    cursor: pointer;
+}
+.hero-due-pay-btn:active {
+    transform: scale(0.95);
+}
+.hero-due-pay-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transform: rotate(25deg);
+    animation: payShimmerSweep 2.8s infinite ease-in-out;
+}
+
+@keyframes payBtnPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65), 0 2px 6px rgba(0, 0, 0, 0.25);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 3px 12px rgba(16, 185, 129, 0.5);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes payShimmerSweep {
+    0% {
+        left: -60%;
+    }
+    35%, 100% {
+        left: 140%;
+    }
 }
 
 /* Hero Progress Strip */
@@ -490,8 +563,15 @@
             <span class="mob-radar-tag">
                 <i class="fa fa-clock-o {{ $currentDue > 0 ? 'text-danger' : 'text-success' }}"></i> Outstanding Due
             </span>
-            <div class="mob-radar-val" style="color: {{ $currentDue > 0 ? '#f87171' : '#34d399' }};">
-                ₹{{ number_format($currentDue, 2) }}
+            <div class="hero-due-row">
+                <div class="mob-radar-val" style="color: {{ $currentDue > 0 ? '#f87171' : '#34d399' }};">
+                    ₹{{ number_format($currentDue, 2) }}
+                </div>
+                @if($currentDue > 0)
+                    <a href="javascript:void(0);" onclick="openPhonePeModal({{ $currentDue }})" class="hero-due-pay-btn" title="Pay Outstanding Fee via PhonePe">
+                        <i class="fa fa-bolt" style="font-size: 9px; margin-right: 3px;"></i> Pay Now
+                    </a>
+                @endif
             </div>
             <span class="mob-radar-meta">
                 {{ $currentDue <= 0 ? 'All dues cleared ✓' : 'Payment pending' }}
@@ -551,16 +631,6 @@
         <div class="progress-track-bg">
             <div class="progress-track-fill" style="width: {{ $paymentProgress }}%;"></div>
         </div>
-    </div>
-
-    {{-- Fast Action Bar matching .mob-actions-bar --}}
-    <div class="mob-actions-bar">
-        <button type="button" class="mob-act-btn mob-act-btn-add" onclick="switchFeeTab('installments', document.getElementById('btnTabInstallments'))">
-            <i class="fa fa-list-ol mr-1"></i> Installments ({{ $feeHeadLedger->count() }})
-        </button>
-        <button type="button" class="mob-act-btn mob-act-btn-filter" onclick="switchFeeTab('receipts', document.getElementById('btnTabReceipts'))">
-            <i class="fa fa-file-text-o mr-1"></i> Receipts ({{ $feeReceipts->count() }})
-        </button>
     </div>
 </div>
 
@@ -807,4 +877,7 @@ function toggleTxDrawer(headId) {
     }
 }
 </script>
+
+{{-- PhonePe Payment Slide-up Modal & Script Integration --}}
+@include('student_login.payment.modal')
 @endsection
