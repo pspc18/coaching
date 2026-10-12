@@ -51,7 +51,7 @@
    ========================================================================== */
 
 .mob-notif-page {
-    padding: 0 0 28px;
+    padding: 0 0 calc(var(--bottom-nav-height, 52px) + 54px + var(--safe-bottom, 0px));
     color: #1e293b;
     width: 100%;
     box-sizing: border-box;
@@ -673,93 +673,89 @@
 }
 
 /* ==========================================================================
-   4. Mobile Pagination (Neat, Centered & Defensive Icon Sizing)
+   4. Fixed Bottom Pagination Bar (Positioned Directly Above Floating Bottom Dock)
    ========================================================================== */
-.mob-pagination-wrap {
-    margin: 16px 0 24px;
+.mob-pagination-fixed-bar {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height, 52px) + var(--safe-bottom, 0px) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 16px);
+    max-width: 464px;
+    z-index: 990;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    padding: 6px 12px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    text-align: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 18px rgba(0, 24, 51, 0.16), 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
 }
 
 .mob-pagination-info {
     font-size: 11px;
+    color: #475569;
     font-weight: 600;
-    color: #64748b;
+    white-space: nowrap;
 }
 
-.mob-pagination-wrap nav {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.mob-pagination-wrap .pagination {
-    margin: 0;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    flex-wrap: wrap;
-    list-style: none;
-}
-
-.mob-pagination-wrap .page-item .page-link {
-    min-width: 32px;
-    height: 32px;
-    padding: 0 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
+.mob-pagination-info b {
     color: #002C54;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px !important;
-    text-decoration: none;
-    transition: all 0.15s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-weight: 800;
 }
 
-.mob-pagination-wrap .page-item:not(.disabled):hover .page-link {
+.mob-pagination-btns {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mob-page-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #002C54;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.mob-page-btn:hover:not(.disabled):not(.active) {
     background: #e2e8f0;
     border-color: #94a3b8;
     color: #001833;
 }
 
-.mob-pagination-wrap .page-item.active .page-link {
+.mob-page-btn.active {
     background: #002C54 !important;
     border-color: #002C54 !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);
+    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.28);
 }
 
-.mob-pagination-wrap .page-item.disabled .page-link {
-    color: #cbd5e1 !important;
-    background: #f8fafc !important;
+.mob-page-btn.disabled {
+    opacity: 0.38;
+    background: #f1f5f9 !important;
     border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
     cursor: not-allowed;
     pointer-events: none;
 }
 
-/* Strict SVG sizing constraint to prevent oversized icons in any circumstance */
-.mob-pagination-wrap svg,
-.mob-pagination-wrap .pagination svg,
-.mob-pagination-wrap svg.w-5,
-.mob-pagination-wrap svg.h-5 {
-    width: 14px !important;
-    height: 14px !important;
-    max-width: 14px !important;
-    max-height: 14px !important;
-    display: inline-block !important;
-    vertical-align: middle !important;
-}
 
 /* ==========================================================================
    5. Mobile Custom Bottom Sheet Modal (Matching notices & homework sheets)
@@ -1070,6 +1066,12 @@ body.mob-sheet-lock {
 :root[data-theme="dark"] .sheet-notif-text { color: #cbd5e1; }
 :root[data-theme="dark"] .mob-sheet-footer { background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .mob-sheet-btn.secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+:root[data-theme="dark"] .mob-pagination-fixed-bar { background: rgba(15, 23, 42, 0.96); border-color: #334155; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); }
+:root[data-theme="dark"] .mob-pagination-info { color: #94a3b8; }
+:root[data-theme="dark"] .mob-pagination-info b { color: #f8fafc; }
+:root[data-theme="dark"] .mob-page-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+:root[data-theme="dark"] .mob-page-btn.active { background: #0284c7 !important; border-color: #0284c7 !important; color: #ffffff !important; }
+:root[data-theme="dark"] .mob-page-btn.disabled { background: #0f172a !important; border-color: #1e293b !important; color: #475569 !important; }
 </style>
 @endsection
 
@@ -1349,13 +1351,62 @@ body.mob-sheet-lock {
         @endforelse
     </div>
 
-    {{-- 4. Mobile Pagination (Neat, Centered & Clean) --}}
+    {{-- 4. Compact Fixed Bottom Pagination Bar (Positioned Directly Above Bottom Dock Footer) --}}
     @if($notifications->hasPages())
-        <div class="mob-pagination-wrap">
+        @php
+            $currentPage = $notifications->currentPage();
+            $lastPage = $notifications->lastPage();
+            $startPage = max(1, $currentPage - 1);
+            $endPage = min($lastPage, $currentPage + 1);
+            if ($currentPage === 1) {
+                $endPage = min($lastPage, 3);
+            } elseif ($currentPage === $lastPage) {
+                $startPage = max(1, $lastPage - 2);
+            }
+            $pageRange = $notifications->appends(request()->query())->getUrlRange($startPage, $endPage);
+        @endphp
+        <div class="mob-pagination-fixed-bar">
             <div class="mob-pagination-info">
-                Showing {{ $notifications->firstItem() ?? 0 }} to {{ $notifications->lastItem() ?? 0 }} of {{ $notifications->total() }} results
+                Showing <b>{{ $notifications->firstItem() ?? 0 }}</b>-<b>{{ $notifications->lastItem() ?? 0 }}</b> of <b>{{ $notifications->total() }}</b>
             </div>
-            {{ $notifications->appends(request()->query())->links() }}
+            <div class="mob-pagination-btns">
+                {{-- Prev Button --}}
+                @if($notifications->onFirstPage())
+                    <span class="mob-page-btn disabled" aria-disabled="true">
+                        <i class="fa fa-chevron-left"></i>
+                    </span>
+                @else
+                    <a href="{{ $notifications->appends(request()->query())->previousPageUrl() }}"
+                       class="mob-page-btn"
+                       rel="prev"
+                       title="Previous page">
+                        <i class="fa fa-chevron-left"></i>
+                    </a>
+                @endif
+
+                {{-- Page Number Buttons --}}
+                @foreach($pageRange as $pageNum => $pageUrl)
+                    @if($pageNum == $currentPage)
+                        <span class="mob-page-btn active">{{ $pageNum }}</span>
+                    @else
+                        <a href="{{ $pageUrl }}" class="mob-page-btn">{{ $pageNum }}</a>
+                    @endif
+                @endforeach
+
+                {{-- Next Button --}}
+                @if($notifications->hasMorePages())
+                    <a href="{{ $notifications->appends(request()->query())->nextPageUrl() }}"
+                       class="mob-page-btn"
+                       rel="next"
+                       title="Next page">
+                        <i class="fa fa-chevron-right"></i>
+                    </a>
+                @else
+                    <span class="mob-page-btn disabled" aria-disabled="true">
+                        <i class="fa fa-chevron-right"></i>
+                    </span>
+                @endif
+            </div>
         </div>
     @endif
 
