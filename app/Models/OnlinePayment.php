@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace app\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,6 +43,14 @@ class OnlinePayment extends Model
 
     public function invoice()
     {
-        return $this->belongsTo(\App\Models\fees\FeesDetailsInvoices::class, 'invoice_id');
+        return $this->belongsTo(\app\Models\fees\FeesDetailsInvoices::class, 'invoice_id');
     }
+}
+
+// Bi-directional class aliases for full case-insensitivity on all environments (Linux/Windows)
+if (!class_exists('App\Models\OnlinePayment', false)) {
+    class_alias('app\Models\OnlinePayment', 'App\Models\OnlinePayment');
+}
+if (!class_exists('app\Models\OnlinePayment', false)) {
+    class_alias('App\Models\OnlinePayment', 'app\Models\OnlinePayment');
 }

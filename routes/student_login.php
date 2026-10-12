@@ -61,11 +61,11 @@ Route::group(['middleware' => 'islogin'], function () {
     });
 
     // PhonePe Payment Gateway Routes (Initiate & Simulator inside student auth)
-    Route::post('student/payment/initiate', 'student_login\PaymentController@initiate')->name('student.payment.initiate');
-    Route::get('student/payment/phonepe-simulator', 'student_login\PaymentController@simulator')->name('student.payment.phonepe.simulator');
+    Route::post('student/payment/initiate', '\app\Http\Controllers\student_login\PaymentController@initiate')->name('student.payment.initiate');
+    Route::get('student/payment/phonepe-simulator', '\app\Http\Controllers\student_login\PaymentController@simulator')->name('student.payment.phonepe.simulator');
 
 }); 
 
 // PhonePe Callback & Webhook (Publicly accessible by PhonePe redirect / server webhook, validated via Order ID & PhonePe verification API)
-Route::match(['get', 'post'], 'student/payment/phonepe-callback', 'student_login\PaymentController@callback')->name('student.payment.phonepe.callback');
-Route::post('student/payment/phonepe-webhook', 'student_login\PaymentController@webhook')->name('student.payment.phonepe.webhook'); 
+Route::match(['get', 'post'], 'student/payment/phonepe-callback', '\app\Http\Controllers\student_login\PaymentController@callback')->name('student.payment.phonepe.callback');
+Route::post('student/payment/phonepe-webhook', '\app\Http\Controllers\student_login\PaymentController@webhook')->name('student.payment.phonepe.webhook'); 
