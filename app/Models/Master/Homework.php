@@ -65,3 +65,14 @@ class Homework extends Model
 }
     
 }
+
+// Bi-directional class aliases for full case-insensitivity on all environments (Linux/Windows)
+if (!class_exists('App\Models\Master\HomeWork', false)) {
+    class_alias('App\Models\Master\Homework', 'App\Models\Master\HomeWork');
+}
+if (!class_exists('app\Models\Master\Homework', false)) {
+    class_alias('App\Models\Master\Homework', 'app\Models\Master\Homework');
+}
+if (!class_exists('app\Models\Master\HomeWork', false)) {
+    class_alias('App\Models\Master\Homework', 'app\Models\Master\HomeWork');
+}
