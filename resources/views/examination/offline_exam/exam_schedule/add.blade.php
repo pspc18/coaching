@@ -482,10 +482,7 @@
             </p>
         </div>
         <div class="sched-hero-actions">
-            <a href="{{ url('examination_dashboard') }}" class="dash-btn dash-btn-outline" title="Back to Examination Dashboard">
-                <i class="fa fa-arrow-left"></i> Dashboard
-            </a>
-            <a href="{{ url('examination_view') }}" class="dash-btn dash-btn-outline" title="View Offline Exams">
+            <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" title="View Offline Exams">
                 <i class="fa fa-leanpub"></i> Exams List
             </a>
             <a href="{{ url('download_admit_card') }}" class="dash-btn dash-btn-outline" title="Download Student Admit Cards">
