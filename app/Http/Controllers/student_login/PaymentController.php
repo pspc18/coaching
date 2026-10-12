@@ -166,6 +166,12 @@ class PaymentController extends Controller
         $merchantOrderId = $request->input('merchant_order_id') ?? $request->query('merchant_order_id');
         $simulationAction = $request->input('simulation_action');
 
+        // Robust extraction from PhonePe base64 payload if posted directly
+        if (empty($merchantOrderId) && $request->has('response')) {
+            $decodedResponse = json_decode(base64_decode($request->input('response')), true);
+            $merchantOrderId = $decodedResponse['data']['merchantTransactionId'] ?? null;
+        }
+
         if (!$merchantOrderId) {
             return redirect()->route('feesHistory')->withErrors(['error' => 'Invalid payment callback: Order ID missing.']);
         }

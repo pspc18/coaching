@@ -39,9 +39,11 @@ return [
     ],
     'phonepe' => [
         'env' => env('PHONEPE_ENV', 'UAT'), // UAT or PRODUCTION
-        'merchant_id' => env('PHONEPE_MERCHANT_ID', 'SANDBOX_MERCHANT_ID'),
-        'client_id' => env('PHONEPE_CLIENT_ID', 'SANDBOX_CLIENT_ID'),
-        'client_secret' => env('PHONEPE_CLIENT_SECRET', 'SANDBOX_CLIENT_SECRET'),
+        'merchant_id' => env('PHONEPE_MERCHANT_ID', 'M23LDDO4IORWN'),
+        'salt_key' => env('PHONEPE_SALT_KEY', '96434309-7796-489d-8924-ab56988a6076'),
+        'salt_index' => env('PHONEPE_SALT_INDEX', '1'),
+        'client_id' => env('PHONEPE_CLIENT_ID', 'M23LDDO4IORWN_2602151310'),
+        'client_secret' => env('PHONEPE_CLIENT_SECRET', 'OWQzYzkwMzQtZWQwMy00ODlhLWE3ZDItZmQwY2M1ZmU5Yzlh'),
         'client_version' => env('PHONEPE_CLIENT_VERSION', '1'),
         'uat_base_url' => env('PHONEPE_UAT_BASE_URL', 'https://api-preprod.phonepe.com/apis/pg-sandbox'),
         'prod_base_url' => env('PHONEPE_PROD_BASE_URL', 'https://api.phonepe.com/apis/pg'),
