@@ -51,6 +51,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        \Illuminate\Pagination\Paginator::useBootstrap();
+
         // Ensure critical environment variables remain available even when config is cached via php artisan optimize
         $imageShow = config('app.image_show_path') ?: env('IMAGE_SHOW_PATH');
         if ($imageShow) {

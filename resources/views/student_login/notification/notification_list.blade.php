@@ -59,32 +59,53 @@
 
 /* 1. Glassmorphic Navy Hero Card */
 .mob-hero-card {
-    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #001833 0%, #002244 55%, #002C54 100%);
     border-radius: 4px;
-    padding: 10px 12px;
+    padding: 12px 14px 10px;
+    color: #ffffff;
+    box-shadow: 0 6px 20px -2px rgba(0, 24, 51, 0.28);
+    position: relative;
+    overflow: hidden;
     margin-bottom: 8px;
-    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
+.mob-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
 .mob-hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
 }
+
 .mob-hero-title {
     font-size: 13.5px;
     font-weight: 800;
-    line-height: 1.2;
     color: #ffffff;
+    letter-spacing: -0.2px;
+    margin: 0;
+    line-height: 1.25;
     display: flex;
     align-items: center;
     gap: 6px;
 }
+
 .mob-session-pill {
     font-size: 9.5px;
-    background: rgba(56, 189, 248, 0.18);
+    background: rgba(56, 189, 248, 0.16);
     border: 1px solid rgba(56, 189, 248, 0.35);
     color: #38bdf8;
     padding: 2px 7px;
@@ -93,44 +114,54 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 }
 
-/* 4-Column Metrics Glance (2x2 Grid) */
+/* 4-Metric Radar Grid (2x2) */
 .mob-dual-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
+    position: relative;
+    z-index: 1;
 }
+
 .mob-radar-col {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 4px;
     padding: 6px 8px;
 }
+
 .mob-radar-tag {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
+    letter-spacing: 0.4px;
     display: flex;
     align-items: center;
     gap: 4px;
 }
+
 .mob-radar-val {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.2;
-    margin: 1px 0;
+    margin: 2px 0 1px;
 }
+
 .mob-radar-val.danger-badge {
     color: #f87171;
 }
+
 .mob-radar-val.success-badge {
     color: #4ade80;
 }
+
 .mob-radar-meta {
-    font-size: 9px;
+    font-size: 8.5px;
     color: #cbd5e1;
     font-weight: 600;
     display: block;
@@ -139,303 +170,369 @@
     text-overflow: ellipsis;
 }
 
-/* 2. Compact Search & Toolbar */
-.mob-toolbar-wrap {
-    margin-bottom: 8px;
-}
-.mob-search-box {
+/* Hero Action Strip */
+.mob-hero-actions {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
     position: relative;
-    width: 100%;
+    z-index: 1;
+}
+
+.mob-btn-hero {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.3;
+}
+
+.mob-btn-hero.btn-mark-all {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+}
+
+.mob-btn-hero.btn-mark-all:hover {
+    background: rgba(56, 189, 248, 0.3);
+    color: #ffffff;
+}
+
+.mob-btn-hero.btn-clear-all {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+.mob-btn-hero.btn-clear-all:hover {
+    background: rgba(239, 68, 68, 0.28);
+    color: #ffffff;
+}
+
+/* 2. Compact Search & Filter Toolbar */
+.mob-filter-box {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 7px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.mob-search-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
     margin-bottom: 6px;
 }
-.mob-search-input {
-    width: 100%;
-    height: 34px;
-    padding: 0 32px 0 30px;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    font-size: 11px;
-    font-weight: 600;
-    color: #0f172a;
-    box-sizing: border-box;
-    transition: all 0.18s ease;
+
+.mob-search-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
-.mob-search-input:focus {
-    outline: none;
-    border-color: #0284c7;
-    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
-}
-.mob-search-icon {
+
+.mob-search-wrap i.search-icon {
     position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 8px;
     color: #94a3b8;
     font-size: 11px;
     pointer-events: none;
 }
+
+.mob-search-input {
+    width: 100%;
+    height: 30px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 0 24px 0 26px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #0f172a;
+    background: #ffffff;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.mob-search-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
 .mob-search-clear {
     position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 6px;
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    padding: 4px;
-    display: flex;
+    padding: 0;
+    display: none;
     align-items: center;
     justify-content: center;
 }
 
-/* Category Pills (Horizontal Scroll) */
+.mob-search-submit {
+    height: 30px;
+    padding: 0 10px;
+    background: #002C54;
+    border: 1px solid #002C54;
+    color: #ffffff;
+    border-radius: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Horizontal Scrollable Category Pills */
 .mob-pill-scroll {
     display: flex;
-    gap: 5px;
+    gap: 4px;
     overflow-x: auto;
-    padding: 1px 0 6px;
+    padding-bottom: 3px;
+    margin-bottom: 6px;
     scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+
 .mob-pill-scroll::-webkit-scrollbar {
     display: none;
 }
+
 .mob-pill-btn {
-    height: 28px;
-    padding: 0 9px;
-    border-radius: 4px;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
-    white-space: nowrap;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569 !important;
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    text-decoration: none !important;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #475569 !important;
+    gap: 4px;
     flex-shrink: 0;
     transition: all 0.15s ease;
 }
+
 .mob-pill-btn:hover {
-    background: #f8fafc;
-    border-color: #94a3b8;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
 }
+
 .mob-pill-btn.active {
     background: #002C54;
     border-color: #002C54;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.22);
-}
-.mob-pill-count {
-    min-width: 15px;
-    height: 15px;
-    padding: 0 3px;
-    border-radius: 10px;
-    background: #ef4444;
-    color: #ffffff;
-    font-size: 8px;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
 }
 
-/* Secondary Actions Bar (Read / Unread tabs & Bulk Buttons) */
-.mob-action-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
+.mob-pill-badge {
+    background: rgba(0, 0, 0, 0.08);
+    color: inherit;
+    font-size: 8.5px;
+    padding: 0 4px;
+    border-radius: 9px;
+    min-width: 14px;
+    text-align: center;
+    font-weight: 800;
 }
+
+.mob-pill-btn.active .mob-pill-badge {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+/* Read / Unread Status Segmented Tabs */
 .mob-status-tabs {
-    display: inline-flex;
-    background: #e2e8f0;
-    border-radius: 4px;
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 3px;
     padding: 2px;
     gap: 2px;
 }
+
 .mob-tab-btn {
-    padding: 3px 8px;
-    font-size: 9.5px;
+    flex: 1;
+    text-align: center;
+    padding: 4px 6px;
+    font-size: 10px;
     font-weight: 700;
-    color: #475569 !important;
+    color: #64748b !important;
     text-decoration: none !important;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
 }
+
 .mob-tab-btn.active {
     background: #ffffff;
     color: #002C54 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.mob-tab-badge {
-    background: #ef4444;
-    color: #ffffff;
-    font-size: 7.5px;
-    font-weight: 800;
-    padding: 1px 4px;
-    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.mob-bulk-actions {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.mob-btn-bulk {
-    height: 26px;
-    padding: 0 8px;
-    border-radius: 3px;
-    font-size: 9.5px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #0284c7;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-.mob-btn-bulk:hover:not(:disabled) {
-    background: #f0f9ff;
-    border-color: #0284c7;
-}
-.mob-btn-bulk.danger {
-    color: #ef4444;
-    border-color: #fca5a5;
-    background: #fff5f5;
-}
-.mob-btn-bulk.danger:hover:not(:disabled) {
-    background: #fee2e2;
-    border-color: #ef4444;
-}
-.mob-btn-bulk:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+.mob-tab-count {
+    background: #f87171;
+    color: #ffffff;
+    font-size: 8px;
+    padding: 0 4px;
+    border-radius: 8px;
+    font-weight: 800;
 }
 
 /* 3. Notification Card Stream */
 .mob-notif-stream {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
 }
+
 .mob-notif-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
+    border-left: 3px solid #94a3b8;
     border-radius: 4px;
-    padding: 10px 11px;
+    padding: 9px 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: all 0.18s ease;
-    border-left: 3.5px solid #94a3b8;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
+
 .mob-notif-card.is-unread {
-    background: #f8fafc;
-    border-color: #cbd5e1;
+    background: #fcfdff;
     border-left-color: #0284c7;
-    box-shadow: 0 2px 7px rgba(2, 132, 199, 0.08);
+    border-top: 1px solid #bfdbfe;
+    border-right: 1px solid #bfdbfe;
+    border-bottom: 1px solid #bfdbfe;
 }
-.mob-notif-card.tone-amber { border-left-color: #f59e0b; }
-.mob-notif-card.tone-green { border-left-color: #10b981; }
+
+.mob-notif-card.tone-blue   { border-left-color: #0284c7; }
+.mob-notif-card.tone-green  { border-left-color: #10b981; }
 .mob-notif-card.tone-purple { border-left-color: #8b5cf6; }
-.mob-notif-card.tone-blue { border-left-color: #0284c7; }
-.mob-notif-card.tone-red { border-left-color: #ef4444; }
+.mob-notif-card.tone-amber  { border-left-color: #f59e0b; }
+.mob-notif-card.tone-red    { border-left-color: #ef4444; }
 
 .mob-notif-head {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
+
 .mob-notif-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     flex-shrink: 0;
+    color: #ffffff;
+    background: #0284c7;
 }
-.mob-notif-icon.tone-amber { background: #fffbeb; color: #d97706; }
-.mob-notif-icon.tone-green { background: #ecfdf5; color: #059669; }
-.mob-notif-icon.tone-purple { background: #f5f3ff; color: #7c3aed; }
-.mob-notif-icon.tone-blue { background: #f0f9ff; color: #0284c7; }
-.mob-notif-icon.tone-red { background: #fef2f2; color: #dc2626; }
+
+.mob-notif-icon.tone-blue   { background: #0284c7; }
+.mob-notif-icon.tone-green  { background: #10b981; }
+.mob-notif-icon.tone-purple { background: #8b5cf6; }
+.mob-notif-icon.tone-amber  { background: #f59e0b; }
+.mob-notif-icon.tone-red    { background: #ef4444; }
 
 .mob-notif-info {
     flex: 1;
     min-width: 0;
 }
+
 .mob-notif-title-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
 }
+
 .mob-notif-title {
-    font-size: 11.5px;
-    font-weight: 750;
+    font-size: 12px;
+    font-weight: 800;
     color: #0f172a;
-    line-height: 1.25;
     margin: 0;
+    line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
 }
+
+.mob-notif-title:hover {
+    color: #0284c7;
+}
+
 .mob-notif-badge-new {
     font-size: 8px;
-    font-weight: 800;
-    background: #ef4444;
+    background: #0284c7;
     color: #ffffff;
+    font-weight: 800;
     padding: 1px 5px;
     border-radius: 2px;
+    text-transform: uppercase;
     letter-spacing: 0.3px;
     flex-shrink: 0;
-    text-transform: uppercase;
 }
+
 .mob-notif-meta-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 2px;
-    font-size: 9px;
-    color: #64748b;
+    margin-top: 1px;
 }
+
 .mob-notif-type-tag {
+    font-size: 9px;
     font-weight: 700;
-    font-size: 8px;
-    padding: 1px 5px;
-    border-radius: 2px;
-    background: #f1f5f9;
-    color: #475569;
+    color: #64748b;
     text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
+
 .mob-notif-time {
+    font-size: 9.5px;
+    color: #94a3b8;
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    color: #94a3b8;
 }
 
 .mob-notif-body {
-    font-size: 10.5px;
+    font-size: 11px;
+    line-height: 1.5;
     color: #334155;
-    line-height: 1.45;
-    margin-bottom: 7px;
     word-break: break-word;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 3px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
 }
+
 .mob-notif-body.collapsed {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -443,25 +540,24 @@
     overflow: hidden;
 }
 
-/* Attachment preview button */
 .mob-notif-attach {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     padding: 4px 8px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 3px;
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 700;
-    color: #0284c7 !important;
-    text-decoration: none !important;
+    color: #1d4ed8;
+    text-decoration: none;
     margin-bottom: 6px;
-    transition: all 0.15s ease;
 }
+
 .mob-notif-attach:hover {
-    background: #f0f9ff;
-    border-color: #bae6fd;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 .mob-notif-footer {
@@ -469,55 +565,72 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    padding-top: 6px;
+    padding-top: 4px;
     border-top: 1px solid #f1f5f9;
-    font-size: 9px;
-    color: #94a3b8;
+    font-size: 9.5px;
+    color: #64748b;
 }
+
 .mob-notif-actions {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
+
 .mob-btn-action {
-    height: 22px;
-    padding: 0 7px;
-    border-radius: 3px;
     font-size: 9px;
     font-weight: 700;
+    padding: 2.5px 7px;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    text-decoration: none !important;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #0284c7 !important;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
+    line-height: 1.25;
 }
+
 .mob-btn-action:hover {
-    background: #f0f9ff;
-    border-color: #0284c7;
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
+
 .mob-btn-action.btn-mark-read {
-    color: #059669 !important;
-    border-color: #a7f3d0;
     background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #059669;
 }
+
 .mob-btn-action.btn-mark-read:hover {
     background: #d1fae5;
-    border-color: #10b981;
+    color: #047857;
+}
+
+.mob-btn-action.btn-view-quick {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #0284c7;
+}
+
+.mob-btn-action.btn-view-quick:hover {
+    background: #dbeafe;
+    color: #0369a1;
 }
 
 /* Empty State */
 .mob-empty-box {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    padding: 32px 16px;
     text-align: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 24px 14px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    margin: 8px 0;
 }
+
 .mob-empty-icon {
     width: 44px;
     height: 44px;
@@ -527,26 +640,29 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    margin-bottom: 8px;
 }
+
 .mob-empty-title {
     font-size: 13px;
-    font-weight: 750;
-    color: #1e293b;
-    margin: 0 0 4px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 3px;
 }
+
 .mob-empty-desc {
-    font-size: 10px;
+    font-size: 11px;
     color: #64748b;
-    margin: 0 0 12px;
+    margin: 0 0 10px;
+    line-height: 1.45;
 }
+
 .mob-btn-reset {
-    height: 30px;
-    padding: 0 14px;
-    border-radius: 4px;
     font-size: 10px;
     font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -556,39 +672,377 @@
     box-shadow: 0 2px 6px rgba(0, 44, 84, 0.2);
 }
 
-/* Pagination */
+/* ==========================================================================
+   4. Mobile Pagination (Neat, Centered & Defensive Icon Sizing)
+   ========================================================================== */
 .mob-pagination-wrap {
-    margin-top: 12px;
+    margin: 16px 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    text-align: center;
+}
+
+.mob-pagination-info {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.mob-pagination-wrap nav {
     display: flex;
     justify-content: center;
+    width: 100%;
 }
+
 .mob-pagination-wrap .pagination {
     margin: 0;
-    gap: 3px;
-    flex-wrap: wrap;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    list-style: none;
 }
-.mob-pagination-wrap .page-link {
+
+.mob-pagination-wrap .page-item .page-link {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #002C54;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px !important;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.mob-pagination-wrap .page-item:not(.disabled):hover .page-link {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #001833;
+}
+
+.mob-pagination-wrap .page-item.active .page-link {
+    background: #002C54 !important;
+    border-color: #002C54 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);
+}
+
+.mob-pagination-wrap .page-item.disabled .page-link {
+    color: #cbd5e1 !important;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Strict SVG sizing constraint to prevent oversized icons in any circumstance */
+.mob-pagination-wrap svg,
+.mob-pagination-wrap .pagination svg,
+.mob-pagination-wrap svg.w-5,
+.mob-pagination-wrap svg.h-5 {
+    width: 14px !important;
+    height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+/* ==========================================================================
+   5. Mobile Custom Bottom Sheet Modal (Matching notices & homework sheets)
+   ========================================================================== */
+.mob-notif-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
+    z-index: 2050;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .22s ease-in-out, visibility .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.mob-notif-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mob-notif-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+    border-top: 2px solid #0284c7;
+    z-index: 2051;
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
+}
+
+.mob-notif-sheet.show {
+    bottom: 0;
+}
+
+body.mob-sheet-lock {
+    overflow: hidden !important;
+}
+
+.mob-sheet-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.mob-sheet-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.mob-sheet-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .12s ease;
+}
+
+.mob-sheet-close:active {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Fixed Meta Summary Strip */
+.mob-sheet-fixed-meta {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.sheet-fixed-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mob-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 7px;
+    border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 3px;
-    border: 1px solid #cbd5e1;
-    color: #475569;
 }
-.mob-pagination-wrap .page-item.active .page-link {
+
+.badge-soft-info    { background: #e0f2fe; color: #0284c7; }
+.badge-soft-success { background: #dcfce7; color: #15803d; }
+.badge-soft-purple  { background: #ede9fe; color: #6d28d9; }
+.badge-soft-amber   { background: #fef3c7; color: #b45309; }
+.badge-soft-danger  { background: #fee2e2; color: #b91c1c; }
+.badge-soft-slate   { background: #f1f5f9; color: #475569; }
+
+.sheet-meta-pill {
+    font-size: 10px;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 2.5px 8px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sheet-status-unread {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.sheet-status-read {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
+/* Scrollable Body */
+.mob-sheet-body {
+    padding: 14px 14px 18px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sheet-notif-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.35;
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    word-break: break-word;
+}
+
+.sheet-notif-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 11px 12px;
+}
+
+.sheet-notif-text {
+    font-size: 12px;
+    line-height: 1.65;
+    color: #1e293b;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+/* Attachment Pill */
+.sheet-attach-wrap {
+    margin-top: 12px;
+}
+
+.mob-pdf-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 9px 12px;
+    text-decoration: none;
+    color: #0f172a;
+    transition: all .15s ease;
+}
+
+.mob-pdf-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.mob-pdf-icon {
+    font-size: 20px;
+    color: #0284c7;
+    flex-shrink: 0;
+}
+
+.mob-pdf-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mob-pdf-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mob-pdf-size {
+    font-size: 9px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.mob-pdf-download {
+    font-size: 12px;
+    color: #0284c7;
+    flex-shrink: 0;
+}
+
+/* Footer Action Bar */
+.mob-sheet-footer {
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.mob-sheet-btn {
+    font-size: 11px;
+    font-weight: 700;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.mob-sheet-btn.primary {
     background: #002C54;
+    color: #ffffff;
     border-color: #002C54;
+}
+
+.mob-sheet-btn.primary:hover {
+    background: #001833;
     color: #ffffff;
 }
 
-/* Modal details preview */
-.modal-notif-content {
-    white-space: pre-line;
-    font-size: 11px;
-    line-height: 1.6;
+.mob-sheet-btn.secondary {
+    background: #ffffff;
+    color: #475569;
+    border-color: #cbd5e1;
+}
+
+.mob-sheet-btn.secondary:hover {
+    background: #f1f5f9;
     color: #1e293b;
-    word-break: break-word;
 }
 
 /* Dark Theme Adjustments */
@@ -599,15 +1053,23 @@
 :root[data-theme="dark"] .mob-status-tabs { background: #1e293b; }
 :root[data-theme="dark"] .mob-tab-btn { color: #94a3b8 !important; }
 :root[data-theme="dark"] .mob-tab-btn.active { background: #0f172a; color: #38bdf8 !important; }
-:root[data-theme="dark"] .mob-btn-bulk { background: #1e293b; border-color: #334155; color: #38bdf8; }
+:root[data-theme="dark"] .mob-btn-hero.btn-mark-all { background: rgba(56, 189, 248, 0.2); }
 :root[data-theme="dark"] .mob-notif-card { background: #1e293b; border-color: #334155; }
 :root[data-theme="dark"] .mob-notif-card.is-unread { background: #172554; border-color: #1d4ed8; }
 :root[data-theme="dark"] .mob-notif-title { color: #f8fafc; }
-:root[data-theme="dark"] .mob-notif-body { color: #cbd5e1; }
+:root[data-theme="dark"] .mob-notif-body { color: #cbd5e1; background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .mob-notif-footer { border-top-color: #334155; }
 :root[data-theme="dark"] .mob-empty-box { background: #1e293b; border-color: #334155; }
 :root[data-theme="dark"] .mob-empty-title { color: #f8fafc; }
-:root[data-theme="dark"] .mob-btn-action { background: #0f172a; border-color: #334155; }
+:root[data-theme="dark"] .mob-btn-action { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+:root[data-theme="dark"] .mob-notif-sheet { background: #1e293b; border-color: #38bdf8; }
+:root[data-theme="dark"] .mob-sheet-fixed-meta { background: #0f172a; border-color: #334155; }
+:root[data-theme="dark"] .sheet-meta-pill { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+:root[data-theme="dark"] .sheet-notif-title { color: #f8fafc; border-color: #334155; }
+:root[data-theme="dark"] .sheet-notif-card { background: #0f172a; border-color: #334155; }
+:root[data-theme="dark"] .sheet-notif-text { color: #cbd5e1; }
+:root[data-theme="dark"] .mob-sheet-footer { background: #0f172a; border-color: #334155; }
+:root[data-theme="dark"] .mob-sheet-btn.secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 </style>
 @endsection
 
@@ -618,7 +1080,7 @@
     <div class="mob-hero-card">
         <div class="mob-hero-top">
             <div class="mob-hero-title">
-                <i class="fa fa-bell"></i> Alerts & Notifications
+                <i class="fa fa-bell" style="color: #38bdf8;"></i> Alerts & Notifications
             </div>
             <div class="mob-session-pill">
                 <i class="fa fa-tag"></i> {{ $selectedCategoryLabel }}
@@ -639,127 +1101,126 @@
                 </div>
                 <span class="mob-radar-meta">{{ $unreadCount > 0 ? 'Requires attention' : 'All caught up' }}</span>
             </div>
-
-            <div class="mob-radar-col">
-                <span class="mob-radar-tag"><i class="fa fa-filter"></i> Active Scope</span>
-                <div class="mob-radar-val" style="font-size:12px; margin:4px 0;">
-                    {{ $categoryMeta[$category]['label'] ?? 'All' }}
-                </div>
-                <span class="mob-radar-meta">{{ $filter === 'all' ? 'All records' : ucfirst($filter).' only' }}</span>
-            </div>
-
-            <div class="mob-radar-col">
-                <span class="mob-radar-tag"><i class="fa fa-clock-o"></i> Student</span>
-                <div class="mob-radar-val" style="font-size:12px; margin:4px 0; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-                    {{ $studentName }}
-                </div>
-                <span class="mob-radar-meta">{{ $className }}</span>
-            </div>
         </div>
+
+        @if($totalCount > 0)
+            <div class="mob-hero-actions">
+                @if($unreadCount > 0)
+                    <form id="formMarkAllRead" action="{{ route('student.attendance-notifications.mark-all-read') }}" method="POST" style="margin:0;">
+                        @csrf
+                        <input type="hidden" name="category" value="{{ $category }}">
+                        <button type="submit" class="mob-btn-hero btn-mark-all" title="Mark all notifications as read">
+                            <i class="fa fa-check-circle-o"></i> Mark all read
+                        </button>
+                    </form>
+                @endif
+
+                <form id="formClearAll" action="{{ route('student.attendance-notifications.clear-all') }}" method="POST" style="margin:0;">
+                    @csrf
+                    <input type="hidden" name="category" value="{{ $category }}">
+                    <button type="submit" class="mob-btn-hero btn-clear-all" title="Clear all notifications in this section">
+                        <i class="fa fa-trash-o"></i> Clear all
+                    </button>
+                </form>
+            </div>
+        @endif
     </div>
 
-    {{-- 2. Compact Search & Filter Toolbar --}}
-    <div class="mob-toolbar-wrap">
-        {{-- Search Input Box --}}
-        <div class="mob-search-box">
-            <i class="fa fa-search mob-search-icon"></i>
-            <input type="text"
-                   id="notifSearchInput"
-                   class="mob-search-input"
-                   placeholder="Search title, notice or message..."
-                   value="{{ $currentSearch }}"
-                   autocomplete="off">
-            <button type="button"
-                    class="mob-search-clear"
-                    id="btnNotifSearchClear"
-                    style="{{ $currentSearch !== '' ? 'display:flex;' : 'display:none;' }}"
-                    title="Clear search">
-                <i class="fa fa-times-circle"></i>
-            </button>
-        </div>
+    {{-- 2. Search & Filter Box --}}
+    <div class="mob-filter-box">
+        {{-- Search Input Row --}}
+        <form action="{{ url('notificationFatchStudent') }}" method="GET" id="formNotifSearch">
+            <input type="hidden" name="category" value="{{ $category }}">
+            <input type="hidden" name="filter" value="{{ $filter }}">
 
-        {{-- Category Pills Row --}}
+            <div class="mob-search-row">
+                <div class="mob-search-wrap">
+                    <i class="fa fa-search search-icon"></i>
+                    <input type="text"
+                           name="search"
+                           id="notifSearchInput"
+                           class="mob-search-input"
+                           placeholder="Search alerts by title or keywords..."
+                           value="{{ $currentSearch }}"
+                           autocomplete="off">
+                    <button type="button" id="btnNotifSearchClear" class="mob-search-clear" title="Clear search">
+                        <i class="fa fa-times-circle"></i>
+                    </button>
+                </div>
+                <button type="submit" class="mob-search-submit">
+                    <i class="fa fa-filter"></i> Filter
+                </button>
+            </div>
+        </form>
+
+        {{-- Horizontal Category Pills --}}
         <div class="mob-pill-scroll">
-            @foreach($categoryMeta as $key => $meta)
+            @foreach($categoryMeta as $catKey => $meta)
                 @php
-                    $urlParams = ['category' => $key];
-                    if ($filter !== 'all') $urlParams['filter'] = $filter;
-                    if ($currentSearch !== '') $urlParams['search'] = $currentSearch;
-                    $badgeCount = (int) ($categoryCounts[$key] ?? 0);
-                    $isActive = ($category === $key);
+                    $isActive = ($category === $catKey);
+                    $badgeVal = (int) ($categoryCounts[$catKey] ?? 0);
                 @endphp
-                <a href="{{ $buildUrl($urlParams) }}" class="mob-pill-btn {{ $isActive ? 'active' : '' }}">
-                    <i class="fa {{ $meta['icon'] }}" style="{{ $isActive ? '' : 'color: '.$meta['color'].';' }}"></i>
+                <a href="{{ $buildUrl(['category' => $catKey, 'filter' => $filter, 'search' => $currentSearch]) }}"
+                   class="mob-pill-btn {{ $isActive ? 'active' : '' }}">
+                    <i class="fa {{ $meta['icon'] }}"></i>
                     <span>{{ $meta['label'] }}</span>
-                    @if($badgeCount > 0)
-                        <span class="mob-pill-count" id="pillCount-{{ $key }}">{{ $badgeCount > 99 ? '99+' : $badgeCount }}</span>
+                    @if($badgeVal > 0)
+                        <span class="mob-pill-badge">{{ $badgeVal }}</span>
                     @endif
                 </a>
             @endforeach
         </div>
 
-        {{-- Action Bar: Read/Unread Segmented Switch & Bulk Action Buttons --}}
-        <div class="mob-action-row">
-            <div class="mob-status-tabs">
-                @foreach(['all' => 'All', 'unread' => 'Unread', 'read' => 'Read'] as $tabKey => $tabLabel)
-                    @php
-                        $tabParams = ['filter' => $tabKey];
-                        if ($category !== 'all') $tabParams['category'] = $category;
-                        if ($currentSearch !== '') $tabParams['search'] = $currentSearch;
-                        $isTabActive = ($filter === $tabKey);
-                    @endphp
-                    <a href="{{ $buildUrl($tabParams) }}" class="mob-tab-btn {{ $isTabActive ? 'active' : '' }}">
-                        {{ $tabLabel }}
-                        @if($tabKey === 'unread' && $unreadCount > 0)
-                            <span class="mob-tab-badge" id="tabUnreadBadge">{{ $unreadCount }}</span>
-                        @endif
-                    </a>
-                @endforeach
-            </div>
-
-            <div class="mob-bulk-actions">
-                <form method="POST" action="{{ route('student.attendance-notifications.mark-all-read') }}" id="formMarkAllRead" style="margin:0;">
-                    @csrf
-                    @if($category !== 'all')
-                        <input type="hidden" name="category" value="{{ $category }}">
-                    @endif
-                    <button type="submit" class="mob-btn-bulk" id="btnMarkAllRead" {{ $unreadCount === 0 ? 'disabled' : '' }}>
-                        <i class="fa fa-check-square-o"></i> Mark all read
-                    </button>
-                </form>
-
-                <form method="POST" action="{{ route('student.attendance-notifications.clear-all') }}" id="formClearAll" style="margin:0;">
-                    @csrf
-                    @method('DELETE')
-                    @if($category !== 'all')
-                        <input type="hidden" name="category" value="{{ $category }}">
-                    @endif
-                    <button type="submit" class="mob-btn-bulk danger" id="btnClearAll" {{ $totalCount === 0 ? 'disabled' : '' }}>
-                        <i class="fa fa-trash-o"></i> Clear
-                    </button>
-                </form>
-            </div>
+        {{-- Status Filter (All / Unread / Read) --}}
+        <div class="mob-status-tabs">
+            <a href="{{ $buildUrl(['category' => $category, 'filter' => 'all', 'search' => $currentSearch]) }}"
+               class="mob-tab-btn {{ $filter === 'all' ? 'active' : '' }}">
+                <span>All Alerts</span>
+            </a>
+            <a href="{{ $buildUrl(['category' => $category, 'filter' => 'unread', 'search' => $currentSearch]) }}"
+               class="mob-tab-btn {{ $filter === 'unread' ? 'active' : '' }}">
+                <span>Unread</span>
+                @if($unreadCount > 0)
+                    <span class="mob-tab-count" id="tabUnreadBadge">{{ $unreadCount }}</span>
+                @endif
+            </a>
+            <a href="{{ $buildUrl(['category' => $category, 'filter' => 'read', 'search' => $currentSearch]) }}"
+               class="mob-tab-btn {{ $filter === 'read' ? 'active' : '' }}">
+                <span>Read</span>
+            </a>
         </div>
     </div>
 
-    {{-- 3. Notification Card Stream --}}
-    <div class="mob-notif-stream" id="notifStreamList">
+    {{-- 3. Notification Stream --}}
+    <div class="mob-notif-stream" id="notifStreamContainer">
         @forelse($notifications as $notification)
             @php
-                $isUnread = ((int) $notification->message_seen === 0);
+                $isUnread = (int) ($notification->message_seen ?? 0) === 0;
                 $content = trim(strip_tags((string) ($notification->content ?? '')));
                 $notificationType = strtolower((string) ($notification->type ?? ''));
                 $typeConfig = [
-                    'notice' => ['icon' => 'fa-bullhorn', 'label' => 'Notice', 'tone' => 'amber'],
-                    'exam_result' => ['icon' => 'fa-file-text-o', 'label' => 'Result', 'tone' => 'purple'],
-                    'fee_payment' => ['icon' => 'fa-inr', 'label' => 'Payment', 'tone' => 'green'],
-                    'fee_revert' => ['icon' => 'fa-undo', 'label' => 'Fee Update', 'tone' => 'red'],
-                    'complaint_reply' => ['icon' => 'fa-reply', 'label' => 'Support', 'tone' => 'blue'],
-                    'complaint_status' => ['icon' => 'fa-comments-o', 'label' => 'Complaint', 'tone' => 'blue'],
+                    'notice' => ['icon' => 'fa-bullhorn', 'label' => 'Notice', 'tone' => 'amber', 'badge_class' => 'badge-soft-amber'],
+                    'exam_result' => ['icon' => 'fa-file-text-o', 'label' => 'Result', 'tone' => 'purple', 'badge_class' => 'badge-soft-purple'],
+                    'fee_payment' => ['icon' => 'fa-inr', 'label' => 'Payment', 'tone' => 'green', 'badge_class' => 'badge-soft-success'],
+                    'fee_revert' => ['icon' => 'fa-undo', 'label' => 'Fee Update', 'tone' => 'red', 'badge_class' => 'badge-soft-danger'],
+                    'complaint_reply' => ['icon' => 'fa-reply', 'label' => 'Support', 'tone' => 'blue', 'badge_class' => 'badge-soft-info'],
+                    'complaint_status' => ['icon' => 'fa-comments-o', 'label' => 'Complaint', 'tone' => 'blue', 'badge_class' => 'badge-soft-slate'],
                 ];
-                $config = $typeConfig[$notificationType] ?? ['icon' => 'fa-calendar-check-o', 'label' => 'Attendance', 'tone' => 'blue'];
+                $config = $typeConfig[$notificationType] ?? ['icon' => 'fa-calendar-check-o', 'label' => 'Attendance', 'tone' => 'blue', 'badge_class' => 'badge-soft-info'];
                 $createdAt = \Carbon\Carbon::parse($notification->created_at);
                 $isLong = mb_strlen($content) > 130 || substr_count($content, "\n") > 1;
+
+                // Attachment determination
+                $attachRaw = $notification->attachment_path ?? $notification->image ?? null;
+                $attachmentUrl = '';
+                $attachmentName = '';
+                if ($notificationType === 'notice' && $notification->managed_notice_id && $notification->attachment_path) {
+                    $attachmentUrl = url('notice-management/' . $notification->managed_notice_id . '/attachment');
+                    $attachmentName = $notification->attachment_name ?: 'Download Notice Attachment';
+                } elseif (!empty($attachRaw)) {
+                    $attachmentUrl = Str::startsWith($attachRaw, ['http://', 'https://', '/']) ? $attachRaw : asset($attachRaw);
+                    $attachmentName = basename($attachRaw);
+                }
             @endphp
 
             <div class="mob-notif-card {{ $isUnread ? 'is-unread' : '' }} tone-{{ $config['tone'] }}"
@@ -775,7 +1236,20 @@
 
                     <div class="mob-notif-info">
                         <div class="mob-notif-title-row">
-                            <h3 class="mob-notif-title" title="{{ $notification->title }}">
+                            <h3 class="mob-notif-title open-notif-trigger"
+                                data-id="{{ $notification->id }}"
+                                data-title="{{ e($notification->title ?: 'Notification') }}"
+                                data-time="{{ $createdAt->format('d M Y, h:i A') }}"
+                                data-type="{{ $config['label'] }}"
+                                data-type-badge="{{ $config['badge_class'] }}"
+                                data-icon="{{ $config['icon'] }}"
+                                data-content="{{ e($content) }}"
+                                data-attachment="{{ $attachmentUrl }}"
+                                data-attachment-name="{{ $attachmentName }}"
+                                data-detail-url="{{ url('student_notification_detail', $notification->id) }}"
+                                data-unread="{{ $isUnread ? '1' : '0' }}"
+                                data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
+                                title="Tap to view full details">
                                 {{ $notification->title ?: 'Notification' }}
                             </h3>
                             @if($isUnread)
@@ -797,14 +1271,15 @@
                     {{ $content !== '' ? $content : 'No message content available.' }}
                 </div>
 
-                {{-- Attachment (if notice has PDF) --}}
-                @if($notificationType === 'notice' && $notification->managed_notice_id && $notification->attachment_path)
-                    <a href="{{ url('notice-management/'.$notification->managed_notice_id.'/attachment') }}"
+                {{-- Attachment Pill (if present) --}}
+                @if(!empty($attachmentUrl))
+                    <a href="{{ $attachmentUrl }}"
                        class="mob-notif-attach"
-                       target="_blank">
-                        <i class="fa fa-file-pdf-o text-danger"></i>
-                        <span>{{ $notification->attachment_name ?: 'Download Notice Attachment' }}</span>
-                        <i class="fa fa-download ml-auto text-muted"></i>
+                       target="_blank"
+                       download>
+                        <i class="fa {{ preg_match('/\.(jpg|jpeg|png|webp)$/i', $attachmentUrl) ? 'fa-file-image-o text-success' : 'fa-file-pdf-o text-danger' }}"></i>
+                        <span>{{ $attachmentName ?: 'Download Attachment' }}</span>
+                        <i class="fa fa-download ms-auto text-muted"></i>
                     </a>
                 @endif
 
@@ -836,12 +1311,17 @@
                         @endif
 
                         <button type="button"
-                                class="mob-btn-action btn-view-quick"
-                                data-title="{{ e($notification->title ?: 'Notification') }}"
-                                data-time="{{ $createdAt->format('d M Y, h:i A') }} ({{ $createdAt->diffForHumans() }})"
-                                data-type="{{ $config['label'] }}"
-                                data-content="{{ e($content) }}"
+                                class="mob-btn-action btn-view-quick open-notif-trigger"
                                 data-id="{{ $notification->id }}"
+                                data-title="{{ e($notification->title ?: 'Notification') }}"
+                                data-time="{{ $createdAt->format('d M Y, h:i A') }}"
+                                data-type="{{ $config['label'] }}"
+                                data-type-badge="{{ $config['badge_class'] }}"
+                                data-icon="{{ $config['icon'] }}"
+                                data-content="{{ e($content) }}"
+                                data-attachment="{{ $attachmentUrl }}"
+                                data-attachment-name="{{ $attachmentName }}"
+                                data-detail-url="{{ url('student_notification_detail', $notification->id) }}"
                                 data-unread="{{ $isUnread ? '1' : '0' }}"
                                 data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}">
                             <i class="fa fa-eye"></i> View
@@ -869,46 +1349,71 @@
         @endforelse
     </div>
 
-    {{-- 4. Mobile Pagination --}}
+    {{-- 4. Mobile Pagination (Neat, Centered & Clean) --}}
     @if($notifications->hasPages())
         <div class="mob-pagination-wrap">
-            {{ $notifications->links() }}
+            <div class="mob-pagination-info">
+                Showing {{ $notifications->firstItem() ?? 0 }} to {{ $notifications->lastItem() ?? 0 }} of {{ $notifications->total() }} results
+            </div>
+            {{ $notifications->appends(request()->query())->links() }}
         </div>
     @endif
 
 </div>
 
-{{-- Quick View Details Modal --}}
-<div class="modal fade" id="notifQuickModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px; margin: 16px auto;">
-        <div class="modal-content" style="border-radius: 6px; border: 1px solid rgba(0, 44, 84, 0.2); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; padding: 10px 14px; border-bottom: none;">
-                <div style="min-width: 0;">
-                    <div style="font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #38bdf8; font-weight: 700;" id="modalNotifType">
-                        Notification
-                    </div>
-                    <h5 class="modal-title" id="modalNotifTitle" style="font-size: 13px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        Notification Title
-                    </h5>
-                </div>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.85; text-shadow: none; font-size: 20px; padding: 8px 12px; margin: -10px -14px -10px auto;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" style="padding: 14px; background: #ffffff;">
-                <div style="font-size: 9.5px; color: #64748b; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
-                    <i class="fa fa-calendar-check-o"></i> <span id="modalNotifTime">-</span>
-                </div>
-                <div class="modal-notif-content" id="modalNotifBody" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px 12px;">
-                    -
-                </div>
-            </div>
-            <div class="modal-footer" style="padding: 8px 14px; background: #f1f5f9; border-top: 1px solid #e2e8f0; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" style="font-size: 10px; font-weight: 700; height: 28px; padding: 0 14px; border-radius: 4px;">
-                    Close
-                </button>
-            </div>
+{{-- ==========================================================================
+     5. Mobile Custom Bottom Sheet Modal (Matching notices & homework sheets)
+     ========================================================================== --}}
+<div class="mob-notif-modal-backdrop" id="mobNotifBackdrop" onclick="closeNotifSheet()"></div>
+<div class="mob-notif-sheet" id="mobNotifSheet" role="dialog" aria-modal="true" aria-labelledby="sheetNotifTitle">
+    {{-- Header --}}
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-bell-o" id="sheetNotifIcon" style="color: #38bdf8;"></i>
+            <span>Notification Details</span>
         </div>
+        <button type="button" class="mob-sheet-close" onclick="closeNotifSheet()" aria-label="Close">&times;</button>
+    </div>
+
+    {{-- Pinned Meta Summary --}}
+    <div class="mob-sheet-fixed-meta">
+        <div class="sheet-fixed-meta-row">
+            <span id="sheetNotifTypeBadge" class="mob-type-badge badge-soft-info">Notification</span>
+            <span id="sheetNotifTime" class="sheet-meta-pill"><i class="fa fa-clock-o"></i> <span>-</span></span>
+            <span id="sheetNotifStatus" class="sheet-meta-pill sheet-status-read"><i class="fa fa-check text-success"></i> Read</span>
+        </div>
+    </div>
+
+    {{-- Scrollable Body --}}
+    <div class="mob-sheet-body">
+        <h3 id="sheetNotifTitle" class="sheet-notif-title"></h3>
+        <div class="sheet-notif-card">
+            <div id="sheetNotifBody" class="sheet-notif-text"></div>
+        </div>
+
+        {{-- Attachment Download Pill if available --}}
+        <div id="sheetNotifAttachment" class="sheet-attach-wrap" style="display: none;">
+            <a id="sheetAttachmentLink" href="#" target="_blank" download class="mob-pdf-btn">
+                <i class="fa fa-paperclip mob-pdf-icon" id="sheetAttachmentIcon"></i>
+                <div class="mob-pdf-info">
+                    <div class="mob-pdf-title" id="sheetAttachmentName">Attachment</div>
+                    <div class="mob-pdf-size">Tap to view / download file</div>
+                </div>
+                <div class="mob-pdf-download">
+                    <i class="fa fa-download"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    {{-- Footer Actions --}}
+    <div class="mob-sheet-footer">
+        <a id="sheetNotifDetailLink" href="#" class="mob-sheet-btn primary">
+            <i class="fa fa-external-link"></i> Full Page View
+        </a>
+        <button type="button" class="mob-sheet-btn secondary" onclick="closeNotifSheet()">
+            Close
+        </button>
     </div>
 </div>
 @endsection
@@ -916,6 +1421,103 @@
 @section('scripts')
 @parent
 <script>
+// Global functions for modal bottom sheet
+function openNotifSheet(triggerEl) {
+    if (!triggerEl) return;
+    const id = triggerEl.getAttribute('data-id');
+    const title = triggerEl.getAttribute('data-title') || 'Notification';
+    const time = triggerEl.getAttribute('data-time') || '-';
+    const type = triggerEl.getAttribute('data-type') || 'Notification';
+    const typeBadge = triggerEl.getAttribute('data-type-badge') || 'badge-soft-info';
+    const iconClass = triggerEl.getAttribute('data-icon') || 'fa-bell-o';
+    const content = triggerEl.getAttribute('data-content') || '';
+    const attachment = triggerEl.getAttribute('data-attachment') || '';
+    const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
+    const detailUrl = triggerEl.getAttribute('data-detail-url') || '#';
+    const isUnread = triggerEl.getAttribute('data-unread') === '1';
+    const readUrl = triggerEl.getAttribute('data-read-url');
+
+    // Populate header icon & type badge
+    const iconEl = document.getElementById('sheetNotifIcon');
+    if (iconEl) iconEl.className = 'fa ' + iconClass;
+
+    const typeEl = document.getElementById('sheetNotifTypeBadge');
+    if (typeEl) {
+        typeEl.className = 'mob-type-badge ' + typeBadge;
+        typeEl.innerHTML = '<i class="fa ' + iconClass + '"></i> ' + type;
+    }
+
+    // Populate time & status
+    const timeEl = document.getElementById('sheetNotifTime');
+    if (timeEl) timeEl.innerHTML = '<i class="fa fa-clock-o"></i> <span>' + time + '</span>';
+
+    const statusEl = document.getElementById('sheetNotifStatus');
+    if (statusEl) {
+        statusEl.className = 'sheet-meta-pill ' + (isUnread ? 'sheet-status-unread' : 'sheet-status-read');
+        statusEl.innerHTML = isUnread
+            ? '<i class="fa fa-circle text-primary" style="font-size:7px;"></i> Unread'
+            : '<i class="fa fa-check text-success"></i> Read';
+    }
+
+    // Populate title & body text
+    const titleEl = document.getElementById('sheetNotifTitle');
+    if (titleEl) titleEl.textContent = title;
+
+    const bodyEl = document.getElementById('sheetNotifBody');
+    if (bodyEl) bodyEl.textContent = content;
+
+    // Full page link
+    const detailLink = document.getElementById('sheetNotifDetailLink');
+    if (detailLink) detailLink.href = detailUrl;
+
+    // Attachment
+    const attachWrap = document.getElementById('sheetNotifAttachment');
+    const attachLink = document.getElementById('sheetAttachmentLink');
+    const attachName = document.getElementById('sheetAttachmentName');
+    const attachIcon = document.getElementById('sheetAttachmentIcon');
+    if (attachWrap && attachLink) {
+        if (attachment && attachment.trim() !== '') {
+            attachWrap.style.display = 'block';
+            attachLink.href = attachment;
+            if (attachName) attachName.textContent = attachmentName || attachment.split('/').pop() || 'Attachment';
+            if (attachIcon) {
+                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(attachment);
+                const isPdf = /\.pdf$/i.test(attachment);
+                attachIcon.className = 'mob-pdf-icon fa ' + (isImg ? 'fa-file-image-o text-success' : (isPdf ? 'fa-file-pdf-o text-danger' : 'fa-paperclip text-primary'));
+            }
+        } else {
+            attachWrap.style.display = 'none';
+        }
+    }
+
+    // Open sheet & backdrop
+    const backdrop = document.getElementById('mobNotifBackdrop');
+    const sheet = document.getElementById('mobNotifSheet');
+    if (backdrop) backdrop.classList.add('show');
+    if (sheet) sheet.classList.add('show');
+    document.body.classList.add('mob-sheet-lock');
+
+    // Optimistically mark as read
+    if (isUnread && readUrl) {
+        triggerEl.setAttribute('data-unread', '0');
+        if (statusEl) {
+            statusEl.className = 'sheet-meta-pill sheet-status-read';
+            statusEl.innerHTML = '<i class="fa fa-check text-success"></i> Read';
+        }
+        if (typeof window.performMarkRead === 'function') {
+            window.performMarkRead(id, readUrl);
+        }
+    }
+}
+
+function closeNotifSheet() {
+    const backdrop = document.getElementById('mobNotifBackdrop');
+    const sheet = document.getElementById('mobNotifSheet');
+    if (backdrop) backdrop.classList.remove('show');
+    if (sheet) sheet.classList.remove('show');
+    document.body.classList.remove('mob-sheet-lock');
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = @json(csrf_token());
     const searchInput = document.getElementById('notifSearchInput');
@@ -933,13 +1535,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = setTimeout(function () {
-                let matchCount = 0;
                 cards.forEach(function (card) {
                     const title = card.getAttribute('data-title') || '';
                     const content = card.getAttribute('data-content') || '';
                     if (query === '' || title.includes(query) || content.includes(query)) {
                         card.style.display = '';
-                        matchCount++;
                     } else {
                         card.style.display = 'none';
                     }
@@ -957,14 +1557,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 2. Optimistic AJAX Mark Read Handler
-    function markAsRead(notificationId, readUrl) {
+    window.performMarkRead = function (notificationId, readUrl) {
         const card = document.getElementById('notifCard-' + notificationId);
-        if (!card || !card.classList.contains('is-unread')) {
-            return Promise.resolve();
+        if (card) {
+            card.classList.remove('is-unread');
         }
-
-        // Optimistic UI state immediately for super snappy feel
-        card.classList.remove('is-unread');
         const badge = document.getElementById('unreadBadge-' + notificationId);
         if (badge) badge.remove();
         const markBtn = document.getElementById('btnMarkRead-' + notificationId);
@@ -1000,19 +1597,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }).catch(function (err) {
             console.error('Mark read failed:', err);
         });
-    }
+    };
 
     // Single Mark Read button click
     document.querySelectorAll('.btn-mark-read').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
             this.disabled = true;
-            markAsRead(this.dataset.id, this.dataset.readUrl);
+            window.performMarkRead(this.dataset.id, this.dataset.readUrl);
         });
     });
 
     // Expand / Collapse long notification text
     document.querySelectorAll('.btn-toggle-expand').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
             const id = this.dataset.id;
             const body = document.getElementById('notifBody-' + id);
             const isExpanded = this.getAttribute('aria-expanded') === 'true';
@@ -1026,53 +1625,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 : '<i class="fa fa-angle-up"></i> Collapse';
 
             if (isExpanded === false && this.dataset.readUrl) {
-                markAsRead(id, this.dataset.readUrl);
+                window.performMarkRead(id, this.dataset.readUrl);
             }
         });
     });
 
-    // 3. Quick View Modal Trigger
-    document.querySelectorAll('.btn-view-quick').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id;
-            const title = this.dataset.title;
-            const time = this.dataset.time;
-            const type = this.dataset.type;
-            const content = this.dataset.content;
-            const isUnread = this.dataset.unread === '1';
-            const readUrl = this.dataset.readUrl;
-
-            document.getElementById('modalNotifTitle').textContent = title;
-            document.getElementById('modalNotifTime').textContent = time;
-            document.getElementById('modalNotifType').textContent = type;
-            document.getElementById('modalNotifBody').textContent = content;
-
-            $('#notifQuickModal').modal('show');
-
-            if (isUnread && readUrl) {
-                this.dataset.unread = '0';
-                markAsRead(id, readUrl);
-            }
+    // 3. Quick View Sheet Triggers
+    document.querySelectorAll('.open-notif-trigger').forEach(function (trigger) {
+        trigger.addEventListener('click', function (e) {
+            e.preventDefault();
+            openNotifSheet(this);
         });
+    });
+
+    // ESC Key to close modal bottom sheet
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeNotifSheet();
+        }
     });
 
     // 4. Mark All Read with Confirmation
     const formMarkAll = document.getElementById('formMarkAllRead');
     if (formMarkAll) {
-        formMarkAll.addEventListener('submit', function (e) {
+        formMarkAll.addEventListener('submit', async function (e) {
             e.preventDefault();
             if (window.StudentModal && typeof window.StudentModal.confirm === 'function') {
-                StudentModal.confirm({
+                const result = await StudentModal.confirm({
                     type: 'info',
                     title: 'Mark All as Read?',
                     message: 'Do you want to mark all unread notifications in this section as read?',
                     confirmText: 'Yes, Mark Read',
                     cancelText: 'Cancel'
-                }).then(function (result) {
-                    if (result && (result.isConfirmed || result === true)) {
-                        formMarkAll.submit();
-                    }
                 });
+                if (result && (result.isConfirmed || result === true)) {
+                    formMarkAll.submit();
+                }
             } else if (confirm('Mark all unread notifications as read?')) {
                 formMarkAll.submit();
             }
@@ -1082,21 +1670,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // 5. Clear All with Confirmation
     const formClear = document.getElementById('formClearAll');
     if (formClear) {
-        formClear.addEventListener('submit', function (e) {
+        formClear.addEventListener('submit', async function (e) {
             e.preventDefault();
             if (window.StudentModal && typeof window.StudentModal.confirm === 'function') {
-                StudentModal.confirm({
+                const result = await StudentModal.confirm({
                     type: 'warning',
                     title: 'Clear Notifications?',
                     message: 'Are you sure you want to clear notifications in this section? This action cannot be undone.',
                     confirmText: 'Yes, Clear All',
                     cancelText: 'Cancel',
                     danger: true
-                }).then(function (result) {
-                    if (result && (result.isConfirmed || result === true)) {
-                        formClear.submit();
-                    }
                 });
+                if (result && (result.isConfirmed || result === true)) {
+                    formClear.submit();
+                }
             } else if (confirm('Are you sure you want to clear all notifications in this section?')) {
                 formClear.submit();
             }
