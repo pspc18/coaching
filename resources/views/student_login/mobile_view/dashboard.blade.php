@@ -46,10 +46,10 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
           
   <div class="card text-center border-bottom" style="width: 96%; margin: auto; background: white;box-shadow:0 0 1px rgba(0, 0, 0, .125), 0 15px 10px rgba(0, 0, 0, .2);">
     <div class="d-flex  p-2">
-        <img src="{{ env('IMAGE_SHOW_PATH').'/setting/left_logo/'.$getSetting['left_logo'] ?? '' }}" 
+        <img src="{{ Helper::getLogoUrl() }}" 
              alt="" class="brand_img me-2" 
-             onerror="this.src='{{ env('IMAGE_SHOW_PATH').'default/no_image.png' }}'" 
-             width="50px" height="50px" style="border-radius:50%;">
+             onerror="this.src='{{ asset('assets/school/img/logo.png') }}'" 
+             width="50px" height="50px" style="border-radius:50%; object-fit: contain;">
         <div class="ml-2">
             <h6 class="m-0 fw-bold p-0" style="color:orange;">{{$getSetting->name ?? '' }}</h6>
             <p class="m-0 text-dark small" style="text-align: left;">{{$getSetting->gmail ?? '' }}</p>

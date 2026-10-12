@@ -1,10 +1,7 @@
 @php
 $setting = Helper::getSetting();
-$logoFile = $setting->left_logo ?? '';
-$logoUrl = !empty($logoFile)
-    ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($logoFile)
-    : asset('public/assets/school/img/logo.png');
-$faviconUrl = !empty($logoUrl) ? $logoUrl : asset('public/favicon.ico');
+$faviconUrl = Helper::getFaviconUrl();
+$logoUrl = Helper::getLogoUrl();
 @endphp
 
 <!DOCTYPE html>
@@ -14,8 +11,10 @@ $faviconUrl = !empty($logoUrl) ? $logoUrl : asset('public/favicon.ico');
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
         <title>@hasSection('title')@yield('title') - @endif{{ $setting->name ?? 'Rusoft Education Point' }}</title>
+        <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
         <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
         <link rel="shortcut icon" href="{{ $faviconUrl }}">
+        <link rel="apple-touch-icon" href="{{ $logoUrl }}">
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="Expires" content="0">

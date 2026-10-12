@@ -255,6 +255,34 @@ class Helper{
         self::$cachedSettings[$branchId] = $setting;
         return $setting;
     } 
+
+    public static function getLogoUrl()
+    {
+        $setting = self::getSetting();
+        $logoFile = $setting->left_logo ?? '';
+
+        // Local public assets first: 100% reliable on both localhost and live domain
+        if (file_exists(public_path('assets/school/img/logo.png'))) {
+            return asset('assets/school/img/logo.png') . '?v=' . filemtime(public_path('assets/school/img/logo.png'));
+        }
+
+        if (!empty($logoFile)) {
+            return rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($logoFile);
+        }
+
+        return asset('assets/school/img/logo.png');
+    }
+
+    public static function getFaviconUrl()
+    {
+        if (file_exists(public_path('favicon.ico')) && filesize(public_path('favicon.ico')) > 0) {
+            return asset('favicon.ico') . '?v=' . filemtime(public_path('favicon.ico'));
+        }
+        if (file_exists(public_path('favicon.png'))) {
+            return asset('favicon.png') . '?v=' . filemtime(public_path('favicon.png'));
+        }
+        return self::getLogoUrl();
+    }
      
 
     public static function uploadImageUniversal($file, $folder, $oldImage = null, $fileName = null, $branchWise = false)

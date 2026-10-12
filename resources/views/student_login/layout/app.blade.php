@@ -20,10 +20,8 @@
     }
     $unreadAlerts = $notificationCount;
 
-    $mobileLogoFile = $getSetting->left_logo ?? '';
-    $mobileLogoUrl = !empty($mobileLogoFile)
-        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($mobileLogoFile)
-        : '';
+    $mobileLogoUrl = Helper::getLogoUrl();
+    $faviconUrl = Helper::getFaviconUrl();
     $firmInitial = strtoupper(mb_substr(trim($getSetting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 @endphp
 <!DOCTYPE html>
@@ -35,7 +33,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>@yield('title', 'Student Portal') - {{ $getSetting->name ?? 'Rusoft Education Point' }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ !empty($mobileLogoUrl) ? $mobileLogoUrl : asset('public/assets/school/img/logo.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $mobileLogoUrl }}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">

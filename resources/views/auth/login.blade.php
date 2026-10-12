@@ -1,12 +1,9 @@
 @php
-    $setting = DB::table('settings')->first();
-    $schoolName = $setting->name ?? 'School ERP';
-    $logoFileName = $setting->left_logo ?? '';
-    $logoUrl = !empty($logoFileName)
-        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($logoFileName)
-        : '';
-    $schoolInitial = strtoupper(mb_substr(trim($schoolName), 0, 1, 'UTF-8')) ?: 'A';
-    $faviconUrl = !empty($logoUrl) ? $logoUrl : asset('public/assets/school/img/logo.png');
+    $setting = Helper::getSetting();
+    $schoolName = $setting->name ?? 'Rusoft Education Point';
+    $logoUrl = Helper::getLogoUrl();
+    $faviconUrl = Helper::getFaviconUrl();
+    $schoolInitial = strtoupper(mb_substr(trim($schoolName), 0, 1, 'UTF-8')) ?: 'R';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -18,7 +15,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{{ $schoolName }} | Sign In</title>
-    <link rel="icon" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $logoUrl }}">
 
     <!-- Typography & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">

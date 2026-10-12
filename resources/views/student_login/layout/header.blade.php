@@ -6,10 +6,7 @@
     $headerClassName = optional($headerStudent)->ClassTypes->name ?? '-';
     $headerSession = Session::get('session_name') ?? date('Y');
     
-    $headerLogoFile = $headerSetting->left_logo ?? '';
-    $headerLogoUrl = !empty($headerLogoFile)
-        ? rtrim((string) env('IMAGE_SHOW_PATH'), '/') . '/setting/left_logo/' . rawurlencode($headerLogoFile)
-        : asset('public/assets/school/img/logo.png');
+    $headerLogoUrl = Helper::getLogoUrl();
     $headerFirmInitial = strtoupper(mb_substr(trim($headerSetting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 
     $alertsCount = $unreadAlerts ?? ($notificationCount ?? 0);
