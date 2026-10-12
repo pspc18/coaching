@@ -495,6 +495,11 @@ function showPayToast(msg) {
     setTimeout(function() {
         toast.classList.remove('show');
     }, 2200);
+// If loaded inside iframe, break out to top window
+if (window.top && window.top !== window.self) {
+    try {
+        window.top.location.href = window.location.href;
+    } catch(e) {}
 }
 </script>
 @endsection

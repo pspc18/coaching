@@ -267,4 +267,13 @@
     </div>
 
 </div>
+
+<script>
+// If loaded inside iframe, break out to top window
+if (window.top && window.top !== window.self) {
+    try {
+        window.top.location.href = window.location.href;
+    } catch(e) {}
+}
+</script>
 @endsection

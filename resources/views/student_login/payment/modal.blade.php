@@ -140,6 +140,34 @@
 
 </div>
 
+{{-- ==========================================================================
+     5. IN-APP MOBILE PHONEPE GATEWAY FRAME (FORCES MOBILE VIEW ON ALL DEVICES)
+     Renders within the exact 480px Mobile App Shell
+     ========================================================================== --}}
+<div class="mob-phonepe-frame-layer" id="phonePeFrameLayer" style="display: none;">
+    <div class="mob-phonepe-frame-header">
+        <div class="frame-header-left">
+            <i class="fa fa-shield" style="color: #38bdf8;"></i>
+            <span>PhonePe Gateway (Mobile View)</span>
+        </div>
+        <div class="frame-header-actions">
+            <a href="javascript:void(0);" id="phonePeExternalPopout" target="_blank" class="frame-icon-btn" title="Open in new tab">
+                <i class="fa fa-external-link"></i>
+            </a>
+            <button type="button" class="frame-close-pill" onclick="closePhonePeFrame()">
+                <i class="fa fa-times"></i> Cancel
+            </button>
+        </div>
+    </div>
+    <div class="mob-phonepe-frame-body">
+        <div class="frame-loader" id="phonePeFrameLoader">
+            <i class="fa fa-spinner fa-spin"></i>
+            <div>Loading PhonePe Mobile Gateway...</div>
+        </div>
+        <iframe id="phonePeIframe" src="about:blank" class="phonepe-frame-iframe" allow="payment *" onload="onPhonePeIframeLoaded()"></iframe>
+    </div>
+</div>
+
 <style>
 /* ==========================================================================
    ARISE ERP - NATIVE SLIDE-UP MODAL SHEET STYLES (MATCHES HOMEWORK / THEME)
@@ -539,6 +567,118 @@ body.mob-sheet-lock {
     cursor: not-allowed;
     transform: none;
 }
+
+/* ==========================================================================
+   IN-APP MOBILE PHONEPE GATEWAY FRAME STYLES
+   ========================================================================== */
+.mob-phonepe-frame-layer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: 100dvh;
+    background: #ffffff;
+    z-index: 9999999;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 50px rgba(0, 15, 30, 0.45);
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+}
+.mob-phonepe-frame-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #0284c7;
+    flex-shrink: 0;
+}
+.frame-header-left {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffffff;
+}
+.frame-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.frame-icon-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+.frame-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+.frame-close-pill {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fecaca;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+.frame-close-pill:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+.mob-phonepe-frame-body {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f8fafc;
+}
+.frame-loader {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #002C54;
+    z-index: 5;
+    transition: opacity 0.2s ease;
+}
+.frame-loader i {
+    font-size: 26px;
+    color: #0284c7;
+}
+.phonepe-frame-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
 </style>
 
 <script>
@@ -662,8 +802,10 @@ function submitPhonePePayment() {
     })
     .then(function(response) {
         if (response.ok && response.data.status && response.data.redirect_url) {
-            btn.innerHTML = '<i class="fa fa-check"></i> Redirecting to PhonePe...';
-            window.location.href = response.data.redirect_url;
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            // Open in In-App Mobile Frame (keeps PhonePe in mobile view within 480px)
+            openPhonePeMobileFrame(response.data.redirect_url);
         } else {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -675,6 +817,50 @@ function submitPhonePePayment() {
         btn.innerHTML = originalHtml;
         showPhonePeError('Network error connecting to payment gateway: ' + error.message);
     });
+}
+
+function openPhonePeMobileFrame(url) {
+    closePhonePeModal();
+
+    var frameLayer = document.getElementById('phonePeFrameLayer');
+    var iframe = document.getElementById('phonePeIframe');
+    var loader = document.getElementById('phonePeFrameLoader');
+    var popout = document.getElementById('phonePeExternalPopout');
+
+    if (loader) {
+        loader.style.display = 'flex';
+        loader.style.opacity = '1';
+    }
+    if (popout) popout.href = url;
+    if (iframe) {
+        iframe.src = url;
+    }
+    if (frameLayer) {
+        frameLayer.style.display = 'flex';
+        document.body.classList.add('mob-sheet-lock');
+    }
+}
+
+function onPhonePeIframeLoaded() {
+    var loader = document.getElementById('phonePeFrameLoader');
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(function() {
+            loader.style.display = 'none';
+        }, 220);
+    }
+}
+
+function closePhonePeFrame() {
+    if (confirm('Are you sure you want to cancel and exit the payment process?')) {
+        var frameLayer = document.getElementById('phonePeFrameLayer');
+        var iframe = document.getElementById('phonePeIframe');
+        if (iframe) iframe.src = 'about:blank';
+        if (frameLayer) {
+            frameLayer.style.display = 'none';
+            document.body.classList.remove('mob-sheet-lock');
+        }
+    }
 }
 
 function showPhonePeError(msg) {
