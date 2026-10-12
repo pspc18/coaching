@@ -816,7 +816,13 @@ class Helper{
 
         return $query->get();
     }
-    
+
+    public static function studentexamview(){
+        return \App\Models\exam\Exam::where('session_id', Session::get('session_id'))
+            ->where('branch_id', Session::get('branch_id'))
+            ->whereNull('deleted_at')
+            ->get();
+    }
 
     public static function examPanelClassType(){
           $getTypeclass = ClassType::orderBy('orderBy', 'ASC');

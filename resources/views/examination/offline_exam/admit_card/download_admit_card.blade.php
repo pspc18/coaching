@@ -4,7 +4,6 @@
 
 $classType = Helper::ClassType();
 $setting = Helper::getSetting();
-$studentexamview = Helper::studentexamview();
 @endphp
 <div class="content-wrapper">
 <section class="content pt-3">
