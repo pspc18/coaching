@@ -1,5 +1,9 @@
 <?php
 
+if (file_exists(__DIR__ . '/polyfill.php')) {
+    require_once __DIR__ . '/polyfill.php';
+}
+
 /*
 |--------------------------------------------------------------------------
 | Create The Application

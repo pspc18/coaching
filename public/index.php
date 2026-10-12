@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+if (file_exists(__DIR__.'/../bootstrap/polyfill.php')) {
+    require_once __DIR__.'/../bootstrap/polyfill.php';
+}
+
 /*
 |--------------------------------------------------------------------------
 | Legacy /public URL compatibility
