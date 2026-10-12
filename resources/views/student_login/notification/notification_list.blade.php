@@ -1279,7 +1279,6 @@ body.mob-sheet-lock {
                                 data-content="{{ e($content) }}"
                                 data-attachment="{{ $attachmentUrl }}"
                                 data-attachment-name="{{ $attachmentName }}"
-                                data-detail-url="{{ url('student_notification_detail', $notification->id) }}"
                                 data-unread="{{ $isUnread ? '1' : '0' }}"
                                 data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
                                 title="Tap to view full details">
@@ -1354,7 +1353,6 @@ body.mob-sheet-lock {
                                 data-content="{{ e($content) }}"
                                 data-attachment="{{ $attachmentUrl }}"
                                 data-attachment-name="{{ $attachmentName }}"
-                                data-detail-url="{{ url('student_notification_detail', $notification->id) }}"
                                 data-unread="{{ $isUnread ? '1' : '0' }}"
                                 data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}">
                             <i class="fa fa-eye"></i> View
@@ -1487,16 +1485,6 @@ body.mob-sheet-lock {
             </a>
         </div>
     </div>
-
-    {{-- Footer Actions --}}
-    <div class="mob-sheet-footer">
-        <a id="sheetNotifDetailLink" href="#" class="mob-sheet-btn primary">
-            <i class="fa fa-external-link"></i> Full Page View
-        </a>
-        <button type="button" class="mob-sheet-btn secondary" onclick="closeNotifSheet()">
-            Close
-        </button>
-    </div>
 </div>
 @endsection
 
@@ -1514,8 +1502,6 @@ function openNotifSheet(triggerEl) {
     const iconClass = triggerEl.getAttribute('data-icon') || 'fa-bell-o';
     const content = triggerEl.getAttribute('data-content') || '';
     const attachment = triggerEl.getAttribute('data-attachment') || '';
-    const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
-    const detailUrl = triggerEl.getAttribute('data-detail-url') || '#';
     const isUnread = triggerEl.getAttribute('data-unread') === '1';
     const readUrl = triggerEl.getAttribute('data-read-url');
 
@@ -1547,10 +1533,6 @@ function openNotifSheet(triggerEl) {
 
     const bodyEl = document.getElementById('sheetNotifBody');
     if (bodyEl) bodyEl.textContent = content;
-
-    // Full page link
-    const detailLink = document.getElementById('sheetNotifDetailLink');
-    if (detailLink) detailLink.href = detailUrl;
 
     // Attachment
     const attachWrap = document.getElementById('sheetNotifAttachment');

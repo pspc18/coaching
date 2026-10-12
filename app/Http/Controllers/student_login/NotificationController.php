@@ -161,16 +161,5 @@ class NotificationController extends Controller
             return redirect()->to($redirectUrl)
                 ->with('message', 'All notifications cleared.');
         }
-        
-        
-        public function notificationDetailStu(Request $request , $id){
-            
-            $notification = $this->notificationQuery($this->normalizeCategory($request), true)
-                ->where('id', $id)
-                ->firstOrFail();
-            $notification->update(['message_seen' => 1]);
-            return view('student_login.notification.notification_details', compact('notification'));
-        }
-
 
 }

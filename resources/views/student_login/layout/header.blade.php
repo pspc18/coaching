@@ -50,7 +50,7 @@
         </button>
 
         {{-- Alerts / Notifications --}}
-        <a href="{{ url('notificationFatchStudent') }}" class="top-icon-pill {{ request()->is('notificationFatchStudent*') || request()->is('notification_detail_stu*') ? 'active' : '' }}" title="Notifications">
+        <a href="{{ url('notificationFatchStudent') }}" class="top-icon-pill {{ request()->is('notificationFatchStudent*') ? 'active' : '' }}" title="Notifications">
             <i class="fa fa-bell-o"></i>
             <span class="top-badge-pulse" id="headerAlertsBadge" style="{{ $alertsCount > 0 ? '' : 'display:none;' }}">{{ $alertsCount > 9 ? '9+' : $alertsCount }}</span>
         </a>

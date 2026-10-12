@@ -48,7 +48,6 @@ Route::group(['middleware' => 'islogin'], function () {
         ->name('student.attendance-notifications.mark-all-read');
     Route::delete('notificationFatchStudent/clear-all', 'student_login\NotificationController@clearAllAttendanceNotifications')
         ->name('student.attendance-notifications.clear-all');
-    Route::match(['get', 'post'], 'notification_detail_stu/{id}', 'student_login\NotificationController@notificationDetailStu');
     
     
       Route::get('/hard-refresh', function () {

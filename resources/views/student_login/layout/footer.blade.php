@@ -22,7 +22,7 @@
     </a>
 
     {{-- 4. Alerts --}}
-    <a href="{{ url('notificationFatchStudent') }}" class="dock-nav-item {{ request()->is('notificationFatchStudent*') || request()->is('notification_detail_stu*') ? 'active' : '' }}">
+    <a href="{{ url('notificationFatchStudent') }}" class="dock-nav-item {{ request()->is('notificationFatchStudent*') ? 'active' : '' }}">
         <div class="dock-nav-icon">
             <i class="fa fa-bell-o"></i>
             <span class="dock-badge-pulse" id="dockAlertsBadge" style="{{ $dockAlertsCount > 0 ? '' : 'display:none;' }}">{{ $dockAlertsCount > 9 ? '9+' : $dockAlertsCount }}</span>
