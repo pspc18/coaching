@@ -1,6 +1,21 @@
-<!-- PhonePe Payment Gateway Modal Component -->
-<div id="phonePePayModal" class="phonepe-modal-overlay" style="display: none;">
-    <div class="phonepe-modal-container">
+@php
+    $modalStudent = $dashboardStudent ?? $getUser ?? Helper::getUser();
+    $modalStudentName = trim(($modalStudent->first_name ?? '') . ' ' . ($modalStudent->last_name ?? ''));
+    if (empty($modalStudentName)) $modalStudentName = 'Student';
+    $modalClassName = optional($modalStudent->ClassTypes)->name ?? ($modalStudent->class_name ?? '---');
+    $modalAdmNo = $modalStudent->admissionNo ?? '---';
+    $modalPendingFees = (float)($pendingFees ?? 0);
+    $modalInitial = strtoupper(mb_substr($modalStudentName, 0, 1, 'UTF-8')) ?: 'S';
+@endphp
+
+<!-- Arise ERP - PhonePe Payment Gateway Bottom Sheet Modal -->
+<div id="phonePePayModal" class="phonepe-modal-overlay" style="display: none;" aria-hidden="true">
+    <div class="phonepe-modal-backdrop" onclick="closePhonePeModal()"></div>
+    
+    <div class="phonepe-modal-container" role="dialog" aria-modal="true">
+        <!-- Native Mobile Sheet Drag Handle -->
+        <div class="phonepe-drag-handle" aria-hidden="true"></div>
+
         <!-- Modal Header -->
         <div class="phonepe-modal-header">
             <div class="phonepe-header-left">
@@ -8,92 +23,113 @@
                     <i class="fa fa-shield"></i>
                 </div>
                 <div>
-                    <h4 class="phonepe-modal-title">Pay School Fees</h4>
-                    <span class="phonepe-modal-subtitle">Powered by PhonePe Payment Gateway</span>
+                    <h3 class="phonepe-modal-title">Pay School Fees</h3>
+                    <span class="phonepe-modal-subtitle">PhonePe Secure PG &bull; Arise ERP</span>
                 </div>
             </div>
             <button type="button" class="phonepe-close-btn" onclick="closePhonePeModal()" aria-label="Close">
-                &times;
+                <i class="fa fa-times"></i>
             </button>
         </div>
 
-        <!-- Modal Body -->
+        <!-- Scrollable Modal Body -->
         <div class="phonepe-modal-body">
-            <!-- Student Mini Banner -->
+            
+            <!-- Student Mini Identity Strip -->
             <div class="phonepe-student-strip">
-                <div>
-                    <div class="strip-label">STUDENT</div>
-                    <div class="strip-val">{{ strtoupper(trim(($dashboardStudent->first_name ?? '') . ' ' . ($dashboardStudent->last_name ?? ''))) }}</div>
+                <div class="phonepe-student-avatar">
+                    {{ $modalInitial }}
                 </div>
-                <div style="text-align: right;">
-                    <div class="strip-label">CLASS / ADM NO</div>
-                    <div class="strip-val">{{ $dashboardStudent->class_name ?? '---' }} &bull; {{ $dashboardStudent->admissionNo ?? '---' }}</div>
+                <div class="phonepe-student-meta">
+                    <div class="student-name-text">{{ strtoupper($modalStudentName) }}</div>
+                    <div class="student-sub-pills">
+                        <span class="meta-pill"><i class="fa fa-id-card-o"></i> Adm: <strong>{{ $modalAdmNo }}</strong></span>
+                        <span class="meta-pill"><i class="fa fa-graduation-cap"></i> Class: <strong>{{ $modalClassName }}</strong></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Due Balance Summary -->
+            <!-- Due Balance Summary Card -->
             <div class="phonepe-due-box">
-                <div class="due-box-left">
-                    <span class="due-label">Current Outstanding Due</span>
-                    <span class="due-amount" id="modalDueAmountDisplay">₹ {{ number_format($pendingFees ?? 0, 2) }}</span>
+                <div>
+                    <div class="due-label">Current Outstanding Due</div>
+                    <div class="due-amount" id="modalDueAmountDisplay">₹ {{ number_format($modalPendingFees, 2) }}</div>
                 </div>
                 <div class="due-box-badge">
-                    <i class="fa fa-clock-o"></i> Pending
+                    <i class="fa fa-clock-o"></i> Unpaid Dues
                 </div>
             </div>
 
             <!-- Amount Input Field -->
             <div class="phonepe-input-group">
-                <label for="phonepePayAmountInput" class="phonepe-input-label">
-                    Enter Amount to Pay Now (₹)
-                </label>
+                <div class="phonepe-label-row">
+                    <label for="phonepePayAmountInput" class="phonepe-input-label">
+                        Enter Payable Amount (₹)
+                    </label>
+                    <button type="button" class="quick-full-link" onclick="setPhonePeAmount({{ (int)$modalPendingFees }}, null)">
+                        <i class="fa fa-refresh"></i> Pay Full Due
+                    </button>
+                </div>
+                
                 <div class="phonepe-input-wrapper">
                     <span class="currency-prefix">₹</span>
                     <input type="number" 
                            id="phonepePayAmountInput" 
                            class="phonepe-amount-input" 
-                           value="{{ (int)($pendingFees ?? 0) }}" 
+                           value="{{ (int)$modalPendingFees }}" 
                            min="1" 
-                           max="{{ (int)($pendingFees ?? 0) }}" 
+                           max="{{ (int)$modalPendingFees }}" 
                            step="1"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
                            oninput="onPhonePeAmountChange(this.value)"
-                           placeholder="Enter amount">
+                           placeholder="0">
                 </div>
-                <span class="phonepe-input-hint">You can pay the full amount or a partial installment.</span>
+                <div class="phonepe-input-hint">
+                    <i class="fa fa-info-circle text-primary"></i> Partial payment allowed. Official receipt generates immediately.
+                </div>
             </div>
 
-            <!-- Quick Amount Chips -->
+            <!-- Quick Amount Selector Chips -->
             @php
-                $pFees = (int)($pendingFees ?? 0);
+                $pFees = (int)$modalPendingFees;
             @endphp
-            <div class="phonepe-chips-row">
-                <button type="button" class="phonepe-chip active" onclick="setPhonePeAmount({{ $pFees }}, this)">
-                    Full Due (₹{{ number_format($pFees, 0) }})
-                </button>
-                @if($pFees > 1000)
-                    <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(1000, this)">
-                        ₹1,000
+            <div class="phonepe-chips-section">
+                <div class="chips-title">Quick Select:</div>
+                <div class="phonepe-chips-row">
+                    <button type="button" class="phonepe-chip active" onclick="setPhonePeAmount({{ $pFees }}, this)">
+                        <i class="fa fa-check-circle chip-check"></i> Full Due (₹{{ number_format($pFees, 0) }})
                     </button>
-                @endif
-                @if($pFees > 2500)
-                    <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(2500, this)">
-                        ₹2,500
-                    </button>
-                @endif
-                @if($pFees > 5000)
-                    <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(5000, this)">
-                        ₹5,000
-                    </button>
-                @endif
+                    @if($pFees > 1000)
+                        <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(1000, this)">
+                            <i class="fa fa-check-circle chip-check"></i> ₹1,000
+                        </button>
+                    @endif
+                    @if($pFees > 2500)
+                        <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(2500, this)">
+                            <i class="fa fa-check-circle chip-check"></i> ₹2,500
+                        </button>
+                    @endif
+                    @if($pFees > 5000)
+                        <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(5000, this)">
+                            <i class="fa fa-check-circle chip-check"></i> ₹5,000
+                        </button>
+                    @endif
+                    @if($pFees > 10000)
+                        <button type="button" class="phonepe-chip" onclick="setPhonePeAmount(10000, this)">
+                            <i class="fa fa-check-circle chip-check"></i> ₹10,000
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <!-- Error Banner -->
             <div id="phonepeModalError" class="phonepe-alert-error" style="display: none;"></div>
 
-            <!-- Payment Methods Info -->
+            <!-- Payment Methods Strip -->
             <div class="phonepe-trust-strip">
                 <div class="trust-icons">
-                    <span class="pay-method-badge"><i class="fa fa-qrcode"></i> UPI (PhonePe, GPay, Paytm)</span>
+                    <span class="pay-method-badge"><i class="fa fa-qrcode text-primary"></i> PhonePe / UPI</span>
                     <span class="pay-method-badge"><i class="fa fa-credit-card"></i> Cards</span>
                     <span class="pay-method-badge"><i class="fa fa-bank"></i> NetBanking</span>
                 </div>
@@ -101,317 +137,505 @@
                     <i class="fa fa-lock text-success"></i> Instant Fee Receipt &bull; 100% Encrypted &amp; Secure
                 </div>
             </div>
+
         </div>
 
-        <!-- Modal Footer -->
+        <!-- Fixed Modal Footer -->
         <div class="phonepe-modal-footer">
             <button type="button" class="phonepe-btn-cancel" onclick="closePhonePeModal()">
                 Cancel
             </button>
             <button type="button" class="phonepe-btn-pay" id="phonepeProceedBtn" onclick="submitPhonePePayment()">
-                <i class="fa fa-lock"></i> Proceed to Pay <span id="phonepeBtnAmount">₹{{ number_format($pFees, 0) }}</span>
+                <i class="fa fa-shield"></i> Proceed to Pay <span id="phonepeBtnAmount">₹{{ number_format($pFees, 0) }}</span>
             </button>
         </div>
     </div>
 </div>
 
 <style>
-/* PhonePe Modal Styles */
+/* ==========================================================================
+   ARISE ERP - NATIVE STUDENT PAYMENT BOTTOM SHEET MODAL
+   ========================================================================== */
 .phonepe-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
     z-index: 999999;
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* Bottom sheet on mobile */
     justify-content: center;
-    padding: 16px;
-    animation: phonepeFadeIn 0.2s ease-out;
+    padding: 0;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
 }
-@keyframes phonepeFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.phonepe-modal-overlay.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+.phonepe-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 20, 40, 0.68);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 .phonepe-modal-container {
+    position: relative;
+    z-index: 10;
     background: #ffffff;
     width: 100%;
-    max-width: 440px;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 44, 84, 0.25);
+    max-width: 460px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 35px rgba(0, 20, 40, 0.3);
     overflow: hidden;
-    animation: phonepeScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    max-height: 92dvh;
+    transform: translateY(100%);
+    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #cbd5e1;
+    border-bottom: none;
 }
-@keyframes phonepeScaleUp {
-    from { transform: scale(0.92); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+.phonepe-modal-overlay.is-open .phonepe-modal-container {
+    transform: translateY(0);
 }
+
+/* Drag handle on mobile */
+.phonepe-drag-handle {
+    width: 38px;
+    height: 4px;
+    border-radius: 99px;
+    background: #cbd5e1;
+    margin: 8px auto 4px auto;
+}
+
+/* Desktop centering */
+@media (min-width: 641px) {
+    .phonepe-modal-overlay {
+        align-items: center;
+        padding: 20px;
+    }
+    .phonepe-modal-container {
+        border-radius: 18px;
+        border-bottom: 1px solid #cbd5e1;
+        box-shadow: 0 20px 50px rgba(0, 25, 55, 0.35);
+        transform: translateY(16px) scale(0.96);
+        max-height: 88vh;
+    }
+    .phonepe-modal-overlay.is-open .phonepe-modal-container {
+        transform: translateY(0) scale(1);
+    }
+    .phonepe-drag-handle {
+        display: none;
+    }
+}
+
+/* Header */
 .phonepe-modal-header {
-    background: linear-gradient(135deg, #002C54 0%, #001f3d 100%);
+    background: linear-gradient(135deg, #001833 0%, #002C54 60%, #0a4275 100%);
     color: #ffffff;
-    padding: 16px 20px;
+    padding: 13px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+    position: relative;
+    flex-shrink: 0;
 }
 .phonepe-header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 .phonepe-logo-icon {
-    width: 38px;
-    height: 38px;
-    background: linear-gradient(135deg, #5f259f 0%, #3d126d 100%);
-    color: #fde047;
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    box-shadow: 0 4px 10px rgba(95, 37, 159, 0.35);
+    color: #38bdf8;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .phonepe-modal-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffffff;
+    font-size: 14.5px;
+    font-weight: 800;
     margin: 0;
-    line-height: 1.2;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+    line-height: 1.25;
 }
 .phonepe-modal-subtitle {
-    font-size: 11px;
-    color: #94a3b8;
+    font-size: 10px;
+    color: #93c5fd;
+    font-weight: 600;
+    display: block;
+    margin-top: 2px;
 }
 .phonepe-close-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #ffffff;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
     transition: all 0.15s ease;
 }
 .phonepe-close-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.22);
 }
+.phonepe-close-btn:active {
+    transform: scale(0.92);
+}
+
+/* Modal Body */
 .phonepe-modal-body {
-    padding: 20px;
+    padding: 14px 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
 }
+
+/* Student Identity Strip */
 .phonepe-student-strip {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 10px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 14px;
+    align-items: center;
+    gap: 10px;
 }
-.strip-label {
-    font-size: 9px;
-    font-weight: 700;
+.phonepe-student-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+.phonepe-student-meta {
+    flex: 1;
+    min-width: 0;
+}
+.student-name-text {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+.student-sub-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    font-size: 10.5px;
     color: #64748b;
-    letter-spacing: 0.5px;
 }
-.strip-val {
-    font-size: 12px;
-    font-weight: 700;
+.meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+.meta-pill strong {
     color: #0f172a;
 }
+
+/* Due Balance Summary */
 .phonepe-due-box {
-    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
-    border: 1px solid #fecdd3;
-    border-radius: 12px;
-    padding: 14px 16px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-}
-.due-box-left {
-    display: flex;
-    flex-direction: column;
 }
 .due-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #e11d48;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #92400e;
+    letter-spacing: 0.5px;
 }
 .due-amount {
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 800;
-    color: #be123c;
-    line-height: 1.2;
+    color: #b45309;
+    letter-spacing: -0.4px;
     margin-top: 2px;
 }
 .due-box-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     background: #ffffff;
-    color: #e11d48;
-    border: 1px solid #fda4af;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
+    border: 1px solid #fcd34d;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #b45309;
 }
+
+/* Amount Input */
 .phonepe-input-group {
     margin-bottom: 12px;
 }
-.phonepe-input-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 6px;
-}
-.phonepe-input-wrapper {
-    position: relative;
+.phonepe-label-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.phonepe-input-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin: 0;
+}
+.quick-full-link {
+    background: none;
+    border: none;
+    color: #0284c7;
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.quick-full-link:hover {
+    text-decoration: underline;
+}
+.phonepe-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 6px 14px;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.phonepe-input-wrapper:focus-within {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
 }
 .currency-prefix {
-    position: absolute;
-    left: 14px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #64748b;
-}
-.phonepe-amount-input {
-    width: 100%;
-    height: 48px;
-    padding: 0 14px 0 34px;
-    border: 2px solid #cbd5e1;
-    border-radius: 10px;
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
-    outline: none;
-    transition: all 0.15s ease;
+    color: #002C54;
+    margin-right: 8px;
 }
-.phonepe-amount-input:focus {
-    border-color: #5f259f;
-    box-shadow: 0 0 0 3px rgba(95, 37, 159, 0.15);
+.phonepe-amount-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 21px;
+    font-weight: 800;
+    color: #002C54;
+    width: 100%;
+    padding: 2px 0;
+    font-family: inherit;
+    -moz-appearance: textfield;
+}
+.phonepe-amount-input::-webkit-outer-spin-button,
+.phonepe-amount-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 .phonepe-input-hint {
-    display: block;
     font-size: 10.5px;
     color: #64748b;
-    margin-top: 4px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Quick Chips */
+.phonepe-chips-section {
+    margin-bottom: 14px;
+}
+.chips-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
 }
 .phonepe-chips-row {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 16px;
 }
 .phonepe-chip {
-    background: #f1f5f9;
+    background: #f8fafc;
     border: 1px solid #cbd5e1;
     color: #334155;
-    padding: 5px 10px;
-    border-radius: 6px;
+    padding: 6px 11px;
+    border-radius: 7px;
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.12s ease;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    user-select: none;
+}
+.chip-check {
+    font-size: 10px;
+    display: none;
 }
 .phonepe-chip:hover {
-    background: #e2e8f0;
+    background: #f1f5f9;
+    border-color: #94a3b8;
 }
 .phonepe-chip.active {
-    background: #5f259f;
-    border-color: #5f259f;
-    color: #ffffff;
+    background: #e0f2fe;
+    border-color: #0284c7;
+    color: #0284c7;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
 }
+.phonepe-chip.active .chip-check {
+    display: inline-block;
+}
+
+/* Error Banner */
 .phonepe-alert-error {
     background: #fef2f2;
     border: 1px solid #fecaca;
     color: #b91c1c;
-    font-size: 12px;
+    font-size: 11.5px;
+    font-weight: 600;
     padding: 8px 12px;
     border-radius: 8px;
-    margin-bottom: 14px;
-    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.4;
 }
+
+/* Trust Strip */
 .phonepe-trust-strip {
     background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 10px;
-    padding: 10px 12px;
-    text-align: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 9px 12px;
 }
 .trust-icons {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    align-items: center;
     justify-content: center;
+    gap: 6px;
     margin-bottom: 6px;
 }
 .pay-method-badge {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 4px;
+    padding: 3px 8px;
+    border-radius: 5px;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     color: #475569;
-    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 .security-text {
-    font-size: 10.5px;
+    text-align: center;
+    font-size: 10px;
     color: #64748b;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
+
+/* Modal Footer */
 .phonepe-modal-footer {
-    padding: 14px 20px 18px 20px;
-    background: #f8fafc;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: #ffffff;
     border-top: 1px solid #e2e8f0;
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 .phonepe-btn-cancel {
     flex: 1;
-    height: 44px;
-    background: #ffffff;
+    min-height: 42px;
+    background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
     color: #475569;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 .phonepe-btn-cancel:hover {
-    background: #f1f5f9;
+    background: #e2e8f0;
+}
+.phonepe-btn-cancel:active {
+    transform: scale(0.98);
 }
 .phonepe-btn-pay {
     flex: 2;
-    height: 44px;
-    background: linear-gradient(135deg, #5f259f 0%, #4a1c7d 100%);
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
+    min-height: 42px;
+    background: linear-gradient(135deg, #002C54 0%, #001f3f 50%, #5f259f 100%);
+    border: 1px solid #001f3f;
     color: #ffffff;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 800;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(95, 37, 159, 0.28);
-    transition: all 0.15s ease;
+    gap: 6px;
+    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
+    transition: all 0.18s ease;
 }
 .phonepe-btn-pay:hover {
-    background: linear-gradient(135deg, #531f8c 0%, #3e166a 100%);
-    transform: translateY(-1px);
+    opacity: 0.95;
+    box-shadow: 0 6px 18px rgba(0, 44, 84, 0.35);
+}
+.phonepe-btn-pay:active {
+    transform: scale(0.98);
 }
 .phonepe-btn-pay:disabled {
     opacity: 0.65;
@@ -421,24 +645,42 @@
 </style>
 
 <script>
-var maxDueFees = {{ (float)($pendingFees ?? 0) }};
+var maxDueFees = {{ (float)($modalPendingFees) }};
 
 function openPhonePeModal(due) {
-    if (due !== undefined) {
-        maxDueFees = parseFloat(due);
+    if (due !== undefined && due !== null) {
+        maxDueFees = parseFloat(due) || 0;
     }
     var modal = document.getElementById('phonePePayModal');
     var input = document.getElementById('phonepePayAmountInput');
+    var displayDue = document.getElementById('modalDueAmountDisplay');
     var err = document.getElementById('phonepeModalError');
+
     if (err) err.style.display = 'none';
+
+    if (displayDue) {
+        displayDue.innerText = '₹ ' + maxDueFees.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     if (input) {
         input.value = Math.round(maxDueFees);
         input.max = Math.round(maxDueFees);
         onPhonePeAmountChange(input.value);
     }
+
+    // Set first chip (Full Due) active
+    var chips = document.querySelectorAll('.phonepe-chip');
+    chips.forEach(function(c, idx) {
+        if (idx === 0) c.classList.add('active');
+        else c.classList.remove('active');
+    });
+
     if (modal) {
         modal.style.display = 'flex';
+        // Request animation frame for smooth transition
+        requestAnimationFrame(function() {
+            modal.classList.add('is-open');
+        });
         document.body.style.overflow = 'hidden';
     }
 }
@@ -446,8 +688,11 @@ function openPhonePeModal(due) {
 function closePhonePeModal() {
     var modal = document.getElementById('phonePePayModal');
     if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
+        modal.classList.remove('is-open');
+        setTimeout(function() {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 220);
     }
 }
 
@@ -457,9 +702,17 @@ function onPhonePeAmountChange(val) {
     if (btnAmt) {
         btnAmt.innerText = '₹' + Math.round(amt).toLocaleString('en-IN');
     }
-    // Update chip active classes
+
+    // Highlight matching chip or unhighlight all
     var chips = document.querySelectorAll('.phonepe-chip');
-    chips.forEach(function(c) { c.classList.remove('active'); });
+    chips.forEach(function(c) {
+        var text = c.innerText.replace(/[^0-9]/g, '');
+        if (parseInt(text, 10) === Math.round(amt)) {
+            c.classList.add('active');
+        } else {
+            c.classList.remove('active');
+        }
+    });
 }
 
 function setPhonePeAmount(val, btn) {
@@ -470,7 +723,12 @@ function setPhonePeAmount(val, btn) {
     }
     var chips = document.querySelectorAll('.phonepe-chip');
     chips.forEach(function(c) { c.classList.remove('active'); });
-    if (btn) btn.classList.add('active');
+    if (btn) {
+        btn.classList.add('active');
+    } else {
+        // If "Pay Full Due" link was clicked
+        if (chips.length > 0) chips[0].classList.add('active');
+    }
 }
 
 function submitPhonePePayment() {
@@ -536,10 +794,9 @@ function showPhonePeError(msg) {
     }
 }
 
-// Close modal when clicking on overlay background
-document.addEventListener('click', function(e) {
-    var modal = document.getElementById('phonePePayModal');
-    if (e.target === modal) {
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
         closePhonePeModal();
     }
 });
