@@ -900,9 +900,6 @@
                     <i class="fa fa-calendar-alt"></i>
                     <span>Schedule Sheet</span>
                 </a>
-                <button type="button" class="dash-btn dash-btn-outline" onclick="location.reload();" title="Refresh Page">
-                    <i class="fa fa-sync-alt"></i>
-                </button>
             </div>
         </div>
 
