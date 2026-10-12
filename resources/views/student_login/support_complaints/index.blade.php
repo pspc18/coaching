@@ -219,13 +219,13 @@
     background: #0284c7;
     border: 1px solid #38bdf8;
     color: #ffffff !important;
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 3px;
+    padding: 5px 12px;
+    border-radius: 4px;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 7px;
     text-decoration: none !important;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
@@ -621,9 +621,9 @@
 }
 
 .mob-btn-action {
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 700;
-    padding: 2.5px 7px;
+    padding: 3px 8px;
     border-radius: 3px;
     border: 1px solid #cbd5e1;
     background: #ffffff;
@@ -631,7 +631,7 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 5px;
     text-decoration: none !important;
     transition: all 0.12s ease;
     line-height: 1.25;
@@ -690,6 +690,30 @@
     margin: 0 0 10px;
     line-height: 1.45;
 }
+
+.mob-btn-raise-empty {
+    background: #0284c7;
+    border: 1px solid #38bdf8;
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none !important;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+    transition: all 0.15s ease;
+}
+
+.mob-btn-raise-empty:hover {
+    background: #0369a1;
+    color: #ffffff !important;
+}
+
 
 /* ==========================================================================
    4. Fixed Bottom Pagination Bar (Directly Above Bottom Dock Footer)
@@ -980,20 +1004,21 @@ body.mob-sheet-lock {
 }
 
 .mob-sheet-btn {
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
-    height: 32px;
-    padding: 0 14px;
+    height: 34px;
+    padding: 0 16px;
     border-radius: 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 7px;
     text-decoration: none;
     border: 1px solid transparent;
     cursor: pointer;
     transition: all .15s ease;
 }
+
 
 .mob-sheet-btn.primary {
     background: #002C54;
@@ -1083,7 +1108,7 @@ body.mob-sheet-lock {
                 {{ $awaitingComplaints > 0 ? '⚠️ You have ' . $awaitingComplaints . ' ticket(s) awaiting your reply.' : 'Raise concerns & track real-time resolution from school.' }}
             </p>
             <button type="button" class="mob-btn-raise" onclick="openNewComplaintSheet()">
-                <i class="fa fa-plus-circle"></i> New Complaint
+                <i class="fa fa-plus-circle" style="margin-right: 6px;"></i> New Complaint
             </button>
         </div>
     </div>
@@ -1277,8 +1302,8 @@ body.mob-sheet-lock {
                         ? 'You do not have any registered complaints or support requests in this section.'
                         : 'No complaints match the selected filter.' }}
                 </p>
-                <button type="button" class="btn btn-sm btn-primary" onclick="openNewComplaintSheet()" style="font-size: 11px; font-weight: 700; border-radius: 4px;">
-                    <i class="fa fa-plus-circle me-1"></i> Raise a Complaint
+                <button type="button" class="mob-btn-raise-empty" onclick="openNewComplaintSheet()">
+                    <i class="fa fa-plus-circle" style="font-size: 13px; margin-right: 6px;"></i> Raise a Complaint
                 </button>
             </div>
         @endforelse
