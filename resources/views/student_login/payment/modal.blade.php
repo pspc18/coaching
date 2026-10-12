@@ -207,11 +207,11 @@
         </div>
     </div>
 
-    {{-- Safe Area Bottom Bar --}}
+    {{-- Safe Area Bottom Bar with Direct App Intent Option --}}
     <div class="phonepe-frame-safe-footer">
-        <div class="safe-footer-pill">
-            <i class="fa fa-shield" style="color: #38bdf8;"></i> Powered by PhonePe Standard Checkout
-        </div>
+        <button type="button" class="phonepe-app-switch-btn" onclick="openPhonePeAppDirect()" title="Open directly in PhonePe / UPI App">
+            <i class="fa fa-bolt" style="color: #38bdf8;"></i> Pay with PhonePe App (Tap to switch)
+        </button>
     </div>
 
 </div>
@@ -842,6 +842,28 @@ body.mob-sheet-lock {
     gap: 5px;
     letter-spacing: 0.2px;
 }
+.phonepe-app-switch-btn {
+    background: transparent;
+    border: none;
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+.phonepe-app-switch-btn:hover {
+    color: #7dd3fc;
+    background: rgba(255, 255, 255, 0.08);
+}
+.phonepe-app-switch-btn:active {
+    transform: scale(0.97);
+}
 </style>
 
 <script>
@@ -927,6 +949,20 @@ function setPhonePeAmount(val, btn) {
     }
 }
 
+function isMobileDevice() {
+    var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+    var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    var isTouchDevice = ('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
+    var isNarrow = window.innerWidth <= 768;
+    return isMobileUA || (isTouchDevice && isNarrow);
+}
+
+function openPhonePeAppDirect() {
+    if (currentPhonePeUrl) {
+        window.top.location.href = currentPhonePeUrl;
+    }
+}
+
 function submitPhonePePayment() {
     var input = document.getElementById('phonepePayAmountInput');
     var errBox = document.getElementById('phonepeModalError');
@@ -965,10 +1001,22 @@ function submitPhonePePayment() {
     })
     .then(function(response) {
         if (response.ok && response.data.status && response.data.redirect_url) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            // Open in In-App Mobile Frame (keeps PhonePe in mobile view within 480px)
-            openPhonePeMobileFrame(response.data.redirect_url);
+            var redirectUrl = response.data.redirect_url;
+            var isMobile = isMobileDevice();
+
+            if (isMobile) {
+                // Same-device mobile flow:
+                // Redirect top-level window so mobile browser can natively trigger
+                // PhonePe / GPay / Paytm App Intent (phonepe://, intent://) without iframe sandbox blocks
+                btn.innerHTML = '<i class="fa fa-bolt"></i> Opening PhonePe App...';
+                window.location.href = redirectUrl;
+            } else {
+                // Desktop / Laptop flow:
+                // Open in In-App Mobile Frame with scaled QR code so student/parent can scan from phone
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                openPhonePeMobileFrame(redirectUrl);
+            }
         } else {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
