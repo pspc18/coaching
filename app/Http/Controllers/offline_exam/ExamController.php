@@ -646,80 +646,188 @@ class ExamController extends Controller
         return view('examination.offline_exam.exam.edit',['data'=>$data]);
     } 
     
-   public function assignExam(Request $request, $id){
+    public function assignExam(Request $request, $id){
         $examId = $id;
-          $data2 = Exam::where('id',$id)->first();
-        $AssignExam = AssignExam::select('assign_exams.*','class_types.name as class_name')
-        ->leftjoin('class_types','class_types.id','assign_exams.class_type_id')->where('assign_exams.exam_id',$id)->where('assign_exams.session_id',Session::get('session_id'))->where('assign_exams.branch_id',Session::get('branch_id'))->get();
+        $data2 = Exam::where('id', $id)->first();
+
+        if (!$data2) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Exam not found.'], 404);
+            }
+            return redirect::to('view/exam')->with('error', 'Exam not found.');
+        }
+
+        $sessionId = Session::get('session_id');
+        $branchId = Session::get('branch_id');
+
+        $AssignExam = AssignExam::select('assign_exams.*', 'class_types.name as class_name')
+            ->leftJoin('class_types', 'class_types.id', 'assign_exams.class_type_id')
+            ->where('assign_exams.exam_id', $id)
+            ->where('assign_exams.session_id', $sessionId)
+            ->where('assign_exams.branch_id', $branchId)
+            ->whereNull('assign_exams.deleted_at')
+            ->orderBy('class_types.id', 'ASC')
+            ->get();
         
-        
-          if($request->isMethod('post')){
-                 if ($request->input('submit_action') === 'global') {
-                     $request->validate([
-                         'exam_date' => 'required|date',
-                     ]);
-                 } else {
-                     $request->validate([
-                         'class_type_id'  => 'required',
-                         'exam_date'  => 'required|date',
-                     ]);
-                 }
+        if ($request->isMethod('post')) {
+            if ($request->input('submit_action') === 'global') {
+                $request->validate([
+                    'exam_date' => 'required|date',
+                ]);
+            } elseif ($request->filled('assign_id')) {
+                $request->validate([
+                    'exam_date' => 'required|date',
+                ]);
+            } else {
+                $request->validate([
+                    'class_type_id' => 'required',
+                    'exam_date' => 'required|date',
+                ]);
+            }
 
-         if ($request->input('submit_action') === 'global') {
-             $updated = AssignExam::where('exam_id', $examId)
-                 ->where('session_id', Session::get('session_id'))
-                 ->where('branch_id', Session::get('branch_id'))
-                 ->whereNull('deleted_at')
-                 ->update(['exam_date' => $request->exam_date]);
+            // 1. Bulk Apply Date to All
+            if ($request->input('submit_action') === 'global') {
+                $updated = AssignExam::where('exam_id', $examId)
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->update(['exam_date' => $request->exam_date]);
 
-             return redirect::to('assign/exam/'.$examId)->with('message', $updated > 0
-                 ? 'Exam date applied to all assigned classes successfully.'
-                 : 'No assigned classes found to update.');
-         }
+                $msg = $updated > 0
+                    ? 'Exam date applied to all (' . $updated . ') assigned classes successfully.'
+                    : 'No assigned classes found to update.';
 
-         if($request->filled('assign_id')){
-             $assignment = AssignExam::where('id', $request->assign_id)
+                if ($request->ajax()) {
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => $msg,
+                        'updated_count' => $updated,
+                        'exam_date' => $request->exam_date,
+                        'formatted_date' => date('d-m-Y', strtotime($request->exam_date))
+                    ]);
+                }
+
+                return redirect::to('assign/exam/' . $examId)->with('message', $msg);
+            }
+
+            // 2. Inline update for an existing assignment
+            if ($request->filled('assign_id')) {
+                $assignment = AssignExam::where('id', $request->assign_id)
+                    ->where('exam_id', $examId)
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->first();
+
+                if (!$assignment) {
+                    if ($request->ajax()) {
+                        return response()->json(['status' => 'error', 'message' => 'Assignment not found.'], 404);
+                    }
+                    return redirect::to('assign/exam/' . $examId)->with('error', 'Assignment not found !');
+                }
+
+                $assignment->exam_date = $request->exam_date;
+                $assignment->save();
+
+                if ($request->ajax()) {
+                    $className = DB::table('class_types')->where('id', $assignment->class_type_id)->value('name') ?? 'Class';
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Exam date updated successfully for ' . $className . '.',
+                        'data' => [
+                            'id' => $assignment->id,
+                            'class_type_id' => $assignment->class_type_id,
+                            'class_name' => $className,
+                            'exam_date' => $assignment->exam_date,
+                            'formatted_date' => date('d-m-Y', strtotime($assignment->exam_date))
+                        ]
+                    ]);
+                }
+
+                return redirect::to('assign/exam/' . $examId)->with('message', 'Exam date updated successfully.');
+            }
+
+            // 3. Add or restore assignment for a class
+            $old = AssignExam::withTrashed()
+                ->where('class_type_id', $request->class_type_id)
                 ->where('exam_id', $examId)
-                ->where('session_id', Session::get('session_id'))
-                ->where('branch_id', Session::get('branch_id'))
+                ->where('session_id', $sessionId)
+                ->where('branch_id', $branchId)
                 ->first();
 
-             if(!$assignment){
-                 return redirect::to('assign/exam/'.$examId)->with('error', 'Assignment not found !');
-             }
+            $className = DB::table('class_types')->where('id', $request->class_type_id)->value('name') ?? 'Class';
 
-             $assignment->exam_date = $request->exam_date;
-             $assignment->save();
+            if (!empty($old)) {
+                if ($old->trashed()) {
+                    $old->restore();
+                }
+                $old->exam_date = $request->exam_date;
+                $old->save();
 
-             return redirect::to('assign/exam/'.$examId)->with('message', 'Exam date updated successfully.');
-         }
+                if ($request->ajax()) {
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Exam date updated successfully for ' . $className . '.',
+                        'is_new' => false,
+                        'data' => [
+                            'id' => $old->id,
+                            'class_type_id' => $old->class_type_id,
+                            'class_name' => $className,
+                            'exam_date' => $old->exam_date,
+                            'formatted_date' => date('d-m-Y', strtotime($old->exam_date))
+                        ]
+                    ]);
+                }
 
-         $old = AssignExam::where('class_type_id',$request->class_type_id)->where('exam_id',$examId)->first();
-         if(!empty($old)){
-           $old->exam_date = $request->exam_date;
-           $old->save();
-           return redirect::to('assign/exam/'.$examId)->with('message', 'Exam date updated successfully.');
-         }
-         $add = new AssignExam; //model name
-	     $add->user_id = Session::get('id');
-	     $add->session_id = Session::get('session_id');
-         $add->branch_id = Session::get('branch_id');    
-		 $add->class_type_id = $request->class_type_id;
-         $add->exam_id = $examId;
-         $add->exam_date = $request->exam_date;
-	     $add->save();
-	     
-	          
-		 return redirect::to('assign/exam/'.$examId)->with('message', 'Exam Assigned Successfully.');
+                return redirect::to('assign/exam/' . $examId)->with('message', 'Exam date updated successfully.');
+            }
+
+            $add = new AssignExam;
+            $add->user_id = Session::get('id');
+            $add->session_id = $sessionId;
+            $add->branch_id = $branchId;
+            $add->class_type_id = $request->class_type_id;
+            $add->exam_id = $examId;
+            $add->exam_date = $request->exam_date;
+            $add->save();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Class ' . $className . ' assigned to exam successfully.',
+                    'is_new' => true,
+                    'data' => [
+                        'id' => $add->id,
+                        'class_type_id' => $add->class_type_id,
+                        'class_name' => $className,
+                        'exam_date' => $add->exam_date,
+                        'formatted_date' => date('d-m-Y', strtotime($add->exam_date))
+                    ]
+                ]);
+            }
+
+            return redirect::to('assign/exam/' . $examId)->with('message', 'Exam Assigned Successfully.');
         }
-        return view('examination.offline_exam.exam.assign',['AssignExam'=>$AssignExam,'data'=>$data2]);
-    } 
-    
 
-    
-     public function deleteAssignExam(Request $request){
-        $question = AssignExam::find($request->assign_id)->delete();
-        return redirect::to('assign/exam/'.$request->exam_id)->with('message', 'Class Unassigned Successfully.');
+        return view('examination.offline_exam.exam.assign', ['AssignExam' => $AssignExam, 'data' => $data2]);
+    }
+
+    public function deleteAssignExam(Request $request){
+        $assignId = $request->input('assign_id');
+        $examId = $request->input('exam_id');
+
+        $assignment = AssignExam::where('id', $assignId)->first();
+        if ($assignment) {
+            $assignment->delete();
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Class unassigned successfully.'
+            ]);
+        }
+
+        return redirect::to('assign/exam/' . $examId)->with('message', 'Class Unassigned Successfully.');
     }
 
     public function deleteExam(Request $request)

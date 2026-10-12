@@ -1,201 +1,1443 @@
-@php
-  $classType = Helper::ClassType();
-  $getsubject = Helper::getSubject();
-@endphp
 @extends('layout.app')
+
+@php
+    $classType = Helper::classType();
+    $examDateDefault = !empty($data->exam_date) ? \Carbon\Carbon::parse($data->exam_date)->format('Y-m-d') : date('Y-m-d');
+    
+    $totalAssigned = count($AssignExam ?? []);
+    $datedCount = 0;
+    if (!empty($AssignExam)) {
+        foreach ($AssignExam as $item) {
+            if (!empty($item->exam_date)) {
+                $datedCount++;
+            }
+        }
+    }
+    $pendingCount = max(0, $totalAssigned - $datedCount);
+    $assignedClassIds = !empty($AssignExam) ? $AssignExam->pluck('class_type_id')->filter()->toArray() : [];
+@endphp
+
+@section('title', 'Assign Exam Classes - Arise ERP')
+
+@section('styles')
+<style>
+/* ==========================================================================
+   ARISE ERP - ASSIGN EXAM TO CLASSES (ADMIN SIGNATURE THEME)
+   - Palette: Arise Dark Navy (#002C54 to #0f3460), Sky Blue (#0284c7)
+   - Layout: Sharp 2px-3px border-radius, compact responsive viewport
+   - Dual View: Modern interactive table for desktop, executive card stack for mobile
+   - Real-time updates: AJAX Assign, Inline Date Update, Bulk Apply, Unassign
+   ========================================================================== */
+
+.assign-page {
+    background: #eef2f6;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    padding: 8px 12px 28px;
+    min-height: calc(100vh - var(--header-height, 56px) - 16px);
+}
+.assign-page * {
+    box-sizing: border-box;
+}
+
+/* 1. Hero Banner */
+.assign-hero {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+    color: #ffffff;
+    border-radius: 3px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 1px 3px rgba(0,44,84,.14);
+    margin-bottom: 10px;
+}
+.assign-hero-kicker {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: block;
+    margin-bottom: 2px;
+    color: #93c5fd;
+    font-weight: 700;
+}
+.assign-hero-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.25;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.assign-hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,.14);
+    color: #e0f2fe;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,.2);
+}
+.assign-hero-sub {
+    font-size: 11px;
+    margin: 3px 0 0;
+    color: #cbd5e1;
+}
+.assign-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Button Utilities */
+.dash-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s ease-in-out;
+    text-decoration: none !important;
+    white-space: nowrap;
+    line-height: 1.3;
+}
+.dash-btn-sm {
+    height: 26px;
+    padding: 0 9px;
+    font-size: 11px;
+}
+.dash-btn-light {
+    background: #ffffff;
+    color: #002C54 !important;
+    border-color: #ffffff;
+    font-weight: 700;
+}
+.dash-btn-light:hover {
+    background: #f1f5f9;
+    color: #001f3d !important;
+}
+.dash-btn-outline {
+    background: rgba(255,255,255,.08);
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,.3);
+}
+.dash-btn-outline:hover {
+    background: rgba(255,255,255,.18);
+    border-color: #ffffff;
+}
+.dash-btn-primary {
+    background: #002C54;
+    color: #ffffff !important;
+    border-color: #002C54;
+}
+.dash-btn-primary:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    box-shadow: 0 2px 4px rgba(2,132,199,.25);
+}
+.dash-btn-amber {
+    background: #d97706;
+    color: #ffffff !important;
+    border-color: #d97706;
+}
+.dash-btn-amber:hover {
+    background: #b45309;
+    border-color: #b45309;
+}
+.dash-btn-danger {
+    background: #fee2e2;
+    color: #dc2626 !important;
+    border-color: #fecaca;
+}
+.dash-btn-danger:hover {
+    background: #dc2626;
+    color: #ffffff !important;
+    border-color: #dc2626;
+}
+.dash-btn-success {
+    background: #10b981;
+    color: #ffffff !important;
+    border-color: #10b981;
+}
+.dash-btn-success:hover {
+    background: #059669;
+    border-color: #059669;
+}
+
+/* 2. KPI Metrics Strip */
+.kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+@media (max-width: 640px) {
+    .kpi-strip {
+        grid-template-columns: 1fr;
+    }
+}
+.kpi-card {
+    background: #ffffff;
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.kpi-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.kpi-icon-blue   { background: #e0f2fe; color: #0284c7; }
+.kpi-icon-green  { background: #dcfce7; color: #16a34a; }
+.kpi-icon-amber  { background: #fef3c7; color: #d97706; }
+.kpi-meta {
+    line-height: 1.15;
+    flex-grow: 1;
+}
+.kpi-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    display: block;
+}
+.kpi-lbl {
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* 3. Operational Section: Assign + Bulk Sync */
+.ops-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+@media (max-width: 900px) {
+    .ops-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.dash-card {
+    background: #ffffff;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    overflow: hidden;
+}
+.dash-card-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.dash-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #002C54;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.dash-card-body {
+    padding: 10px 12px;
+}
+
+/* Inputs & Form Groups */
+.form-group-compact {
+    margin-bottom: 0;
+}
+.form-label-compact {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 3px;
+    display: block;
+}
+.form-label-compact .req {
+    color: #dc2626;
+    margin-left: 2px;
+}
+.dash-input, .dash-select {
+    width: 100%;
+    height: 30px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #ffffff;
+    color: #0f172a;
+    transition: all .15s ease;
+}
+.dash-input:focus, .dash-select:focus {
+    border-color: #0284c7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(2,132,199,.15);
+}
+.input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: flex-end;
+}
+@media (max-width: 600px) {
+    .input-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sync-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: flex-end;
+}
+@media (max-width: 600px) {
+    .sync-row {
+        grid-template-columns: 1fr;
+    }
+}
+.hint-text {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 5px;
+    display: block;
+    line-height: 1.3;
+}
+
+/* 4. Assigned Classes Roster Card */
+.roster-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.roster-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #002C54;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.roster-badge {
+    background: #002C54;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+.roster-search {
+    position: relative;
+    width: 220px;
+    max-width: 100%;
+}
+.roster-search input {
+    height: 28px;
+    padding-left: 26px;
+    padding-right: 8px;
+    font-size: 11px;
+}
+.roster-search i {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 10.5px;
+}
+
+/* 5. Desktop Table View */
+.desktop-table-view {
+    display: block;
+    overflow-x: auto;
+}
+.table-dash {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+}
+.table-dash th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    padding: 8px 10px;
+    border-bottom: 1px solid #cbd5e1;
+    border-top: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.table-dash td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #1e293b;
+}
+.table-dash tr:hover td {
+    background: #f8fafc;
+}
+.class-tag {
+    font-weight: 700;
+    color: #002C54;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.class-tag i {
+    color: #0284c7;
+    font-size: 11px;
+}
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 2px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.status-pill-ok {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.status-pill-pending {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.table-date-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 250px;
+}
+.table-date-form .dash-input {
+    height: 27px;
+    font-size: 11px;
+}
+
+/* 6. Mobile Cards View */
+.mobile-cards-view {
+    display: none;
+    padding: 8px;
+    background: #f8fafc;
+}
+@media (max-width: 768px) {
+    .desktop-table-view {
+        display: none !important;
+    }
+    .mobile-cards-view {
+        display: block !important;
+    }
+}
+.mobile-card-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    transition: transform .12s ease;
+}
+.mobile-card-item:last-child {
+    margin-bottom: 0;
+}
+.mc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+.mc-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #002C54;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mc-body {
+    margin-bottom: 8px;
+}
+.mc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Empty State */
+.empty-roster {
+    text-align: center;
+    padding: 35px 15px;
+    color: #64748b;
+}
+.empty-roster i {
+    font-size: 32px;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    display: block;
+}
+.empty-roster-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 3px;
+}
+.empty-roster-desc {
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* 7. Toast Notifications */
+.dash-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    min-width: 270px;
+    max-width: 380px;
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+    display: none;
+    align-items: center;
+    gap: 9px;
+    animation: toastSlide .25s ease;
+}
+@keyframes toastSlide {
+    from { transform: translateX(50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.dash-toast-success {
+    background: #064e3b;
+    color: #ecfdf5;
+    border-left: 4px solid #10b981;
+}
+.dash-toast-error {
+    background: #7f1d1d;
+    color: #fef2f2;
+    border-left: 4px solid #ef4444;
+}
+.dash-toast-info {
+    background: #002C54;
+    color: #f0f9ff;
+    border-left: 4px solid #0284c7;
+}
+
+/* Modals */
+.modal-content-dash {
+    border-radius: 3px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,.2);
+    overflow: hidden;
+}
+.modal-header-dash {
+    background: #002C54;
+    color: #ffffff;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.modal-title-dash {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+}
+.modal-body-dash {
+    padding: 14px;
+    font-size: 12px;
+    color: #334155;
+    line-height: 1.4;
+}
+.modal-footer-dash {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* Row Flash Highlight */
+.row-highlight {
+    animation: flashBg 1.5s ease;
+}
+@keyframes flashBg {
+    0% { background-color: #fef08a; }
+    100% { background-color: transparent; }
+}
+</style>
+@endsection
+
 @section('content')
-
 <div class="content-wrapper">
+    <div class="assign-page">
 
-   <section class="content pt-3">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <div class="card card-outline card-orange">
-                     <div class="card-header bg-primary flex_items_toggel">
-                    <h3 class="card-title"><i class="nav-icon fas fa fa-tag"></i> &nbsp;Edit :: {{$data->name ?? ''}} </h3>
-                    <div class="card-tools">
-                    <a href="{{url('view/exam')}}" class="btn btn-primary  btn-sm"><i class="fa fa-arrow-left"></i> <span class="Display_none_mobile">{{ __('messages.Back') }}</span>  </a>
-                    </div>
-                    
-                    </div>        
-                    <form id="quickForm" action="{{ url('assign/exam') }}/{{$data->id ?? ''}}" method="post" enctype="multipart/form-data">
+        {{-- Toast Notification container --}}
+        <div id="dashToast" class="dash-toast">
+            <i id="dashToastIcon" class="fa fa-check-circle"></i>
+            <span id="dashToastMsg">Action completed successfully.</span>
+        </div>
+
+        {{-- Top Hero Banner --}}
+        <div class="assign-hero">
+            <div>
+                <span class="assign-hero-kicker">Examination Panel &bull; Class Assignment</span>
+                <h1 class="assign-hero-title">
+                    <i class="fa fa-tag"></i>
+                    <span>{{ $data->name ?? 'Exam' }}</span>
+                    <span class="assign-hero-pill">
+                        <i class="fa fa-fingerprint"></i> ID #{{ $data->id ?? '' }}
+                    </span>
+                    @if(!empty($data->exam_code))
+                        <span class="assign-hero-pill">
+                            <i class="fa fa-barcode"></i> {{ $data->exam_code }}
+                        </span>
+                    @endif
+                </h1>
+                <p class="assign-hero-sub">
+                    Manage class assignments, customize exam dates per class, or bulk-sync scheduled dates in real time.
+                </p>
+            </div>
+            <div class="assign-hero-actions">
+                <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-light">
+                    <i class="fa fa-arrow-left"></i>
+                    <span>Exams List</span>
+                </a>
+                <a href="{{ url('add/examination_schedule') }}?exam_id={{ $data->id ?? '' }}" class="dash-btn dash-btn-outline">
+                    <i class="fa fa-calendar-alt"></i>
+                    <span>Schedule Sheet</span>
+                </a>
+                <button type="button" class="dash-btn dash-btn-outline" onclick="location.reload();" title="Refresh Page">
+                    <i class="fa fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        {{-- Session Flash Alert (for standard non-AJAX submissions fallback) --}}
+        @if(session('message'))
+            <div class="alert alert-success alert-dismissible fade show p-2 mb-2" style="font-size:12px; border-radius:3px;" role="alert">
+                <i class="fa fa-check-circle mr-1"></i> {{ session('message') }}
+                <button type="button" class="close p-2" data-dismiss="alert">&times;</button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show p-2 mb-2" style="font-size:12px; border-radius:3px;" role="alert">
+                <i class="fa fa-exclamation-triangle mr-1"></i> {{ session('error') }}
+                <button type="button" class="close p-2" data-dismiss="alert">&times;</button>
+            </div>
+        @endif
+
+        {{-- KPI Metrics Strip --}}
+        <div class="kpi-strip">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-blue">
+                    <i class="fa fa-layer-group"></i>
+                </div>
+                <div class="kpi-meta">
+                    <span class="kpi-val" id="kpiTotalAssigned">{{ $totalAssigned }}</span>
+                    <span class="kpi-lbl">Total Assigned Classes</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-green">
+                    <i class="fa fa-calendar-check"></i>
+                </div>
+                <div class="kpi-meta">
+                    <span class="kpi-val" id="kpiDatedCount">{{ $datedCount }}</span>
+                    <span class="kpi-lbl">Dates Scheduled</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-amber">
+                    <i class="fa fa-clock"></i>
+                </div>
+                <div class="kpi-meta">
+                    <span class="kpi-val" id="kpiPendingCount">{{ $pendingCount }}</span>
+                    <span class="kpi-lbl">Pending Date Setup</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Operations Grid: Assign New Class + Bulk Apply Date --}}
+        <div class="ops-grid">
+            {{-- Card 1: Assign Class Form --}}
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-plus-circle text-primary"></i>
+                        <span>Assign Class to Exam</span>
+                    </h3>
+                    <span class="text-muted" style="font-size:10.5px;">Real-time AJAX Save</span>
+                </div>
+                <div class="dash-card-body">
+                    <form id="assignSingleForm" action="{{ url('assign/exam/'.$data->id) }}" method="post">
                         @csrf
-                        <div class="row m-2">
-
-                           <div class="col-md-3 col-6">
-                			<div class="form-group">
-                				<label style="color:red;">{{ __('messages.Class') }}*</label>
-                				<select class="form-control @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" value="{{old('class_type_id')}}">
-                                <option value="" >{{ __('messages.Select') }}</option>
-                                 @if(!empty($classType)) 
-                                      @foreach($classType as $type)
-                                         <option value="{{ $type->id ?? ''  }}" {{ ($type->id == old('class_type_id')) ? 'selected' : '' }}>{{ $type->name ?? ''  }}</option>
-                                      @endforeach
-                                  @endif
+                        <input type="hidden" name="submit_action" value="single">
+                        <input type="hidden" name="id" value="{{ $data->id ?? '' }}">
+                        <div class="input-row">
+                            <div class="form-group-compact">
+                                <label class="form-label-compact">Select Class <span class="req">*</span></label>
+                                <select class="dash-select" id="new_class_type_id" name="class_type_id" required>
+                                    <option value="">-- Choose Class --</option>
+                                    @if(!empty($classType))
+                                        @foreach($classType as $type)
+                                            @php
+                                                $isAssigned = in_array($type->id, $assignedClassIds);
+                                            @endphp
+                                            <option value="{{ $type->id }}" data-name="{{ $type->name ?? '' }}">
+                                                {{ $type->name ?? '' }} {{ $isAssigned ? '(Assigned)' : '' }}
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
-                                 @error('class_type_id')
-                					<span class="invalid-feedback" role="alert">
-                						<strong>{{ $message }}</strong>
-                					</span>
-                				@enderror
-                		    </div>
-                		    
-                		</div>
-                           <div class="col-md-3 col-6">
-        		                <div class="form-group">
-        		                    <label style="color:red;">Exam Date*</label>
-                                    <input type="date" class="form-control @error('exam_date') is-invalid @enderror" name="exam_date" value="{{ old('exam_date') }}">
-                                    @error('exam_date')
-                					<span class="invalid-feedback" role="alert">
-                						<strong>{{ $message }}</strong>
-                					</span>
-                				@enderror
-                                </div>
-                           </div>
-                           <div class="col-md-6 col-12">
-                                <label class="Display_none_mobile">&nbsp;</label>
-                                <div class="d-flex flex-wrap" style="gap:10px; margin-top: 5px;">
-                                    <button type="submit" name="submit_action" value="single" class="btn btn-primary">
-                                        {{ __('examination.Assign') }}
-                                    </button>
-                                </div>
-        		                <input type="hidden" name="id" value="{{$data->id ?? ''}}" />
-                           </div>
-    		            </div>
-                    </form>
-
-                    <div class="row m-2 mt-0">
-                        <div class="col-12 col-lg-6">
-                            <div class="border rounded p-3 bg-light">
-                                <form id="applyDateAllForm" action="{{ url('assign/exam') }}/{{$data->id ?? ''}}" method="post">
-                                    @csrf
-                                    <input type="hidden" name="submit_action" value="global">
-                                    <input type="hidden" name="id" value="{{$data->id ?? ''}}" />
-                                    <div class="row">
-                                        <div class="col-md-8 col-12">
-                                            <div class="form-group mb-2">
-                                                <label style="color:red;">Apply Date To All*</label>
-                                                <input type="date" class="form-control @error('exam_date') is-invalid @enderror" name="exam_date" value="{{ old('exam_date') }}">
-                                                @error('exam_date')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 col-12 d-flex align-items-end">
-                                            <button type="button" class="btn btn-warning btn-block mb-2" data-toggle="modal" data-target="#applyAllConfirmModal">
-                                                Apply Date To All
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                                <small class="text-muted d-block">
-                                    Fill the date once, then apply it to all assigned classes for this exam.
-                                </small>
+                            </div>
+                            <div class="form-group-compact">
+                                <label class="form-label-compact">Exam Date <span class="req">*</span></label>
+                                <input type="date" class="dash-input" id="new_exam_date" name="exam_date" value="{{ $examDateDefault }}" required>
+                            </div>
+                            <div class="form-group-compact">
+                                <button type="submit" id="btnAssignSingle" class="dash-btn dash-btn-primary" style="height:30px;">
+                                    <i class="fa fa-check"></i>
+                                    <span>Assign Class</span>
+                                </button>
                             </div>
                         </div>
-                    </div>
+                    </form>
+                    <span class="hint-text">
+                        Assign an individual class to this exam. You can customize dates per class or bulk apply below.
+                    </span>
+                </div>
+            </div>
 
-                <div class="row m-3 pb-2">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <td>Sr No.</td>
-                                <td>Class</td>
-                                <td>Exam Date</td>
-                                <td>Action</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if(!empty($AssignExam))
-                            @php
-                            $i = 1;
-                            @endphp
+            {{-- Card 2: Bulk Synchronizer --}}
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-calendar-check text-warning"></i>
+                        <span>Apply Date to All Classes</span>
+                    </h3>
+                    <span class="text-muted" style="font-size:10.5px;">Bulk Tool</span>
+                </div>
+                <div class="dash-card-body">
+                    <form id="applyDateAllForm" action="{{ url('assign/exam/'.$data->id) }}" method="post">
+                        @csrf
+                        <input type="hidden" name="submit_action" value="global">
+                        <input type="hidden" name="id" value="{{ $data->id ?? '' }}">
+                        <div class="sync-row">
+                            <div class="form-group-compact">
+                                <label class="form-label-compact">Uniform Exam Date <span class="req">*</span></label>
+                                <input type="date" class="dash-input" id="bulk_exam_date" name="exam_date" value="{{ $examDateDefault }}" required>
+                            </div>
+                            <div class="form-group-compact">
+                                <button type="button" id="btnOpenBulkModal" class="dash-btn dash-btn-amber" style="height:30px;" data-toggle="modal" data-target="#applyAllConfirmModal">
+                                    <i class="fa fa-bolt"></i>
+                                    <span>Apply to All</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <span class="hint-text">
+                        Overwrites the exam date for all currently assigned classes with a single click.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Roster: Assigned Classes Table & Mobile Stack --}}
+        <div class="dash-card">
+            <div class="roster-header">
+                <h2 class="roster-title">
+                    <i class="fa fa-list text-primary"></i>
+                    <span>Assigned Classes</span>
+                    <span class="roster-badge" id="rosterBadge">{{ $totalAssigned }}</span>
+                </h2>
+                <div class="roster-search">
+                    <i class="fa fa-search"></i>
+                    <input type="text" id="rosterSearchInput" class="dash-input" placeholder="Search class name or date...">
+                </div>
+            </div>
+
+            {{-- Empty State (Hidden when items exist) --}}
+            <div id="rosterEmptyState" class="empty-roster" style="{{ $totalAssigned > 0 ? 'display:none;' : '' }}">
+                <i class="fa fa-folder-open"></i>
+                <div class="empty-roster-title">No Classes Assigned Yet</div>
+                <div class="empty-roster-desc">Select a class from the form above and click "Assign Class" to get started.</div>
+            </div>
+
+            {{-- 1. Desktop Table View --}}
+            <div class="desktop-table-view" id="desktopTableContainer" style="{{ $totalAssigned == 0 ? 'display:none;' : '' }}">
+                <table class="table-dash">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px; text-align: center;">#</th>
+                            <th>Class Name</th>
+                            <th style="width: 280px;">Scheduled Exam Date</th>
+                            <th style="width: 130px; text-align: center;">Status</th>
+                            <th style="width: 90px; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desktopTableBody">
+                        @if(!empty($AssignExam))
+                            @php $i = 1; @endphp
                             @foreach($AssignExam as $item)
-                            <tr>
-                                <td>{{$i++}}</td>
-                                <td>{{ $item->class_name}}</td>
-                                <td>
-                                    <form action="{{ url('assign/exam/'.$data->id) }}" method="post" class="d-flex align-items-center gap-2">
+                                @php
+                                    $hasDate = !empty($item->exam_date);
+                                    $formattedDate = $hasDate ? \Carbon\Carbon::parse($item->exam_date)->format('Y-m-d') : '';
+                                @endphp
+                                <tr id="row-{{ $item->id }}" data-id="{{ $item->id }}" data-class="{{ strtolower($item->class_name ?? '') }}" data-date="{{ $formattedDate }}">
+                                    <td style="text-align: center; font-weight: 700; color:#64748b;" class="sr-cell">{{ $i++ }}</td>
+                                    <td>
+                                        <div class="class-tag">
+                                            <i class="fa fa-graduation-cap"></i>
+                                            <span class="class-title-text">{{ $item->class_name ?? 'N/A' }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <form class="table-date-form inline-date-form" data-id="{{ $item->id }}">
+                                            @csrf
+                                            <input type="hidden" name="submit_action" value="single">
+                                            <input type="hidden" name="assign_id" value="{{ $item->id }}">
+                                            <input type="hidden" name="class_type_id" value="{{ $item->class_type_id }}">
+                                            <input type="date" name="exam_date" class="dash-input inline-date-input" value="{{ $formattedDate }}" required>
+                                            <button type="submit" class="dash-btn dash-btn-sm dash-btn-primary btn-save-inline" title="Save Date">
+                                                <i class="fa fa-save"></i>
+                                                <span>Save</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        @if($hasDate)
+                                            <span class="status-pill status-pill-ok status-indicator">
+                                                <i class="fa fa-check-circle"></i> Scheduled
+                                            </span>
+                                        @else
+                                            <span class="status-pill status-pill-pending status-indicator">
+                                                <i class="fa fa-clock"></i> Pending Date
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="{{ $item->id }}" data-name="{{ $item->class_name ?? 'Class' }}" title="Unassign Class">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- 2. Mobile Cards View --}}
+            <div class="mobile-cards-view" id="mobileCardsContainer" style="{{ $totalAssigned == 0 ? 'display:none;' : '' }}">
+                <div id="mobileCardsBody">
+                    @if(!empty($AssignExam))
+                        @foreach($AssignExam as $item)
+                            @php
+                                $hasDate = !empty($item->exam_date);
+                                $formattedDate = $hasDate ? \Carbon\Carbon::parse($item->exam_date)->format('Y-m-d') : '';
+                            @endphp
+                            <div class="mobile-card-item" id="mcard-{{ $item->id }}" data-id="{{ $item->id }}" data-class="{{ strtolower($item->class_name ?? '') }}" data-date="{{ $formattedDate }}">
+                                <div class="mc-header">
+                                    <div class="mc-title">
+                                        <i class="fa fa-graduation-cap text-primary"></i>
+                                        <span class="class-title-text">{{ $item->class_name ?? 'N/A' }}</span>
+                                    </div>
+                                    <div class="mc-status">
+                                        @if($hasDate)
+                                            <span class="status-pill status-pill-ok status-indicator">
+                                                <i class="fa fa-check-circle"></i> Scheduled
+                                            </span>
+                                        @else
+                                            <span class="status-pill status-pill-pending status-indicator">
+                                                <i class="fa fa-clock"></i> Pending
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="mc-body">
+                                    <form class="inline-date-form" data-id="{{ $item->id }}">
                                         @csrf
                                         <input type="hidden" name="submit_action" value="single">
-                                        <input type="hidden" name="assign_id" value="{{ $item->id ?? '' }}">
-                                        <input type="hidden" name="class_type_id" value="{{ $item->class_type_id ?? '' }}">
-                                        <input type="date" name="exam_date" class="form-control form-control-sm" value="{{ old('exam_date', !empty($item->exam_date) ? \Carbon\Carbon::parse($item->exam_date)->format('Y-m-d') : '') }}">
-                                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                        <input type="hidden" name="assign_id" value="{{ $item->id }}">
+                                        <input type="hidden" name="class_type_id" value="{{ $item->class_type_id }}">
+                                        <div class="d-flex align-items-center" style="gap:6px;">
+                                            <input type="date" name="exam_date" class="dash-input inline-date-input" value="{{ $formattedDate }}" style="height:30px;" required>
+                                            <button type="submit" class="dash-btn dash-btn-primary btn-save-inline" style="height:30px;">
+                                                <i class="fa fa-save"></i>
+                                                <span>Save</span>
+                                            </button>
+                                        </div>
                                     </form>
+                                </div>
+                                <div class="mc-footer">
+                                    <small class="text-muted" style="font-size:10px;">
+                                        ID #{{ $item->id }}
+                                    </small>
+                                    <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="{{ $item->id }}" data-name="{{ $item->class_name ?? 'Class' }}">
+                                        <i class="fa fa-trash"></i>
+                                        <span>Unassign</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{-- Modal 1: Unassign Confirmation --}}
+<div class="modal fade" id="unassignModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content modal-content-dash">
+            <div class="modal-header-dash" style="background:#dc2626;">
+                <h5 class="modal-title-dash"><i class="fa fa-exclamation-triangle"></i> Confirm Unassign</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <form id="unassignForm" action="{{ url('assign/delete/exam') }}" method="post">
+                @csrf
+                <input type="hidden" id="delete_exam_id" name="exam_id" value="{{ $data->id ?? '' }}">
+                <input type="hidden" id="delete_assign_id" name="assign_id" value="">
+                <div class="modal-body-dash">
+                    <p class="mb-1" style="font-size:13px; font-weight:600; color:#0f172a;">
+                        Are you sure you want to unassign this class?
+                    </p>
+                    <p class="text-muted mb-0" id="unassignClassNameText" style="font-size:11.5px;">
+                        Class: <strong>--</strong>
+                    </p>
+                    <small class="text-danger d-block mt-2">
+                        This class will be removed from this examination.
+                    </small>
+                </div>
+                <div class="modal-footer-dash">
+                    <button type="button" class="dash-btn dash-btn-outline" style="color:#475569 !important; border-color:#cbd5e1;" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnConfirmUnassign" class="dash-btn dash-btn-danger">
+                        <i class="fa fa-trash"></i>
+                        <span>Yes, Unassign</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal 2: Bulk Apply Date Confirmation --}}
+<div class="modal fade" id="applyAllConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content modal-content-dash">
+            <div class="modal-header-dash" style="background:#002C54;">
+                <h5 class="modal-title-dash"><i class="fa fa-calendar-check"></i> Bulk Date Confirmation</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body-dash">
+                <p class="mb-1" style="font-size:13px; font-weight:600; color:#0f172a;">
+                    Apply Scheduled Date to All Classes?
+                </p>
+                <p class="text-muted mb-1" style="font-size:11.5px;">
+                    Target Date: <strong id="bulkModalDatePreview" class="text-primary">--</strong>
+                </p>
+                <small class="text-muted d-block">
+                    This will synchronize and overwrite the exam date across all <strong id="bulkModalCountPreview">{{ $totalAssigned }}</strong> currently assigned classes.
+                </small>
+            </div>
+            <div class="modal-footer-dash">
+                <button type="button" class="dash-btn dash-btn-outline" style="color:#475569 !important; border-color:#cbd5e1;" data-dismiss="modal">Cancel</button>
+                <button type="button" id="btnConfirmBulkApply" class="dash-btn dash-btn-amber">
+                    <i class="fa fa-bolt"></i>
+                    <span>Yes, Apply to All</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@section('scripts')
+<script>
+$(document).ready(function() {
+    var examId = "{{ $data->id ?? '' }}";
+    var assignBaseUrl = "{{ url('assign/exam') }}/" + examId;
+    var deleteUrl = "{{ url('assign/delete/exam') }}";
+
+    // Toast helper
+    function showToast(message, type) {
+        var $toast = $('#dashToast');
+        var $msg = $('#dashToastMsg');
+        var $icon = $('#dashToastIcon');
+
+        $toast.removeClass('dash-toast-success dash-toast-error dash-toast-info');
+        if (type === 'error') {
+            $toast.addClass('dash-toast-error');
+            $icon.attr('class', 'fa fa-exclamation-triangle');
+        } else if (type === 'info') {
+            $toast.addClass('dash-toast-info');
+            $icon.attr('class', 'fa fa-info-circle');
+        } else {
+            $toast.addClass('dash-toast-success');
+            $icon.attr('class', 'fa fa-check-circle');
+        }
+
+        $msg.text(message);
+        $toast.stop(true, true).fadeIn(200);
+
+        setTimeout(function() {
+            $toast.fadeOut(300);
+        }, 3200);
+    }
+
+    // Recalculate KPIs and update badges
+    function recalculateKPIs() {
+        var total = $('#desktopTableBody tr').length;
+        var dated = 0;
+
+        $('#desktopTableBody tr').each(function() {
+            var val = $(this).find('input[name="exam_date"]').val();
+            if (val && val.trim() !== '') {
+                dated++;
+            }
+        });
+
+        var pending = Math.max(0, total - dated);
+
+        $('#kpiTotalAssigned').text(total);
+        $('#kpiDatedCount').text(dated);
+        $('#kpiPendingCount').text(pending);
+        $('#rosterBadge').text(total);
+        $('#bulkModalCountPreview').text(total);
+
+        // Toggle empty state
+        if (total === 0) {
+            $('#rosterEmptyState').show();
+            $('#desktopTableContainer').hide();
+            $('#mobileCardsContainer').hide();
+        } else {
+            $('#rosterEmptyState').hide();
+            if (window.innerWidth > 768) {
+                $('#desktopTableContainer').show();
+            } else {
+                $('#mobileCardsContainer').show();
+            }
+        }
+
+        // Re-index desktop table sr numbers
+        $('#desktopTableBody tr').each(function(index) {
+            $(this).find('.sr-cell').text(index + 1);
+        });
+    }
+
+    // 1. Assign Single Class (AJAX)
+    $('#assignSingleForm').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $('#btnAssignSingle');
+        var classId = $('#new_class_type_id').val();
+        var examDate = $('#new_exam_date').val();
+
+        if (!classId) {
+            showToast('Please select a class to assign.', 'error');
+            return;
+        }
+        if (!examDate) {
+            showToast('Please choose an exam date.', 'error');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Assigning...');
+
+        $.ajax({
+            url: assignBaseUrl,
+            type: 'POST',
+            data: $form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(res) {
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Class');
+                if (res.status === 'success') {
+                    showToast(res.message, 'success');
+
+                    var item = res.data;
+                    var existingRow = $('#row-' + item.id);
+
+                    if (existingRow.length > 0) {
+                        // Update existing row
+                        existingRow.find('input[name="exam_date"]').val(item.exam_date);
+                        existingRow.attr('data-date', item.exam_date);
+                        existingRow.find('.status-indicator').replaceWith(
+                            '<span class="status-pill status-pill-ok status-indicator"><i class="fa fa-check-circle"></i> Scheduled</span>'
+                        );
+                        existingRow.addClass('row-highlight');
+                        setTimeout(function(){ existingRow.removeClass('row-highlight'); }, 1500);
+
+                        // Mobile card
+                        var mCard = $('#mcard-' + item.id);
+                        if (mCard.length > 0) {
+                            mCard.find('input[name="exam_date"]').val(item.exam_date);
+                            mCard.attr('data-date', item.exam_date);
+                            mCard.find('.status-indicator').replaceWith(
+                                '<span class="status-pill status-pill-ok status-indicator"><i class="fa fa-check-circle"></i> Scheduled</span>'
+                            );
+                        }
+                    } else {
+                        // Append newly assigned row
+                        var newDesktopRow = `
+                            <tr id="row-${item.id}" data-id="${item.id}" data-class="${(item.class_name || '').toLowerCase()}" data-date="${item.exam_date}" class="row-highlight">
+                                <td style="text-align: center; font-weight: 700; color:#64748b;" class="sr-cell">1</td>
+                                <td>
+                                    <div class="class-tag">
+                                        <i class="fa fa-graduation-cap"></i>
+                                        <span class="class-title-text">${item.class_name}</span>
+                                    </div>
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-danger deleteAssign" data-assign_id="{{$item->id ?? ''}}" data-toggle="modal" data-target="#deleteModal">
+                                    <form class="table-date-form inline-date-form" data-id="${item.id}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="submit_action" value="single">
+                                        <input type="hidden" name="assign_id" value="${item.id}">
+                                        <input type="hidden" name="class_type_id" value="${item.class_type_id}">
+                                        <input type="date" name="exam_date" class="dash-input inline-date-input" value="${item.exam_date}" required>
+                                        <button type="submit" class="dash-btn dash-btn-sm dash-btn-primary btn-save-inline" title="Save Date">
+                                            <i class="fa fa-save"></i>
+                                            <span>Save</span>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="status-pill status-pill-ok status-indicator">
+                                        <i class="fa fa-check-circle"></i> Scheduled
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="${item.id}" data-name="${item.class_name}">
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
-                            @endforeach
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="modal fade" id="deleteModal">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                              <h4 class="modal-title">Delete Conformation</h4>
-                              <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            </div>
-                            <form action="{{ url('assign/delete/exam') }}" method="post">
-                                @csrf
-                            <div class="modal-body">
-                            <input type="hidden" id="exam_id" name="exam_id" value="{{$data->id ?? ''}}">
-                            <input type="hidden" id="assign_id" name="assign_id">
-                             Are You Sure ?
-                            </div>
-                            
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                              <button type="submit" class="btn btn-primary">Sumbit</button>
-                            </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                        `;
+                        $('#desktopTableBody').append(newDesktopRow);
 
-                <div class="modal fade" id="applyAllConfirmModal">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-warning">
-                              <h4 class="modal-title">Confirm Apply To All</h4>
-                              <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        // Mobile card
+                        var newMobileCard = `
+                            <div class="mobile-card-item row-highlight" id="mcard-${item.id}" data-id="${item.id}" data-class="${(item.class_name || '').toLowerCase()}" data-date="${item.exam_date}">
+                                <div class="mc-header">
+                                    <div class="mc-title">
+                                        <i class="fa fa-graduation-cap text-primary"></i>
+                                        <span class="class-title-text">${item.class_name}</span>
+                                    </div>
+                                    <div class="mc-status">
+                                        <span class="status-pill status-pill-ok status-indicator">
+                                            <i class="fa fa-check-circle"></i> Scheduled
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mc-body">
+                                    <form class="inline-date-form" data-id="${item.id}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="submit_action" value="single">
+                                        <input type="hidden" name="assign_id" value="${item.id}">
+                                        <input type="hidden" name="class_type_id" value="${item.class_type_id}">
+                                        <div class="d-flex align-items-center" style="gap:6px;">
+                                            <input type="date" name="exam_date" class="dash-input inline-date-input" value="${item.exam_date}" style="height:30px;" required>
+                                            <button type="submit" class="dash-btn dash-btn-primary btn-save-inline" style="height:30px;">
+                                                <i class="fa fa-save"></i>
+                                                <span>Save</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="mc-footer">
+                                    <small class="text-muted" style="font-size:10px;">ID #${item.id}</small>
+                                    <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="${item.id}" data-name="${item.class_name}">
+                                        <i class="fa fa-trash"></i>
+                                        <span>Unassign</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="modal-body">
-                                This will overwrite the exam date for all assigned classes. Do you want to continue?
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                              <button type="submit" form="applyDateAllForm" class="btn btn-primary">Yes, Apply</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-          </div>
-        </div>
-</section>
-</div>
+                        `;
+                        $('#mobileCardsBody').append(newMobileCard);
 
+                        setTimeout(function() {
+                            $('.row-highlight').removeClass('row-highlight');
+                        }, 1500);
+                    }
 
-<script>
-    $(document).ready(function(){
-        $('.deleteAssign').click(function(){
-           var assign_id = $(this).data('assign_id');
-           $('#assign_id').val(assign_id);
+                    // Reset dropdown
+                    $('#new_class_type_id').val('');
+                    recalculateKPIs();
+                } else {
+                    showToast(res.message || 'Error assigning class.', 'error');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Class');
+                var err = xhr.responseJSON ? xhr.responseJSON.message : 'Server error occurred.';
+                showToast(err, 'error');
+            }
         });
-    })
+    });
+
+    // 2. Inline Date Save (both desktop and mobile)
+    $(document).on('submit', '.inline-date-form', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var assignId = $form.data('id');
+        var $btn = $form.find('.btn-save-inline');
+        var originalBtnHtml = $btn.html();
+        var newDate = $form.find('input[name="exam_date"]').val();
+
+        if (!newDate) {
+            showToast('Please specify a valid date.', 'error');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: assignBaseUrl,
+            type: 'POST',
+            data: $form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(res) {
+                $btn.prop('disabled', false).html(originalBtnHtml);
+                if (res.status === 'success') {
+                    showToast(res.message, 'success');
+
+                    // Synchronize both desktop row and mobile card
+                    var row = $('#row-' + assignId);
+                    var card = $('#mcard-' + assignId);
+
+                    if (row.length > 0) {
+                        row.find('input[name="exam_date"]').val(newDate);
+                        row.attr('data-date', newDate);
+                        row.find('.status-indicator').replaceWith(
+                            '<span class="status-pill status-pill-ok status-indicator"><i class="fa fa-check-circle"></i> Scheduled</span>'
+                        );
+                        row.addClass('row-highlight');
+                        setTimeout(function(){ row.removeClass('row-highlight'); }, 1200);
+                    }
+
+                    if (card.length > 0) {
+                        card.find('input[name="exam_date"]').val(newDate);
+                        card.attr('data-date', newDate);
+                        card.find('.status-indicator').replaceWith(
+                            '<span class="status-pill status-pill-ok status-indicator"><i class="fa fa-check-circle"></i> Scheduled</span>'
+                        );
+                    }
+
+                    recalculateKPIs();
+                } else {
+                    showToast(res.message || 'Failed to update date.', 'error');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(originalBtnHtml);
+                var err = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update date.';
+                showToast(err, 'error');
+            }
+        });
+    });
+
+    // 3. Open Bulk Modal
+    $('#btnOpenBulkModal').on('click', function() {
+        var chosenDate = $('#bulk_exam_date').val();
+        $('#bulkModalDatePreview').text(chosenDate || 'Not selected');
+    });
+
+    // Bulk Apply To All Confirmation Action (AJAX)
+    $('#btnConfirmBulkApply').on('click', function() {
+        var $btn = $(this);
+        var bulkDate = $('#bulk_exam_date').val();
+
+        if (!bulkDate) {
+            showToast('Please select a date first.', 'error');
+            $('#applyAllConfirmModal').modal('hide');
+            return;
+        }
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Applying...');
+
+        $.ajax({
+            url: assignBaseUrl,
+            type: 'POST',
+            data: $('#applyDateAllForm').serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(res) {
+                $btn.prop('disabled', false).html('<i class="fa fa-bolt"></i> Yes, Apply to All');
+                $('#applyAllConfirmModal').modal('hide');
+
+                if (res.status === 'success') {
+                    showToast(res.message, 'success');
+
+                    // Update all date inputs in table and mobile cards
+                    $('.inline-date-input').val(bulkDate);
+                    $('.status-indicator').replaceWith(
+                        '<span class="status-pill status-pill-ok status-indicator"><i class="fa fa-check-circle"></i> Scheduled</span>'
+                    );
+
+                    $('#desktopTableBody tr').attr('data-date', bulkDate);
+                    $('#mobileCardsBody .mobile-card-item').attr('data-date', bulkDate);
+
+                    recalculateKPIs();
+                } else {
+                    showToast(res.message || 'Bulk update failed.', 'error');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="fa fa-bolt"></i> Yes, Apply to All');
+                $('#applyAllConfirmModal').modal('hide');
+                var err = xhr.responseJSON ? xhr.responseJSON.message : 'Server error occurred.';
+                showToast(err, 'error');
+            }
+        });
+    });
+
+    // 4. Trigger Unassign Modal
+    $(document).on('click', '.btn-unassign-trigger', function() {
+        var assignId = $(this).data('id');
+        var className = $(this).data('name') || 'Class';
+
+        $('#delete_assign_id').val(assignId);
+        $('#unassignClassNameText').html('Class: <strong>' + className + '</strong>');
+        $('#unassignModal').modal('show');
+    });
+
+    // Confirm Unassign Action (AJAX)
+    $('#unassignForm').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $('#btnConfirmUnassign');
+        var assignId = $('#delete_assign_id').val();
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Unassigning...');
+
+        $.ajax({
+            url: deleteUrl,
+            type: 'POST',
+            data: $form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(res) {
+                $btn.prop('disabled', false).html('<i class="fa fa-trash"></i> Yes, Unassign');
+                $('#unassignModal').modal('hide');
+
+                if (res.status === 'success') {
+                    showToast(res.message, 'success');
+
+                    // Fade out & remove rows
+                    $('#row-' + assignId).fadeOut(250, function() {
+                        $(this).remove();
+                        recalculateKPIs();
+                    });
+                    $('#mcard-' + assignId).fadeOut(250, function() {
+                        $(this).remove();
+                    });
+                } else {
+                    showToast(res.message || 'Unassign failed.', 'error');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="fa fa-trash"></i> Yes, Unassign');
+                $('#unassignModal').modal('hide');
+                var err = xhr.responseJSON ? xhr.responseJSON.message : 'Server error occurred.';
+                showToast(err, 'error');
+            }
+        });
+    });
+
+    // 5. Instant Search Filter (Desktop table + Mobile cards)
+    $('#rosterSearchInput').on('input', function() {
+        var query = $(this).val().toLowerCase().trim();
+
+        $('#desktopTableBody tr').each(function() {
+            var cName = $(this).data('class') || '';
+            var cDate = $(this).data('date') || '';
+            if (cName.indexOf(query) !== -1 || cDate.indexOf(query) !== -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        $('#mobileCardsBody .mobile-card-item').each(function() {
+            var cName = $(this).data('class') || '';
+            var cDate = $(this).data('date') || '';
+            if (cName.indexOf(query) !== -1 || cDate.indexOf(query) !== -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // Handle responsive container toggling on window resize
+    $(window).on('resize', function() {
+        if ($('#desktopTableBody tr').length > 0) {
+            if (window.innerWidth <= 768) {
+                $('#desktopTableContainer').hide();
+                $('#mobileCardsContainer').show();
+            } else {
+                $('#desktopTableContainer').show();
+                $('#mobileCardsContainer').hide();
+            }
+        }
+    });
+});
 </script>
-
-
 @endsection
