@@ -1,18 +1,18 @@
 <?php
 
-namespace app\Http\Controllers\student_login;
+namespace App\Http\Controllers\student_login;
 
-use app\Http\Controllers\Controller;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use app\Models\Admission;
-use app\Models\OnlinePayment;
-use app\Models\FeesCollect;
-use app\Models\FeesDetail;
-use app\Models\fees\FeesDetailsInvoices;
-use app\Models\FeesSetting;
-use app\Models\Sessions;
-use app\Models\fees\FeesAssignDetail;
-use app\Services\PhonePeService;
+use App\Models\Admission;
+use App\Models\OnlinePayment;
+use App\Models\FeesCollect;
+use App\Models\FeesDetail;
+use App\Models\fees\FeesDetailsInvoices;
+use App\Models\FeesSetting;
+use App\Models\Sessions;
+use App\Models\fees\FeesAssignDetail;
+use App\Services\PhonePeService;
 use Session;
 use DB;
 use Log;
@@ -412,9 +412,9 @@ class PaymentController extends Controller
 }
 
 // Bi-directional class aliases for full case-insensitivity on all environments (Linux/Windows)
-if (!class_exists('App\Http\Controllers\student_login\PaymentController', false)) {
-    class_alias('app\Http\Controllers\student_login\PaymentController', 'App\Http\Controllers\student_login\PaymentController');
-}
 if (!class_exists('app\Http\Controllers\student_login\PaymentController', false)) {
     class_alias('App\Http\Controllers\student_login\PaymentController', 'app\Http\Controllers\student_login\PaymentController');
+}
+if (!class_exists('App\Http\Controllers\student_login\PaymentController', false)) {
+    class_alias('app\Http\Controllers\student_login\PaymentController', 'App\Http\Controllers\student_login\PaymentController');
 }

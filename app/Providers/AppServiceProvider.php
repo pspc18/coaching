@@ -17,6 +17,48 @@ class AppServiceProvider extends ServiceProvider
             class_alias(\App\Helpers\Helper::class, 'App\Helpers\helper');
         }
 
+        // Proactively require PaymentController, PhonePeService and OnlinePayment to guarantee loading on Linux servers
+        $paymentController = app_path('Http/Controllers/student_login/PaymentController.php');
+        if (file_exists($paymentController)) {
+            require_once $paymentController;
+        }
+        $phonePeService = app_path('Services/PhonePeService.php');
+        if (file_exists($phonePeService)) {
+            require_once $phonePeService;
+        }
+        $onlinePayment = app_path('Models/OnlinePayment.php');
+        if (file_exists($onlinePayment)) {
+            require_once $onlinePayment;
+        }
+
+        // Bi-directional class aliases and container bindings for App vs app casing
+        if (class_exists(\App\Http\Controllers\student_login\PaymentController::class, false)) {
+            if (!class_exists('app\Http\Controllers\student_login\PaymentController', false)) {
+                class_alias(\App\Http\Controllers\student_login\PaymentController::class, 'app\Http\Controllers\student_login\PaymentController');
+            }
+            $this->app->bind('app\Http\Controllers\student_login\PaymentController', function ($app) {
+                return $app->make(\App\Http\Controllers\student_login\PaymentController::class);
+            });
+        }
+
+        if (class_exists(\App\Services\PhonePeService::class, false)) {
+            if (!class_exists('app\Services\PhonePeService', false)) {
+                class_alias(\App\Services\PhonePeService::class, 'app\Services\PhonePeService');
+            }
+            $this->app->bind('app\Services\PhonePeService', function ($app) {
+                return $app->make(\App\Services\PhonePeService::class);
+            });
+        }
+
+        if (class_exists(\App\Models\OnlinePayment::class, false)) {
+            if (!class_exists('app\Models\OnlinePayment', false)) {
+                class_alias(\App\Models\OnlinePayment::class, 'app\Models\OnlinePayment');
+            }
+            $this->app->bind('app\Models\OnlinePayment', function ($app) {
+                return $app->make(\App\Models\OnlinePayment::class);
+            });
+        }
+
         // Defensive polyfill for mb_strimwidth if mbstring extension is absent or incomplete
         if (!function_exists('mb_strimwidth')) {
             function mb_strimwidth($string, $start, $width, $trimmarker = '', $encoding = null) {

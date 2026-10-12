@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Services;
+namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -236,9 +236,9 @@ class PhonePeService
 }
 
 // Bi-directional class aliases for full case-insensitivity on all environments (Linux/Windows)
-if (!class_exists('App\Services\PhonePeService', false)) {
-    class_alias('app\Services\PhonePeService', 'App\Services\PhonePeService');
-}
 if (!class_exists('app\Services\PhonePeService', false)) {
     class_alias('App\Services\PhonePeService', 'app\Services\PhonePeService');
+}
+if (!class_exists('App\Services\PhonePeService', false)) {
+    class_alias('app\Services\PhonePeService', 'App\Services\PhonePeService');
 }

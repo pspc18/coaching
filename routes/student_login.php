@@ -1,6 +1,36 @@
 <?php
 use Illuminate\Support\Facades\Route;
 
+// Proactively load PaymentController, PhonePeService, and OnlinePayment for guaranteed cross-platform resolution
+if (!class_exists(\App\Http\Controllers\student_login\PaymentController::class, false)) {
+    $payCtrlFile = app_path('Http/Controllers/student_login/PaymentController.php');
+    if (file_exists($payCtrlFile)) {
+        require_once $payCtrlFile;
+    }
+}
+if (!class_exists(\App\Services\PhonePeService::class, false)) {
+    $serviceFile = app_path('Services/PhonePeService.php');
+    if (file_exists($serviceFile)) {
+        require_once $serviceFile;
+    }
+}
+if (!class_exists(\App\Models\OnlinePayment::class, false)) {
+    $modelFile = app_path('Models/OnlinePayment.php');
+    if (file_exists($modelFile)) {
+        require_once $modelFile;
+    }
+}
+
+// Container aliases for both casing conventions
+if (class_exists(\App\Http\Controllers\student_login\PaymentController::class, false)) {
+    if (!class_exists('app\Http\Controllers\student_login\PaymentController', false)) {
+        class_alias(\App\Http\Controllers\student_login\PaymentController::class, 'app\Http\Controllers\student_login\PaymentController');
+    }
+    app()->bind('app\Http\Controllers\student_login\PaymentController', function ($app) {
+        return $app->make(\App\Http\Controllers\student_login\PaymentController::class);
+    });
+}
+
 Route::group(['middleware' => 'islogin'], function () {
 
     Route::match(['get', 'post'], 'AttendanceView_student', 'student_login\AttendanceController@view');
@@ -61,11 +91,11 @@ Route::group(['middleware' => 'islogin'], function () {
     });
 
     // PhonePe Payment Gateway Routes (Initiate & Simulator inside student auth)
-    Route::post('student/payment/initiate', '\app\Http\Controllers\student_login\PaymentController@initiate')->name('student.payment.initiate');
-    Route::get('student/payment/phonepe-simulator', '\app\Http\Controllers\student_login\PaymentController@simulator')->name('student.payment.phonepe.simulator');
+    Route::post('student/payment/initiate', 'student_login\PaymentController@initiate')->name('student.payment.initiate');
+    Route::get('student/payment/phonepe-simulator', 'student_login\PaymentController@simulator')->name('student.payment.phonepe.simulator');
 
 }); 
 
 // PhonePe Callback & Webhook (Publicly accessible by PhonePe redirect / server webhook, validated via Order ID & PhonePe verification API)
-Route::match(['get', 'post'], 'student/payment/phonepe-callback', '\app\Http\Controllers\student_login\PaymentController@callback')->name('student.payment.phonepe.callback');
-Route::post('student/payment/phonepe-webhook', '\app\Http\Controllers\student_login\PaymentController@webhook')->name('student.payment.phonepe.webhook'); 
+Route::match(['get', 'post'], 'student/payment/phonepe-callback', 'student_login\PaymentController@callback')->name('student.payment.phonepe.callback');
+Route::post('student/payment/phonepe-webhook', 'student_login\PaymentController@webhook')->name('student.payment.phonepe.webhook'); 
