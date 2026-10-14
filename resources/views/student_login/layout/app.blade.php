@@ -74,7 +74,7 @@
         --app-border: #cbd5e1;
         --app-text: #0f172a;
         --app-text-muted: #64748b;
-        --header-height: 48px;
+        --header-height: 98px; /* 48px base content height + 50px top padding */
         --bottom-nav-height: 52px;
         --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -110,7 +110,7 @@
         max-width: 480px;
         margin: 0 auto;
         position: relative;
-        background: linear-gradient(180deg, #001f3f 0%, #002C54 100px, #f8fafc 200px, #f8fafc 100%);
+        background: linear-gradient(180deg, #001f3f 0%, #002C54 150px, #f8fafc 250px, #f8fafc 100%);
         box-shadow: 0 0 50px rgba(0, 15, 30, 0.45);
         padding-top: var(--header-height);
         padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 12px);

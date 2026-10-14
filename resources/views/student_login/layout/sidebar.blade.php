@@ -133,7 +133,8 @@
 .drawer-header {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
-    padding: 12px 10px;
+    padding: 50px 10px 12px 10px;
+    padding-top: 50px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -180,7 +181,7 @@
 }
 .drawer-close-btn {
     position: absolute;
-    top: 10px;
+    top: 50px;
     right: 10px;
     width: 26px;
     height: 26px;
