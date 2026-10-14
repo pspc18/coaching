@@ -2039,6 +2039,198 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
         $path = self::studentImagePath($type) . basename($fileName);
         return File::exists($path) ? File::delete($path) : false;
     }
+
+    /**
+     * Unified Student Fee Summary & Ledger
+     * Synchronizes fee calculation across Dashboard, Fees History, and Payment Gateway.
+     *
+     * @param int|null $studentId
+     * @param int|null $sessionId
+     * @param int|null $branchId
+     * @return array
+     */
+    public static function getStudentFeeSummary($studentId = null, $sessionId = null, $branchId = null)
+    {
+        $studentId = (int) ($studentId ?: Session::get('id'));
+        $currentAdmission = $studentId ? \App\Models\Admission::find($studentId) : null;
+
+        $defaultSummary = [
+            'totalFees' => 0.0,
+            'paidFees' => 0.0,
+            'discount' => 0.0,
+            'netPayable' => 0.0,
+            'currentSessionDue' => 0.0,
+            'dueAmount' => 0.0,
+            'pendingFees' => 0.0,
+            'finePaid' => 0.0,
+            'paymentProgress' => 100,
+            'getFees' => collect(),
+            'feeHeadLedger' => collect(),
+            'feeReceipts' => collect(),
+            'filteredAdmission' => null,
+            'student' => $currentAdmission,
+        ];
+
+        if (!$currentAdmission) {
+            return $defaultSummary;
+        }
+
+        $activeSessionId = (int) ($sessionId ?: (Session::get('session_id') ?: $currentAdmission->session_id));
+        $activeBranchId = (int) ($branchId ?: (Session::get('branch_id') ?: $currentAdmission->branch_id));
+
+        $filteredAdmission = null;
+        if (!empty($currentAdmission->unique_system_id)) {
+            $filteredAdmission = \App\Models\Admission::where('unique_system_id', $currentAdmission->unique_system_id)
+                ->where('session_id', $activeSessionId)
+                ->where('branch_id', $activeBranchId)
+                ->first(['id', 'session_id', 'branch_id']);
+        } elseif ((int) $currentAdmission->session_id === $activeSessionId) {
+            $filteredAdmission = $currentAdmission;
+        }
+
+        $getFees = collect();
+        $feeHeadLedger = collect();
+        $feeReceipts = collect();
+
+        if ($filteredAdmission) {
+            $getFees = \App\Models\fees\FeesAssignDetail::select(
+                    'fees_assign_details.*',
+                    'fees_group.name as group_name'
+                )
+                ->leftJoin('fees_group', 'fees_group.id', '=', 'fees_assign_details.fees_group_id')
+                ->where('fees_assign_details.admission_id', $filteredAdmission->id)
+                ->where('fees_assign_details.session_id', $activeSessionId)
+                ->where('fees_assign_details.branch_id', $activeBranchId)
+                ->get();
+
+            $feePaymentDetails = \App\Models\FeesDetail::select(
+                    'fees_detail.*',
+                    'payment_modes.name as payment_mode',
+                    'fees_group.name as fee_head_name'
+                )
+                ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_detail.payment_mode_id')
+                ->leftJoin('fees_group', 'fees_group.id', '=', 'fees_detail.fees_group_id')
+                ->where('fees_detail.admission_id', $filteredAdmission->id)
+                ->where('fees_detail.session_id', $activeSessionId)
+                ->where('fees_detail.branch_id', $activeBranchId)
+                ->where(function ($query) {
+                    $query->where('fees_detail.fees_type', 0)
+                        ->orWhereNull('fees_detail.fees_type');
+                })
+                ->whereIn('fees_detail.status', [0, 1])
+                ->orderByDesc('fees_detail.date')
+                ->orderByDesc('fees_detail.id')
+                ->get();
+
+            $paymentsByHead = $feePaymentDetails->groupBy('fees_group_id');
+
+            $feeHeadLedger = $getFees
+                ->groupBy('fees_group_id')
+                ->map(function ($assignments, $feeGroupId) use ($paymentsByHead) {
+                    $payments = $paymentsByHead->get($feeGroupId, collect())->values();
+                    $validPayments = $payments->whereIn('status', [0, 1]);
+                    $assignedAmount = round((float) $assignments->sum('fees_group_amount'), 2);
+                    $assignmentDiscount = round((float) $assignments->sum('discount'), 2);
+                    $paidAmount = round((float) $validPayments->sum('paid_amount'), 2);
+                    $paymentDiscount = round((float) $validPayments->sum('discount'), 2);
+                    $fineAmount = round((float) $validPayments->sum('installment_fine'), 2);
+                    $dueAmount = round(max(
+                        0,
+                        $assignedAmount - $assignmentDiscount - $paidAmount - $paymentDiscount
+                    ), 2);
+
+                    return (object) [
+                        'fees_group_id' => $feeGroupId,
+                        'name' => optional($assignments->first())->group_name ?: 'Fee Installment',
+                        'due_date' => optional($assignments->first())->installment_due_date,
+                        'assigned_amount' => $assignedAmount,
+                        'discount' => $assignmentDiscount + $paymentDiscount,
+                        'paid_amount' => $paidAmount,
+                        'fine_amount' => $fineAmount,
+                        'due_amount' => $dueAmount,
+                        'payments' => $payments,
+                    ];
+                })
+                ->values();
+
+            // Include any unassigned fee payments
+            $unassignedGroupIds = $paymentsByHead->keys()->diff($getFees->pluck('fees_group_id'));
+            foreach ($unassignedGroupIds as $uGroupId) {
+                $uPayments = $paymentsByHead->get($uGroupId, collect())->values();
+                $uValid = $uPayments->whereIn('status', [0, 1]);
+                $uPaid = round((float) $uValid->sum('paid_amount'), 2);
+                $uDisc = round((float) $uValid->sum('discount'), 2);
+                $uFine = round((float) $uValid->sum('installment_fine'), 2);
+                if ($uPaid > 0 || $uDisc > 0 || $uFine > 0) {
+                    $feeHeadLedger->push((object) [
+                        'fees_group_id' => $uGroupId,
+                        'name' => optional($uPayments->first())->fee_head_name ?: 'Other Payment',
+                        'due_date' => null,
+                        'assigned_amount' => 0.0,
+                        'discount' => $uDisc,
+                        'paid_amount' => $uPaid,
+                        'fine_amount' => $uFine,
+                        'due_amount' => 0.0,
+                        'payments' => $uPayments,
+                    ]);
+                }
+            }
+
+            $paymentDetailsById = $feePaymentDetails->keyBy('id');
+            $feeReceipts = \App\Models\fees\FeesDetailsInvoices::select(
+                    'fees_details_invoices.*',
+                    'payment_modes.name as payment_mode'
+                )
+                ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_details_invoices.payment_mode')
+                ->where('fees_details_invoices.admission_id', $filteredAdmission->id)
+                ->where('fees_details_invoices.session_id', $activeSessionId)
+                ->where('fees_details_invoices.branch_id', $activeBranchId)
+                ->whereIn('fees_details_invoices.status', [0, 1])
+                ->orderByDesc('fees_details_invoices.payment_date')
+                ->orderByDesc('fees_details_invoices.id')
+                ->get()
+                ->map(function ($receipt) use ($paymentDetailsById) {
+                    $detailIds = collect(explode(',', (string) $receipt->fees_details_id))
+                        ->filter()
+                        ->map(function ($id) {
+                            return (int) $id;
+                        });
+                    $receipt->fee_head_names = $detailIds
+                        ->map(function ($id) use ($paymentDetailsById) {
+                            return optional($paymentDetailsById->get($id))->fee_head_name;
+                        })
+                        ->filter()
+                        ->unique()
+                        ->implode(', ');
+                    return $receipt;
+                });
+        }
+
+        $totalFees = round((float) $feeHeadLedger->sum('assigned_amount'), 2);
+        $totalDiscount = round((float) $feeHeadLedger->sum('discount'), 2);
+        $netPayable = max(0, round($totalFees - $totalDiscount, 2));
+        $paidFees = round((float) $feeHeadLedger->sum('paid_amount'), 2);
+        $dueAmount = round((float) $feeHeadLedger->sum('due_amount'), 2);
+        $finePaid = round((float) $feeHeadLedger->sum('fine_amount'), 2);
+        $paymentProgress = $netPayable > 0 ? min(100, (int) round(($paidFees / $netPayable) * 100)) : 100;
+
+        return [
+            'totalFees' => $totalFees,
+            'paidFees' => $paidFees,
+            'discount' => $totalDiscount,
+            'netPayable' => $netPayable,
+            'currentSessionDue' => $dueAmount,
+            'dueAmount' => $dueAmount,
+            'pendingFees' => $dueAmount,
+            'finePaid' => $finePaid,
+            'paymentProgress' => $paymentProgress,
+            'getFees' => $getFees,
+            'feeHeadLedger' => $feeHeadLedger,
+            'feeReceipts' => $feeReceipts,
+            'filteredAdmission' => $filteredAdmission,
+            'student' => $currentAdmission,
+        ];
+    }
 }
 
 

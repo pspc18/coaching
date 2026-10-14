@@ -558,7 +558,50 @@
 
     {{-- Symmetrical Metrics Grid matching .mob-dual-grid --}}
     <div class="mob-dual-grid">
-        {{-- Radar 1: Outstanding Due --}}
+        {{-- Radar 1: Total Course Fee --}}
+        <div class="mob-radar-col">
+            <span class="mob-radar-tag">
+                <i class="fa fa-calculator text-primary"></i> Assigned Fee
+            </span>
+            <div class="mob-radar-val">
+                ₹{{ number_format($totalFees, 2) }}
+            </div>
+            <span class="mob-radar-meta">
+                Net: ₹{{ number_format($netPayable, 2) }}
+            </span>
+        </div>
+
+        {{-- Radar 2: Scholarship / Concession --}}
+        <div class="mob-radar-col">
+            <span class="mob-radar-tag">
+                <i class="fa fa-tag text-warning"></i> Scholarship/Disc.
+            </span>
+            <div class="mob-radar-val" style="color: #fbbf24;">
+                ₹{{ number_format($discount, 2) }}
+            </div>
+            <span class="mob-radar-meta">
+                @if($finePaid > 0)
+                    +₹{{ number_format($finePaid, 2) }} Late Fine
+                @else
+                    No fine added
+                @endif
+            </span>
+        </div>
+
+        {{-- Radar 3: Total Received --}}
+        <div class="mob-radar-col">
+            <span class="mob-radar-tag">
+                <i class="fa fa-check-circle text-success"></i> Received Fees
+            </span>
+            <div class="mob-radar-val" style="color: #34d399;">
+                ₹{{ number_format($paidFees, 2) }}
+            </div>
+            <span class="mob-radar-meta">
+                {{ $paymentProgress }}% of net course fee
+            </span>
+        </div>
+
+        {{-- Radar 4: Outstanding Due --}}
         <div class="mob-radar-col">
             <span class="mob-radar-tag">
                 <i class="fa fa-clock-o {{ $currentDue > 0 ? 'text-danger' : 'text-success' }}"></i> Outstanding Due
@@ -575,49 +618,6 @@
             </div>
             <span class="mob-radar-meta">
                 {{ $currentDue <= 0 ? 'All dues cleared ✓' : 'Payment pending' }}
-            </span>
-        </div>
-
-        {{-- Radar 2: Total Received --}}
-        <div class="mob-radar-col">
-            <span class="mob-radar-tag">
-                <i class="fa fa-check-circle text-success"></i> Received Fees
-            </span>
-            <div class="mob-radar-val" style="color: #34d399;">
-                ₹{{ number_format($paidFees, 2) }}
-            </div>
-            <span class="mob-radar-meta">
-                {{ $paymentProgress }}% of net course fee
-            </span>
-        </div>
-
-        {{-- Radar 3: Total Course Fee --}}
-        <div class="mob-radar-col">
-            <span class="mob-radar-tag">
-                <i class="fa fa-calculator text-primary"></i> Assigned Fee
-            </span>
-            <div class="mob-radar-val">
-                ₹{{ number_format($totalFees, 2) }}
-            </div>
-            <span class="mob-radar-meta">
-                Net: ₹{{ number_format($netPayable, 2) }}
-            </span>
-        </div>
-
-        {{-- Radar 4: Scholarship / Concession --}}
-        <div class="mob-radar-col">
-            <span class="mob-radar-tag">
-                <i class="fa fa-tag text-warning"></i> Scholarship/Disc.
-            </span>
-            <div class="mob-radar-val" style="color: #fbbf24;">
-                ₹{{ number_format($discount, 2) }}
-            </div>
-            <span class="mob-radar-meta">
-                @if($finePaid > 0)
-                    +₹{{ number_format($finePaid, 2) }} Late Fine
-                @else
-                    No fine added
-                @endif
             </span>
         </div>
     </div>
@@ -707,16 +707,16 @@
                         <span>Assigned: <b>₹{{ number_format($head->assigned_amount, 2) }}</b></span>
                     </div>
                     <div class="student-meta-item">
+                        <i class="fa fa-tag text-warning"></i>
+                        <span>Disc: <b>₹{{ number_format($head->discount, 2) }}</b></span>
+                    </div>
+                    <div class="student-meta-item">
                         <i class="fa fa-check text-success"></i>
                         <span>Received: <b class="text-success">₹{{ number_format($head->paid_amount, 2) }}</b></span>
                     </div>
                     <div class="student-meta-item">
                         <i class="fa fa-clock-o {{ $head->due_amount > 0 ? 'text-danger' : '' }}"></i>
                         <span>Due: <b class="{{ $head->due_amount > 0 ? 'text-danger' : 'text-muted' }}">₹{{ number_format($head->due_amount, 2) }}</b></span>
-                    </div>
-                    <div class="student-meta-item">
-                        <i class="fa fa-tag text-warning"></i>
-                        <span>Disc: <b>₹{{ number_format($head->discount, 2) }}</b></span>
                     </div>
                 </div>
 

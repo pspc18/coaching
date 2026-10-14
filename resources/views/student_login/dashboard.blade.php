@@ -82,16 +82,14 @@
     $monthTotalDays = $monthMarksCollection->count();
     $monthAttendancePercent = $monthTotalDays > 0 ? round(($monthPresentCount / $monthTotalDays) * 100) : 100;
 
-    // 2. Fees Data
-    $assignedFees = (float) \App\Models\fees\FeesAssignDetail::where('admission_id', $studentId)
-        ->where('session_id', $sessionId)
-        ->sum('fees_group_amount');
-    $collectedFees = (float) \App\Models\FeesDetail::where('admission_id', $studentId)
-        ->where('session_id', $sessionId)
-        ->where('status', '!=', '2')
-        ->sum('total_amount');
-    $pendingFees = max(0, $assignedFees - $collectedFees);
-    $feePercent = $assignedFees > 0 ? round(($collectedFees / $assignedFees) * 100) : 0;
+    // 2. Fees Data (Synced with Fees History via unified Helper)
+    $feeSummary = Helper::getStudentFeeSummary($studentId, $sessionId, $branchId);
+    $assignedFees = (float) $feeSummary['totalFees'];
+    $collectedFees = (float) $feeSummary['paidFees'];
+    $pendingFees = (float) $feeSummary['currentSessionDue'];
+    $totalDiscount = (float) $feeSummary['discount'];
+    $netPayable = (float) $feeSummary['netPayable'];
+    $feePercent = (int) $feeSummary['paymentProgress'];
 
     // 3. Notices & Circulars (Cached from Helper)
     $notices = collect(Helper::noticeBoard() ?? [])->take(4);
@@ -980,6 +978,9 @@
         </div>
         <div class="fin-summary-strip">
             <span>Total Assigned: <strong>₹ {{ number_format($assignedFees, 0) }}</strong></span>
+            @if($totalDiscount > 0)
+                <span class="text-muted">&bull; Disc: <strong>₹ {{ number_format($totalDiscount, 0) }}</strong></span>
+            @endif
             <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:3px 6px;">{{ $feePercent }}% Paid</span>
         </div>
     </div>

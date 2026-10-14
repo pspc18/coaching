@@ -50,17 +50,9 @@ class PaymentController extends Controller
         $sessionId = Session::get('session_id') ?? $student->session_id;
         $branchId = Session::get('branch_id') ?? $student->branch_id ?? 1;
 
-        // Calculate pending fees
-        $assignedFees = (float) FeesAssignDetail::where('admission_id', $studentId)
-            ->where('session_id', $sessionId)
-            ->sum('fees_group_amount');
-
-        $collectedFees = (float) FeesDetail::where('admission_id', $studentId)
-            ->where('session_id', $sessionId)
-            ->where('status', '!=', '2')
-            ->sum('total_amount');
-
-        $pendingFees = max(0, $assignedFees - $collectedFees);
+        // Calculate pending fees using unified Helper
+        $feeSummary = Helper::getStudentFeeSummary($studentId, $sessionId, $branchId);
+        $pendingFees = (float) $feeSummary['currentSessionDue'];
 
         if ($pendingFees <= 0) {
             return response()->json([
@@ -333,14 +325,20 @@ class PaymentController extends Controller
                     break;
                 }
 
-                // Check how much is already paid for this specific group
+                // Check how much is already paid and discounted for this specific group
                 $alreadyPaidForGroup = (float) FeesDetail::where('admission_id', $studentId)
                     ->where('session_id', $sessionId)
                     ->where('fees_group_id', $group->fees_group_id)
-                    ->where('status', '!=', '2')
-                    ->sum('total_amount');
+                    ->whereIn('status', [0, 1])
+                    ->sum('paid_amount');
 
-                $groupDue = max(0, ((float) $group->fees_group_amount) - $alreadyPaidForGroup);
+                $groupDiscount = ((float) FeesDetail::where('admission_id', $studentId)
+                    ->where('session_id', $sessionId)
+                    ->where('fees_group_id', $group->fees_group_id)
+                    ->whereIn('status', [0, 1])
+                    ->sum('discount')) + ((float) ($group->discount ?? 0));
+
+                $groupDue = max(0, ((float) $group->fees_group_amount) - $groupDiscount - $alreadyPaidForGroup);
 
                 if ($groupDue > 0) {
                     $allocateForThisGroup = min($remainingAmountToAllocate, $groupDue);
@@ -359,7 +357,7 @@ class PaymentController extends Controller
                     $feeDetail->discount = 0;
                     $feeDetail->total_amount = $allocateForThisGroup;
                     $feeDetail->payment_mode_id = 6; // UPI / PhonePe
-                    $feeDetail->status = 1;
+                    $feeDetail->status = 0; // Payment Received / Settled
                     $feeDetail->date = date('Y-m-d');
                     $feeDetail->save();
 
@@ -385,7 +383,7 @@ class PaymentController extends Controller
                 $feeDetail->discount = 0;
                 $feeDetail->total_amount = $remainingAmountToAllocate;
                 $feeDetail->payment_mode_id = 6;
-                $feeDetail->status = 1;
+                $feeDetail->status = 0; // Payment Received / Settled
                 $feeDetail->date = date('Y-m-d');
                 $feeDetail->save();
 
@@ -404,7 +402,7 @@ class PaymentController extends Controller
             $invoice->payment_date = date('Y-m-d');
             $invoice->payment_mode = 6; // PhonePe UPI
             $invoice->transaction_id = $transactionId ?? $order->merchant_order_id;
-            $invoice->status = 1;
+            $invoice->status = 0; // Payment Received / Settled
             $invoice->remark = 'Paid via PhonePe Payment Gateway';
             $invoice->save();
 
