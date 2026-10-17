@@ -82,7 +82,7 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
-    height: var(--header-height, 98px);
+    height: var(--header-height);
     background: rgba(0, 20, 40, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -90,8 +90,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px 10px 0 10px;
-    padding-top: 50px;
+    padding: 0 10px;
     box-sizing: border-box;
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
