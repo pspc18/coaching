@@ -401,39 +401,7 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
           {{-- <span class="float-right text-muted text-sm">3 mins</span> --}}
         </a>
         
-        <div class=" border-bottom d-flex align-items-center p-2 pl-3 ">
-         <i class="fa fa-language" aria-hidden="true"></i>
-            <form action="{{ url('changeLang') }}" method="POST" class="mb-0">
-                @csrf
-                <select class="selectDesign ml-2" id="lang" name="lang" onchange="this.form.submit()">
-                    @php
-                        $languages = DB::table('languages')->whereNull('deleted_at')->get();
-                    @endphp
-                    @foreach($languages as $type)
-                        <option value="{{ $type->value ?? '' }}" {{ session()->get('locale') == $type->value ? 'selected' : '' }}>
-                            {{ $type->name ?? '' }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
-        </div>
-        
-        <div class="dropdown-item d-flex align-items-center border-bottom Display_none_PC">
-         <i class="fa fa-language" aria-hidden="true"></i>
-              <form action="{{url('changeBranch')}}" method="POST">
-             @csrf
-              <select class="selectDesign ml-2" id="branch_id" name="branch_id" onchange="this.form.submit()">
-              @if(Session::get('role_id') != 3)
-               
-                <!--<option value=""> All Branch</option>-->
-                @foreach($getAllBranch as $branch)
-    
-                <option value="{{ $branch->id ?? ''  }} " {{ ( $branch->id == Session::get('branch_id')) ? 'selected' : '' }}>{{ $branch->branch_name ?? ''  }} </option>
-                @endforeach
-                @endif
-              </select>
-        </form>
-      </div>
+
        
 
         @if(Session::get('role_id') == 1)
