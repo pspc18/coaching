@@ -574,20 +574,44 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
 
 
 
+<!-- Logout Confirmation Modal -->
+<div id="logout-confirmation" class="confirmation-popup" style="display:none;" onclick="if(event.target===this) closePopup();">
+    <div class="popup-content" style="border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.3); max-width: 380px; width: 90%; padding: 24px 20px; position: relative;">
+        <div style="width: 56px; height: 56px; margin: 0 auto 14px auto; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center;">
+            <i class="fa fa-sign-out" style="font-size: 26px; color: #dc2626; margin-left: 3px;"></i>
+        </div>
+        <h4 style="font-weight: 700; color: #002C54; margin-bottom: 8px; font-size: 19px;">Confirm Logout</h4>
+        <p style="color: #64748b; font-size: 13.5px; margin-bottom: 22px; line-height: 1.5;">Are you sure you want to end your session and log out?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button type="button" onclick="closePopup()" class="btn btn-secondary" style="min-width: 100px; border-radius: 6px; font-weight: 500;">Cancel</button>
+            <button type="button" onclick="logout()" class="btn btn-danger" style="min-width: 100px; border-radius: 6px; font-weight: 500; background: #dc2626; border-color: #dc2626;">Yes, Log Out</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    function confirmLogout(event) {
-    event.preventDefault();
-    document.getElementById('logout-confirmation').style.display = 'flex';
+function confirmLogout(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    var modal = document.getElementById('logout-confirmation');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        if (confirm('Are you sure you want to log out?')) {
+            logout();
+        }
+    }
 }
 
 function closePopup() {
-    document.getElementById('logout-confirmation').style.display = 'none';
+    var modal = document.getElementById('logout-confirmation');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 function logout() {
     window.location.href = "{{url('logout')}}"; 
 }
-
 </script>
 <script>
     function refreshPage(event) {
@@ -944,27 +968,27 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
     }
     
     .confirmation-popup {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 20, 40, 0.65);
+        display: flex;
+        z-index: 999999 !important;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(2px);
     }
     
     .popup-content {
-    background-color: white;
-    padding: 20px;
-   
-    max-width: 600px;
-    text-align: center;
+        background-color: white;
+        padding: 24px 20px;
+        max-width: 400px;
+        text-align: center;
     }
     #logout-confirmation .btn{
-        box-shadow:2px 2px 2px black;
-        margin: 10px;
+        margin: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 </style>
