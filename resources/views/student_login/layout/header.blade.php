@@ -14,7 +14,12 @@
 @endphp
 
 <header class="mobile-top-bar">
-    {{-- Brand: Logo + School Name + Student Class --}}
+    {{-- Left: History Back Button --}}
+    <button type="button" class="top-back-btn" onclick="if(window.history.length > 1) { window.history.back(); } else { window.location.href='{{ url('dashboard') }}'; }" title="Go Back">
+        <i class="fa fa-arrow-left"></i>
+    </button>
+
+    {{-- Brand: Organization Logo + School Name + Student Class --}}
     <a href="{{ url('dashboard') }}" class="top-bar-brand">
         @if(!empty($headerLogoUrl))
             <img 
@@ -90,6 +95,28 @@
     box-sizing: border-box;
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.top-back-btn {
+    width: 31px;
+    height: 31px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-right: 8px;
+    padding: 0;
+    line-height: 1;
+    transition: all .12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.top-back-btn:active {
+    transform: scale(0.93);
+    background: rgba(255, 255, 255, 0.18);
 }
 .top-bar-brand {
     display: flex;
