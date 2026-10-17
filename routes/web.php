@@ -307,6 +307,7 @@ Route::match(['get', 'post'], 'feesMasterEdit/{id}', 'fees\FeesMasterController@
 
 //Fees Collect
 Route::match(['get', 'post'], 'Fees/add', 'fees\FeesController@addFees');
+Route::match(['get', 'post'], 'feesCollectAdd', 'fees\FeesController@addFees');
 
 //Download Center
 Route::match(['get', 'post'], 'download_center', 'DownloadController@downloadCenter');
