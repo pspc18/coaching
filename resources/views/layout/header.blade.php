@@ -574,17 +574,31 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
 
 
 
-<!-- Logout Confirmation Modal -->
-<div id="logout-confirmation" class="confirmation-popup" style="display:none;" onclick="if(event.target===this) closePopup();">
-    <div class="popup-content" style="border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.3); max-width: 380px; width: 90%; padding: 24px 20px; position: relative;">
-        <div style="width: 56px; height: 56px; margin: 0 auto 14px auto; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center;">
-            <i class="fa fa-sign-out" style="font-size: 26px; color: #dc2626; margin-left: 3px;"></i>
-        </div>
-        <h4 style="font-weight: 700; color: #002C54; margin-bottom: 8px; font-size: 19px;">Confirm Logout</h4>
-        <p style="color: #64748b; font-size: 13.5px; margin-bottom: 22px; line-height: 1.5;">Are you sure you want to end your session and log out?</p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-            <button type="button" onclick="closePopup()" class="btn btn-secondary" style="min-width: 100px; border-radius: 6px; font-weight: 500;">Cancel</button>
-            <button type="button" onclick="logout()" class="btn btn-danger" style="min-width: 100px; border-radius: 6px; font-weight: 500; background: #dc2626; border-color: #dc2626;">Yes, Log Out</button>
+<!-- Logout Confirmation Modal (Standard Arise ERP Modal Theme) -->
+<div class="modal fade" id="logout-confirmation" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px; margin: 1.75rem auto;">
+        <div class="modal-content" style="border-radius: 5px; overflow: hidden; border: 1px solid rgba(0, 44, 84, 0.18); box-shadow: 0 20px 45px -8px rgba(0, 44, 84, 0.35);">
+            <div class="modal-header bg-primary text-white" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important; padding: 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: space-between;">
+                <h5 class="modal-title font-size-14 font-weight-bold" id="logoutModalLabel" style="color: #ffffff !important; margin: 0; font-size: 13.5px !important; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-sign-out"></i> Confirm Logout
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" onclick="closePopup()" aria-label="Close" style="background: transparent; border: none; font-size: 20px; line-height: 1; color: #ffffff; opacity: 0.85; cursor: pointer; padding: 0;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center" style="background: #ffffff; padding: 24px 20px !important;">
+                <div style="width: 52px; height: 52px; margin: 0 auto 14px auto; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa fa-power-off text-danger" style="font-size: 24px; color: #dc2626;"></i>
+                </div>
+                <h6 style="font-weight: 700; color: #002C54; font-size: 15px; margin-bottom: 6px;">Ready to leave?</h6>
+                <p style="color: #64748b; font-size: 12.5px; margin-bottom: 0; line-height: 1.5;">Are you sure you want to end your current session and log out?</p>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 16px; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal" onclick="closePopup()" style="min-width: 80px; font-weight: 600; font-size: 12px; border-radius: 3px;">Cancel</button>
+                <button type="button" onclick="logout()" class="btn btn-danger btn-sm" style="min-width: 96px; font-weight: 600; font-size: 12px; border-radius: 3px; background: #dc2626; border-color: #dc2626;">
+                    <i class="fa fa-sign-out mr-1"></i> Yes, Log Out
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -592,20 +606,32 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
 <script>
 function confirmLogout(event) {
     if (event && event.preventDefault) event.preventDefault();
-    var modal = document.getElementById('logout-confirmation');
-    if (modal) {
-        modal.style.display = 'flex';
+    if (typeof jQuery !== 'undefined' && $('#logout-confirmation').modal) {
+        $('#logout-confirmation').modal('show');
     } else {
-        if (confirm('Are you sure you want to log out?')) {
-            logout();
+        var modal = document.getElementById('logout-confirmation');
+        if (modal) {
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+        } else {
+            if (confirm('Are you sure you want to log out?')) {
+                logout();
+            }
         }
     }
 }
 
 function closePopup() {
-    var modal = document.getElementById('logout-confirmation');
-    if (modal) {
-        modal.style.display = 'none';
+    if (typeof jQuery !== 'undefined' && $('#logout-confirmation').modal) {
+        $('#logout-confirmation').modal('hide');
+    } else {
+        var modal = document.getElementById('logout-confirmation');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
     }
 }
 
@@ -967,28 +993,7 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
         }
     }
     
-    .confirmation-popup {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 20, 40, 0.65);
-        display: flex;
-        z-index: 999999 !important;
-        justify-content: center;
-        align-items: center;
-        backdrop-filter: blur(2px);
-    }
-    
-    .popup-content {
-        background-color: white;
-        padding: 24px 20px;
-        max-width: 400px;
-        text-align: center;
-    }
-    #logout-confirmation .btn{
-        margin: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    #logout-confirmation .modal-content {
+        box-shadow: 0 20px 45px -8px rgba(0, 44, 84, 0.35) !important;
     }
 </style>
