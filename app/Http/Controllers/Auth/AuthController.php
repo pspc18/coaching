@@ -156,6 +156,46 @@ class AuthController extends Controller
 
             
     public function getLogin(Request $request){
+        // If user is already logged in, redirect directly to dashboard
+        if (!empty(Session::get('id'))) {
+            return redirect('/');
+        }
+        
+        // Auto-login via remember_token if cookie is present
+        if ($request->hasCookie('remember_token')) {
+            $token = $request->cookie('remember_token');
+            $user = User::where('remember_token', $token)->first();
+            $isStudent = false;
+            if (!$user) {
+                $user = Admission::where('remember_token', $token)->where('role_id', 3)->orderBy('id', 'DESC')->first();
+                $isStudent = !empty($user);
+            }
+            if ($user && (int) ($user->status ?? 0) === 1) {
+                $currentActiveSessionId = Setting::where('branch_id', $user->branch_id)->value('current_active_session_id');
+                $sessionId = $isStudent ? $user->session_id : ($currentActiveSessionId ?: $user->session_id);
+                $attendanceUniqueId = trim((string) ($user->attendance_unique_id ?? ''));
+
+                $request->session()->put([
+                    'id' => $user->id,
+                    'name' => $user->name ?? trim((string) (($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))),
+                    'email' => $user->email,
+                    'teacher_id' => $user->teacher_id ?? null,
+                    'branch_id' => $user->branch_id,
+                    'session_id' => $sessionId,
+                    'userName' => $user->userName,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'role_id' => $user->role_id,
+                    'class_type_id' => $user->class_type_id ?? null,
+                    'attendance_unique_id' => $attendanceUniqueId,
+                    'modal_name' => $isStudent ? 'Admission' : 'User',
+                    'admin_branch_id' => null,
+                    'otp_request' => 'accepted',
+                ]);
+                return redirect('/');
+            }
+        }
+
         if($request->isMethod('post')){
            // dd($request);
             $request->validate([

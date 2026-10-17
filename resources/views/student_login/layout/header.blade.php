@@ -13,10 +13,12 @@
 @endphp
 
 <header class="mobile-top-bar">
-    {{-- Left: History Back Button --}}
+    {{-- Left: History Back Button (Hidden on Dashboard) --}}
+    @if(!request()->is('dashboard') && !request()->is('/'))
     <button type="button" class="top-back-btn" onclick="if(window.history.length > 1) { window.history.back(); } else { window.location.href='{{ url('dashboard') }}'; }" title="Go Back">
         <i class="fa fa-arrow-left"></i>
     </button>
+    @endif
 
     {{-- Brand: Organization Logo + School Name + Student Class --}}
     <a href="{{ url('dashboard') }}" class="top-bar-brand">
