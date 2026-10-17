@@ -7,7 +7,6 @@
     $headerSession = Session::get('session_name') ?? date('Y');
     
     $headerLogoUrl = Helper::getLogoUrl();
-    $headerFirmInitial = strtoupper(mb_substr(trim($headerSetting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
 
     $alertsCount = $unreadAlerts ?? ($notificationCount ?? 0);
     $hasSiblings = count($siblingsList ?? []) > 0;
@@ -21,21 +20,12 @@
 
     {{-- Brand: Organization Logo + School Name + Student Class --}}
     <a href="{{ url('dashboard') }}" class="top-bar-brand">
-        @if(!empty($headerLogoUrl))
-            <img 
-                src="{{ $headerLogoUrl }}" 
-                alt="Logo" 
-                class="top-bar-logo"
-                onerror="if(this.dataset.triedFallback){ this.style.display='none'; var av=document.getElementById('studentTopBarAvatar'); if(av){av.style.display='flex';} } else { this.dataset.triedFallback=1; this.src='{{ asset('public/assets/school/img/logo.png') }}'; }"
-            >
-            <div id="studentTopBarAvatar" class="top-bar-logo top-bar-avatar" style="display: none;">
-                {{ $headerFirmInitial }}
-            </div>
-        @else
-            <div id="studentTopBarAvatar" class="top-bar-logo top-bar-avatar">
-                {{ $headerFirmInitial }}
-            </div>
-        @endif
+        <img 
+            src="{{ $headerLogoUrl }}" 
+            alt="Logo" 
+            class="top-bar-logo"
+            onerror="this.onerror=null; this.src='{{ asset('public/assets/school/img/logo.png') }}';"
+        >
         <div class="top-bar-info">
             <span class="top-bar-name">{{ $headerSetting->name ?? 'ARISE ERP' }}</span>
             <span class="top-bar-tag">
@@ -136,20 +126,6 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.25);
     flex-shrink: 0;
     display: block;
-}
-.top-bar-avatar {
-    background: linear-gradient(135deg, #0284c7 0%, #002C54 100%) !important;
-    color: #ffffff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-weight: 800 !important;
-    font-size: 14px !important;
-    text-transform: uppercase !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
-    padding: 0 !important;
-    line-height: 1 !important;
-    user-select: none !important;
 }
 .top-bar-info {
     display: flex;
