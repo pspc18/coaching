@@ -167,18 +167,21 @@
             padding: 4px 7px;
             border: 1px solid #374151;
         }
-        .fee-table td {
-            padding: 3.2px 7px;
+        .fee-table tbody td {
+            padding: 2.2px 7px;
             font-size: 9px;
             color: #111827;
-            border: 1px solid #9ca3af;
-            height: 5.2mm;
+            border-left: 1px solid #374151;
+            border-right: 1px solid #374151;
+            border-top: none;
+            border-bottom: none;
+            height: 3.8mm;
             vertical-align: middle;
         }
-        .fee-table.compact-table td {
-            padding: 2px 6px;
+        .fee-table.compact-table tbody td {
+            padding: 1.5px 6px;
             font-size: 8.2px;
-            height: 4.1mm;
+            height: 3.3mm;
         }
         .fee-table tfoot td {
             background: #f9fafb;
@@ -449,8 +452,8 @@
         ];
     }
 
-    $minReservedRows = 5;
-    $isCompactTable = count($collectedItems) > 5;
+    $minReservedRows = 8;
+    $isCompactTable = count($collectedItems) > 8;
     $copies = ['OFFICE COPY', 'PARENT COPY'];
 @endphp
 <body>
@@ -566,10 +569,10 @@
                     </thead>
                     <tbody>
                         @php $renderedCount = 0; @endphp
-                        @foreach(array_slice($collectedItems, 0, 7) as $idx => $fItem)
+                        @foreach(array_slice($collectedItems, 0, 8) as $idx => $fItem)
                             @php $renderedCount++; @endphp
                             <tr>
-                                <td class="text-center">{{ $idx + 1 }}</td>
+                                <td class="text-center">{{ !empty($fItem['head']) ? ($idx + 1) : '' }}</td>
                                 <td class="fw-bold">{{ $fItem['head'] }}</td>
                                 <td class="text-right">{{ $fItem['discount'] > 0 ? number_format($fItem['discount'], 2) : '-' }}</td>
                                 <td class="text-right">{{ $fItem['fine'] > 0 ? number_format($fItem['fine'], 2) : '-' }}</td>
@@ -577,10 +580,10 @@
                             </tr>
                         @endforeach
 
-                        {{-- Reserved blank rows so at least 5 fee head slots are always visible --}}
+                        {{-- Reserved blank rows so at least 8 fee head slots are always visible --}}
                         @for($r = $renderedCount; $r < $minReservedRows; $r++)
                             <tr>
-                                <td class="text-center" style="color: #9ca3af;">{{ $r + 1 }}</td>
+                                <td class="text-center">&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td class="text-right">&nbsp;</td>
                                 <td class="text-right">&nbsp;</td>
