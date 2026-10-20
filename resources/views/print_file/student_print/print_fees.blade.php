@@ -150,8 +150,25 @@
             width: 99%;
         }
 
+        /* Receipt Center Watermark */
+        .receipt-watermark {
+            position: absolute;
+            top: 55mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 0;
+            opacity: 0.11;
+        }
+        .receipt-watermark img {
+            max-width: 95mm;
+            max-height: 36mm;
+        }
+
         /* Dynamic Tabular Fee Heads Section with Reserved Rows */
         .fee-table {
+            position: relative;
+            z-index: 2;
             width: 100%;
             border-collapse: collapse;
             margin-top: 2px;
@@ -249,6 +266,16 @@
         .sign-right-align {
             margin-left: auto;
         }
+        .sign-stamp-box {
+            width: 165px;
+            text-align: center;
+        }
+        .seal-sign-img {
+            max-width: 115px;
+            max-height: 13mm;
+            display: block;
+            margin: 0 auto 2px auto;
+        }
 
         /* Middle Cut Here Dashed Line */
         .cut-divider {
@@ -279,7 +306,7 @@
     </style>
 </head>
 @php
-    $getSetting = Helper::getSetting();
+    $getSetting = \App\Models\Setting::where('branch_id', Session::get('branch_id') ?: 1)->first() ?? Helper::getSetting();
 
     $isCollection = $data instanceof \Illuminate\Support\Collection;
     $detailsList = $isCollection ? $data : collect(is_object($data) ? [$data] : (is_array($data) ? [$data] : []));
@@ -367,22 +394,28 @@
     $totalFine = (float) (($invoiceObj->total_fine ?? null)
         ?? ($isCollection ? $data->sum('installment_fine') : ($firstDetail->installment_fine ?? 0)));
 
-    // Resolve Logo as Base64 if local file exists
-    $logoBase64 = null;
-    if (!empty($getSetting['left_logo'])) {
-        $possibleLogoPaths = [
-            public_path('schoolimage/setting/left_logo/' . $getSetting['left_logo']),
-            rtrim((string) env('IMAGE_UPLOAD_PATH'), '/') . '/setting/left_logo/' . $getSetting['left_logo'],
+    // Resolve Branding Assets (Logo, Watermark, Seal & Sign) as Base64 if local file exists
+    $resolveAssetBase64 = function ($folder, $fileName) {
+        if (empty($fileName)) {
+            return null;
+        }
+        $possiblePaths = [
+            public_path('schoolimage/setting/' . $folder . '/' . $fileName),
+            rtrim((string) env('IMAGE_UPLOAD_PATH'), '/\\') . '/setting/' . $folder . '/' . $fileName,
         ];
-        foreach ($possibleLogoPaths as $lPath) {
-            if ($lPath && @is_file($lPath) && @is_readable($lPath)) {
-                $ext = strtolower(pathinfo($lPath, PATHINFO_EXTENSION) ?: 'png');
-                $mime = $ext === 'jpg' || $ext === 'jpeg' ? 'image/jpeg' : 'image/png';
-                $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($lPath));
-                break;
+        foreach ($possiblePaths as $p) {
+            if ($p && @is_file($p) && @is_readable($p)) {
+                $ext = strtolower(pathinfo($p, PATHINFO_EXTENSION) ?: 'png');
+                $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : ($ext === 'webp' ? 'image/webp' : 'image/png');
+                return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($p));
             }
         }
-    }
+        return null;
+    };
+
+    $logoBase64 = $resolveAssetBase64('left_logo', $getSetting['left_logo'] ?? null);
+    $watermarkBase64 = $resolveAssetBase64('watermark_image', $getSetting['watermark_image'] ?? null);
+    $sealSignBase64 = $resolveAssetBase64('seal_sign', $getSetting['seal_sign'] ?? null);
 
     // Number to Indian Words Helper
     if (!function_exists('convertNumberToIndianWords')) {
@@ -460,6 +493,13 @@
     <div class="page-wrap">
         @foreach($copies as $copyIdx => $copyTitle)
             <div class="receipt-half">
+                {{-- Center Background Watermark --}}
+                @if($watermarkBase64)
+                    <div class="receipt-watermark">
+                        <img src="{{ $watermarkBase64 }}" alt="Watermark">
+                    </div>
+                @endif
+
                 {{-- Top Organization Header --}}
                 <table class="org-header-table">
                     <tr>
@@ -621,7 +661,12 @@
                                 <div class="sign-line-box">Parent</div>
                             </td>
                             <td style="width: 50%; text-align: right;">
-                                <div class="sign-line-box sign-right-align">Cashier / Stamp</div>
+                                <div class="sign-stamp-box sign-right-align">
+                                    @if($sealSignBase64)
+                                        <img src="{{ $sealSignBase64 }}" class="seal-sign-img" alt="Seal & Sign">
+                                    @endif
+                                    <div class="sign-line-box">Cashier / Stamp</div>
+                                </div>
                             </td>
                         </tr>
                     </table>
