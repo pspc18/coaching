@@ -94,12 +94,15 @@ class FeesController extends Controller
                 'admissions.father_name',
                 'admissions.admissionNo',
                 'payment_modes.name as payment_mode',
-                'payment_modes.id as payment_mode_id'
+                'payment_modes.id as payment_mode_id',
+                'sessions.from_year',
+                'sessions.to_year'
             )
             ->leftJoin('admissions', 'admissions.id', '=', 'fees_details_invoices.admission_id')
             ->leftJoin('class_types', 'class_types.id', '=', 'admissions.class_type_id')
             ->leftJoin('gender', 'gender.id', '=', 'admissions.gender_id')
             ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_details_invoices.payment_mode')
+            ->leftJoin('sessions', 'sessions.id', '=', 'fees_details_invoices.session_id')
             ->where('fees_details_invoices.id', $invoiceId)
             ->where('fees_details_invoices.branch_id', $currentAdmission->branch_id)
             ->whereIn('fees_details_invoices.admission_id', $admissionIds)
@@ -132,11 +135,12 @@ class FeesController extends Controller
     {
         [$invoiceData, $details] = $this->getStudentReceiptData($invoice);
         $printPreview = Helper::printPreview('Fees Collect');
+        $fileName = 'fees-receipt-'.($invoiceData->invoice_no ?: $invoiceData->id).'.pdf';
 
-        return view($printPreview, [
+        return PDF::loadView($printPreview, [
             'data' => $details,
             'invoice_data' => $invoiceData,
-        ]);
+        ])->setPaper('A4', 'portrait')->stream($fileName);
     }
 
     public function downloadReceipt($invoice)
@@ -148,7 +152,7 @@ class FeesController extends Controller
         return PDF::loadView($printPreview, [
             'data' => $details,
             'invoice_data' => $invoiceData,
-        ])->download($fileName);
+        ])->setPaper('A4', 'portrait')->download($fileName);
     }
 
 
