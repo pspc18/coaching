@@ -945,8 +945,7 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                                             $billable_days = 0;
                                             if ($is_overdue) {
                                                 $days_overdue = max(0, (int) floor((strtotime(date('Y-m-d')) - strtotime($dueDate)) / 86400));
-                                                $graceDays = (int) ($feesSetting->fine_grace_days ?? 0);
-                                                $billable_days = max(0, $days_overdue - $graceDays);
+                                                $billable_days = $days_overdue;
                                             }
                                         @endphp
                                         @if($fees->fees_group_amount > $paids)
@@ -1000,16 +999,12 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                         </table>
                     </div>
 
-                    <!-- Policy-Driven Settlement Adjustments: Late Fine & Concession/Discount -->
-                    <!-- Policy-Driven Settlement Adjustment: Late Fine -->
+                    <!-- Settlement Adjustment: Late Fine -->
                     <div class="settlement-adjustments-card mb-2">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <label class="dash-form-lbl mb-0 font-weight-bold text-danger">
                                 <i class="fa fa-balance-scale mr-1"></i> Late Fine (₹)
                             </label>
-                            <span class="badge badge-light border text-danger" id="fine_policy_badge" style="font-size: 9px; text-transform: uppercase;">
-                                Policy: {{ $feesSetting->fine_mode ?? 'fixed' }}
-                            </span>
                         </div>
                         <div class="input-group input-group-sm flex-nowrap" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; width: 100% !important;">
                             <div class="input-group-prepend" style="display: flex !important; flex-shrink: 0 !important; margin-right: -1px !important;">
@@ -1017,23 +1012,15 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                             </div>
                             <input type="number" step="any" min="0" id="settlement_fine" class="form-control font-weight-bold text-danger" 
                                    style="flex: 1 1 auto !important; width: 1% !important; min-width: 0 !important; height: 26px !important;"
-                                   value="0.00" autocomplete="off" {{ !$feesSetting->allow_fine_waiver ? 'readonly' : '' }}>
-                            @if($feesSetting->allow_fine_waiver)
-                                <div class="input-group-append" style="display: flex !important; flex-shrink: 0 !important; margin-left: -1px !important;">
-                                    <button type="button" id="btn_waive_fine" class="btn-waive-fine" title="Waive late fine to ₹0.00">
-                                        <i class="fa fa-times-circle mr-1"></i> Waive Fine
-                                    </button>
-                                </div>
-                            @else
-                                <div class="input-group-append" style="display: flex !important; flex-shrink: 0 !important; margin-left: -1px !important;">
-                                    <span class="input-group-text bg-light text-muted" style="border-radius: 0 2px 2px 0; font-size: 9.5px;" title="Fine waiver disabled in settings">
-                                        <i class="fa fa-lock mr-1"></i> Locked
-                                    </span>
-                                </div>
-                            @endif
+                                   value="0.00" autocomplete="off">
+                            <div class="input-group-append" style="display: flex !important; flex-shrink: 0 !important; margin-left: -1px !important;">
+                                <button type="button" id="btn_waive_fine" class="btn-waive-fine" title="Waive late fine to ₹0.00">
+                                    <i class="fa fa-times-circle mr-1"></i> Waive Fine
+                                </button>
+                            </div>
                         </div>
                         <div class="d-flex align-items-center justify-content-between mt-1 text-muted" style="font-size: 9.5px; min-height: 16px;">
-                            <span id="fine_calc_hint">Select fee heads to evaluate due date &amp; late fine</span>
+                            <span id="fine_calc_hint">Enter late fine manually if applicable</span>
                             <span id="fine_waived_badge" class="badge badge-warning" style="display: none; font-size: 8.5px;">Waived</span>
                         </div>
                         <input type="hidden" id="fine_was_waived" name="fine_was_waived" value="0">
@@ -1707,12 +1694,6 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
 <!-- Fast POS Script Handlers -->
 <script>
 var feesSettingConfig = {
-    fine_mode: "{{ $feesSetting->fine_mode ?? 'fixed' }}",
-    fine_amount: {{ (float) ($feesSetting->fine_amount ?? 0) }},
-    fine_grace_days: {{ (int) ($feesSetting->fine_grace_days ?? 0) }},
-    fine_max_cap: {{ !empty($feesSetting->fine_max_cap) ? (float) $feesSetting->fine_max_cap : 'null' }},
-    allow_fine_waiver: {{ (int) ($feesSetting->allow_fine_waiver ?? 1) }},
-    fine_waiver_requires_remark: {{ (int) ($feesSetting->fine_waiver_requires_remark ?? 0) }},
     allow_manual_discount: {{ (int) ($feesSetting->allow_manual_discount ?? 1) }},
     max_discount_percentage: {{ (float) ($feesSetting->max_discount_percentage ?? 20) }},
     discount_requires_remark: {{ (int) ($feesSetting->discount_requires_remark ?? 0) }}
@@ -2054,9 +2035,6 @@ $(document).ready(function () {
             toastr.error("Amount can't be greater than pending amount");
         }
 
-        if (feesSettingConfig.fine_mode === 'percentage') {
-            recomputePolicyFine();
-        }
         updateTotals();
     });
 
@@ -2068,9 +2046,6 @@ $(document).ready(function () {
         $('#fine_was_waived').val('1');
         updateTotals();
         toastr.info('Late fine waived to ₹0.00');
-        if (feesSettingConfig.fine_waiver_requires_remark) {
-            $('#other_fee_remark').focus();
-        }
     });
 
     /* Fine Input in Settlement Card */
@@ -2302,15 +2277,6 @@ $(document).ready(function () {
             return false;
         }
 
-        let fineWasWaived = $('#fine_was_waived').val() === '1';
-        let remark = $('#other_fee_remark').val().trim();
-
-        if (fineWasWaived && feesSettingConfig.fine_waiver_requires_remark && remark === '') {
-            toastr.error('Transaction remark is mandatory when waiving or reducing late fine.');
-            $('#other_fee_remark').focus();
-            return false;
-        }
-
         $('#loadingModal').modal('show');
         $('.collect_btn_hide').hide();
         var buttonValue = $('.collect_btn').val();
@@ -2447,50 +2413,14 @@ function recomputePolicyFine() {
         }
     });
 
-    let fine = 0;
     let hint = '';
-
     if (overdueCount === 0) {
-        fine = 0;
         hint = 'All selected heads are within due date (No fine)';
     } else {
-        if (feesSettingConfig.fine_mode === 'disabled') {
-            fine = 0;
-            hint = 'Late fine is disabled in institute settings';
-        } else if (feesSettingConfig.fine_mode === 'fixed') {
-            fine = feesSettingConfig.fine_amount;
-            hint = overdueCount + ' overdue head(s). Flat fine: ₹' + fine.toFixed(2);
-        } else if (feesSettingConfig.fine_mode === 'daily') {
-            fine = maxBillableDays * feesSettingConfig.fine_amount;
-            hint = maxBillableDays + ' billable overdue day(s) (after ' + feesSettingConfig.fine_grace_days + 'd grace) × ₹' + feesSettingConfig.fine_amount + '/day';
-        } else if (feesSettingConfig.fine_mode === 'percentage') {
-            fine = (overduePendingSum * feesSettingConfig.fine_amount) / 100;
-            hint = feesSettingConfig.fine_amount + '% of overdue fees (₹' + overduePendingSum.toFixed(2) + ')';
-        } else if (feesSettingConfig.fine_mode === 'manual') {
-            hint = 'Manual cashier fine entry allowed';
-        }
-
-        if (feesSettingConfig.fine_max_cap !== null && fine > feesSettingConfig.fine_max_cap) {
-            fine = feesSettingConfig.fine_max_cap;
-            hint += ' (Capped at max ₹' + feesSettingConfig.fine_max_cap.toFixed(2) + ')';
-        }
+        hint = overdueCount + ' overdue head(s) selected';
     }
 
-    lastCalculatedPolicyFine = fine;
-
-    if (!userManualFineEdited) {
-        $('#settlement_fine').val(fine.toFixed(2));
-    }
     $('#fine_calc_hint').text(hint);
-
-    let currentEnteredFine = parseFloat($('#settlement_fine').val()) || 0;
-    if (lastCalculatedPolicyFine > 0 && currentEnteredFine < lastCalculatedPolicyFine) {
-        $('#fine_waived_badge').show();
-        $('#fine_was_waived').val('1');
-    } else {
-        $('#fine_waived_badge').hide();
-        $('#fine_was_waived').val('0');
-    }
 }
 
 /* Calculate Totals and Settle Policy Adjustments */

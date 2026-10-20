@@ -662,7 +662,7 @@
                                 <span>Fees Settings & Policy Configuration</span>
                             </h1>
                             <p class="admission-subtitle">
-                                Configure automated receipt number generation, late fine rules, coaching monthly due dates, and print letterhead formats.
+                                Configure automated receipt number generation, payment modes, print letterhead formats, and automated alerts.
                                 &bull; Academic Session: <strong>{{ $sessionName }}</strong> &bull; Current Receipt Counter: <strong>#{{ $currentCounter }}</strong>
                             </p>
                         </div>
@@ -697,20 +697,14 @@
                         <a href="#tab-receipt" class="settings-tab-btn active" data-tab="tab-receipt">
                             <i class="fa fa-file-text-o"></i> 1. Receipt Numbering
                         </a>
-                        <a href="#tab-fine" class="settings-tab-btn" data-tab="tab-fine">
-                            <i class="fa fa-balance-scale"></i> 2. Late Fine Rules
-                        </a>
-                        <a href="#tab-duedate" class="settings-tab-btn" data-tab="tab-duedate">
-                            <i class="fa fa-calendar-check-o"></i> 3. Coaching Due Date
-                        </a>
                         <a href="#tab-payment" class="settings-tab-btn" data-tab="tab-payment">
-                            <i class="fa fa-credit-card"></i> 4. Payment Modes & Cashier
+                            <i class="fa fa-credit-card"></i> 2. Payment Modes & Cashier
                         </a>
                         <a href="#tab-print" class="settings-tab-btn" data-tab="tab-print">
-                            <i class="fa fa-print"></i> 5. Receipt Print & Letterhead
+                            <i class="fa fa-print"></i> 3. Receipt Print & Letterhead
                         </a>
                         <a href="#tab-alerts" class="settings-tab-btn" data-tab="tab-alerts">
-                            <i class="fa fa-bell-o"></i> 6. Automated Alerts
+                            <i class="fa fa-bell-o"></i> 4. Automated Alerts
                         </a>
                     </div>
                 </div>
@@ -855,185 +849,7 @@
                         </div>
 
                         {{-- ============================================================
-                             TAB 2: LATE FINE CONFIGURATION
-                             ============================================================ --}}
-                        <div class="tab-pane-content" id="tab-fine" style="display: none;">
-                            <div class="settings-section-header">
-                                <div>
-                                    <h2 class="section-title"><i class="fa fa-balance-scale"></i> Late Fine Rules & Penalty Policy</h2>
-                                    <p class="section-desc">Define automated late fine calculations, daily rates, grace periods, and cashier waiver policies.</p>
-                                </div>
-                            </div>
-
-                            <div class="settings-card-body">
-                                {{-- Late Fine Mode Selection --}}
-                                <label class="form-label-erp mb-2">Late Fine Calculation Mode <span class="badge-req">*</span></label>
-                                <div class="radio-cards-grid">
-                                    <label class="radio-card {{ $setting->fine_mode === 'fixed' ? 'selected' : '' }}">
-                                        <input type="radio" name="fine_mode" value="fixed" {{ $setting->fine_mode === 'fixed' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-tag"></i> Fixed Flat Fine (₹)</span>
-                                            <p class="radio-card-desc">One-time flat late fine applied once the due date passes.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->fine_mode === 'daily' ? 'selected' : '' }}">
-                                        <input type="radio" name="fine_mode" value="daily" {{ $setting->fine_mode === 'daily' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-calendar-times-o"></i> Daily Per-Day Rate (₹/day)</span>
-                                            <p class="radio-card-desc">Calculates late fine per day delayed after due date (e.g. ₹10 per day).</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->fine_mode === 'percentage' ? 'selected' : '' }}">
-                                        <input type="radio" name="fine_mode" value="percentage" {{ $setting->fine_mode === 'percentage' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-percent"></i> Percentage of Overdue (%)</span>
-                                            <p class="radio-card-desc">Calculates fine as a percentage of unpaid fees amount.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->fine_mode === 'manual' ? 'selected' : '' }}">
-                                        <input type="radio" name="fine_mode" value="manual" {{ $setting->fine_mode === 'manual' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-hand-pointer-o"></i> Cashier Manual Entry</span>
-                                            <p class="radio-card-desc">Fine is entered manually by the cashier on the payment screen as per case discretion.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->fine_mode === 'disabled' ? 'selected' : '' }}">
-                                        <input type="radio" name="fine_mode" value="disabled" {{ $setting->fine_mode === 'disabled' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-ban"></i> Disabled (No Fine)</span>
-                                            <p class="radio-card-desc">No late fine will be calculated or enforced for students.</p>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                {{-- Fine Details Grid --}}
-                                <div class="form-grid-3">
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="fine_amount">
-                                            <span id="fineAmountLabel">Fine Amount (₹)</span>
-                                        </label>
-                                        <input type="number" step="0.01" min="0" class="form-control-erp" id="fine_amount" name="fine_amount" 
-                                               value="{{ old('fine_amount', $setting->fine_amount) }}" placeholder="0.00">
-                                        <span class="form-hint" id="fineAmountHint">Flat late fee amount or daily rate in INR</span>
-                                    </div>
-
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="fine_grace_days">Grace Period (Days)</label>
-                                        <input type="number" min="0" max="90" class="form-control-erp" id="fine_grace_days" name="fine_grace_days" 
-                                               value="{{ old('fine_grace_days', $setting->fine_grace_days) }}" placeholder="e.g. 5">
-                                        <span class="form-hint">Number of days after due date before fine starts counting</span>
-                                    </div>
-
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="fine_max_cap">Maximum Fine Cap / Ceiling (₹)</label>
-                                        <input type="number" step="0.01" min="0" class="form-control-erp" id="fine_max_cap" name="fine_max_cap" 
-                                               value="{{ old('fine_max_cap', $setting->fine_max_cap) }}" placeholder="Optional limit (e.g. 500)">
-                                        <span class="form-hint">Upper limit to avoid runaway fines for coaching students</span>
-                                    </div>
-                                </div>
-
-                                {{-- Fine Waiver & Remark Policy --}}
-                                <div class="form-grid-2">
-                                    <div class="switch-group-row">
-                                        <div class="switch-label-wrap">
-                                            <span class="switch-label-title">Allow Cashier Fine Waiver</span>
-                                            <span class="switch-label-sub">Cashier can waive or reduce late fine during fee collection</span>
-                                        </div>
-                                        <label class="switch-ctrl">
-                                            <input type="checkbox" name="allow_fine_waiver" value="1" {{ $setting->allow_fine_waiver ? 'checked' : '' }}>
-                                            <span class="switch-slider"></span>
-                                        </label>
-                                    </div>
-
-                                    <div class="switch-group-row">
-                                        <div class="switch-label-wrap">
-                                            <span class="switch-label-title">Require Mandatory Reason/Remark for Fine Waiver</span>
-                                            <span class="switch-label-sub">Cashier must input a reason before fine can be reduced</span>
-                                        </div>
-                                        <label class="switch-ctrl">
-                                            <input type="checkbox" name="fine_waiver_requires_remark" value="1" {{ $setting->fine_waiver_requires_remark ? 'checked' : '' }}>
-                                            <span class="switch-slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ============================================================
-                             TAB 3: DUE DATE POLICY (COACHING & INSTITUTE SPECIFIC)
-                             ============================================================ --}}
-                        <div class="tab-pane-content" id="tab-duedate" style="display: none;">
-                            <div class="settings-section-header">
-                                <div>
-                                    <h2 class="section-title"><i class="fa fa-calendar-check-o"></i> Coaching Due Date Policy</h2>
-                                    <p class="section-desc">Tailor fee due dates for coaching batches, monthly fees, or enrollment anniversaries.</p>
-                                </div>
-                            </div>
-
-                            <div class="settings-card-body">
-                                <label class="form-label-erp mb-2">Due Date Schedule Policy <span class="badge-req">*</span></label>
-                                <div class="radio-cards-grid">
-                                    <label class="radio-card {{ $setting->due_date_policy === 'fixed_day_monthly' ? 'selected' : '' }}">
-                                        <input type="radio" name="due_date_policy" value="fixed_day_monthly" {{ $setting->due_date_policy === 'fixed_day_monthly' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-calendar"></i> Fixed Monthly Day (Standard Coaching)</span>
-                                            <p class="radio-card-desc">Fee is due on a fixed calendar date of every month (e.g. 5th or 10th of every month).</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->due_date_policy === 'admission_days' ? 'selected' : '' }}">
-                                        <input type="radio" name="due_date_policy" value="admission_days" {{ $setting->due_date_policy === 'admission_days' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-clock-o"></i> Enrollment Anniversary</span>
-                                            <p class="radio-card-desc">Due date is calculated as X days from the student's admission or batch start date.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->due_date_policy === 'custom_schedule' ? 'selected' : '' }}">
-                                        <input type="radio" name="due_date_policy" value="custom_schedule" {{ $setting->due_date_policy === 'custom_schedule' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-th-list"></i> Assigned Structure Schedule</span>
-                                            <p class="radio-card-desc">Follows the exact custom installment dates assigned in the student's fee structure.</p>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="form-grid-3">
-                                    <div class="form-group-erp" id="group_due_day_of_month">
-                                        <label class="form-label-erp" for="due_day_of_month">Due Day of Every Month</label>
-                                        <select class="form-control-erp" id="due_day_of_month" name="due_day_of_month">
-                                            @for($d = 1; $d <= 28; $d++)
-                                                <option value="{{ $d }}" {{ (int) $setting->due_day_of_month === $d ? 'selected' : '' }}>
-                                                    {{ $d }}{{ date('S', mktime(0,0,0,1,$d)) }} of every month
-                                                </option>
-                                            @endfor
-                                        </select>
-                                        <span class="form-hint">E.g., 10th of every month for recurring coaching fees</span>
-                                    </div>
-
-                                    <div class="form-group-erp" id="group_due_days_after_admission">
-                                        <label class="form-label-erp" for="due_days_after_admission">Days After Admission</label>
-                                        <input type="number" min="1" max="365" class="form-control-erp" id="due_days_after_admission" name="due_days_after_admission" 
-                                               value="{{ old('due_days_after_admission', $setting->due_days_after_admission) }}" placeholder="e.g. 15">
-                                        <span class="form-hint">Number of days allowed for payment after student enrollment</span>
-                                    </div>
-
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="advance_payment_allowed_days">Advance Payment Window (Days)</label>
-                                        <input type="number" min="0" max="365" class="form-control-erp" id="advance_payment_allowed_days" name="advance_payment_allowed_days" 
-                                               value="{{ old('advance_payment_allowed_days', $setting->advance_payment_allowed_days) }}" placeholder="e.g. 30">
-                                        <span class="form-hint">Allow students to deposit next month fees up to X days in advance</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ============================================================
-                             TAB 4: PAYMENT MODES & CASHIER CONTROLS
+                             TAB 2: PAYMENT MODES & CASHIER CONTROLS
                              ============================================================ --}}
                         <div class="tab-pane-content" id="tab-payment" style="display: none;">
                             <div class="settings-section-header">
@@ -1343,58 +1159,7 @@ $(document).ready(function() {
         const name = $(this).attr('name');
         $('input[name="' + name + '"]').closest('.radio-card').removeClass('selected');
         $(this).closest('.radio-card').addClass('selected');
-
-        // Fine mode dynamic label & hint
-        if (name === 'fine_mode') {
-            updateFineModeUI($(this).val());
-        }
-
-        // Due date policy dynamic fields
-        if (name === 'due_date_policy') {
-            updateDueDatePolicyUI($(this).val());
-        }
     });
-
-    function updateFineModeUI(mode) {
-        if (mode === 'daily') {
-            $('#fineAmountLabel').text('Daily Fine Rate (₹/day)');
-            $('#fineAmountHint').text('Penalty amount charged for each day delayed after due date');
-            $('#fine_amount').prop('disabled', false);
-        } else if (mode === 'percentage') {
-            $('#fineAmountLabel').text('Fine Percentage (%)');
-            $('#fineAmountHint').text('Percentage rate calculated on overdue installment balance');
-            $('#fine_amount').prop('disabled', false);
-        } else if (mode === 'fixed') {
-            $('#fineAmountLabel').text('Fixed Flat Fine (₹)');
-            $('#fineAmountHint').text('Flat late penalty applied once due date passes');
-            $('#fine_amount').prop('disabled', false);
-        } else if (mode === 'manual') {
-            $('#fineAmountLabel').text('Default Suggested Fine (₹)');
-            $('#fineAmountHint').text('Cashier can override during collection');
-            $('#fine_amount').prop('disabled', false);
-        } else if (mode === 'disabled') {
-            $('#fineAmountLabel').text('Fine Disabled');
-            $('#fineAmountHint').text('No late fine charged');
-            $('#fine_amount').prop('disabled', true);
-        }
-    }
-
-    function updateDueDatePolicyUI(policy) {
-        if (policy === 'fixed_day_monthly') {
-            $('#group_due_day_of_month').show();
-            $('#group_due_days_after_admission').hide();
-        } else if (policy === 'admission_days') {
-            $('#group_due_day_of_month').hide();
-            $('#group_due_days_after_admission').show();
-        } else {
-            $('#group_due_day_of_month').hide();
-            $('#group_due_days_after_admission').hide();
-        }
-    }
-
-    // Initialize fine mode & due date UI on load
-    updateFineModeUI($('input[name="fine_mode"]:checked').val());
-    updateDueDatePolicyUI($('input[name="due_date_policy"]:checked').val());
 
     // 3. Layout Cards Selection
     $('.layout-card').on('click', function() {

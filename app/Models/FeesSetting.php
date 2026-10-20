@@ -26,21 +26,7 @@ class FeesSetting extends Model
         'receipt_starting_number',
         'receipt_reset_cycle',
 
-        // 2. Late Fine Configuration
-        'fine_mode',
-        'fine_amount',
-        'fine_grace_days',
-        'fine_max_cap',
-        'allow_fine_waiver',
-        'fine_waiver_requires_remark',
-
-        // 3. Due Date Policy (Coaching & Institute Specific)
-        'due_date_policy',
-        'due_day_of_month',
-        'due_days_after_admission',
-        'advance_payment_allowed_days',
-
-        // 4. Payment Modes & Cashier Controls
+        // 2. Payment Modes & Cashier Controls
         'allowed_payment_modes',
         'allow_partial_payment',
         'min_partial_amount',
@@ -49,7 +35,7 @@ class FeesSetting extends Model
         'max_discount_percentage',
         'discount_requires_remark',
 
-        // 5. Receipt Print & Letterhead Format
+        // 3. Receipt Print & Letterhead Format
         'receipt_layout',
         'show_school_logo',
         'show_watermark',
@@ -58,7 +44,7 @@ class FeesSetting extends Model
         'receipt_header_title',
         'receipt_terms_conditions',
 
-        // 6. Automated Alerts & Notifications
+        // 4. Automated Alerts & Notifications
         'send_receipt_whatsapp',
         'send_receipt_sms',
         'due_reminder_enabled',
@@ -100,16 +86,6 @@ class FeesSetting extends Model
                     'receipt_include_month'         => 0,
                     'receipt_starting_number'       => 1,
                     'receipt_reset_cycle'           => 'session',
-                    'fine_mode'                     => 'fixed',
-                    'fine_amount'                   => 0.00,
-                    'fine_grace_days'               => 0,
-                    'fine_max_cap'                  => null,
-                    'allow_fine_waiver'             => 1,
-                    'fine_waiver_requires_remark'   => 1,
-                    'due_date_policy'               => 'fixed_day_monthly',
-                    'due_day_of_month'              => 10,
-                    'due_days_after_admission'      => 15,
-                    'advance_payment_allowed_days'  => 30,
                     'allowed_payment_modes'         => '1,2,3,4',
                     'allow_partial_payment'         => 1,
                     'min_partial_amount'            => 0.00,

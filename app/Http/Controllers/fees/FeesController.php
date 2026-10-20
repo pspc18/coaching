@@ -677,9 +677,6 @@ class FeesController extends Controller
                         return Response::json(['status' => 'error', 'message' => 'Transaction remark is mandatory when granting a discount.'], 422);
                     }
                 }
-                if ($feesSetting->fine_waiver_requires_remark && ($request->fine_was_waived == '1') && empty(trim($request->other_fee_remark ?? ''))) {
-                    return Response::json(['status' => 'error', 'message' => 'Transaction remark is mandatory when waiving late fine.'], 422);
-                }
 
                 $FeesAssign = FeesAssign::where('admission_id',$request->admission_id)
                     ->where('session_id', $session_id)
@@ -2395,14 +2392,6 @@ public function sendReceiptOnWhatsapp(Request $request)
             'receipt_digit_padding'         => 'required|integer|min:3|max:8',
             'receipt_number_type'           => 'nullable|in:auto,manual,both',
             'receipt_reset_cycle'           => 'nullable|in:never,session,financial_year',
-            'fine_mode'                     => 'required|in:disabled,fixed,daily,percentage,manual',
-            'fine_amount'                   => 'nullable|numeric|min:0',
-            'fine_grace_days'               => 'nullable|integer|min:0',
-            'fine_max_cap'                  => 'nullable|numeric|min:0',
-            'due_date_policy'               => 'required|in:fixed_day_monthly,admission_days,custom_schedule',
-            'due_day_of_month'              => 'nullable|integer|min:1|max:28',
-            'due_days_after_admission'      => 'nullable|integer|min:1|max:365',
-            'advance_payment_allowed_days'  => 'nullable|integer|min:0|max:365',
             'allowed_payment_modes'         => 'nullable|array',
             'min_partial_amount'            => 'nullable|numeric|min:0',
             'min_deposit_percentage'        => 'nullable|numeric|min:0|max:100',
@@ -2427,16 +2416,6 @@ public function sendReceiptOnWhatsapp(Request $request)
             'receipt_include_month'         => (int) $request->has('receipt_include_month'),
             'receipt_starting_number'       => 1,
             'receipt_reset_cycle'           => $request->input('receipt_reset_cycle', 'session'),
-            'fine_mode'                     => $request->input('fine_mode', 'fixed'),
-            'fine_amount'                   => (float) $request->input('fine_amount', 0),
-            'fine_grace_days'               => (int) $request->input('fine_grace_days', 0),
-            'fine_max_cap'                  => $request->filled('fine_max_cap') ? (float) $request->input('fine_max_cap') : null,
-            'allow_fine_waiver'             => (int) $request->has('allow_fine_waiver'),
-            'fine_waiver_requires_remark'   => (int) $request->has('fine_waiver_requires_remark'),
-            'due_date_policy'               => $request->input('due_date_policy', 'fixed_day_monthly'),
-            'due_day_of_month'              => (int) $request->input('due_day_of_month', 10),
-            'due_days_after_admission'      => (int) $request->input('due_days_after_admission', 15),
-            'advance_payment_allowed_days'  => (int) $request->input('advance_payment_allowed_days', 30),
             'allowed_payment_modes'         => $allowedModesStr,
             'allow_partial_payment'         => (int) $request->has('allow_partial_payment'),
             'min_partial_amount'            => (float) $request->input('min_partial_amount', 0),
