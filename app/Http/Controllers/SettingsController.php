@@ -97,6 +97,66 @@ class SettingsController extends Controller
                 }
                 $getcitys = City::where('state_id', $data->state_id)->get();
 
+                $publicSchoolImageBase = rtrim(public_path('schoolimage'), '/\\');
+                $envUploadBase = rtrim((string) env('IMAGE_UPLOAD_PATH'), '/\\');
+                $hasDistinctEnvBase = !empty($envUploadBase) && realpath($envUploadBase) !== realpath($publicSchoolImageBase);
+
+                // Auto-sync any setting image that exists in IMAGE_UPLOAD_PATH into public/schoolimage
+                foreach (['watermark_image', 'left_logo', 'seal_sign', 'principal_sign', 'exam_sign', 'treasurer_sign'] as $assetField) {
+                    $fileName = $data->{$assetField} ?? null;
+                    if (!empty($fileName) && !empty($envUploadBase)) {
+                        $srcFile = $envUploadBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $assetField . DIRECTORY_SEPARATOR . $fileName;
+                        $dstDir = $publicSchoolImageBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $assetField;
+                        $dstFile = $dstDir . DIRECTORY_SEPARATOR . $fileName;
+                        if (File::exists($srcFile) && !File::exists($dstFile)) {
+                            if (!File::exists($dstDir)) {
+                                File::makeDirectory($dstDir, 0755, true);
+                            }
+                            @File::copy($srcFile, $dstFile);
+                        }
+                    }
+                }
+
+                $deleteAssetFile = function ($folder, $fileName) use ($publicSchoolImageBase, $envUploadBase) {
+                    if (empty($fileName)) {
+                        return;
+                    }
+                    $paths = [
+                        $publicSchoolImageBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $fileName,
+                    ];
+                    if (!empty($envUploadBase)) {
+                        $paths[] = $envUploadBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $fileName;
+                    }
+                    foreach (array_unique($paths) as $p) {
+                        if (File::exists($p)) {
+                            @File::delete($p);
+                        }
+                    }
+                };
+
+                $storeAssetFile = function ($uploadedFile, $folder, $oldFileName = null) use ($publicSchoolImageBase, $envUploadBase, $hasDistinctEnvBase, $deleteAssetFile) {
+                    $newFileName = time() . uniqid() . '.' . $uploadedFile->getClientOriginalExtension();
+                    $publicDir = $publicSchoolImageBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $folder;
+                    if (!File::exists($publicDir)) {
+                        File::makeDirectory($publicDir, 0755, true);
+                    }
+                    $uploadedFile->move($publicDir, $newFileName);
+
+                    if ($hasDistinctEnvBase) {
+                        $envDir = $envUploadBase . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $folder;
+                        if (!File::exists($envDir)) {
+                            @File::makeDirectory($envDir, 0755, true);
+                        }
+                        @File::copy($publicDir . DIRECTORY_SEPARATOR . $newFileName, $envDir . DIRECTORY_SEPARATOR . $newFileName);
+                    }
+
+                    if (!empty($oldFileName)) {
+                        $deleteAssetFile($folder, $oldFileName);
+                    }
+
+                    return $newFileName;
+                };
+
                 if ($request->isMethod('post')) {
                     $request->validate([
                         'name'                      => 'required',
@@ -109,107 +169,41 @@ class SettingsController extends Controller
 
                     // 1. Watermark Image
                     if ($request->file('watermark_image')) {
-                        $image = $request->file('watermark_image');
-                        $watermark_image = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/watermark_image';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $watermark_image);
-                        if (!empty($data->watermark_image) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/watermark_image/' . $data->watermark_image)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/watermark_image/' . $data->watermark_image);
-                        }
-                        $data->watermark_image = $watermark_image;
+                        $data->watermark_image = $storeAssetFile($request->file('watermark_image'), 'watermark_image', $data->watermark_image);
                     } elseif ($request->filled('remove_watermark_image') && $request->remove_watermark_image == '1') {
-                        if (!empty($data->watermark_image) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/watermark_image/' . $data->watermark_image)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/watermark_image/' . $data->watermark_image);
-                        }
+                        $deleteAssetFile('watermark_image', $data->watermark_image);
                         $data->watermark_image = null;
                     }
 
                     // 2. Left Logo
                     if ($request->file('left_logo')) {
-                        $image = $request->file('left_logo');
-                        $left_logo = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/left_logo';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $left_logo);
-                        if (!empty($data->left_logo) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/left_logo/' . $data->left_logo)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/left_logo/' . $data->left_logo);
-                        }
-                        $data->left_logo = $left_logo;
+                        $data->left_logo = $storeAssetFile($request->file('left_logo'), 'left_logo', $data->left_logo);
                     } elseif ($request->filled('remove_left_logo') && $request->remove_left_logo == '1') {
-                        if (!empty($data->left_logo) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/left_logo/' . $data->left_logo)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/left_logo/' . $data->left_logo);
-                        }
+                        $deleteAssetFile('left_logo', $data->left_logo);
                         $data->left_logo = null;
                     }
 
                     // 3. Seal & Signature
                     if ($request->file('seal_sign')) {
-                        $image = $request->file('seal_sign');
-                        $seal_sign = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/seal_sign';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $seal_sign);
-                        if (!empty($data->seal_sign) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/seal_sign/' . $data->seal_sign)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/seal_sign/' . $data->seal_sign);
-                        }
-                        $data->seal_sign = $seal_sign;
+                        $data->seal_sign = $storeAssetFile($request->file('seal_sign'), 'seal_sign', $data->seal_sign);
                     } elseif ($request->filled('remove_seal_sign') && $request->remove_seal_sign == '1') {
-                        if (!empty($data->seal_sign) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/seal_sign/' . $data->seal_sign)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/seal_sign/' . $data->seal_sign);
-                        }
+                        $deleteAssetFile('seal_sign', $data->seal_sign);
                         $data->seal_sign = null;
                     }
 
                     // 4. Principal Sign
                     if ($request->file('principal_sign')) {
-                        $image = $request->file('principal_sign');
-                        $principal_sign = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/principal_sign';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $principal_sign);
-                        if (!empty($data->principal_sign) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/principal_sign/' . $data->principal_sign)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/principal_sign/' . $data->principal_sign);
-                        }
-                        $data->principal_sign = $principal_sign;
+                        $data->principal_sign = $storeAssetFile($request->file('principal_sign'), 'principal_sign', $data->principal_sign);
                     }
 
                     // 5. Exam Sign
                     if ($request->file('exam_sign')) {
-                        $image = $request->file('exam_sign');
-                        $exam_sign = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/exam_sign';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $exam_sign);
-                        if (!empty($data->exam_sign) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/exam_sign/' . $data->exam_sign)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/exam_sign/' . $data->exam_sign);
-                        }
-                        $data->exam_sign = $exam_sign;
+                        $data->exam_sign = $storeAssetFile($request->file('exam_sign'), 'exam_sign', $data->exam_sign);
                     }
 
                     // 6. Treasurer Sign
                     if ($request->file('treasurer_sign')) {
-                        $image = $request->file('treasurer_sign');
-                        $treasurer_sign = time() . uniqid() . '.' . $image->getClientOriginalExtension();
-                        $destinationPath = env('IMAGE_UPLOAD_PATH') . 'setting/treasurer_sign';
-                        if (!File::exists($destinationPath)) {
-                            File::makeDirectory($destinationPath, 0755, true);
-                        }
-                        $image->move($destinationPath, $treasurer_sign);
-                        if (!empty($data->treasurer_sign) && File::exists(env('IMAGE_UPLOAD_PATH') . 'setting/treasurer_sign/' . $data->treasurer_sign)) {
-                            File::delete(env('IMAGE_UPLOAD_PATH') . 'setting/treasurer_sign/' . $data->treasurer_sign);
-                        }
-                        $data->treasurer_sign = $treasurer_sign;
+                        $data->treasurer_sign = $storeAssetFile($request->file('treasurer_sign'), 'treasurer_sign', $data->treasurer_sign);
                     }
 
                     // 7. APK Upload

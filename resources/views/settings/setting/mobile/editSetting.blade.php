@@ -6,13 +6,40 @@
     $getSession = Helper::getSession();
     $currentSessionName = Session::get('session_name') ?? 'Current Session';
 
-    $defaultLogo = env('IMAGE_SHOW_PATH') . 'default/no_image.png';
-    $defaultWatermark = env('IMAGE_SHOW_PATH') . 'default/rukmani_logo.png';
-    $defaultSeal = env('IMAGE_SHOW_PATH') . 'default/no_image.png';
+    $defaultFallbackSvg = "data:image/svg+xml;utf8," . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><path d="M36 78l16-20 14 17 10-12 12 15H36z" fill="#94a3b8"/><circle cx="46" cy="44" r="7" fill="#94a3b8"/></svg>');
+    $defaultLogo = is_file(public_path('schoolimage/default/no_image.png')) ? asset('schoolimage/default/no_image.png') : $defaultFallbackSvg;
+    $defaultWatermark = is_file(public_path('schoolimage/default/rukmani_logo.png')) ? asset('schoolimage/default/rukmani_logo.png') : $defaultLogo;
+    $defaultSeal = $defaultLogo;
 
-    $currentLogo = !empty($data->left_logo) ? (env('IMAGE_SHOW_PATH') . 'setting/left_logo/' . $data->left_logo) : $defaultLogo;
-    $currentWatermark = !empty($data->watermark_image) ? (env('IMAGE_SHOW_PATH') . 'setting/watermark_image/' . $data->watermark_image) : $defaultWatermark;
-    $currentSeal = !empty($data->seal_sign) ? (env('IMAGE_SHOW_PATH') . 'setting/seal_sign/' . $data->seal_sign) : $defaultSeal;
+    $resolveSettingAsset = function ($folder, $fileName, $fallbackUrl) {
+        if (empty($fileName)) {
+            return $fallbackUrl;
+        }
+        $pubRel = 'schoolimage/setting/' . $folder . '/' . $fileName;
+        $pubFull = public_path($pubRel);
+        if (!is_file($pubFull)) {
+            $envUp = rtrim((string) env('IMAGE_UPLOAD_PATH'), '/\\');
+            if (!empty($envUp)) {
+                $altFull = $envUp . DIRECTORY_SEPARATOR . 'setting' . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $fileName;
+                if (is_file($altFull)) {
+                    $dir = dirname($pubFull);
+                    if (!is_dir($dir)) {
+                        @mkdir($dir, 0755, true);
+                    }
+                    @copy($altFull, $pubFull);
+                }
+            }
+        }
+        if (is_file($pubFull)) {
+            return asset('schoolimage/setting/' . $folder . '/' . rawurlencode($fileName));
+        }
+        $showBase = rtrim((string) env('IMAGE_SHOW_PATH'), '/');
+        return !empty($showBase) ? ($showBase . '/setting/' . $folder . '/' . rawurlencode($fileName)) : $fallbackUrl;
+    };
+
+    $currentLogo = $resolveSettingAsset('left_logo', $data->left_logo ?? null, $defaultLogo);
+    $currentWatermark = $resolveSettingAsset('watermark_image', $data->watermark_image ?? null, $defaultWatermark);
+    $currentSeal = $resolveSettingAsset('seal_sign', $data->seal_sign ?? null, $defaultSeal);
 
     $activeSessionObj = !empty($getSession) ? collect($getSession)->firstWhere('id', $data->current_active_session_id) : null;
     $activeSessionText = $activeSessionObj ? (($activeSessionObj->from_year ?? '') . ' - ' . ($activeSessionObj->to_year ?? '')) : 'Active Session';
