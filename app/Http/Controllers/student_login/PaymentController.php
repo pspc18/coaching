@@ -283,10 +283,9 @@ class PaymentController extends Controller
             $sessionRec = Sessions::find($sessionId);
             $sessionName = $sessionRec ? ($sessionRec->from_year . '-' . $sessionRec->to_year) : '';
 
-            $invoiceCount = FeesDetailsInvoices::where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->count();
-            $nextCounter = $invoiceCount + 1;
+            $nextCounter = $feesSetting
+                ? $feesSetting->getNextReceiptCounter($branchId, $sessionId, $sessionName)
+                : (FeesDetailsInvoices::where('session_id', $sessionId)->where('branch_id', $branchId)->count() + 1);
 
             $receiptNo = $feesSetting ? $feesSetting->formatReceiptNumber($nextCounter, $sessionName) : ('REC-' . $nextCounter);
 

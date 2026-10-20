@@ -164,4 +164,53 @@ class FeesSetting extends Model
 
         return $prefix . $sessionPart . $monthPart . $paddedNumber . $suffix;
     }
+
+    /**
+     * Get automatic session-wise receipt count directly from FeesDetailsInvoices table
+     */
+    public static function getSessionReceiptCount($branchId, $sessionId): int
+    {
+        return (int) \App\Models\fees\FeesDetailsInvoices::where('branch_id', $branchId)
+            ->where('session_id', $sessionId)
+            ->count();
+    }
+
+    /**
+     * Calculate next sequential receipt counter automatically from FeesDetailsInvoices
+     */
+    public function getNextReceiptCounter($branchId = null, $sessionId = null, $sessionName = null): int
+    {
+        $bId = $branchId ?? $this->branch_id;
+        $sId = $sessionId ?? $this->session_id;
+
+        if (!$sessionName && $sId) {
+            $sess = \App\Models\Sessions::find($sId);
+            $sessionName = $sess ? ($sess->from_year . ($sess->to_year ? '-' . $sess->to_year : '')) : date('Y');
+        }
+
+        if ($this->receipt_reset_cycle === 'never') {
+            $count = (int) \App\Models\fees\FeesDetailsInvoices::where('branch_id', $bId)->count();
+        } else {
+            $count = self::getSessionReceiptCount($bId, $sId);
+        }
+
+        $nextCounter = $count + 1;
+
+        // Guard against duplicate invoice_no if any intermediate invoice was soft-deleted
+        $guard = 0;
+        while ($guard < 500) {
+            $candidate = $this->formatReceiptNumber($nextCounter, $sessionName);
+            $exists = \App\Models\fees\FeesDetailsInvoices::where('branch_id', $bId)
+                ->where('session_id', $sId)
+                ->where('invoice_no', $candidate)
+                ->exists();
+            if (!$exists) {
+                break;
+            }
+            $nextCounter++;
+            $guard++;
+        }
+
+        return $nextCounter;
+    }
 }

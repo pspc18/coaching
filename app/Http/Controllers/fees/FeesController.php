@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\ClassType;
 use App\Models\Admission;
 use App\Models\Notification;
-use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\FeesStructure;
 use App\Models\FeesGroup;
@@ -510,15 +509,7 @@ class FeesController extends Controller
                     
                         $sessionId = $request->session_id ?? Session::get('session_id');
                         $branchId = Session::get('branch_id');
-                    
-                        // Get the Bill Counter
-                        $billCounter = BillCounter::where('type', 'FeesSlip')
-                            ->where('session_id', $sessionId)
-                            ->where('branch_id', $branchId)
-                            ->first();
-                    
-                        $billCounterNo = $billCounter ? ($billCounter->counter + 1) : 1;
-                    
+
                         // Get Student Admission Record
                         $studentQuery = Admission::where('session_id', $sessionId);
                         if (!empty($request->admission_id)) {
@@ -579,25 +570,20 @@ class FeesController extends Controller
                             ->orderByDesc('id')
                             ->get();
                     
-                        $billCounterFinal = BillCounter::where('session_id', $sessionId)
-                            ->where('branch_id', $branchId)
-                            ->where('type', 'FeesSlip')
-                            ->first();
-
                         $inventory = [];
 
-                        // Get FeesSetting and compute running receipt number
+                        // Get FeesSetting and compute running receipt number automatically from FeesDetailsInvoices
                         $feesSetting = FeesSetting::getSetting($branchId, $sessionId);
                         $sessionRec = Sessions::find($sessionId);
                         $sessionName = $sessionRec ? ($sessionRec->from_year . '-' . $sessionRec->to_year) : '';
-                        $currentCounter = $billCounterFinal ? (int) $billCounterFinal->counter : 0;
-                        $nextCounter = $currentCounter + 1;
+                        $currentCounter = FeesSetting::getSessionReceiptCount($branchId, $sessionId);
+                        $nextCounter = $feesSetting->getNextReceiptCounter($branchId, $sessionId, $sessionName);
                         $runningReceiptNo = $feesSetting->formatReceiptNumber($nextCounter, $sessionName);
 
                         // Prepare data array for view
                         $data = [
                             'session_id' => $sessionId,
-                            'BillCounter' => $billCounterFinal,
+                            'BillCounter' => ['counter' => $currentCounter],
                             'stuData' => $stuData,
                             'sessions' => $sessions,
                             'FeesAssign' => $feesAssign,
@@ -652,7 +638,6 @@ class FeesController extends Controller
             
                 $cheque_image = '';
                 $session_id = $request->session_id ?? Session::get('session_id');
-                $BillCounter = BillCounter::where('session_id',$session_id)->where('branch_id',Session::get('branch_id'))->where('type', 'FeesSlip')->get()->first();
                 $request->validate([
                     'admission_id' => 'required|integer',
                     'selected_head' => 'required|array|min:1',
@@ -700,8 +685,8 @@ class FeesController extends Controller
                     ->where('session_id', $session_id)
                     ->where('branch_id', Session::get('branch_id'))
                     ->first();
-                if (!$BillCounter || !$FeesAssign) {
-                    return Response::json(['status' => 'error', 'message' => 'Fee assignment or receipt counter was not found.'], 422);
+                if (!$FeesAssign) {
+                    return Response::json(['status' => 'error', 'message' => 'Fee assignment was not found for this student.'], 422);
                 }
                 $fees_details_id =[];
                 $slip = "";
@@ -717,22 +702,17 @@ class FeesController extends Controller
                     }
                     DB::beginTransaction();
                     try {
-                    $BillCounter = BillCounter::whereKey($BillCounter->id)
-                        ->lockForUpdate()
-                        ->firstOrFail();
                     if (!empty($admission_id)) {
                         if (!empty($request->selected_head)) {
-                            $counter = !empty($BillCounter->counter) ? (int)$BillCounter->counter : 0;
-                            $nextCounter = $counter + 1;
-                            $BillCounter->counter = $nextCounter;
-                            $BillCounter->save();
-
-                            // Format receipt number according to FeesSetting
+                            // Format receipt number automatically from session-wise FeesDetailsInvoices count
                             $feesSetting = FeesSetting::getSetting(Session::get('branch_id'), $session_id);
                             $sessionRec = Sessions::find($session_id);
                             $sessionName = $sessionRec ? ($sessionRec->from_year . '-' . $sessionRec->to_year) : '';
+                            $nextCounter = $feesSetting->getNextReceiptCounter(Session::get('branch_id'), $session_id, $sessionName);
                             $runningReceiptNo = $feesSetting->formatReceiptNumber($nextCounter, $sessionName);
-                            $assignedReceiptNo = !empty($request->slip_no) ? $request->slip_no : $runningReceiptNo;
+                            $assignedReceiptNo = ($feesSetting->receipt_number_type === 'auto')
+                                ? $runningReceiptNo
+                                : (!empty($request->offline_receipt_no) ? $request->offline_receipt_no : $runningReceiptNo);
 
                             foreach($request->selected_head as $key=> $head){
                                 if (((float) $request->amount[$key]) > 0
@@ -2378,16 +2358,11 @@ public function sendReceiptOnWhatsapp(Request $request)
 
         $setting = FeesSetting::getSetting($branchId, $sessionId);
 
-        $billCounter = BillCounter::where('type', 'FeesSlip')
-            ->where('session_id', $sessionId)
-            ->where('branch_id', $branchId)
-            ->first();
-
-        $currentCounter = $billCounter ? (int) $billCounter->counter : 0;
-        $nextCounter = $currentCounter + 1;
-
         $session = Sessions::find($sessionId);
         $sessionName = $session ? ($session->from_year . ($session->to_year ? '-' . $session->to_year : '')) : date('Y');
+
+        $currentCounter = FeesSetting::getSessionReceiptCount($branchId, $sessionId);
+        $nextCounter = $setting->getNextReceiptCounter($branchId, $sessionId, $sessionName);
 
         $paymentModes = PaymentMode::whereNull('deleted_at')->get();
         $samplePreview = $setting->formatReceiptNumber($nextCounter, $sessionName);
@@ -2420,7 +2395,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'receipt_suffix'                => 'nullable|string|max:50',
             'receipt_digit_padding'         => 'required|integer|min:3|max:8',
             'receipt_number_type'           => 'required|in:auto,manual,both',
-            'receipt_reset_cycle'           => 'required|in:never,session,financial_year',
+            'receipt_reset_cycle'           => 'nullable|in:never,session,financial_year',
             'fine_mode'                     => 'required|in:disabled,fixed,daily,percentage,manual',
             'fine_amount'                   => 'nullable|numeric|min:0',
             'fine_grace_days'               => 'nullable|integer|min:0',
@@ -2451,7 +2426,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'receipt_number_type'           => $request->input('receipt_number_type', 'both'),
             'receipt_include_session'       => (int) $request->has('receipt_include_session'),
             'receipt_include_month'         => (int) $request->has('receipt_include_month'),
-            'receipt_starting_number'       => (int) $request->input('receipt_starting_number', 1),
+            'receipt_starting_number'       => 1,
             'receipt_reset_cycle'           => $request->input('receipt_reset_cycle', 'session'),
             'fine_mode'                     => $request->input('fine_mode', 'fixed'),
             'fine_amount'                   => (float) $request->input('fine_amount', 0),
@@ -2487,21 +2462,16 @@ public function sendReceiptOnWhatsapp(Request $request)
 
         $setting->save();
 
-        // If user requested to sync/reset BillCounter
-        if ($request->has('sync_bill_counter') && $request->filled('new_counter_value')) {
-            $newVal = (int) $request->input('new_counter_value');
-            BillCounter::updateOrCreate(
-                [
-                    'session_id' => $sessionId,
-                    'branch_id'  => $branchId,
-                    'type'       => 'FeesSlip',
-                ],
-                [
-                    'counter'    => max(0, $newVal - 1),
-                    'user_id'    => Session::get('id'),
-                ]
-            );
-        }
+        // Sync prefix and digit padding globally for this branch across all sessions so user only configures once
+        FeesSetting::where('branch_id', $branchId)->update([
+            'receipt_prefix'          => $setting->receipt_prefix,
+            'receipt_suffix'          => $setting->receipt_suffix,
+            'receipt_digit_padding'   => $setting->receipt_digit_padding,
+            'receipt_number_type'     => $setting->receipt_number_type,
+            'receipt_include_session' => $setting->receipt_include_session,
+            'receipt_include_month'   => $setting->receipt_include_month,
+            'receipt_reset_cycle'     => $setting->receipt_reset_cycle,
+        ]);
 
         return redirect('fees/settings')->with('message', 'Fees Settings updated successfully.');
     }

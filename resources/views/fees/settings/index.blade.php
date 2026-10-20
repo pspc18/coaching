@@ -784,31 +784,24 @@
                                     </div>
                                 </div>
 
-                                {{-- Sequence Counter & Reset Policy --}}
-                                <div class="form-grid-2">
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="receipt_reset_cycle">Counter Reset Cycle</label>
-                                        <select class="form-control-erp" id="receipt_reset_cycle" name="receipt_reset_cycle">
-                                            <option value="session" {{ $setting->receipt_reset_cycle === 'session' ? 'selected' : '' }}>Reset on New Academic Session (Recommended)</option>
-                                            <option value="financial_year" {{ $setting->receipt_reset_cycle === 'financial_year' ? 'selected' : '' }}>Reset on Financial Year (1st April)</option>
-                                            <option value="never" {{ $setting->receipt_reset_cycle === 'never' ? 'selected' : '' }}>Never Reset (Continuous Increment)</option>
-                                        </select>
-                                        <span class="form-hint">Controls when the sequence counter resets back to 1</span>
-                                    </div>
-
-                                    <div class="form-group-erp" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 8px 12px;">
-                                        <label class="form-label-erp" for="new_counter_value">
-                                            <i class="fa fa-database"></i> Current Counter: <strong>#{{ $currentCounter }}</strong> (Next: <strong>#{{ $nextCounter }}</strong>)
-                                        </label>
-                                        <div class="d-flex align-items-center gap-2 mt-1">
-                                            <input type="number" class="form-control-erp preview-trigger" id="new_counter_value" name="new_counter_value" 
-                                                   value="{{ $nextCounter }}" min="1" style="max-width: 140px;">
-                                            <label class="d-flex align-items-center gap-1 mb-0" style="font-size: 11px; cursor: pointer; user-select: none;">
-                                                <input type="checkbox" name="sync_bill_counter" value="1">
-                                                <span>Apply as Next Number</span>
-                                            </label>
+                                {{-- Automatic Session-Wise Sequence Info (Derived directly from Fees Invoice Table) --}}
+                                <input type="hidden" name="receipt_reset_cycle" value="session">
+                                <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 3px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <div>
+                                        <div style="font-size: 12px; font-weight: 700; color: #166534;">
+                                            <i class="fa fa-check-circle mr-1"></i> Automatic Session-Wise Receipt Counter (No Manual Reset Required)
                                         </div>
-                                        <span class="form-hint">You can adjust the starting sequence if continuing from an existing paper book.</span>
+                                        <div style="font-size: 11px; color: #15803d; margin-top: 2px;">
+                                            Receipt numbers are automatically counted session-wise from the fees collection table. On every new financial year / academic session, the year and sequence (starting from <code>0001</code>) update automatically.
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="badge badge-light" style="border: 1px solid #bbf7d0; font-size: 11px; padding: 5px 9px; color: #166534;">
+                                            Session <strong>{{ $sessionName }}</strong> Count: <strong>#{{ $currentCounter }}</strong>
+                                        </span>
+                                        <span class="badge badge-success" style="font-size: 11px; padding: 5px 9px;">
+                                            Next Receipt: <strong>#{{ $nextCounter }}</strong>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -1375,7 +1368,7 @@ $(document).ready(function() {
         const padding = parseInt($('#receipt_digit_padding').val()) || 4;
         const includeSession = $('input[name="receipt_include_session"]').is(':checked') ? 1 : 0;
         const includeMonth = $('input[name="receipt_include_month"]').is(':checked') ? 1 : 0;
-        const counter = parseInt($('#new_counter_value').val()) || {{ $nextCounter }};
+        const counter = {{ $nextCounter }};
         const sessionName = "{{ $sessionName }}";
 
         $.ajax({
