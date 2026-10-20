@@ -2392,9 +2392,8 @@ public function sendReceiptOnWhatsapp(Request $request)
 
         $request->validate([
             'receipt_prefix'                => 'nullable|string|max:50',
-            'receipt_suffix'                => 'nullable|string|max:50',
             'receipt_digit_padding'         => 'required|integer|min:3|max:8',
-            'receipt_number_type'           => 'required|in:auto,manual,both',
+            'receipt_number_type'           => 'nullable|in:auto,manual,both',
             'receipt_reset_cycle'           => 'nullable|in:never,session,financial_year',
             'fine_mode'                     => 'required|in:disabled,fixed,daily,percentage,manual',
             'fine_amount'                   => 'nullable|numeric|min:0',
@@ -2421,9 +2420,9 @@ public function sendReceiptOnWhatsapp(Request $request)
         $setting->fill([
             'user_id'                       => Session::get('id'),
             'receipt_prefix'                => $request->input('receipt_prefix', 'REC-'),
-            'receipt_suffix'                => $request->input('receipt_suffix', ''),
+            'receipt_suffix'                => '',
             'receipt_digit_padding'         => (int) $request->input('receipt_digit_padding', 4),
-            'receipt_number_type'           => $request->input('receipt_number_type', 'both'),
+            'receipt_number_type'           => 'both',
             'receipt_include_session'       => (int) $request->has('receipt_include_session'),
             'receipt_include_month'         => (int) $request->has('receipt_include_month'),
             'receipt_starting_number'       => 1,

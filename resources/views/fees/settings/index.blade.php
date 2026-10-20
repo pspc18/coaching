@@ -701,48 +701,25 @@
                                     </div>
                                 </div>
 
-                                {{-- Number Generation Mode --}}
-                                <label class="form-label-erp mb-2">Receipt Numbering Mode <span class="badge-req">*</span></label>
-                                <div class="radio-cards-grid">
-                                    <label class="radio-card {{ $setting->receipt_number_type === 'both' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_number_type" value="both" {{ $setting->receipt_number_type === 'both' ? 'checked' : '' }}>
+                                {{-- Number Generation Mode (Single Unified Auto + Manual Mode) --}}
+                                <label class="form-label-erp mb-2">Receipt Numbering Mode</label>
+                                <div class="mb-3">
+                                    <label class="radio-card selected" style="cursor: default;">
+                                        <input type="radio" name="receipt_number_type" value="both" checked>
                                         <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-magic"></i> Auto + Manual Override (Recommended)</span>
-                                            <p class="radio-card-desc">System automatically suggests next sequential number, but allows cashier to override if needed.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->receipt_number_type === 'auto' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_number_type" value="auto" {{ $setting->receipt_number_type === 'auto' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-lock"></i> Strict Automatic Only</span>
-                                            <p class="radio-card-desc">Receipt numbers are 100% system-generated. Cashiers cannot modify the number, eliminating duplicates.</p>
-                                        </div>
-                                    </label>
-
-                                    <label class="radio-card {{ $setting->receipt_number_type === 'manual' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_number_type" value="manual" {{ $setting->receipt_number_type === 'manual' ? 'checked' : '' }}>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-pencil"></i> Manual Entry Only</span>
-                                            <p class="radio-card-desc">Cashier enters offline manual receipt book number for every collection transaction.</p>
+                                            <span class="radio-card-title"><i class="fa fa-magic"></i> Auto + Manual Mode</span>
+                                            <p class="radio-card-desc">System automatically generates the next sequential receipt number session-wise, and also allows manual receipt number entry when needed.</p>
                                         </div>
                                     </label>
                                 </div>
 
-                                {{-- Format Parameters Grid --}}
-                                <div class="form-grid-3">
+                                {{-- Format Parameters Grid (Prefix & Digits Padding Only) --}}
+                                <div class="form-grid-2">
                                     <div class="form-group-erp">
                                         <label class="form-label-erp" for="receipt_prefix">Receipt Prefix</label>
                                         <input type="text" class="form-control-erp preview-trigger" id="receipt_prefix" name="receipt_prefix" 
                                                value="{{ old('receipt_prefix', $setting->receipt_prefix) }}" placeholder="e.g. REC-, COACH-, FEE/">
                                         <span class="form-hint">Text before the number (e.g. <code>REC-</code> or <code>ARISE/</code>)</span>
-                                    </div>
-
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="receipt_suffix">Receipt Suffix (Optional)</label>
-                                        <input type="text" class="form-control-erp preview-trigger" id="receipt_suffix" name="receipt_suffix" 
-                                               value="{{ old('receipt_suffix', $setting->receipt_suffix) }}" placeholder="e.g. /HQ, -A">
-                                        <span class="form-hint">Appended at the end (e.g. <code>/HQ</code>)</span>
                                     </div>
 
                                     <div class="form-group-erp">
@@ -1364,7 +1341,7 @@ $(document).ready(function() {
     // 5. Dynamic Live Receipt Preview
     function updateLivePreview() {
         const prefix = $('#receipt_prefix').val();
-        const suffix = $('#receipt_suffix').val();
+        const suffix = '';
         const padding = parseInt($('#receipt_digit_padding').val()) || 4;
         const includeSession = $('input[name="receipt_include_session"]').is(':checked') ? 1 : 0;
         const includeMonth = $('input[name="receipt_include_month"]').is(':checked') ? 1 : 0;
@@ -1394,7 +1371,7 @@ $(document).ready(function() {
                 let sessionPart = includeSession ? (sessionName.replace(/[^0-9\-]/g, '') + '-') : '';
                 let monthPart = includeMonth ? ("{{ date('m') }}" + '-') : '';
                 let numStr = String(counter).padStart(padding, '0');
-                $('#liveReceiptPreview').text(prefix + sessionPart + monthPart + numStr + suffix);
+                $('#liveReceiptPreview').text(prefix + sessionPart + monthPart + numStr);
             }
         });
     }

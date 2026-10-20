@@ -142,7 +142,6 @@ class FeesSetting extends Model
     public function formatReceiptNumber($counter = 1, $sessionName = null)
     {
         $prefix = (string) ($this->receipt_prefix ?? '');
-        $suffix = (string) ($this->receipt_suffix ?? '');
         $padding = max(1, min(10, (int) ($this->receipt_digit_padding ?? 4)));
 
         $sessionPart = '';
@@ -162,7 +161,7 @@ class FeesSetting extends Model
 
         $paddedNumber = str_pad((string) $counter, $padding, '0', STR_PAD_LEFT);
 
-        return $prefix . $sessionPart . $monthPart . $paddedNumber . $suffix;
+        return $prefix . $sessionPart . $monthPart . $paddedNumber;
     }
 
     /**
