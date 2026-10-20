@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 3.5mm 5mm;
+            margin: 5mm 8mm;
         }
         * {
             box-sizing: border-box;
@@ -15,536 +15,278 @@
             margin: 0;
             padding: 0;
             font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
-            font-size: 8.6px;
-            color: #1e293b;
+            font-size: 10px;
+            color: #111827;
             background: #ffffff;
-            line-height: 1.25;
+            line-height: 1.3;
         }
         .page-wrap {
             width: 100%;
             margin: 0 auto;
         }
 
-        /* Each Half-Page Receipt Card */
-        .receipt-card {
+        /* Half-Page Receipt Block */
+        .receipt-half {
             position: relative;
             width: 100%;
-            height: 138.5mm;
-            border: 1.5px solid #0b3c68;
-            border-radius: 5px;
-            background: #ffffff;
-            overflow: hidden;
+            height: 136.5mm;
+            padding: 2mm 1mm 1mm 1mm;
             page-break-inside: avoid;
-        }
-
-        /* Watermark */
-        .watermark-box {
-            position: absolute;
-            top: 48mm;
-            left: 50%;
-            margin-left: -32mm;
-            width: 64mm;
-            height: 64mm;
-            z-index: 0;
-            opacity: 0.04;
-            text-align: center;
-        }
-        .watermark-box img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        /* Top Geometric Header Banner */
-        .banner-wrap {
-            position: relative;
-            width: 100%;
-            height: 22.5mm;
-            background: #0f172a;
             overflow: hidden;
         }
-        .banner-svg-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 22.5mm;
-            z-index: 1;
-        }
-        .banner-table {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 21mm;
-            border-collapse: collapse;
-        }
-        .banner-table td {
-            vertical-align: middle;
-            padding: 0;
-        }
-        .banner-left {
-            width: 34%;
-            padding-left: 14px !important;
-        }
-        .doc-title {
-            font-size: 16.5px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            margin: 0;
-            line-height: 1.05;
-        }
-        .doc-sub {
-            font-size: 7.2px;
-            color: #bae6fd;
-            letter-spacing: 0.6px;
-            text-transform: uppercase;
-            margin-top: 1px;
-        }
-        .copy-badge-row {
-            margin-top: 3.5px;
-        }
-        .copy-pill {
-            display: inline-block;
-            background: #0ea5e9;
-            color: #ffffff;
-            font-size: 7.2px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            padding: 2px 7px;
-            border-radius: 2px;
-        }
-        .paid-pill {
-            display: inline-block;
-            background: #10b981;
-            color: #ffffff;
-            font-size: 7px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 2px 6px;
-            border-radius: 2px;
-            margin-left: 3px;
-        }
-        .banner-right {
-            width: 66%;
-            padding-right: 12px !important;
-            padding-left: 34px !important;
-        }
-        .brand-tbl {
+
+        /* Organization Header */
+        .org-header-table {
             width: 100%;
             border-collapse: collapse;
+            border-bottom: 1.8px solid #8b2635;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
         }
-        .brand-tbl td {
+        .org-header-table td {
             vertical-align: middle;
-            padding: 0;
+            padding: 0 0 6px 0;
         }
-        .inst-name {
-            font-size: 13px;
+        .org-logo-cell {
+            width: 54px;
+            padding-right: 10px !important;
+        }
+        .org-logo-box {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+            vertical-align: middle;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        .org-logo-box img {
+            max-width: 44px;
+            max-height: 44px;
+            display: block;
+            margin: 1px auto;
+        }
+        .org-logo-initial {
+            font-size: 20px;
             font-weight: bold;
-            color: #ffffff;
+            color: #8b2635;
+            line-height: 46px;
+        }
+        .org-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #8b2635;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             margin: 0 0 2px 0;
             line-height: 1.15;
-            text-align: right;
         }
-        .inst-addr {
-            font-size: 7.5px;
-            color: #cbd5e1;
-            margin: 0;
+        .org-address {
+            font-size: 8.8px;
+            color: #374151;
+            margin: 0 0 1px 0;
             line-height: 1.25;
+        }
+        .org-contact {
+            font-size: 8.5px;
+            color: #4b5563;
+            margin: 0;
+        }
+        .copy-badge-cell {
+            width: 135px;
             text-align: right;
+            vertical-align: top !important;
         }
-        .logo-frame {
-            width: 44px;
-            height: 44px;
-            background: #ffffff;
-            border: 1.5px solid #38bdf8;
-            border-radius: 5px;
-            text-align: center;
-            vertical-align: middle;
-            overflow: hidden;
-            margin-left: auto;
-        }
-        .logo-frame img {
-            max-width: 40px;
-            max-height: 40px;
-            display: block;
-            margin: 1px auto;
-        }
-        .logo-initial {
-            font-size: 17px;
+        .copy-box {
+            display: inline-block;
+            border: 1.3px solid #1f2937;
+            padding: 3.5px 12px;
+            font-size: 9.5px;
             font-weight: bold;
-            color: #035a8c;
-            line-height: 40px;
-        }
-
-        /* Body Area */
-        .receipt-body {
-            position: relative;
-            z-index: 2;
-            padding: 6px 12px 0 12px;
-        }
-
-        /* Student & Receipt Info Cards */
-        .info-grid-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 5.5px;
-        }
-        .info-grid-table > tbody > tr > td {
-            vertical-align: top;
-            padding: 0;
-        }
-        .student-info-card {
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-left: 3.5px solid #035a8c;
-            border-radius: 3px;
-            padding: 4.5px 8px;
-            height: 19.5mm;
-        }
-        .billed-tag {
-            font-size: 7px;
-            font-weight: bold;
-            color: #0284c7;
+            color: #111827;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin-bottom: 1px;
-        }
-        .student-title {
-            font-size: 11px;
-            font-weight: bold;
-            color: #0f172a;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            margin-bottom: 2px;
-        }
-        .student-meta-tbl {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .student-meta-tbl td {
-            padding: 0.8px 0;
-            font-size: 7.9px;
-            color: #475569;
-        }
-        .student-meta-tbl b {
-            color: #0f172a;
-        }
-
-        .invoice-meta-card {
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-right: 3.5px solid #0ea5e9;
-            border-radius: 3px;
-            padding: 4.5px 8px;
-            height: 19.5mm;
-        }
-        .meta-kv-tbl {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .meta-kv-tbl td {
-            padding: 1.1px 0;
-            font-size: 8px;
-        }
-        .meta-lbl {
-            color: #64748b;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 7.2px;
-            width: 38%;
-        }
-        .meta-sep {
-            width: 4%;
-            text-align: center;
-            color: #94a3b8;
-            font-weight: bold;
-        }
-        .meta-val {
-            color: #0f172a;
-            font-weight: bold;
-            text-align: right;
-            width: 58%;
-        }
-        .meta-val-highlight {
-            color: #035a8c;
-            font-weight: bold;
-            text-align: right;
-            width: 58%;
-        }
-
-        /* Reserved Space Fee Items Table */
-        .items-container {
-            width: 100%;
-            height: 49.5mm;
-            overflow: hidden;
-            margin-bottom: 5px;
-            border: 1px solid #cbd5e1;
-            border-radius: 3px;
-        }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .items-table th {
-            background: #035a8c;
-            color: #ffffff;
-            font-size: 7.8px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 4.5px 7px;
-            border-bottom: 1.5px solid #0ea5e9;
-            border-right: 1px solid #096da8;
-        }
-        .items-table th:last-child {
-            border-right: none;
-        }
-        .items-table td {
-            padding: 3.2px 7px;
-            font-size: 8.2px;
-            color: #1e293b;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-            height: 5.5mm;
-            vertical-align: middle;
-        }
-        .items-table td:last-child {
-            border-right: none;
-        }
-        .items-table tr.row-even td {
-            background: #f1f5f9;
-        }
-        .items-table tr.row-odd td {
             background: #ffffff;
         }
-        .items-table.compact-mode td {
-            padding: 1.8px 6px;
-            font-size: 7.5px;
-            height: 4.2mm;
-        }
-        .sno-badge {
-            display: inline-block;
-            background: #e0f2fe;
-            color: #0369a1;
+        .session-sub {
+            font-size: 8px;
+            color: #4b5563;
             font-weight: bold;
-            font-size: 7.5px;
-            padding: 1px 4px;
-            border-radius: 2px;
-        }
-        .sno-empty {
-            color: #cbd5e1;
-            font-size: 7.5px;
-        }
-        .text-center {
-            text-align: center !important;
-        }
-        .text-right {
-            text-align: right !important;
-        }
-        .text-left {
-            text-align: left !important;
-        }
-        .fw-bold {
-            font-weight: bold;
+            margin-top: 4px;
         }
 
-        /* Bottom Section: Payment Info & Totals */
-        .bottom-grid {
+        /* Dotted Student Info Lines */
+        .meta-lines-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        .meta-lines-table td {
+            padding: 4.5px 0;
+            vertical-align: bottom;
+            font-size: 10px;
+        }
+        .field-wrap {
             width: 100%;
             border-collapse: collapse;
         }
-        .bottom-grid > tbody > tr > td {
-            vertical-align: top;
+        .field-wrap td {
             padding: 0;
+            vertical-align: bottom;
         }
-        .pay-card {
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 3px;
-            padding: 4px 8px;
-            margin-bottom: 4px;
+        .field-label {
+            white-space: nowrap;
+            color: #111827;
+            padding-right: 6px !important;
+            width: 1%;
+            font-weight: normal;
         }
-        .sec-title {
-            font-size: 7.6px;
+        .field-value {
+            border-bottom: 1.2px dotted #374151;
+            color: #111827;
             font-weight: bold;
-            color: #035a8c;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 1.5px;
-        }
-        .pay-kv-tbl {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .pay-kv-tbl td {
-            padding: 1px 0;
-            font-size: 7.8px;
-        }
-        .pay-lbl {
-            width: 26%;
-            color: #64748b;
-            font-weight: bold;
-        }
-        .pay-val {
-            width: 74%;
-            color: #0f172a;
-            font-weight: bold;
-        }
-        .words-banner {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-left: 3px solid #0284c7;
-            border-radius: 2px;
-            padding: 2.5px 6px;
-            margin-top: 2.5px;
-            font-size: 7.7px;
-            color: #0c4a6e;
-        }
-        .terms-block {
-            font-size: 7px;
-            color: #64748b;
-            line-height: 1.25;
-            padding-left: 2px;
+            padding: 0 4px 1px 4px !important;
+            width: 99%;
         }
 
-        /* Totals Box on Right */
-        .totals-wrap {
-            border: 1px solid #cbd5e1;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 5px;
+        /* 2-Column Fee Heads Grid */
+        .fee-grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2px;
+            margin-bottom: 6px;
         }
-        .totals-table {
+        .fee-grid-table > tbody > tr > td {
+            padding: 4px 0;
+            vertical-align: bottom;
+        }
+        .fee-item-row {
             width: 100%;
             border-collapse: collapse;
         }
-        .totals-table td {
-            padding: 2.5px 7px;
-            font-size: 8px;
-            border-bottom: 1px solid #e2e8f0;
+        .fee-item-row td {
+            padding: 0;
+            vertical-align: bottom;
         }
-        .tot-lbl {
-            text-align: left;
-            color: #475569;
-            font-weight: bold;
-            background: #f8fafc;
-            width: 52%;
+        .fee-head-name {
+            font-size: 10px;
+            color: #111827;
+            width: 68%;
+            padding-right: 8px !important;
         }
-        .tot-val {
+        .fee-head-amt {
+            width: 32%;
+            border-bottom: 1px solid #374151;
             text-align: right;
-            color: #0f172a;
+            font-size: 10px;
             font-weight: bold;
-            background: #ffffff;
-            width: 48%;
-        }
-        .grand-total-row td {
-            background: #035a8c !important;
-            color: #ffffff !important;
-            font-size: 9px;
-            font-weight: bold;
-            padding: 4px 7px;
-            border-bottom: none;
+            color: #111827;
+            padding: 0 4px 1px 4px !important;
         }
 
-        .signature-area {
-            text-align: center;
-            margin-top: 7px;
+        /* Total Bar */
+        .total-bar-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-top: 1.5px solid #1f2937;
+            margin-top: 4px;
+            padding-top: 5px;
         }
-        .sign-line {
-            border-top: 1px solid #334155;
-            width: 130px;
-            margin: 12px auto 1px auto;
-            padding-top: 2px;
-            font-size: 7.8px;
+        .total-bar-table td {
+            padding: 6px 0 2px 0;
+            vertical-align: bottom;
+        }
+        .total-label {
+            font-size: 11.5px;
             font-weight: bold;
-            color: #0f172a;
+            color: #111827;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
-        .sign-sub {
-            font-size: 6.8px;
-            color: #64748b;
+        .words-inline {
+            font-size: 8.8px;
+            font-weight: normal;
+            color: #4b5563;
+            margin-left: 10px;
             font-style: italic;
         }
-
-        /* Bottom Geometric Footer Bar */
-        .footer-bar-wrap {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 7.2mm;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            overflow: hidden;
+        .total-amt-line {
+            border-bottom: 1.3px solid #1f2937;
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            color: #111827;
+            padding: 0 6px 2px 6px !important;
         }
-        .footer-contact-tbl {
-            position: relative;
-            z-index: 2;
+
+        /* Payment Mode Sub-row */
+        .payment-meta-row {
+            margin-top: 5px;
+            font-size: 8.8px;
+            color: #374151;
+        }
+        .payment-meta-row b {
+            color: #111827;
+        }
+
+        /* Bottom Signature & Seal Area (Positioned at bottom of each half with generous gap above) */
+        .sign-footer-wrap {
+            position: absolute;
+            bottom: 2mm;
+            left: 1mm;
+            right: 1mm;
+            width: 99.5%;
+        }
+        .sign-table {
             width: 100%;
             border-collapse: collapse;
-            height: 4.2mm;
         }
-        .footer-contact-tbl td {
-            vertical-align: middle;
-            padding: 0 10px;
-            font-size: 7.3px;
-            color: #334155;
-            font-weight: bold;
+        .sign-table td {
+            vertical-align: bottom;
+            padding: 0;
         }
-        .footer-svg-strip {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3mm;
-            z-index: 1;
+        .sign-line-box {
+            width: 165px;
+            border-top: 1.2px solid #1f2937;
+            padding-top: 4px;
+            text-align: center;
+            font-size: 9.5px;
+            color: #111827;
+        }
+        .sign-right-align {
+            margin-left: auto;
         }
 
         /* Middle Cut Here Dashed Line */
-        .cut-separator {
+        .cut-divider {
             width: 100%;
-            height: 6mm;
+            height: 7mm;
             page-break-inside: avoid;
         }
-        .cut-separator-table {
+        .cut-divider-table {
             width: 100%;
             border-collapse: collapse;
-            padding-top: 1.2mm;
+            padding-top: 2mm;
         }
-        .cut-separator-table td {
+        .cut-divider-table td {
             vertical-align: middle;
             padding: 0;
         }
-        .dashed-rule {
-            border-bottom: 1.2px dashed #64748b;
+        .cut-dashed-line {
+            border-bottom: 1.2px dashed #6b7280;
             height: 1px;
         }
-        .cut-pill {
-            display: inline-block;
-            background: #f1f5f9;
-            border: 1px dashed #035a8c;
-            color: #035a8c;
-            font-size: 7.2px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 1px 9px;
-            border-radius: 10px;
+        .cut-text {
+            font-size: 9px;
+            color: #4b5563;
+            padding: 0 10px;
+            text-align: center;
             white-space: nowrap;
         }
     </style>
 </head>
 @php
     $getSetting = Helper::getSetting();
-    $account = Helper::getQRCode($getSetting->account_id ?? null);
 
     $isCollection = $data instanceof \Illuminate\Support\Collection;
     $detailsList = $isCollection ? $data : collect(is_object($data) ? [$data] : (is_array($data) ? [$data] : []));
@@ -562,8 +304,7 @@
         ?: ($invoiceObj->date ?? null)
         ?: ($firstDetail->date ?? null)
         ?: ($dataArr['date'] ?? null);
-    $feeDate = !empty($rawDate) ? date('d M, Y', strtotime($rawDate)) : '-';
-    $feeMonth = !empty($rawDate) ? \Carbon\Carbon::parse($rawDate)->format('F Y') : '-';
+    $feeDate = !empty($rawDate) ? date('d-m-Y', strtotime($rawDate)) : '-';
 
     $firstName = ($invoiceObj->first_name ?? null)
         ?: ($admissionObj->first_name ?? null)
@@ -619,7 +360,7 @@
             $sessionTo = $sessRec->to_year;
         }
     }
-    $sessionLabel = !empty($sessionFrom) ? ($sessionFrom . (!empty($sessionTo) ? '-' . $sessionTo : '')) : date('Y') . '-' . (date('y') + 1);
+    $sessionLabel = !empty($sessionFrom) ? ($sessionFrom . (!empty($sessionTo) ? '-' . $sessionTo : '')) : '';
 
     $totalPaid = (float) (($invoiceObj->amount ?? null)
         ?? ($invoiceObj->total_amount ?? null)
@@ -631,11 +372,6 @@
 
     $totalFine = (float) (($invoiceObj->total_fine ?? null)
         ?? ($isCollection ? $data->sum('installment_fine') : ($firstDetail->installment_fine ?? 0)));
-
-    $subTotal = $totalPaid + $totalDiscount - $totalFine;
-    if ($subTotal < $totalPaid) {
-        $subTotal = $totalPaid;
-    }
 
     // Resolve Logo as Base64 if local file exists
     $logoBase64 = null;
@@ -695,290 +431,243 @@
 
     $amountInWords = convertNumberToIndianWords($totalPaid);
 
-    // Prepare reserved rows
-    $rawItems = $detailsList->values();
-    $itemCount = $rawItems->count();
-    $isCompactTable = $itemCount > 5;
-    $targetRowSlots = 5;
+    // Build 6-slot 2-column fee heads array matching the reference layout
+    // First include all paid heads from this receipt, then fill remaining up to 6 slots with standard fee heads
+    $feeSlots = [];
+    foreach ($detailsList as $item) {
+        $hName = is_object($item)
+            ? ($item->fees_group_name ?? ($item->FeesCollect->name ?? 'Tuition Fee'))
+            : ($item['fees_group_name'] ?? 'Tuition Fee');
+        $hAmt = (float) (is_object($item) ? ($item->paid_amount ?? $item->total_amount ?? 0) : ($item['paid_amount'] ?? $item['total_amount'] ?? 0));
+        $feeSlots[] = [
+            'label' => $hName,
+            'amount' => $hAmt > 0 ? number_format($hAmt, 2) : '',
+        ];
+    }
 
-    // SVG data URIs for crisp geometric invoice header & footer
-    $headerSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 92" preserveAspectRatio="none">'
-        . '<rect width="800" height="86" fill="#0f172a"/>'
-        . '<polygon points="0,0 262,0 302,86 0,86" fill="#035a8c"/>'
-        . '<polygon points="270,0 276,0 316,86 310,86" fill="#ffffff"/>'
-        . '<polygon points="282,0 308,0 348,86 322,86" fill="#0ea5e9"/>'
-        . '<polygon points="315,72 338,72 345,86 322,86" fill="#0284c7"/>'
-        . '<rect x="0" y="86" width="310" height="6" fill="#0284c7"/>'
-        . '<rect x="310" y="86" width="490" height="6" fill="#0ea5e9"/>'
-        . '</svg>';
-    $headerSvgUri = 'data:image/svg+xml;base64,' . base64_encode($headerSvg);
+    if ($totalFine > 0) {
+        $feeSlots[] = [
+            'label' => 'Late Fine / Other',
+            'amount' => number_format($totalFine, 2),
+        ];
+    }
 
-    $footerSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 14" preserveAspectRatio="none">'
-        . '<rect width="800" height="14" fill="#0f172a"/>'
-        . '<polygon points="460,14 472,0 800,0 800,14" fill="#035a8c"/>'
-        . '<polygon points="444,14 456,0 463,0 451,14" fill="#ffffff"/>'
-        . '<polygon points="428,14 440,0 447,0 435,14" fill="#0ea5e9"/>'
-        . '</svg>';
-    $footerSvgUri = 'data:image/svg+xml;base64,' . base64_encode($footerSvg);
+    if ($totalDiscount > 0) {
+        $feeSlots[] = [
+            'label' => 'Fee Discount (-)',
+            'amount' => '-' . number_format($totalDiscount, 2),
+        ];
+    }
 
-    $copies = ['OFFICE COPY', 'STUDENT COPY'];
+    $defaultHeads = [
+        'Tuition Fee',
+        'Admission / Annual Fee',
+        'Transport Fee',
+        'Exam Fee',
+        'Computer / Lab Fee',
+        'Late Fine / Other',
+    ];
+
+    $existingLabels = array_map(function ($s) {
+        return strtolower(trim($s['label']));
+    }, $feeSlots);
+
+    foreach ($defaultHeads as $defHead) {
+        if (count($feeSlots) >= 6) {
+            break;
+        }
+        if (!in_array(strtolower($defHead), $existingLabels)) {
+            $feeSlots[] = [
+                'label' => $defHead,
+                'amount' => '',
+            ];
+        }
+    }
+
+    while (count($feeSlots) < 6) {
+        $feeSlots[] = ['label' => 'Other Fee', 'amount' => ''];
+    }
+
+    // Pair into rows of 2 columns (max 4 rows = 8 items so it never overflows the reserved area)
+    $feeRows = array_chunk(array_slice($feeSlots, 0, 8), 2);
+
+    $copies = ['OFFICE COPY', 'PARENT COPY'];
 @endphp
 <body>
     <div class="page-wrap">
         @foreach($copies as $copyIdx => $copyTitle)
-            <div class="receipt-card">
-                @if($logoBase64)
-                    <div class="watermark-box">
-                        <img src="{{ $logoBase64 }}" alt="">
-                    </div>
-                @endif
-
-                {{-- Top Geometric Header Banner --}}
-                <div class="banner-wrap">
-                    <img src="{{ $headerSvgUri }}" class="banner-svg-bg" alt="">
-                    <table class="banner-table">
-                        <tr>
-                            <td class="banner-left">
-                                <div class="doc-title">FEE RECEIPT</div>
-                                <div class="doc-sub">Official Payment Voucher</div>
-                                <div class="copy-badge-row">
-                                    <span class="copy-pill">{{ $copyTitle }}</span>
-                                    <span class="paid-pill">&#10003; PAID</span>
-                                </div>
-                            </td>
-                            <td class="banner-right">
-                                <table class="brand-tbl">
-                                    <tr>
-                                        <td style="padding-right: 10px;">
-                                            <div class="inst-name">{{ $getSetting['name'] ?? 'Educational Institute' }}</div>
-                                            <div class="inst-addr">{{ Str::limit($getSetting['address'] ?? '', 95) }}</div>
-                                        </td>
-                                        <td style="width: 46px;">
-                                            <div class="logo-frame">
-                                                @if($logoBase64)
-                                                    <img src="{{ $logoBase64 }}" alt="Logo">
-                                                @else
-                                                    <div class="logo-initial">{{ strtoupper(substr($getSetting['name'] ?? 'A', 0, 1)) }}</div>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                {{-- Main Body --}}
-                <div class="receipt-body">
-                    {{-- Student Info Card (Left) & Receipt Meta Card (Right) --}}
-                    <table class="info-grid-table">
-                        <tr>
-                            <td style="width: 54%; padding-right: 6px;">
-                                <div class="student-info-card">
-                                    <div class="billed-tag">STUDENT DETAILS :</div>
-                                    <div class="student-title">{{ $studentName }}</div>
-                                    <table class="student-meta-tbl">
-                                        <tr>
-                                            <td style="width: 55%;"><b>Father's Name:</b> {{ Str::limit($fatherName, 24) }}</td>
-                                            <td style="width: 45%;"><b>Phone:</b> {{ $mobile }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="2"><b>Class / Course:</b> {{ $classDisplay ?: '-' }}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </td>
-                            <td style="width: 46%; padding-left: 4px;">
-                                <div class="invoice-meta-card">
-                                    <table class="meta-kv-tbl">
-                                        <tr>
-                                            <td class="meta-lbl">Receipt No</td>
-                                            <td class="meta-sep">:</td>
-                                            <td class="meta-val-highlight">{{ $receiptNo }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="meta-lbl">Receipt Date</td>
-                                            <td class="meta-sep">:</td>
-                                            <td class="meta-val">{{ $feeDate }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="meta-lbl">Admission No</td>
-                                            <td class="meta-sep">:</td>
-                                            <td class="meta-val">{{ $admissionNo }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="meta-lbl">Academic Session</td>
-                                            <td class="meta-sep">:</td>
-                                            <td class="meta-val">{{ $sessionLabel }}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    {{-- Reserved Space Fee Items Table --}}
-                    <div class="items-container">
-                        <table class="items-table {{ $isCompactTable ? 'compact-mode' : '' }}">
-                            <thead>
-                                <tr>
-                                    <th style="width: 9%;" class="text-center">S.NO</th>
-                                    <th style="width: 43%;" class="text-left">PARTICULARS / FEE HEAD DESCRIPTION</th>
-                                    <th style="width: 16%;" class="text-right">FEE AMOUNT</th>
-                                    <th style="width: 15%;" class="text-right">DISC / FINE</th>
-                                    <th style="width: 17%;" class="text-right">NET PAID</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $renderedRows = 0; @endphp
-                                @forelse($rawItems->take(8) as $idx => $item)
-                                    @php
-                                        $renderedRows++;
-                                        $headName = is_object($item)
-                                            ? ($item->fees_group_name ?? ($item->FeesCollect->name ?? 'Tuition / Academic Fee'))
-                                            : ($item['fees_group_name'] ?? 'Tuition / Academic Fee');
-                                        $itemDisc = (float) (is_object($item) ? ($item->discount ?? 0) : ($item['discount'] ?? 0));
-                                        $itemFine = (float) (is_object($item) ? ($item->installment_fine ?? 0) : ($item['installment_fine'] ?? 0));
-                                        $itemPaid = (float) (is_object($item) ? ($item->paid_amount ?? $item->total_amount ?? 0) : ($item['paid_amount'] ?? $item['total_amount'] ?? 0));
-                                        $itemBase = $itemPaid + $itemDisc - $itemFine;
-                                        if ($itemBase < $itemPaid) {
-                                            $itemBase = $itemPaid;
-                                        }
-                                        $discFineText = '₹0.00';
-                                        if ($itemDisc > 0 && $itemFine > 0) {
-                                            $discFineText = '-₹' . number_format($itemDisc, 0) . ' / +₹' . number_format($itemFine, 0);
-                                        } elseif ($itemDisc > 0) {
-                                            $discFineText = '-₹' . number_format($itemDisc, 2);
-                                        } elseif ($itemFine > 0) {
-                                            $discFineText = '+₹' . number_format($itemFine, 2);
-                                        }
-                                    @endphp
-                                    <tr class="{{ $idx % 2 === 0 ? 'row-even' : 'row-odd' }}">
-                                        <td class="text-center"><span class="sno-badge">{{ str_pad((string) ($idx + 1), 2, '0', STR_PAD_LEFT) }}</span></td>
-                                        <td class="fw-bold">{{ Str::limit($headName, 45) }}</td>
-                                        <td class="text-right">₹{{ number_format($itemBase, 2) }}</td>
-                                        <td class="text-right">{{ $discFineText }}</td>
-                                        <td class="text-right fw-bold" style="color: #035a8c;">₹{{ number_format($itemPaid, 2) }}</td>
-                                    </tr>
-                                @empty
-                                    @php $renderedRows = 1; @endphp
-                                    <tr class="row-even">
-                                        <td class="text-center"><span class="sno-badge">01</span></td>
-                                        <td class="fw-bold">Academic / Course Fee ({{ $feeMonth }})</td>
-                                        <td class="text-right">₹{{ number_format($subTotal, 2) }}</td>
-                                        <td class="text-right">{{ $totalDiscount > 0 ? '-₹' . number_format($totalDiscount, 2) : '₹0.00' }}</td>
-                                        <td class="text-right fw-bold" style="color: #035a8c;">₹{{ number_format($totalPaid, 2) }}</td>
-                                    </tr>
-                                @endforelse
-
-                                {{-- Fill remaining reserved slots so table height stays fixed & balanced --}}
-                                @for($slot = $renderedRows; $slot < $targetRowSlots; $slot++)
-                                    <tr class="{{ $slot % 2 === 0 ? 'row-even' : 'row-odd' }}">
-                                        <td class="text-center"><span class="sno-empty">{{ str_pad((string) ($slot + 1), 2, '0', STR_PAD_LEFT) }}</span></td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                    </tr>
-                                @endfor
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Bottom Section: Payment Info + Terms (Left) | SubTotal + Grand Total + Signature (Right) --}}
-                    <table class="bottom-grid">
-                        <tr>
-                            <td style="width: 58%; padding-right: 10px;">
-                                <div class="pay-card">
-                                    <div class="sec-title">Payment Information</div>
-                                    <table class="pay-kv-tbl">
-                                        <tr>
-                                            <td class="pay-lbl">Payment Mode</td>
-                                            <td class="pay-val">: {{ strtoupper($paymentMode) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="pay-lbl">Trans. Ref / ID</td>
-                                            <td class="pay-val">: {{ !empty($transactionId) ? $transactionId : 'N/A' }}</td>
-                                        </tr>
-                                    </table>
-                                    <div class="words-banner">
-                                        <b>Amount in Words:</b> {{ $amountInWords }}
-                                    </div>
-                                </div>
-
-                                <div class="terms-block">
-                                    <b style="color: #334155; text-transform: uppercase;">Terms &amp; Conditions:</b>
-                                    1. Fees once paid are neither refundable nor transferable.
-                                    2. Subject to realization of cheque / electronic payment.
-                                    @if(!empty($invoiceObj->remark))
-                                        <br><b style="color: #035a8c;">Remark:</b> {{ Str::limit($invoiceObj->remark, 68) }}
-                                    @endif
-                                </div>
-                            </td>
-                            <td style="width: 42%;">
-                                <div class="totals-wrap">
-                                    <table class="totals-table">
-                                        <tr>
-                                            <td class="tot-lbl">Sub Total</td>
-                                            <td class="tot-val">₹{{ number_format($subTotal, 2) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="tot-lbl">Discount / Fine</td>
-                                            <td class="tot-val">
-                                                @if($totalDiscount > 0)
-                                                    -₹{{ number_format($totalDiscount, 2) }}
-                                                @elseif($totalFine > 0)
-                                                    +₹{{ number_format($totalFine, 2) }}
-                                                @else
-                                                    ₹0.00
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr class="grand-total-row">
-                                            <td class="tot-lbl" style="background: #035a8c; color: #ffffff;">Grand Total</td>
-                                            <td class="tot-val" style="background: #035a8c; color: #ffffff;">₹{{ number_format($totalPaid, 2) }}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-
-                                <div class="signature-area">
-                                    <div class="sign-line">Authorized Signatory</div>
-                                    <div class="sign-sub">Computer Generated Official Receipt</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                {{-- Bottom Geometric Footer Bar --}}
-                <div class="footer-bar-wrap">
-                    <table class="footer-contact-tbl">
-                        <tr>
-                            <td style="width: 55%;">
-                                &#9742; {{ $getSetting['mobile'] ?? '-' }}
-                                @if(!empty($getSetting['gmail']))
-                                    &nbsp;&nbsp;|&nbsp;&nbsp; &#9993; {{ $getSetting['gmail'] }}
+            <div class="receipt-half">
+                {{-- Top Organization Header --}}
+                <table class="org-header-table">
+                    <tr>
+                        <td class="org-logo-cell">
+                            <div class="org-logo-box">
+                                @if($logoBase64)
+                                    <img src="{{ $logoBase64 }}" alt="Logo">
+                                @else
+                                    <div class="org-logo-initial">{{ strtoupper(substr($getSetting['name'] ?? 'S', 0, 1)) }}</div>
                                 @endif
+                            </div>
+                        </td>
+                        <td>
+                            <div class="org-title">{{ $getSetting['name'] ?? 'SCHOOL NAME' }}</div>
+                            @if(!empty($getSetting['address']))
+                                <div class="org-address">{{ $getSetting['address'] }}</div>
+                            @endif
+                            <div class="org-contact">
+                                @if(!empty($getSetting['mobile']))
+                                    <b>Phone:</b> {{ $getSetting['mobile'] }}
+                                @endif
+                                @if(!empty($getSetting['gmail']))
+                                    &nbsp;|&nbsp; <b>Email:</b> {{ $getSetting['gmail'] }}
+                                @endif
+                                @if(!empty($mobile))
+                                    &nbsp;|&nbsp; <b>Student Mob:</b> {{ $mobile }}
+                                @endif
+                            </div>
+                        </td>
+                        <td class="copy-badge-cell">
+                            <div class="copy-box">{{ $copyTitle }}</div>
+                            @if(!empty($sessionLabel))
+                                <div class="session-sub">Session: {{ $sessionLabel }}</div>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+
+                {{-- Dotted Metadata Lines (Rcpt No, Date, Name, Class, Father, Adm. No.) --}}
+                <table class="meta-lines-table">
+                    <tr>
+                        <td style="width: 52%; padding-right: 18px;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Rcpt No.:</td>
+                                    <td class="field-value">{{ $receiptNo }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width: 48%;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Date:</td>
+                                    <td class="field-value">{{ $feeDate }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 58%; padding-right: 18px;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Name:</td>
+                                    <td class="field-value">{{ $studentName }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width: 42%;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Class:</td>
+                                    <td class="field-value">{{ $classDisplay ?: '-' }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 58%; padding-right: 18px;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Father:</td>
+                                    <td class="field-value">{{ $fatherName }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width: 42%;">
+                            <table class="field-wrap">
+                                <tr>
+                                    <td class="field-label">Adm. No.:</td>
+                                    <td class="field-value">{{ $admissionNo }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                {{-- 2-Column Fee Heads Section --}}
+                <table class="fee-grid-table">
+                    <tbody>
+                        @foreach($feeRows as $pair)
+                            <tr>
+                                <td style="width: 48%; padding-right: 18px;">
+                                    <table class="fee-item-row">
+                                        <tr>
+                                            <td class="fee-head-name">{{ $pair[0]['label'] ?? '' }}</td>
+                                            <td class="fee-head-amt">{!! !empty($pair[0]['amount']) ? '₹' . e($pair[0]['amount']) : '&nbsp;' !!}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 4%;"></td>
+                                <td style="width: 48%;">
+                                    @if(isset($pair[1]))
+                                        <table class="fee-item-row">
+                                            <tr>
+                                                <td class="fee-head-name">{{ $pair[1]['label'] }}</td>
+                                                <td class="fee-head-amt">{!! !empty($pair[1]['amount']) ? '₹' . e($pair[1]['amount']) : '&nbsp;' !!}</td>
+                                            </tr>
+                                        </table>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                {{-- TOTAL Bar --}}
+                <table class="total-bar-table">
+                    <tr>
+                        <td style="width: 72%;">
+                            <span class="total-label">TOTAL ₹</span>
+                            <span class="words-inline">({{ $amountInWords }})</span>
+                        </td>
+                        <td style="width: 28%;" class="total-amt-line">
+                            ₹{{ number_format($totalPaid, 2) }}
+                        </td>
+                    </tr>
+                </table>
+
+                {{-- Payment Mode & Ref Line --}}
+                <div class="payment-meta-row">
+                    <b>Payment Mode:</b> {{ strtoupper($paymentMode) }}
+                    @if(!empty($transactionId))
+                        &nbsp;&nbsp;|&nbsp;&nbsp; <b>Ref / Txn ID:</b> {{ $transactionId }}
+                    @endif
+                    @if(!empty($invoiceObj->remark))
+                        &nbsp;&nbsp;|&nbsp;&nbsp; <b>Note:</b> {{ Str::limit($invoiceObj->remark, 55) }}
+                    @endif
+                </div>
+
+                {{-- Generous Blank Space Reserved for Physical Seal / Stamp & Signatures at the Bottom --}}
+                <div class="sign-footer-wrap">
+                    <table class="sign-table">
+                        <tr>
+                            <td style="width: 50%;">
+                                <div class="sign-line-box">Parent</div>
                             </td>
-                            <td style="width: 45%; text-align: right; color: #ffffff;">
-                                &nbsp;
+                            <td style="width: 50%; text-align: right;">
+                                <div class="sign-line-box sign-right-align">Cashier / Stamp</div>
                             </td>
                         </tr>
                     </table>
-                    <img src="{{ $footerSvgUri }}" class="footer-svg-strip" alt="">
                 </div>
             </div>
 
             @if($copyIdx === 0)
-                <div class="cut-separator">
-                    <table class="cut-separator-table">
+                <div class="cut-divider">
+                    <table class="cut-divider-table">
                         <tr>
-                            <td style="width: 39%;"><div class="dashed-rule"></div></td>
-                            <td style="width: 22%;" class="text-center">
-                                <span class="cut-pill">&#9986; Cut From Here</span>
-                            </td>
-                            <td style="width: 39%;"><div class="dashed-rule"></div></td>
+                            <td style="width: 43%;"><div class="cut-dashed-line"></div></td>
+                            <td style="width: 14%;" class="cut-text">cut here</td>
+                            <td style="width: 43%;"><div class="cut-dashed-line"></div></td>
                         </tr>
                     </table>
                 </div>
