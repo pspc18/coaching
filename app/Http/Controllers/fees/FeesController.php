@@ -2440,15 +2440,22 @@ public function sendReceiptOnWhatsapp(Request $request)
 
         $setting->save();
 
-        // Sync prefix and digit padding globally for this branch across all sessions so user only configures once
+        // Sync prefix, digit padding, and print layout settings globally for this branch across all sessions
         FeesSetting::where('branch_id', $branchId)->update([
-            'receipt_prefix'          => $setting->receipt_prefix,
-            'receipt_suffix'          => $setting->receipt_suffix,
-            'receipt_digit_padding'   => $setting->receipt_digit_padding,
-            'receipt_number_type'     => $setting->receipt_number_type,
-            'receipt_include_session' => $setting->receipt_include_session,
-            'receipt_include_month'   => $setting->receipt_include_month,
-            'receipt_reset_cycle'     => $setting->receipt_reset_cycle,
+            'receipt_prefix'            => $setting->receipt_prefix,
+            'receipt_suffix'            => $setting->receipt_suffix,
+            'receipt_digit_padding'     => $setting->receipt_digit_padding,
+            'receipt_number_type'       => $setting->receipt_number_type,
+            'receipt_include_session'   => $setting->receipt_include_session,
+            'receipt_include_month'     => $setting->receipt_include_month,
+            'receipt_reset_cycle'       => $setting->receipt_reset_cycle,
+            'receipt_layout'            => $setting->receipt_layout,
+            'show_school_logo'          => $setting->show_school_logo,
+            'show_watermark'            => $setting->show_watermark,
+            'show_signature_box'        => $setting->show_signature_box,
+            'show_payment_mode_details' => $setting->show_payment_mode_details,
+            'receipt_header_title'      => $setting->receipt_header_title,
+            'receipt_terms_conditions'  => $setting->receipt_terms_conditions,
         ]);
 
         return redirect('fees/settings')->with('message', 'Fees Settings updated successfully.');

@@ -35,6 +35,116 @@
             overflow: hidden;
         }
 
+        /* Full-Page A4 Receipt Block - Utilizes full A4 portrait page for single copy mode */
+        .receipt-full {
+            position: relative;
+            width: 100%;
+            height: 282mm;
+            padding: 4mm 2mm 3mm 2mm;
+            page-break-inside: avoid;
+            overflow: hidden;
+        }
+        .receipt-full .org-header-table {
+            border-bottom: 2.2px solid #8b2635;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .receipt-full .org-logo-cell {
+            width: 66px;
+            padding-right: 12px !important;
+        }
+        .receipt-full .org-logo-box {
+            width: 58px;
+            height: 58px;
+        }
+        .receipt-full .org-logo-box img {
+            max-width: 54px;
+            max-height: 54px;
+        }
+        .receipt-full .org-logo-initial {
+            font-size: 24px;
+            line-height: 56px;
+        }
+        .receipt-full .org-title {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        .receipt-full .org-address {
+            font-size: 9.8px;
+            margin-bottom: 2px;
+        }
+        .receipt-full .org-contact {
+            font-size: 9.2px;
+        }
+        .receipt-full .copy-box {
+            padding: 4px 14px;
+            font-size: 10.5px;
+        }
+        .receipt-full .session-sub {
+            font-size: 8.8px;
+            margin-top: 4px;
+        }
+        .receipt-full .meta-lines-table {
+            margin-bottom: 10px;
+        }
+        .receipt-full .meta-lines-table td {
+            padding: 5.5px 0;
+            font-size: 10.8px;
+        }
+        .receipt-full .receipt-watermark {
+            top: 105mm;
+            opacity: 0.11;
+        }
+        .receipt-full .receipt-watermark img {
+            max-width: 135mm;
+            max-height: 58mm;
+        }
+        .receipt-full .fee-table th {
+            font-size: 9.8px;
+            padding: 6px 9px;
+        }
+        .receipt-full .fee-table tbody td {
+            padding: 4px 9px;
+            font-size: 10.2px;
+            height: 6.4mm;
+        }
+        .receipt-full .fee-table.compact-table tbody td {
+            padding: 3px 8px;
+            font-size: 9.4px;
+            height: 5.2mm;
+        }
+        .receipt-full .fee-table tfoot td {
+            padding: 6px 9px;
+            font-size: 11.2px;
+        }
+        .receipt-full .words-inline {
+            font-size: 9.5px;
+        }
+        .receipt-full .payment-meta-row {
+            margin-top: 6px;
+            font-size: 9.8px;
+        }
+        .receipt-full .terms-box {
+            margin-top: 8px;
+            font-size: 8.8px;
+            line-height: 1.35;
+        }
+        .receipt-full .sign-footer-wrap {
+            bottom: 5mm;
+        }
+        .receipt-full .sign-line-box {
+            width: 190px;
+            font-size: 10.2px;
+            padding-top: 4.5px;
+        }
+        .receipt-full .sign-stamp-box {
+            width: 190px;
+        }
+        .receipt-full .seal-sign-img {
+            max-width: 135px;
+            max-height: 18mm;
+        }
+
         /* Organization Header */
         .org-header-table {
             width: 100%;
@@ -238,6 +348,12 @@
         .payment-meta-row b {
             color: #111827;
         }
+        .terms-box {
+            margin-top: 2px;
+            font-size: 7.4px;
+            color: #4b5563;
+            line-height: 1.2;
+        }
 
         /* Bottom Signature & Seal Area (Positioned at bottom of each half with generous gap above) */
         .sign-footer-wrap {
@@ -306,7 +422,20 @@
     </style>
 </head>
 @php
-    $getSetting = \App\Models\Setting::where('branch_id', Session::get('branch_id') ?: 1)->first() ?? Helper::getSetting();
+    $branchId = $invoiceObj->branch_id ?? ($firstDetail->branch_id ?? (Session::get('branch_id') ?: 1));
+    $sessionId = $invoiceObj->session_id ?? ($firstDetail->session_id ?? (Session::get('session_id') ?: 1));
+    $getSetting = \App\Models\Setting::where('branch_id', $branchId)->first() ?? Helper::getSetting();
+    $feesSetting = isset($feesSetting) && $feesSetting instanceof \App\Models\FeesSetting
+        ? $feesSetting
+        : \App\Models\FeesSetting::getSetting($branchId, $sessionId);
+
+    $receiptLayout = ($feesSetting->receipt_layout ?? 'a4_dual') === 'a4_single' ? 'a4_single' : 'a4_dual';
+    $showSchoolLogo = (bool) ($feesSetting->show_school_logo ?? 1);
+    $showWatermark = (bool) ($feesSetting->show_watermark ?? 1);
+    $showSignatureBox = (bool) ($feesSetting->show_signature_box ?? 1);
+    $showPaymentModeDetails = (bool) ($feesSetting->show_payment_mode_details ?? 1);
+    $receiptHeaderTitle = trim((string) ($feesSetting->receipt_header_title ?? 'FEE RECEIPT')) ?: 'FEE RECEIPT';
+    $receiptTerms = trim((string) ($feesSetting->receipt_terms_conditions ?? ''));
 
     $isCollection = $data instanceof \Illuminate\Support\Collection;
     $detailsList = $isCollection ? $data : collect(is_object($data) ? [$data] : (is_array($data) ? [$data] : []));
@@ -485,16 +614,19 @@
         ];
     }
 
-    $minReservedRows = 10;
-    $isCompactTable = count($collectedItems) > 10;
-    $copies = ['OFFICE COPY', 'PARENT COPY'];
+    $isSingleA4 = ($receiptLayout === 'a4_single');
+    $minReservedRows = $isSingleA4 ? 18 : 10;
+    $maxRenderRows = $isSingleA4 ? 22 : 10;
+    $isCompactTable = count($collectedItems) > $minReservedRows;
+    $copies = $isSingleA4 ? [$receiptHeaderTitle] : ['OFFICE COPY', 'PARENT COPY'];
+    $termsLines = !empty($receiptTerms) ? array_slice(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $receiptTerms))), 0, $isSingleA4 ? 4 : 2) : [];
 @endphp
 <body>
     <div class="page-wrap">
         @foreach($copies as $copyIdx => $copyTitle)
-            <div class="receipt-half">
+            <div class="{{ $isSingleA4 ? 'receipt-full' : 'receipt-half' }}">
                 {{-- Center Background Watermark --}}
-                @if($watermarkBase64)
+                @if($showWatermark && $watermarkBase64)
                     <div class="receipt-watermark">
                         <img src="{{ $watermarkBase64 }}" alt="Watermark">
                     </div>
@@ -503,15 +635,17 @@
                 {{-- Top Organization Header --}}
                 <table class="org-header-table">
                     <tr>
-                        <td class="org-logo-cell">
-                            <div class="org-logo-box">
-                                @if($logoBase64)
-                                    <img src="{{ $logoBase64 }}" alt="Logo">
-                                @else
-                                    <div class="org-logo-initial">{{ strtoupper(substr($getSetting['name'] ?? 'S', 0, 1)) }}</div>
-                                @endif
-                            </div>
-                        </td>
+                        @if($showSchoolLogo)
+                            <td class="org-logo-cell">
+                                <div class="org-logo-box">
+                                    @if($logoBase64)
+                                        <img src="{{ $logoBase64 }}" alt="Logo">
+                                    @else
+                                        <div class="org-logo-initial">{{ strtoupper(substr($getSetting['name'] ?? 'S', 0, 1)) }}</div>
+                                    @endif
+                                </div>
+                            </td>
+                        @endif
                         <td>
                             <div class="org-title">{{ $getSetting['name'] ?? 'SCHOOL NAME' }}</div>
                             @if(!empty($getSetting['address']))
@@ -531,7 +665,9 @@
                         </td>
                         <td class="copy-badge-cell">
                             <div class="copy-box">{{ $copyTitle }}</div>
-                            @if(!empty($sessionLabel))
+                            @if(!$isSingleA4 && !empty($receiptHeaderTitle) && strtoupper($receiptHeaderTitle) !== strtoupper($copyTitle))
+                                <div class="session-sub">{{ $receiptHeaderTitle }}{{ !empty($sessionLabel) ? ' • ' . $sessionLabel : '' }}</div>
+                            @elseif(!empty($sessionLabel))
                                 <div class="session-sub">Session: {{ $sessionLabel }}</div>
                             @endif
                         </td>
@@ -596,7 +732,7 @@
                     </tr>
                 </table>
 
-                {{-- Dynamic Tabular Fee Heads Section with Minimum 5 Reserved Rows --}}
+                {{-- Dynamic Tabular Fee Heads Section with Reserved Rows --}}
                 <table class="fee-table {{ $isCompactTable ? 'compact-table' : '' }}">
                     <thead>
                         <tr>
@@ -609,7 +745,7 @@
                     </thead>
                     <tbody>
                         @php $renderedCount = 0; @endphp
-                        @foreach(array_slice($collectedItems, 0, 10) as $idx => $fItem)
+                        @foreach(array_slice($collectedItems, 0, $maxRenderRows) as $idx => $fItem)
                             @php $renderedCount++; @endphp
                             <tr>
                                 <td class="text-center">{{ !empty($fItem['head']) ? ($idx + 1) : '' }}</td>
@@ -620,7 +756,7 @@
                             </tr>
                         @endforeach
 
-                        {{-- Reserved blank rows so at least 8 fee head slots are always visible --}}
+                        {{-- Reserved blank rows so layout stays balanced --}}
                         @for($r = $renderedCount; $r < $minReservedRows; $r++)
                             <tr>
                                 <td class="text-center">&nbsp;</td>
@@ -643,37 +779,52 @@
                 </table>
 
                 {{-- Payment Mode & Ref Line --}}
-                <div class="payment-meta-row">
-                    <b>Payment Mode:</b> {{ strtoupper($paymentMode) }}
-                    @if(!empty($transactionId))
-                        &nbsp;&nbsp;|&nbsp;&nbsp; <b>Ref / Txn ID:</b> {{ $transactionId }}
-                    @endif
-                    @if(!empty($invoiceObj->remark))
-                        &nbsp;&nbsp;|&nbsp;&nbsp; <b>Note:</b> {{ Str::limit($invoiceObj->remark, 55) }}
-                    @endif
-                </div>
+                @if($showPaymentModeDetails)
+                    <div class="payment-meta-row">
+                        <b>Payment Mode:</b> {{ strtoupper($paymentMode) }}
+                        @if(!empty($transactionId))
+                            &nbsp;&nbsp;|&nbsp;&nbsp; <b>Ref / Txn ID:</b> {{ $transactionId }}
+                        @endif
+                        @if(!empty($invoiceObj->remark))
+                            &nbsp;&nbsp;|&nbsp;&nbsp; <b>Note:</b> {{ Str::limit($invoiceObj->remark, 55) }}
+                        @endif
+                    </div>
+                @elseif(!empty($invoiceObj->remark))
+                    <div class="payment-meta-row">
+                        <b>Note:</b> {{ Str::limit($invoiceObj->remark, 70) }}
+                    </div>
+                @endif
+
+                {{-- Optional Terms & Conditions / Footer Note --}}
+                @if(!empty($termsLines))
+                    <div class="terms-box">
+                        <b>Terms:</b> {{ implode(' | ', $termsLines) }}
+                    </div>
+                @endif
 
                 {{-- Generous Blank Space Reserved for Physical Seal / Stamp & Signatures at the Bottom --}}
-                <div class="sign-footer-wrap">
-                    <table class="sign-table">
-                        <tr>
-                            <td style="width: 50%;">
-                                <div class="sign-line-box">Parent</div>
-                            </td>
-                            <td style="width: 50%; text-align: right;">
-                                <div class="sign-stamp-box sign-right-align">
-                                    @if($sealSignBase64)
-                                        <img src="{{ $sealSignBase64 }}" class="seal-sign-img" alt="Seal & Sign">
-                                    @endif
-                                    <div class="sign-line-box">Cashier / Stamp</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                @if($showSignatureBox)
+                    <div class="sign-footer-wrap">
+                        <table class="sign-table">
+                            <tr>
+                                <td style="width: 50%;">
+                                    <div class="sign-line-box">Parent</div>
+                                </td>
+                                <td style="width: 50%; text-align: right;">
+                                    <div class="sign-stamp-box sign-right-align">
+                                        @if($sealSignBase64)
+                                            <img src="{{ $sealSignBase64 }}" class="seal-sign-img" alt="Seal & Sign">
+                                        @endif
+                                        <div class="sign-line-box">Cashier / Stamp</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                @endif
             </div>
 
-            @if($copyIdx === 0)
+            @if(!$isSingleA4 && $copyIdx === 0)
                 <div class="cut-divider">
                     <table class="cut-divider-table">
                         <tr>
