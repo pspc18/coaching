@@ -85,6 +85,8 @@ class FeesController extends Controller
                 'fees_details_invoices.*',
                 'admissions.first_name',
                 'admissions.last_name',
+                'admissions.mobile',
+                'admissions.image as student_img',
                 'admissions.category',
                 'class_types.name as class_name',
                 'class_types.id as class_type_id',

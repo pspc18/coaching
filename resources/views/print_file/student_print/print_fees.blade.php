@@ -15,24 +15,69 @@ $account=Helper::getQRCode($getSetting->account_id);
 
 $isCollection = $data instanceof \Illuminate\Support\Collection;
 $firstDetail = $isCollection ? $data->first() : (is_object($data) ? $data : null);
+$dataArr = is_array($data) ? $data : [];
+$invoiceObj = isset($invoice_data) && is_object($invoice_data) ? $invoice_data : null;
+$admissionObj = ($firstDetail && isset($firstDetail->Admission) && is_object($firstDetail->Admission)) ? $firstDetail->Admission : null;
 
-$receiptNo = $invoice_data->invoice_no ?? $invoice_data->offline_receipt_no ?? ($firstDetail->receipt_no ?? (is_array($data) ? ($data['receipt_no'] ?? '-') : ($data->receipt_no ?? '-')));
+$receiptNo = ($invoiceObj->invoice_no ?? null)
+    ?: ($invoiceObj->offline_receipt_no ?? null)
+    ?: ($firstDetail->receipt_no ?? null)
+    ?: ($dataArr['receipt_no'] ?? '-');
 
-$rawDate = $invoice_data->payment_date ?? $invoice_data->date ?? ($firstDetail->date ?? (is_array($data) ? ($data['date'] ?? null) : ($data->date ?? null)));
+$rawDate = ($invoiceObj->payment_date ?? null)
+    ?: ($invoiceObj->date ?? null)
+    ?: ($firstDetail->date ?? null)
+    ?: ($dataArr['date'] ?? null);
 $feeDate = !empty($rawDate) ? date('d-m-Y', strtotime($rawDate)) : '-';
 $feeMonth = !empty($rawDate) ? \Carbon\Carbon::parse($rawDate)->format('F') : '-';
 
-$studentName = trim(($invoice_data->first_name ?? ($firstDetail->Admission->first_name ?? (is_array($data) ? ($data['Admission']['first_name'] ?? '') : ($data->first_name ?? '')))) . ' ' . ($invoice_data->last_name ?? ($firstDetail->Admission->last_name ?? (is_array($data) ? ($data['Admission']['last_name'] ?? ($data['last_name'] ?? '')) : ($data->last_name ?? '')))));
-$fatherName = $invoice_data->father_name ?? ($firstDetail->Admission->father_name ?? (is_array($data) ? ($data['Admission']['father_name'] ?? '') : ($data->father_name ?? '')));
-$className = $invoice_data->class_name ?? ($firstDetail->Admission->ClassTypes->name ?? (is_array($data) ? ($data['Admission']['ClassTypes']['name'] ?? '') : ''));
-$sectionName = $invoice_data->section_name ?? ($firstDetail->Admission->Section->name ?? (is_array($data) ? ($data['Admission']['Section']['name'] ?? '') : ''));
-$mobile = $invoice_data->mobile ?? ($firstDetail->Admission->mobile ?? (is_array($data) ? ($data['Admission']['mobile'] ?? '') : ($data->mobile ?? '')));
-$studentImg = $invoice_data->student_img ?? ($firstDetail->Admission->student_img ?? (is_array($data) ? ($data['Admission']['student_img'] ?? '') : ''));
+$firstName = ($invoiceObj->first_name ?? null)
+    ?: ($admissionObj->first_name ?? null)
+    ?: ($firstDetail->first_name ?? null)
+    ?: ($dataArr['Admission']['first_name'] ?? ($dataArr['first_name'] ?? ''));
 
-$paymentMode = $invoice_data->payment_mode ?? ($firstDetail->payment_mode ?? (is_array($data) ? ($data['payment_mode'] ?? 'Cash') : ($data->payment_mode ?? 'Cash')));
+$lastName = ($invoiceObj->last_name ?? null)
+    ?: ($admissionObj->last_name ?? null)
+    ?: ($firstDetail->last_name ?? null)
+    ?: ($dataArr['Admission']['last_name'] ?? ($dataArr['last_name'] ?? ''));
 
-$totalAmount = $invoice_data->amount ?? $invoice_data->total_amount ?? ($isCollection ? $data->sum('total_amount') : (is_array($data) ? ($data['total_amount'] ?? 0) : ($data->total_amount ?? 0)));
-$totalDiscount = $invoice_data->discount ?? $invoice_data->discount_given ?? ($isCollection ? $data->sum('discount') : (is_array($data) ? ($data['discount'] ?? 0) : ($data->discount ?? 0)));
+$studentName = trim($firstName . ' ' . $lastName);
+
+$fatherName = ($invoiceObj->father_name ?? null)
+    ?: ($admissionObj->father_name ?? null)
+    ?: ($firstDetail->father_name ?? null)
+    ?: ($dataArr['Admission']['father_name'] ?? ($dataArr['father_name'] ?? ''));
+
+$className = ($invoiceObj->class_name ?? null)
+    ?: (isset($admissionObj->ClassTypes) ? ($admissionObj->ClassTypes->name ?? null) : null)
+    ?: ($dataArr['Admission']['ClassTypes']['name'] ?? '');
+
+$sectionName = ($invoiceObj->section_name ?? null)
+    ?: (isset($admissionObj->Section) ? ($admissionObj->Section->name ?? null) : null)
+    ?: ($dataArr['Admission']['Section']['name'] ?? '');
+
+$mobile = ($invoiceObj->mobile ?? null)
+    ?: ($admissionObj->mobile ?? null)
+    ?: ($firstDetail->mobile ?? null)
+    ?: ($dataArr['Admission']['mobile'] ?? ($dataArr['mobile'] ?? ''));
+
+$studentImg = ($invoiceObj->student_img ?? null)
+    ?: ($invoiceObj->image ?? null)
+    ?: ($admissionObj->student_img ?? null)
+    ?: ($admissionObj->image ?? null)
+    ?: ($dataArr['Admission']['student_img'] ?? '');
+
+$paymentMode = ($invoiceObj->payment_mode ?? null)
+    ?: ($firstDetail->payment_mode ?? null)
+    ?: ($dataArr['payment_mode'] ?? 'Cash');
+
+$totalAmount = ($invoiceObj->amount ?? null)
+    ?? ($invoiceObj->total_amount ?? null)
+    ?? ($isCollection ? $data->sum('total_amount') : ($firstDetail->total_amount ?? ($dataArr['total_amount'] ?? 0)));
+
+$totalDiscount = ($invoiceObj->discount ?? null)
+    ?? ($invoiceObj->discount_given ?? null)
+    ?? ($isCollection ? $data->sum('discount') : ($firstDetail->discount ?? ($dataArr['discount'] ?? 0)));
 @endphp
 <body>
     <style>
@@ -222,7 +267,7 @@ $totalDiscount = $invoice_data->discount ?? $invoice_data->discount_given ?? ($i
   
 <td style="width:59%;"><b>Amount In Word</b></td>
 <td style="width:24%;"></td>
-<td><b id="inWords"> : {{ $data['amount']['name'] ?? '' }}</b></td>
+<td><b id="inWords"> : {{ $dataArr['amount']['name'] ?? '' }}</b></td>
 
 </tr>
 
