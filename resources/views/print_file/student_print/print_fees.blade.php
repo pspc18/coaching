@@ -168,20 +168,20 @@
             border: 1px solid #374151;
         }
         .fee-table tbody td {
-            padding: 2.2px 7px;
+            padding: 2.6px 7px;
             font-size: 9px;
             color: #111827;
             border-left: 1px solid #374151;
             border-right: 1px solid #374151;
             border-top: none;
             border-bottom: none;
-            height: 3.8mm;
+            height: 4.4mm;
             vertical-align: middle;
         }
         .fee-table.compact-table tbody td {
-            padding: 1.5px 6px;
+            padding: 1.8px 6px;
             font-size: 8.2px;
-            height: 3.3mm;
+            height: 3.6mm;
         }
         .fee-table tfoot td {
             background: #f9fafb;
@@ -452,8 +452,8 @@
         ];
     }
 
-    $minReservedRows = 8;
-    $isCompactTable = count($collectedItems) > 8;
+    $minReservedRows = 10;
+    $isCompactTable = count($collectedItems) > 10;
     $copies = ['OFFICE COPY', 'PARENT COPY'];
 @endphp
 <body>
@@ -569,7 +569,7 @@
                     </thead>
                     <tbody>
                         @php $renderedCount = 0; @endphp
-                        @foreach(array_slice($collectedItems, 0, 8) as $idx => $fItem)
+                        @foreach(array_slice($collectedItems, 0, 10) as $idx => $fItem)
                             @php $renderedCount++; @endphp
                             <tr>
                                 <td class="text-center">{{ !empty($fItem['head']) ? ($idx + 1) : '' }}</td>
