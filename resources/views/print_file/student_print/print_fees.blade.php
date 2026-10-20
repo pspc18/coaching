@@ -13,6 +13,26 @@
 $getSetting=Helper::getSetting();
 $account=Helper::getQRCode($getSetting->account_id);
 
+$isCollection = $data instanceof \Illuminate\Support\Collection;
+$firstDetail = $isCollection ? $data->first() : (is_object($data) ? $data : null);
+
+$receiptNo = $invoice_data->invoice_no ?? $invoice_data->offline_receipt_no ?? ($firstDetail->receipt_no ?? (is_array($data) ? ($data['receipt_no'] ?? '-') : ($data->receipt_no ?? '-')));
+
+$rawDate = $invoice_data->payment_date ?? $invoice_data->date ?? ($firstDetail->date ?? (is_array($data) ? ($data['date'] ?? null) : ($data->date ?? null)));
+$feeDate = !empty($rawDate) ? date('d-m-Y', strtotime($rawDate)) : '-';
+$feeMonth = !empty($rawDate) ? \Carbon\Carbon::parse($rawDate)->format('F') : '-';
+
+$studentName = trim(($invoice_data->first_name ?? ($firstDetail->Admission->first_name ?? (is_array($data) ? ($data['Admission']['first_name'] ?? '') : ($data->first_name ?? '')))) . ' ' . ($invoice_data->last_name ?? ($firstDetail->Admission->last_name ?? (is_array($data) ? ($data['Admission']['last_name'] ?? ($data['last_name'] ?? '')) : ($data->last_name ?? '')))));
+$fatherName = $invoice_data->father_name ?? ($firstDetail->Admission->father_name ?? (is_array($data) ? ($data['Admission']['father_name'] ?? '') : ($data->father_name ?? '')));
+$className = $invoice_data->class_name ?? ($firstDetail->Admission->ClassTypes->name ?? (is_array($data) ? ($data['Admission']['ClassTypes']['name'] ?? '') : ''));
+$sectionName = $invoice_data->section_name ?? ($firstDetail->Admission->Section->name ?? (is_array($data) ? ($data['Admission']['Section']['name'] ?? '') : ''));
+$mobile = $invoice_data->mobile ?? ($firstDetail->Admission->mobile ?? (is_array($data) ? ($data['Admission']['mobile'] ?? '') : ($data->mobile ?? '')));
+$studentImg = $invoice_data->student_img ?? ($firstDetail->Admission->student_img ?? (is_array($data) ? ($data['Admission']['student_img'] ?? '') : ''));
+
+$paymentMode = $invoice_data->payment_mode ?? ($firstDetail->payment_mode ?? (is_array($data) ? ($data['payment_mode'] ?? 'Cash') : ($data->payment_mode ?? 'Cash')));
+
+$totalAmount = $invoice_data->amount ?? $invoice_data->total_amount ?? ($isCollection ? $data->sum('total_amount') : (is_array($data) ? ($data['total_amount'] ?? 0) : ($data->total_amount ?? 0)));
+$totalDiscount = $invoice_data->discount ?? $invoice_data->discount_given ?? ($isCollection ? $data->sum('discount') : (is_array($data) ? ($data['discount'] ?? 0) : ($data->discount ?? 0)));
 @endphp
 <body>
     <style>
@@ -97,9 +117,9 @@ $account=Helper::getQRCode($getSetting->account_id);
 <div class="row">
 
 <div class="col-sm-2"><b>Name</b></div>
-<div class="col-sm-3 border-right"><b>: {{ $data['Admission']['first_name'] ?? '' }} {{ $data['last_name'] ?? '' }}</b></div>
+<div class="col-sm-3 border-right"><b>: {{ $studentName }}</b></div>
 <div class="col-sm-2"><b>Father's Name</b></div>
-<div class="col-sm-3"><b>: {{ $data['Admission']['father_name'] ?? '' }}</b></div>
+<div class="col-sm-3"><b>: {{ $fatherName }}</b></div>
 
 <div></div>
 </div>
@@ -108,20 +128,20 @@ $account=Helper::getQRCode($getSetting->account_id);
 </div>
 <div class="row">
 <div class="col-sm-2 border-left"><b>Class</b></div>
-<div class="col-sm-3 border-right"><b>: {{ $data['Admission']['ClassTypes']['name'] ?? '' }} 
-@if(!empty($data['Admission']['Section']['name']))
-({{ $data['Admission']['Section']['name'] ?? '' }})
+<div class="col-sm-3 border-right"><b>: {{ $className }} 
+@if(!empty($sectionName))
+({{ $sectionName }})
 @endif
 
 </b>
 </div>
 <div class="col-sm-2"><b>Mobile</b></div>
-<div class="col-sm-3"><b>: {{ $data['Admission']['mobile'] ?? '' }}</b></div>
+<div class="col-sm-3"><b>: {{ $mobile }}</b></div>
 </div>
 <div class="row">
 
 <div class="col-sm-2"><b>Fee Month</b></div>
-<div class="col-sm-3 border-right"><b>: {{ \Carbon\Carbon::parse($data->date)->format('F') }}</b></div>
+<div class="col-sm-3 border-right"><b>: {{ $feeMonth }}</b></div>
 </div>
 <div class="row">
 <div class="col-sm-2"><b></b></div>
@@ -129,9 +149,9 @@ $account=Helper::getQRCode($getSetting->account_id);
 <div class="col-sm-2"></div>
 <div class="col-sm-3"></div>
 
-<div class="col-sm-2 border-left" style="margin-top: -72px;"><span class="style73">@if(!empty($data['Admission']['student_img']))
+<div class="col-sm-2 border-left" style="margin-top: -72px;"><span class="style73">@if(!empty($studentImg))
 
-    <img class="student_img" src="{{ env('IMAGE_SHOW_PATH').'/student_image/'.$data['Admission']['student_img'] ?? '' }}" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
+    <img class="student_img" src="{{ env('IMAGE_SHOW_PATH').'/student_image/'.$studentImg }}" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
     @else
     <img class="student_img" src="{{ env('IMAGE_SHOW_PATH').'/student_icon.png' }}" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
     @endif </span></div>
@@ -149,10 +169,10 @@ $account=Helper::getQRCode($getSetting->account_id);
         <th colspan="3">Amount</th>
     </tr>
     <tr style="border-top:2px solid black;">
-        <td colspan="3">{{ $data['receipt_no']  }}</td>
-        <td colspan="3">{{date('d-m-Y', strtotime($data['date'])) ?? '' }}</td>
-        <td colspan="3">{{ $data['discount'] ?? '-' }}</td>
-        <td colspan="3">{{ $data['total_amount'] ?? '' }}</td>
+        <td colspan="3">{{ $receiptNo }}</td>
+        <td colspan="3">{{ $feeDate }}</td>
+        <td colspan="3">{{ $totalDiscount ? $totalDiscount : '-' }}</td>
+        <td colspan="3">{{ $totalAmount }}</td>
     </tr>
 </table>
 
@@ -169,7 +189,7 @@ $account=Helper::getQRCode($getSetting->account_id);
 <td colspan="3"><b>Payment Mode</b></td>
 <td colspan="3"></td>
 <td colspan="3"></td>
-<td colspan="3"><b>: Cash</b></td>
+<td colspan="3"><b>: {{ $paymentMode }}</b></td>
 
 
 
@@ -181,14 +201,14 @@ $account=Helper::getQRCode($getSetting->account_id);
 <td colspan="3"><b>Total Discount</b></td>
 <td colspan="3"style="width:145px;"></td>
 <td colspan="3"></td>
-<td colspan="3" ><b>:</b> <b>{{ $data['discount'] ?? '-' }}</b></td>
+<td colspan="3" ><b>:</b> <b>{{ $totalDiscount ? $totalDiscount : '-' }}</b></td>
 </tr>
 <tr>
    
 <td colspan="3"><b>Total Paid Amount</b></td>
 <td colspan="3"style="width:145px;"></td>
 <td colspan="3"></td>
-<td colspan="3" ><b>:</b> <b id="inNumber">{{ $data->total_amount ?? '' }}</b></td>
+<td colspan="3" ><b>:</b> <b id="inNumber">{{ $totalAmount }}</b></td>
 
 </tr>
 
