@@ -545,16 +545,33 @@
     flex: 1;
 }
 .tx-icon-pill {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: #e0f2fe;
-    color: #0284c7;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
     flex-shrink: 0;
+    line-height: 1;
+    text-align: center;
+    padding: 2px;
+}
+.tx-date-day {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0369a1;
+    letter-spacing: -0.2px;
+}
+.tx-date-mon {
+    font-size: 7.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0284c7;
+    margin-top: 1px;
 }
 .tx-item-details {
     min-width: 0;
@@ -823,8 +840,13 @@
                     @forelse($head->payments as $payment)
                         <div class="tx-item-card">
                             <div class="tx-item-left">
-                                <div class="tx-icon-pill">
-                                    <i class="fa fa-receipt"></i>
+                                <div class="tx-icon-pill" title="{{ !empty($payment->date) ? date('d-m-Y', strtotime($payment->date)) : '' }}">
+                                    @if(!empty($payment->date))
+                                        <span class="tx-date-day">{{ date('d', strtotime($payment->date)) }}</span>
+                                        <span class="tx-date-mon">{{ date('M', strtotime($payment->date)) }}</span>
+                                    @else
+                                        <i class="fa fa-calendar-check-o" style="font-size: 11px;"></i>
+                                    @endif
                                 </div>
                                 <div class="tx-item-details">
                                     <div class="tx-receipt-title">
