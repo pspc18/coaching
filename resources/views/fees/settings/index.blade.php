@@ -220,26 +220,50 @@
     margin: 2px 0 0 0;
 }
 .settings-card-body {
-    padding: 16px 20px 24px 20px;
+    padding: 12px 16px 16px 16px;
 }
 
-/* Live Receipt Preview Showcase Box */
+/* Sub-section Divider Block */
+.settings-sub-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #fcfdfe;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+.settings-sub-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #002C54;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Live Receipt Preview Showcase Box (Compact) */
 .receipt-preview-banner {
     background: linear-gradient(135deg, #051e38 0%, #002C54 100%);
     border: 1px solid #1e40af;
     border-radius: 4px;
-    padding: 12px 18px;
-    margin-bottom: 20px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     color: #ffffff;
 }
 .preview-text-col {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 .preview-kicker {
     font-size: 10px;
@@ -250,43 +274,58 @@
 }
 .preview-number-badge {
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: #38bdf8;
     background: rgba(0,0,0,.35);
     border: 1px dashed rgba(56,189,248,.6);
-    padding: 4px 14px;
-    border-radius: 4px;
+    padding: 2px 10px;
+    border-radius: 3px;
     display: inline-block;
     letter-spacing: .05em;
-    margin-top: 4px;
 }
 .preview-note {
     font-size: 10.5px;
     color: #cbd5e1;
-    margin: 4px 0 0 0;
+    margin: 0;
 }
 
-/* Grid & Form Group Styles */
+/* Grid & Form Group Styles (Compact col-3 style) */
+.form-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
 .form-grid-3 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
 }
 .form-grid-2 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+@media (max-width: 1199px) {
+    .form-grid-4, .form-grid-3, .form-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 767px) {
+    .form-grid-4, .form-grid-3, .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
 }
 .form-group-erp {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 .form-label-erp {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #334155;
     text-transform: uppercase;
@@ -294,15 +333,15 @@
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 .form-label-erp .badge-req {
     color: #ef4444;
 }
 .form-control-erp {
-    height: 32px;
-    padding: 4px 10px;
-    font-size: 12px;
+    height: 30px;
+    padding: 3px 8px;
+    font-size: 11.5px;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
     background: #ffffff;
@@ -321,30 +360,36 @@
     color: #64748b;
 }
 .form-hint {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #64748b;
-    margin-top: 2px;
-    line-height: 1.35;
+    margin-top: 1px;
+    line-height: 1.25;
 }
 
-/* Radio Cards (Selectable Policy Cards) */
+/* Radio Cards (Selectable Policy Cards - Compact col-3 sizing) */
 .radio-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+@media (max-width: 1199px) {
+    .radio-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 .radio-card {
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 12px 14px;
+    border-radius: 3px;
+    padding: 8px 10px;
     background: #ffffff;
     cursor: pointer;
     transition: all .15s ease;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     position: relative;
     user-select: none;
+    margin-bottom: 0;
 }
 .radio-card:hover {
     border-color: #93c5fd;
@@ -356,7 +401,7 @@
     box-shadow: 0 0 0 1px #002C54;
 }
 .radio-card input[type="radio"] {
-    margin-top: 3px;
+    margin-top: 2px;
     cursor: pointer;
     accent-color: #002C54;
 }
@@ -365,53 +410,57 @@
     flex-direction: column;
 }
 .radio-card-title {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #002C54;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 .radio-card-desc {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #64748b;
-    line-height: 1.35;
+    line-height: 1.25;
     margin: 0;
 }
 
-/* Toggle Switch Styling */
+/* Toggle Switch Styling (Compact) */
 .switch-group-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 14px;
+    padding: 7px 10px;
     border: 1px solid #e2e8f0;
     border-radius: 3px;
-    background: #f8fafc;
-    margin-bottom: 10px;
+    background: #ffffff;
+    margin-bottom: 0;
+    gap: 8px;
 }
 .switch-label-wrap {
     display: flex;
     flex-direction: column;
 }
 .switch-label-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
+    line-height: 1.2;
 }
 .switch-label-sub {
-    font-size: 10.5px;
+    font-size: 9.5px;
     color: #64748b;
     margin: 1px 0 0 0;
+    line-height: 1.2;
 }
 .switch-ctrl {
     position: relative;
     display: inline-block;
-    width: 44px;
-    height: 24px;
+    width: 38px;
+    height: 20px;
     flex-shrink: 0;
+    margin: 0;
 }
 .switch-ctrl input {
     opacity: 0;
@@ -424,13 +473,13 @@
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: #cbd5e1;
     transition: .2s;
-    border-radius: 24px;
+    border-radius: 20px;
 }
 .switch-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 14px;
+    width: 14px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -442,7 +491,7 @@
     background-color: #10b981;
 }
 .switch-ctrl input:checked + .switch-slider:before {
-    transform: translateX(20px);
+    transform: translateX(18px);
 }
 
 /* Checkbox Chips Grid for Payment Modes */
@@ -685,100 +734,121 @@
                             </div>
 
                             <div class="settings-card-body">
-                                {{-- Live Receipt Preview Showcase Box --}}
+                                {{-- Live Receipt Preview Showcase Box (Compact Single Row) --}}
                                 <div class="receipt-preview-banner">
                                     <div class="preview-text-col">
-                                        <span class="preview-kicker"><i class="fa fa-eye"></i> Live Interactive Receipt Preview</span>
-                                        <div>
-                                            <span class="preview-number-badge" id="liveReceiptPreview">{{ $samplePreview }}</span>
-                                        </div>
-                                        <p class="preview-note">This simulated receipt number updates in real-time as you modify the prefix, digits, or session options below.</p>
+                                        <span class="preview-kicker"><i class="fa fa-eye"></i> Live Receipt Preview:</span>
+                                        <span class="preview-number-badge" id="liveReceiptPreview">{{ $samplePreview }}</span>
+                                        <span class="preview-note">Updates in real-time as you change prefix, padding, or session options.</span>
                                     </div>
                                     <div>
-                                        <button type="button" class="btn btn-sm btn-outline-light" id="btnTestPreview" style="font-size: 11px;">
+                                        <button type="button" class="btn btn-sm btn-outline-light py-1 px-2" id="btnTestPreview" style="font-size: 10.5px;">
                                             <i class="fa fa-refresh"></i> Refresh Preview
                                         </button>
                                     </div>
                                 </div>
 
-                                {{-- Number Generation Mode (Single Unified Auto + Manual Mode) --}}
-                                <label class="form-label-erp mb-2">Receipt Numbering Mode</label>
-                                <div class="mb-3">
-                                    <label class="radio-card selected" style="cursor: default;">
-                                        <input type="radio" name="receipt_number_type" value="both" checked>
-                                        <div class="radio-card-content">
-                                            <span class="radio-card-title"><i class="fa fa-magic"></i> Auto + Manual Mode</span>
-                                            <p class="radio-card-desc">System automatically generates the next sequential receipt number session-wise, and also allows manual receipt number entry when needed.</p>
+                                {{-- Section 1: Mode, Prefix, Padding & Auto Counter (4 Columns: col-3 - 3 - 3 - 3) --}}
+                                <div class="settings-sub-section">
+                                    <div class="settings-sub-title">
+                                        <i class="fa fa-sliders"></i> 1. Numbering Mode & Format Configuration
+                                    </div>
+                                    <div class="row">
+                                        {{-- Col 1: Receipt Numbering Mode (col-3) --}}
+                                        <div class="col-lg-3 col-md-6 mb-2 mb-lg-0">
+                                            <div class="form-group-erp">
+                                                <label class="form-label-erp">Receipt Numbering Mode</label>
+                                                <label class="radio-card selected" style="cursor: default; padding: 6px 10px;">
+                                                    <input type="radio" name="receipt_number_type" value="both" checked>
+                                                    <div class="radio-card-content">
+                                                        <span class="radio-card-title"><i class="fa fa-magic"></i> Auto + Manual Mode</span>
+                                                        <p class="radio-card-desc">Auto session sequence + manual entry allowed</p>
+                                                    </div>
+                                                </label>
+                                            </div>
                                         </div>
-                                    </label>
+
+                                        {{-- Col 2: Receipt Prefix (col-3) --}}
+                                        <div class="col-lg-3 col-md-6 mb-2 mb-lg-0">
+                                            <div class="form-group-erp">
+                                                <label class="form-label-erp" for="receipt_prefix">Receipt Prefix</label>
+                                                <input type="text" class="form-control-erp preview-trigger" id="receipt_prefix" name="receipt_prefix" 
+                                                       value="{{ old('receipt_prefix', $setting->receipt_prefix) }}" placeholder="e.g. REC-, COACH-">
+                                                <span class="form-hint">Prefix before number (e.g. <code>REC-</code>)</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Col 3: Digits Padding Length (col-3) --}}
+                                        <div class="col-lg-3 col-md-6 mb-2 mb-lg-0">
+                                            <div class="form-group-erp">
+                                                <label class="form-label-erp" for="receipt_digit_padding">Digits Padding Length <span class="badge-req">*</span></label>
+                                                <select class="form-control-erp preview-trigger" id="receipt_digit_padding" name="receipt_digit_padding">
+                                                    <option value="3" {{ (int) $setting->receipt_digit_padding === 3 ? 'selected' : '' }}>3 Digits (e.g. 001)</option>
+                                                    <option value="4" {{ (int) $setting->receipt_digit_padding === 4 ? 'selected' : '' }}>4 Digits (e.g. 0001) - Standard</option>
+                                                    <option value="5" {{ (int) $setting->receipt_digit_padding === 5 ? 'selected' : '' }}>5 Digits (e.g. 00001)</option>
+                                                    <option value="6" {{ (int) $setting->receipt_digit_padding === 6 ? 'selected' : '' }}>6 Digits (e.g. 000001)</option>
+                                                </select>
+                                                <span class="form-hint">Leading zeros padding length</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Col 4: Auto Session Counter Status (col-3) --}}
+                                        <div class="col-lg-3 col-md-6">
+                                            <input type="hidden" name="receipt_reset_cycle" value="session">
+                                            <div class="form-group-erp">
+                                                <label class="form-label-erp">Session Counter ({{ $sessionName }})</label>
+                                                <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 3px; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                    <div style="font-size: 10.5px; color: #166534; font-weight: 700; line-height: 1.25;">
+                                                        <i class="fa fa-check-circle"></i> Auto FY Reset<br>
+                                                        <span style="font-weight: 500; font-size: 9.5px; color: #15803d;">From Fees Table</span>
+                                                    </div>
+                                                    <div style="text-align: right; line-height: 1.25;">
+                                                        <span class="badge badge-light" style="border: 1px solid #bbf7d0; font-size: 10px; padding: 2px 6px; color: #166534;">
+                                                            Used: #{{ $currentCounter }}
+                                                        </span>
+                                                        <span class="badge badge-success" style="font-size: 10px; padding: 2px 6px; display: inline-block; margin-top: 2px;">
+                                                            Next: #{{ $nextCounter }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {{-- Format Parameters Grid (Prefix & Digits Padding Only) --}}
-                                <div class="form-grid-2">
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="receipt_prefix">Receipt Prefix</label>
-                                        <input type="text" class="form-control-erp preview-trigger" id="receipt_prefix" name="receipt_prefix" 
-                                               value="{{ old('receipt_prefix', $setting->receipt_prefix) }}" placeholder="e.g. REC-, COACH-, FEE/">
-                                        <span class="form-hint">Text before the number (e.g. <code>REC-</code> or <code>ARISE/</code>)</span>
+                                {{-- Section 2: Date & Session Inclusion Options (col-3 - 3) --}}
+                                <div class="settings-sub-section mb-0">
+                                    <div class="settings-sub-title">
+                                        <i class="fa fa-calendar"></i> 2. Date & Session Inclusion Options
                                     </div>
-
-                                    <div class="form-group-erp">
-                                        <label class="form-label-erp" for="receipt_digit_padding">Digits Padding Length <span class="badge-req">*</span></label>
-                                        <select class="form-control-erp preview-trigger" id="receipt_digit_padding" name="receipt_digit_padding">
-                                            <option value="3" {{ (int) $setting->receipt_digit_padding === 3 ? 'selected' : '' }}>3 Digits (e.g. 001)</option>
-                                            <option value="4" {{ (int) $setting->receipt_digit_padding === 4 ? 'selected' : '' }}>4 Digits (e.g. 0001) - Standard</option>
-                                            <option value="5" {{ (int) $setting->receipt_digit_padding === 5 ? 'selected' : '' }}>5 Digits (e.g. 00001)</option>
-                                            <option value="6" {{ (int) $setting->receipt_digit_padding === 6 ? 'selected' : '' }}>6 Digits (e.g. 000001)</option>
-                                        </select>
-                                        <span class="form-hint">Minimum number of numeric digits with leading zeros</span>
-                                    </div>
-                                </div>
-
-                                {{-- Date/Session Inclusion Switches --}}
-                                <div class="form-grid-2">
-                                    <div class="switch-group-row">
-                                        <div class="switch-label-wrap">
-                                            <span class="switch-label-title">Include Academic Session in Receipt Number</span>
-                                            <span class="switch-label-sub">Adds session year (e.g. <code>{{ $sessionName }}</code>) inside the receipt string</span>
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-6 mb-2 mb-lg-0">
+                                            <div class="switch-group-row">
+                                                <div class="switch-label-wrap">
+                                                    <span class="switch-label-title">Include Academic Session</span>
+                                                    <span class="switch-label-sub">Adds session (<code>{{ $sessionName }}</code>)</span>
+                                                </div>
+                                                <label class="switch-ctrl">
+                                                    <input type="checkbox" name="receipt_include_session" value="1" class="preview-trigger" 
+                                                           {{ $setting->receipt_include_session ? 'checked' : '' }}>
+                                                    <span class="switch-slider"></span>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <label class="switch-ctrl">
-                                            <input type="checkbox" name="receipt_include_session" value="1" class="preview-trigger" 
-                                                   {{ $setting->receipt_include_session ? 'checked' : '' }}>
-                                            <span class="switch-slider"></span>
-                                        </label>
-                                    </div>
 
-                                    <div class="switch-group-row">
-                                        <div class="switch-label-wrap">
-                                            <span class="switch-label-title">Include Month in Receipt Number</span>
-                                            <span class="switch-label-sub">Adds 2-digit collection month (e.g. <code>{{ date('m') }}</code>)</span>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="switch-group-row">
+                                                <div class="switch-label-wrap">
+                                                    <span class="switch-label-title">Include Collection Month</span>
+                                                    <span class="switch-label-sub">Adds 2-digit month (<code>{{ date('m') }}</code>)</span>
+                                                </div>
+                                                <label class="switch-ctrl">
+                                                    <input type="checkbox" name="receipt_include_month" value="1" class="preview-trigger" 
+                                                           {{ $setting->receipt_include_month ? 'checked' : '' }}>
+                                                    <span class="switch-slider"></span>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <label class="switch-ctrl">
-                                            <input type="checkbox" name="receipt_include_month" value="1" class="preview-trigger" 
-                                                   {{ $setting->receipt_include_month ? 'checked' : '' }}>
-                                            <span class="switch-slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {{-- Automatic Session-Wise Sequence Info (Derived directly from Fees Invoice Table) --}}
-                                <input type="hidden" name="receipt_reset_cycle" value="session">
-                                <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 3px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                                    <div>
-                                        <div style="font-size: 12px; font-weight: 700; color: #166534;">
-                                            <i class="fa fa-check-circle mr-1"></i> Automatic Session-Wise Receipt Counter (No Manual Reset Required)
-                                        </div>
-                                        <div style="font-size: 11px; color: #15803d; margin-top: 2px;">
-                                            Receipt numbers are automatically counted session-wise from the fees collection table. On every new financial year / academic session, the year and sequence (starting from <code>0001</code>) update automatically.
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="badge badge-light" style="border: 1px solid #bbf7d0; font-size: 11px; padding: 5px 9px; color: #166534;">
-                                            Session <strong>{{ $sessionName }}</strong> Count: <strong>#{{ $currentCounter }}</strong>
-                                        </span>
-                                        <span class="badge badge-success" style="font-size: 11px; padding: 5px 9px;">
-                                            Next Receipt: <strong>#{{ $nextCounter }}</strong>
-                                        </span>
                                     </div>
                                 </div>
                             </div>
