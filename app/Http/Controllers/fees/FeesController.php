@@ -2396,7 +2396,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'min_partial_amount'            => 'nullable|numeric|min:0',
             'min_deposit_percentage'        => 'nullable|numeric|min:0|max:100',
             'max_discount_percentage'       => 'nullable|numeric|min:0|max:100',
-            'receipt_layout'                => 'required|in:a4_single,a4_dual,thermal_pos',
+            'receipt_layout'                => 'required|in:a4_single,a4_dual',
             'receipt_header_title'          => 'nullable|string|max:100',
             'due_reminder_days_before'      => 'nullable|integer|min:1|max:30',
         ]);

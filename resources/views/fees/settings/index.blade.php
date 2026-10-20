@@ -926,43 +926,39 @@
                         </div>
 
                         {{-- ============================================================
-                             TAB 5: RECEIPT PRINT & LETTERHEAD FORMAT
+                             TAB 3: RECEIPT PRINT & LETTERHEAD FORMAT
                              ============================================================ --}}
                         <div class="tab-pane-content" id="tab-print" style="display: none;">
                             <div class="settings-section-header">
                                 <div>
                                     <h2 class="section-title"><i class="fa fa-print"></i> Receipt Print & Letterhead Format</h2>
-                                    <p class="section-desc">Choose paper layout (Full A4, Dual Student/Office Copy, Thermal POS slip), logos, and terms.</p>
+                                    <p class="section-desc">Choose paper layout (Dual Student/Office Copy or Standard Full A4), logos, and terms.</p>
                                 </div>
                             </div>
 
                             <div class="settings-card-body">
                                 {{-- Layout Selection Cards --}}
                                 <label class="form-label-erp mb-2">Receipt Paper Layout <span class="badge-req">*</span></label>
-                                <div class="layout-cards-grid">
-                                    <label class="layout-card {{ $setting->receipt_layout === 'a4_dual' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_layout" value="a4_dual" style="display:none;" 
-                                               {{ $setting->receipt_layout === 'a4_dual' ? 'checked' : '' }}>
-                                        <div class="layout-icon-box"><i class="fa fa-columns"></i></div>
-                                        <span class="layout-title">Dual Copy (A4 Half Sheet)</span>
-                                        <p class="layout-desc">Prints Student Copy & Office Copy side-by-side on single A4 sheet. Saves 50% paper!</p>
-                                    </label>
+                                <div class="row mb-3">
+                                    <div class="col-lg-3 col-md-6 mb-2 mb-lg-0">
+                                        <label class="layout-card {{ ($setting->receipt_layout ?? 'a4_dual') !== 'a4_single' ? 'selected' : '' }} mb-0 h-100">
+                                            <input type="radio" name="receipt_layout" value="a4_dual" style="display:none;" 
+                                                   {{ ($setting->receipt_layout ?? 'a4_dual') !== 'a4_single' ? 'checked' : '' }}>
+                                            <div class="layout-icon-box"><i class="fa fa-columns"></i></div>
+                                            <span class="layout-title">Dual Copy (A4 Half Sheet)</span>
+                                            <p class="layout-desc">Prints Student Copy & Office Copy on single A4 sheet. Saves 50% paper!</p>
+                                        </label>
+                                    </div>
 
-                                    <label class="layout-card {{ $setting->receipt_layout === 'a4_single' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_layout" value="a4_single" style="display:none;" 
-                                               {{ $setting->receipt_layout === 'a4_single' ? 'checked' : '' }}>
-                                        <div class="layout-icon-box"><i class="fa fa-file-text-o"></i></div>
-                                        <span class="layout-title">Standard Full A4</span>
-                                        <p class="layout-desc">Full page detailed invoice with itemized breakdown and institutional letterhead.</p>
-                                    </label>
-
-                                    <label class="layout-card {{ $setting->receipt_layout === 'thermal_pos' ? 'selected' : '' }}">
-                                        <input type="radio" name="receipt_layout" value="thermal_pos" style="display:none;" 
-                                               {{ $setting->receipt_layout === 'thermal_pos' ? 'checked' : '' }}>
-                                        <div class="layout-icon-box"><i class="fa fa-ticket"></i></div>
-                                        <span class="layout-title">Thermal POS Slip (80mm)</span>
-                                        <p class="layout-desc">Compact 3-inch roll format for fast thermal receipt printers at busy counters.</p>
-                                    </label>
+                                    <div class="col-lg-3 col-md-6">
+                                        <label class="layout-card {{ $setting->receipt_layout === 'a4_single' ? 'selected' : '' }} mb-0 h-100">
+                                            <input type="radio" name="receipt_layout" value="a4_single" style="display:none;" 
+                                                   {{ $setting->receipt_layout === 'a4_single' ? 'checked' : '' }}>
+                                            <div class="layout-icon-box"><i class="fa fa-file-text-o"></i></div>
+                                            <span class="layout-title">Standard Full A4</span>
+                                            <p class="layout-desc">Full page detailed invoice with itemized breakdown and institutional letterhead.</p>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 {{-- Print Elements Toggles --}}
