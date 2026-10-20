@@ -503,34 +503,121 @@
 /* Expandable Transactions Drawer inside Card */
 .tx-drawer-box {
     display: none;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px dashed #cbd5e1;
+    margin-top: 10px;
     background: #f8fafc;
-    border-radius: 3px;
-    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
 }
 .tx-drawer-box.show {
     display: block;
 }
-.tx-item-row {
+.tx-drawer-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
+    padding-bottom: 7px;
+    margin-bottom: 7px;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 10.5px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
-.tx-item-row:last-child {
+.tx-item-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+.tx-item-card:last-child {
     border-bottom: none;
+    padding-bottom: 2px;
 }
-.tx-receipt-badge {
+.tx-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+.tx-icon-pill {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+.tx-item-details {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.tx-receipt-title {
+    font-size: 11px;
     font-weight: 800;
     color: #002C54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+.tx-meta-sub {
+    font-size: 9.5px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1.2;
+}
+.tx-mode-tag {
+    font-size: 8.5px;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #334155;
+    padding: 1px 4px;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+.tx-item-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 .tx-amount-badge {
+    font-size: 12px;
     font-weight: 800;
     color: #16a34a;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+.tx-btn-view {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #002C54 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    text-decoration: none !important;
+    transition: all .12s ease;
+}
+.tx-btn-view:active {
+    transform: scale(0.92);
+    background: #f1f5f9;
 }
 
 /* Tab Panels */
@@ -729,22 +816,37 @@
 
                 {{-- Expandable Transactions Drawer --}}
                 <div class="tx-drawer-box" id="tx-drawer-{{ $head->fees_group_id }}">
-                    <div style="font-size: 9.5px; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 5px;">
-                        Transaction History ({{ $head->payments->count() }})
+                    <div class="tx-drawer-head">
+                        <span><i class="fa fa-history text-primary"></i> Payment Records</span>
+                        <span>{{ $head->payments->count() }} {{ Str::plural('Transaction', $head->payments->count()) }}</span>
                     </div>
                     @forelse($head->payments as $payment)
-                        <div class="tx-item-row">
-                            <div>
-                                <span class="tx-receipt-badge">{{ $payment->receipt_no ? 'Receipt #'.$payment->receipt_no : 'Payment' }}</span>
-                                <span style="color: #64748b; margin-left: 4px;">{{ !empty($payment->date) ? date('d M Y', strtotime($payment->date)) : '-' }}</span>
-                                <span style="font-size: 8.5px; background: #e2e8f0; color: #334155; padding: 1px 4px; border-radius: 2px; margin-left: 4px;">
-                                    {{ $payment->payment_mode ?: 'Cash' }}
-                                </span>
+                        <div class="tx-item-card">
+                            <div class="tx-item-left">
+                                <div class="tx-icon-pill">
+                                    <i class="fa fa-receipt"></i>
+                                </div>
+                                <div class="tx-item-details">
+                                    <div class="tx-receipt-title">
+                                        {{ $payment->receipt_no ? 'Receipt #'.$payment->receipt_no : 'Fee Payment' }}
+                                    </div>
+                                    <div class="tx-meta-sub">
+                                        <span><i class="fa fa-calendar-o"></i> {{ !empty($payment->date) ? date('d M Y', strtotime($payment->date)) : '-' }}</span>
+                                        <span class="tx-mode-tag">{{ $payment->payment_mode ?: 'Cash' }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="tx-amount-badge">+₹{{ number_format((float) $payment->paid_amount, 2) }}</span>
+                            <div class="tx-item-right">
+                                <span class="tx-amount-badge">+₹{{ number_format((float) $payment->paid_amount, 2) }}</span>
+                                @if(!empty($payment->invoice_id))
+                                    <a href="{{ route('student.fees.receipt.view', $payment->invoice_id) }}" target="_blank" rel="noopener" class="tx-btn-view" title="View Receipt">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     @empty
-                        <div style="font-size: 10px; color: #94a3b8; text-align: center; padding: 4px 0;">
+                        <div style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px 0;">
                             No payment transactions recorded for this head.
                         </div>
                     @endforelse
