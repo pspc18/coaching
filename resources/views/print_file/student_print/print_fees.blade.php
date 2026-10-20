@@ -35,13 +35,14 @@
             overflow: hidden;
         }
 
-        /* Full-Page A4 Receipt Block - Utilizes full A4 portrait page for single copy mode */
+        /* Full-Page A4 Receipt Block - Utilizes full A4 portrait page on Page 1 without page-break overflow */
         .receipt-full {
             position: relative;
             width: 100%;
-            height: 282mm;
-            padding: 4mm 2mm 3mm 2mm;
-            page-break-inside: avoid;
+            height: 266mm;
+            padding: 3mm 2mm 2mm 2mm;
+            page-break-before: avoid;
+            page-break-after: avoid;
             overflow: hidden;
         }
         .receipt-full .org-header-table {
@@ -92,7 +93,7 @@
             font-size: 10.8px;
         }
         .receipt-full .receipt-watermark {
-            top: 105mm;
+            top: 98mm;
             opacity: 0.11;
         }
         .receipt-full .receipt-watermark img {
@@ -104,14 +105,14 @@
             padding: 6px 9px;
         }
         .receipt-full .fee-table tbody td {
-            padding: 4px 9px;
+            padding: 3.8px 9px;
             font-size: 10.2px;
-            height: 6.4mm;
+            height: 6.0mm;
         }
         .receipt-full .fee-table.compact-table tbody td {
-            padding: 3px 8px;
+            padding: 2.8px 8px;
             font-size: 9.4px;
-            height: 5.2mm;
+            height: 4.8mm;
         }
         .receipt-full .fee-table tfoot td {
             padding: 6px 9px;
@@ -130,7 +131,7 @@
             line-height: 1.35;
         }
         .receipt-full .sign-footer-wrap {
-            bottom: 5mm;
+            bottom: 3mm;
         }
         .receipt-full .sign-line-box {
             width: 190px;
@@ -615,8 +616,8 @@
     }
 
     $isSingleA4 = ($receiptLayout === 'a4_single');
-    $minReservedRows = $isSingleA4 ? 18 : 10;
-    $maxRenderRows = $isSingleA4 ? 22 : 10;
+    $minReservedRows = $isSingleA4 ? 16 : 10;
+    $maxRenderRows = $isSingleA4 ? 20 : 10;
     $isCompactTable = count($collectedItems) > $minReservedRows;
     $copies = $isSingleA4 ? [$receiptHeaderTitle] : ['OFFICE COPY', 'PARENT COPY'];
     $termsLines = !empty($receiptTerms) ? array_slice(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $receiptTerms))), 0, $isSingleA4 ? 4 : 2) : [];
