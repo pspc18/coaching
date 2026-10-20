@@ -15,22 +15,22 @@
             margin: 0;
             padding: 0;
             font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
-            font-size: 10px;
+            font-size: 9.8px;
             color: #111827;
             background: #ffffff;
-            line-height: 1.3;
+            line-height: 1.25;
         }
         .page-wrap {
             width: 100%;
             margin: 0 auto;
         }
 
-        /* Half-Page Receipt Block */
+        /* Half-Page Receipt Block - Fixed height so 2 copies + cut line always stay on 1 A4 page */
         .receipt-half {
             position: relative;
             width: 100%;
-            height: 136.5mm;
-            padding: 2mm 1mm 1mm 1mm;
+            height: 136mm;
+            padding: 1.5mm 1mm 1mm 1mm;
             page-break-inside: avoid;
             overflow: hidden;
         }
@@ -40,20 +40,20 @@
             width: 100%;
             border-collapse: collapse;
             border-bottom: 1.8px solid #8b2635;
-            padding-bottom: 6px;
-            margin-bottom: 8px;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
         }
         .org-header-table td {
             vertical-align: middle;
-            padding: 0 0 6px 0;
+            padding: 0 0 5px 0;
         }
         .org-logo-cell {
-            width: 54px;
+            width: 52px;
             padding-right: 10px !important;
         }
         .org-logo-box {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border: 1px solid #d1d5db;
             border-radius: 4px;
             text-align: center;
@@ -62,19 +62,19 @@
             background: #ffffff;
         }
         .org-logo-box img {
-            max-width: 44px;
-            max-height: 44px;
+            max-width: 42px;
+            max-height: 42px;
             display: block;
             margin: 1px auto;
         }
         .org-logo-initial {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: bold;
             color: #8b2635;
-            line-height: 46px;
+            line-height: 44px;
         }
         .org-title {
-            font-size: 17px;
+            font-size: 16.5px;
             font-weight: bold;
             color: #8b2635;
             text-transform: uppercase;
@@ -83,26 +83,26 @@
             line-height: 1.15;
         }
         .org-address {
-            font-size: 8.8px;
+            font-size: 8.5px;
             color: #374151;
             margin: 0 0 1px 0;
-            line-height: 1.25;
+            line-height: 1.2;
         }
         .org-contact {
-            font-size: 8.5px;
+            font-size: 8.2px;
             color: #4b5563;
             margin: 0;
         }
         .copy-badge-cell {
-            width: 135px;
+            width: 130px;
             text-align: right;
             vertical-align: top !important;
         }
         .copy-box {
             display: inline-block;
             border: 1.3px solid #1f2937;
-            padding: 3.5px 12px;
-            font-size: 9.5px;
+            padding: 3px 11px;
+            font-size: 9px;
             font-weight: bold;
             color: #111827;
             text-transform: uppercase;
@@ -110,22 +110,22 @@
             background: #ffffff;
         }
         .session-sub {
-            font-size: 8px;
+            font-size: 7.8px;
             color: #4b5563;
             font-weight: bold;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         /* Dotted Student Info Lines */
         .meta-lines-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .meta-lines-table td {
-            padding: 4.5px 0;
+            padding: 3.5px 0;
             vertical-align: bottom;
-            font-size: 10px;
+            font-size: 9.5px;
         }
         .field-wrap {
             width: 100%;
@@ -150,79 +150,69 @@
             width: 99%;
         }
 
-        /* 2-Column Fee Heads Grid */
-        .fee-grid-table {
+        /* Dynamic Tabular Fee Heads Section with Reserved Rows */
+        .fee-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 2px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-        .fee-grid-table > tbody > tr > td {
-            padding: 4px 0;
-            vertical-align: bottom;
-        }
-        .fee-item-row {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .fee-item-row td {
-            padding: 0;
-            vertical-align: bottom;
-        }
-        .fee-head-name {
-            font-size: 10px;
+        .fee-table th {
+            background: #f3f4f6;
             color: #111827;
-            width: 68%;
-            padding-right: 8px !important;
-        }
-        .fee-head-amt {
-            width: 32%;
-            border-bottom: 1px solid #374151;
-            text-align: right;
-            font-size: 10px;
+            font-size: 8.5px;
             font-weight: bold;
-            color: #111827;
-            padding: 0 4px 1px 4px !important;
-        }
-
-        /* Total Bar */
-        .total-bar-table {
-            width: 100%;
-            border-collapse: collapse;
-            border-top: 1.5px solid #1f2937;
-            margin-top: 4px;
-            padding-top: 5px;
-        }
-        .total-bar-table td {
-            padding: 6px 0 2px 0;
-            vertical-align: bottom;
-        }
-        .total-label {
-            font-size: 11.5px;
-            font-weight: bold;
-            color: #111827;
             text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 4px 7px;
+            border: 1px solid #374151;
+        }
+        .fee-table td {
+            padding: 3.2px 7px;
+            font-size: 9px;
+            color: #111827;
+            border: 1px solid #9ca3af;
+            height: 5.2mm;
+            vertical-align: middle;
+        }
+        .fee-table.compact-table td {
+            padding: 2px 6px;
+            font-size: 8.2px;
+            height: 4.1mm;
+        }
+        .fee-table tfoot td {
+            background: #f9fafb;
+            border: 1px solid #374151;
+            padding: 4px 7px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #111827;
+            height: auto;
+        }
+        .text-center {
+            text-align: center !important;
+        }
+        .text-right {
+            text-align: right !important;
+        }
+        .text-left {
+            text-align: left !important;
+        }
+        .fw-bold {
+            font-weight: bold;
         }
         .words-inline {
-            font-size: 8.8px;
+            font-size: 8.2px;
             font-weight: normal;
             color: #4b5563;
-            margin-left: 10px;
+            margin-left: 6px;
             font-style: italic;
-        }
-        .total-amt-line {
-            border-bottom: 1.3px solid #1f2937;
-            text-align: right;
-            font-size: 12px;
-            font-weight: bold;
-            color: #111827;
-            padding: 0 6px 2px 6px !important;
         }
 
         /* Payment Mode Sub-row */
         .payment-meta-row {
-            margin-top: 5px;
-            font-size: 8.8px;
+            margin-top: 3px;
+            font-size: 8.5px;
             color: #374151;
         }
         .payment-meta-row b {
@@ -248,9 +238,9 @@
         .sign-line-box {
             width: 165px;
             border-top: 1.2px solid #1f2937;
-            padding-top: 4px;
+            padding-top: 3.5px;
             text-align: center;
-            font-size: 9.5px;
+            font-size: 9.2px;
             color: #111827;
         }
         .sign-right-align {
@@ -260,13 +250,13 @@
         /* Middle Cut Here Dashed Line */
         .cut-divider {
             width: 100%;
-            height: 7mm;
+            height: 6.5mm;
             page-break-inside: avoid;
         }
         .cut-divider-table {
             width: 100%;
             border-collapse: collapse;
-            padding-top: 2mm;
+            padding-top: 1.8mm;
         }
         .cut-divider-table td {
             vertical-align: middle;
@@ -277,7 +267,7 @@
             height: 1px;
         }
         .cut-text {
-            font-size: 9px;
+            font-size: 8.8px;
             color: #4b5563;
             padding: 0 10px;
             text-align: center;
@@ -305,6 +295,7 @@
         ?: ($firstDetail->date ?? null)
         ?: ($dataArr['date'] ?? null);
     $feeDate = !empty($rawDate) ? date('d-m-Y', strtotime($rawDate)) : '-';
+    $feeMonth = !empty($rawDate) ? \Carbon\Carbon::parse($rawDate)->format('F Y') : '-';
 
     $firstName = ($invoiceObj->first_name ?? null)
         ?: ($admissionObj->first_name ?? null)
@@ -431,66 +422,35 @@
 
     $amountInWords = convertNumberToIndianWords($totalPaid);
 
-    // Build 6-slot 2-column fee heads array matching the reference layout
-    // First include all paid heads from this receipt, then fill remaining up to 6 slots with standard fee heads
-    $feeSlots = [];
+    // Build dynamic collected fee items list
+    $collectedItems = [];
     foreach ($detailsList as $item) {
         $hName = is_object($item)
             ? ($item->fees_group_name ?? ($item->FeesCollect->name ?? 'Tuition Fee'))
             : ($item['fees_group_name'] ?? 'Tuition Fee');
-        $hAmt = (float) (is_object($item) ? ($item->paid_amount ?? $item->total_amount ?? 0) : ($item['paid_amount'] ?? $item['total_amount'] ?? 0));
-        $feeSlots[] = [
-            'label' => $hName,
-            'amount' => $hAmt > 0 ? number_format($hAmt, 2) : '',
+        $hDisc = (float) (is_object($item) ? ($item->discount ?? 0) : ($item['discount'] ?? 0));
+        $hFine = (float) (is_object($item) ? ($item->installment_fine ?? 0) : ($item['installment_fine'] ?? 0));
+        $hPaid = (float) (is_object($item) ? ($item->paid_amount ?? $item->total_amount ?? 0) : ($item['paid_amount'] ?? $item['total_amount'] ?? 0));
+
+        $collectedItems[] = [
+            'head' => $hName,
+            'discount' => $hDisc,
+            'fine' => $hFine,
+            'paid' => $hPaid,
         ];
     }
 
-    if ($totalFine > 0) {
-        $feeSlots[] = [
-            'label' => 'Late Fine / Other',
-            'amount' => number_format($totalFine, 2),
+    if (empty($collectedItems)) {
+        $collectedItems[] = [
+            'head' => 'Academic / Tuition Fee (' . $feeMonth . ')',
+            'discount' => $totalDiscount,
+            'fine' => $totalFine,
+            'paid' => $totalPaid,
         ];
     }
 
-    if ($totalDiscount > 0) {
-        $feeSlots[] = [
-            'label' => 'Fee Discount (-)',
-            'amount' => '-' . number_format($totalDiscount, 2),
-        ];
-    }
-
-    $defaultHeads = [
-        'Tuition Fee',
-        'Admission / Annual Fee',
-        'Transport Fee',
-        'Exam Fee',
-        'Computer / Lab Fee',
-        'Late Fine / Other',
-    ];
-
-    $existingLabels = array_map(function ($s) {
-        return strtolower(trim($s['label']));
-    }, $feeSlots);
-
-    foreach ($defaultHeads as $defHead) {
-        if (count($feeSlots) >= 6) {
-            break;
-        }
-        if (!in_array(strtolower($defHead), $existingLabels)) {
-            $feeSlots[] = [
-                'label' => $defHead,
-                'amount' => '',
-            ];
-        }
-    }
-
-    while (count($feeSlots) < 6) {
-        $feeSlots[] = ['label' => 'Other Fee', 'amount' => ''];
-    }
-
-    // Pair into rows of 2 columns (max 4 rows = 8 items so it never overflows the reserved area)
-    $feeRows = array_chunk(array_slice($feeSlots, 0, 8), 2);
-
+    $minReservedRows = 5;
+    $isCompactTable = count($collectedItems) > 5;
     $copies = ['OFFICE COPY', 'PARENT COPY'];
 @endphp
 <body>
@@ -593,46 +553,50 @@
                     </tr>
                 </table>
 
-                {{-- 2-Column Fee Heads Section --}}
-                <table class="fee-grid-table">
+                {{-- Dynamic Tabular Fee Heads Section with Minimum 5 Reserved Rows --}}
+                <table class="fee-table {{ $isCompactTable ? 'compact-table' : '' }}">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;" class="text-center">S.No</th>
+                            <th style="width: 50%;" class="text-left">Fee Head / Particulars</th>
+                            <th style="width: 14%;" class="text-right">Discount (₹)</th>
+                            <th style="width: 13%;" class="text-right">Fine (₹)</th>
+                            <th style="width: 15%;" class="text-right">Amount (₹)</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        @foreach($feeRows as $pair)
+                        @php $renderedCount = 0; @endphp
+                        @foreach(array_slice($collectedItems, 0, 7) as $idx => $fItem)
+                            @php $renderedCount++; @endphp
                             <tr>
-                                <td style="width: 48%; padding-right: 18px;">
-                                    <table class="fee-item-row">
-                                        <tr>
-                                            <td class="fee-head-name">{{ $pair[0]['label'] ?? '' }}</td>
-                                            <td class="fee-head-amt">{!! !empty($pair[0]['amount']) ? '₹' . e($pair[0]['amount']) : '&nbsp;' !!}</td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td style="width: 4%;"></td>
-                                <td style="width: 48%;">
-                                    @if(isset($pair[1]))
-                                        <table class="fee-item-row">
-                                            <tr>
-                                                <td class="fee-head-name">{{ $pair[1]['label'] }}</td>
-                                                <td class="fee-head-amt">{!! !empty($pair[1]['amount']) ? '₹' . e($pair[1]['amount']) : '&nbsp;' !!}</td>
-                                            </tr>
-                                        </table>
-                                    @endif
-                                </td>
+                                <td class="text-center">{{ $idx + 1 }}</td>
+                                <td class="fw-bold">{{ $fItem['head'] }}</td>
+                                <td class="text-right">{{ $fItem['discount'] > 0 ? number_format($fItem['discount'], 2) : '-' }}</td>
+                                <td class="text-right">{{ $fItem['fine'] > 0 ? number_format($fItem['fine'], 2) : '-' }}</td>
+                                <td class="text-right fw-bold">₹{{ number_format($fItem['paid'], 2) }}</td>
                             </tr>
                         @endforeach
-                    </tbody>
-                </table>
 
-                {{-- TOTAL Bar --}}
-                <table class="total-bar-table">
-                    <tr>
-                        <td style="width: 72%;">
-                            <span class="total-label">TOTAL ₹</span>
-                            <span class="words-inline">({{ $amountInWords }})</span>
-                        </td>
-                        <td style="width: 28%;" class="total-amt-line">
-                            ₹{{ number_format($totalPaid, 2) }}
-                        </td>
-                    </tr>
+                        {{-- Reserved blank rows so at least 5 fee head slots are always visible --}}
+                        @for($r = $renderedCount; $r < $minReservedRows; $r++)
+                            <tr>
+                                <td class="text-center" style="color: #9ca3af;">{{ $r + 1 }}</td>
+                                <td>&nbsp;</td>
+                                <td class="text-right">&nbsp;</td>
+                                <td class="text-right">&nbsp;</td>
+                                <td class="text-right">&nbsp;</td>
+                            </tr>
+                        @endfor
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-left">
+                                TOTAL ₹
+                                <span class="words-inline">({{ $amountInWords }})</span>
+                            </td>
+                            <td class="text-right">₹{{ number_format($totalPaid, 2) }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
 
                 {{-- Payment Mode & Ref Line --}}
