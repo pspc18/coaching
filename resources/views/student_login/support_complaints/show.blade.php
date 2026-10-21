@@ -874,6 +874,57 @@
     color: #b91c1c;
 }
 
+/* WhatsApp-Style Real-Time Bubble States & Animations */
+@keyframes mobBubblePopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(6px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.mob-chat-row.is-new .mob-chat-bubble {
+    animation: mobBubblePopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mob-chat-row.is-sending .mob-chat-bubble {
+    opacity: 0.92;
+}
+.mob-chat-row.send-failed .mob-chat-bubble {
+    border-color: rgba(248, 113, 113, 0.55) !important;
+}
+.mob-tick-icon {
+    font-size: 9px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.mob-tick-pending {
+    color: #94a3b8;
+}
+.mob-tick-sent {
+    color: #38bdf8;
+}
+.mob-tick-failed {
+    color: #f87171;
+}
+.mob-composer-inline-error {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #b91c1c;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+}
+.mob-composer-inline-error.show {
+    display: flex;
+}
+
 /* Dark Mode Support */
 [data-theme="dark"] .mob-chat-card {
     background: #1e293b;
@@ -933,11 +984,6 @@
 @section('content')
 <div class="mob-complaint-chat-page">
 
-    @if(session('message'))
-        <div class="mob-chat-alert success" role="alert">
-            <i class="fa fa-check-circle"></i> {{ session('message') }}
-        </div>
-    @endif
     @if(session('error') || $errors->any())
         <div class="mob-chat-alert error" role="alert">
             <i class="fa fa-exclamation-circle"></i> {{ session('error') ?: $errors->first() }}
@@ -951,9 +997,9 @@
                 <a href="{{ url('student-complaints') }}" class="mob-back-btn" title="Back to Complaints">
                     <i class="fa fa-chevron-left"></i>
                 </a>
-                <div class="mob-chat-avatar tone-{{ $currentStatusMeta['tone'] }}">
+                <div class="mob-chat-avatar tone-{{ $currentStatusMeta['tone'] }}" id="mobHeaderAvatar">
                     <i class="fa {{ $catIcon }}"></i>
-                    <span class="mob-chat-online-dot {{ $canReply ? '' : 'closed' }}"></span>
+                    <span class="mob-chat-online-dot {{ $canReply ? '' : 'closed' }}" id="mobHeaderOnlineDot"></span>
                 </div>
                 <div class="mob-chat-title-wrap">
                     <h1 class="mob-chat-subject" title="{{ $complaint->subject }}">{{ $complaint->subject }}</h1>
@@ -965,8 +1011,9 @@
             </div>
 
             <div class="mob-chat-header-right">
-                <span class="mob-status-pill {{ $currentStatusMeta['badge_class'] }}">
-                    <i class="fa {{ $currentStatusMeta['icon'] }}"></i> {{ $currentStatusMeta['label'] }}
+                <span class="mob-status-pill {{ $currentStatusMeta['badge_class'] }}" id="mobHeaderStatusPill">
+                    <i class="fa {{ $currentStatusMeta['icon'] }}"></i>
+                    <span id="mobHeaderStatusText">{{ $currentStatusMeta['label'] }}</span>
                 </span>
                 <button type="button" class="mob-info-toggle-btn" id="btnToggleTicketMeta" title="Toggle Ticket Information">
                     <i class="fa fa-info"></i>
@@ -1015,7 +1062,7 @@
                 </div>
                 <div class="mob-info-box">
                     <span class="mob-info-box-lbl"><i class="fa fa-clock-o"></i> Last Activity</span>
-                    <span class="mob-info-box-val">{{ optional($complaint->last_replied_at)->format('d M Y, h:i A') ?: 'No replies' }}</span>
+                    <span class="mob-info-box-val" id="mobInfoLastActivity">{{ optional($complaint->last_replied_at)->format('d M Y, h:i A') ?: 'No replies' }}</span>
                 </div>
                 <div class="mob-info-box">
                     <span class="mob-info-box-lbl"><i class="fa fa-folder-open-o"></i> Category</span>
@@ -1023,16 +1070,21 @@
                 </div>
                 <div class="mob-info-box">
                     <span class="mob-info-box-lbl"><i class="fa fa-comments-o"></i> Priority & Msgs</span>
-                    <span class="mob-info-box-val">{{ $currentPriorityMeta['label'] }} · {{ $replyCount }} {{ \Illuminate\Support\Str::plural('msg', $replyCount) }}</span>
+                    <span class="mob-info-box-val" data-priority-label="{{ $currentPriorityMeta['label'] }}" id="mobInfoReplyCount">{{ $currentPriorityMeta['label'] }} · {{ $replyCount }} {{ \Illuminate\Support\Str::plural('msg', $replyCount) }}</span>
                 </div>
             </div>
         </div>
 
         {{-- 3. Scrollable Chat Conversation Canvas --}}
-        <div class="mob-chat-canvas" id="mobChatCanvas">
-            @php
-                $lastDateKey = null;
-            @endphp
+        @php
+            $lastDateKey = null;
+            $initialLastReplyId = (int) optional($complaint->replies->last())->id;
+        @endphp
+        <div class="mob-chat-canvas"
+             id="mobChatCanvas"
+             data-poll-url="{{ url('student-complaints/'.$complaint->id) }}"
+             data-submitted-as="{{ $submittedAs }}"
+             data-last-reply-id="{{ $initialLastReplyId }}">
 
             @forelse($complaint->replies as $reply)
                 @php
@@ -1059,13 +1111,13 @@
                 @endphp
 
                 @if($replyDate !== $lastDateKey)
-                    <div class="mob-chat-date-divider">
+                    <div class="mob-chat-date-divider" data-date-key="{{ $replyDate }}">
                         <span class="mob-chat-date-pill">{{ $dateHeading }}</span>
                     </div>
                     @php $lastDateKey = $replyDate; @endphp
                 @endif
 
-                <div class="mob-chat-row {{ $isStudent ? 'mine' : 'school' }}">
+                <div class="mob-chat-row {{ $isStudent ? 'mine' : 'school' }}" data-reply-id="{{ $reply->id }}">
                     @if(!$isStudent)
                         <div class="mob-msg-avatar" title="School Administration">
                             <i class="fa fa-headphones"></i>
@@ -1088,7 +1140,7 @@
                         <div class="mob-bubble-text">{{ $reply->message }}</div>
 
                         @if($reply->attachment_path)
-                            <div>
+                            <div class="mob-bubble-attach-wrap">
                                 <a class="mob-bubble-attachment" href="{{ url('support-complaint-attachment/'.$reply->id) }}" target="_blank" rel="noopener">
                                     <i class="fa fa-paperclip"></i>
                                     <span class="mob-attach-filename">{{ $reply->attachment_name ?: 'View Attachment' }}</span>
@@ -1098,9 +1150,9 @@
                         @endif
 
                         <div class="mob-bubble-meta">
-                            <span>{{ optional($reply->created_at)->format('h:i A') }}</span>
+                            <span class="mob-bubble-time">{{ optional($reply->created_at)->format('h:i A') }}</span>
                             @if($isStudent)
-                                <i class="fa fa-check-circle" style="color: #38bdf8; font-size: 9px;"></i>
+                                <i class="fa fa-check-circle mob-tick-icon mob-tick-sent" title="Sent"></i>
                             @endif
                         </div>
                     </div>
@@ -1112,7 +1164,7 @@
                     @endif
                 </div>
             @empty
-                <div class="mob-chat-empty">
+                <div class="mob-chat-empty" id="mobChatEmptyState">
                     <div class="mob-chat-empty-icon">
                         <i class="fa fa-comments-o"></i>
                     </div>
@@ -1125,52 +1177,57 @@
         </div>
 
         {{-- 4. Sticky Bottom Chat Composer or Locked Notice --}}
-        @if($canReply)
-            <div class="mob-chat-composer">
-                <form method="post" action="{{ url('student-complaints/'.$complaint->id.'/reply') }}" enctype="multipart/form-data" id="mobReplyForm">
-                    @csrf
+        <div class="mob-chat-composer" id="mobChatComposerWrap" style="{{ $canReply ? '' : 'display: none;' }}">
+            <form method="post" action="{{ url('student-complaints/'.$complaint->id.'/reply') }}" enctype="multipart/form-data" id="mobReplyForm" novalidate>
+                @csrf
 
-                    {{-- Selected File Preview Chip --}}
-                    <div class="mob-composer-file-chip" id="mobSelectedFileChip">
-                        <i class="fa fa-file-o"></i>
-                        <span class="mob-composer-file-name" id="mobSelectedFileName"></span>
-                        <button type="button" class="mob-composer-file-remove" id="btnRemoveAttachment" title="Remove attachment">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </div>
-
-                    <input type="file" name="attachment" id="mobReplyAttachment" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
-
-                    <div class="mob-composer-row">
-                        <label for="mobReplyAttachment" class="mob-attach-btn" title="Attach Image or PDF (Max 10MB)">
-                            <i class="fa fa-paperclip"></i>
-                        </label>
-
-                        <textarea name="message"
-                                  class="mob-composer-input"
-                                  id="mobReplyMessage"
-                                  rows="1"
-                                  maxlength="10000"
-                                  required
-                                  placeholder="Type a message..."></textarea>
-
-                        <button class="mob-send-btn" type="submit" id="mobReplySubmitBtn">
-                            <i class="fa fa-paper-plane"></i> Send
-                        </button>
-                    </div>
-                </form>
-            </div>
-        @else
-            <div class="mob-chat-locked-bar">
-                <div class="mob-chat-locked-text">
-                    <i class="fa fa-lock"></i>
-                    <span>Ticket is {{ strtolower($currentStatusMeta['label']) }} · Replies are closed</span>
+                {{-- Inline Error Toast inside Composer --}}
+                <div class="mob-composer-inline-error" id="mobComposerError">
+                    <span id="mobComposerErrorText">Unable to send message.</span>
+                    <button type="button" class="mob-composer-file-remove" id="btnDismissComposerError" title="Dismiss">
+                        <i class="fa fa-times"></i>
+                    </button>
                 </div>
-                <a href="{{ url('student-complaints') }}" class="mob-btn-back-compact">
-                    <i class="fa fa-arrow-left"></i> Back
-                </a>
+
+                {{-- Selected File Preview Chip --}}
+                <div class="mob-composer-file-chip" id="mobSelectedFileChip">
+                    <i class="fa fa-file-o"></i>
+                    <span class="mob-composer-file-name" id="mobSelectedFileName"></span>
+                    <button type="button" class="mob-composer-file-remove" id="btnRemoveAttachment" title="Remove attachment">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <input type="file" name="attachment" id="mobReplyAttachment" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+
+                <div class="mob-composer-row">
+                    <label for="mobReplyAttachment" class="mob-attach-btn" title="Attach Image or PDF (Max 10MB)">
+                        <i class="fa fa-paperclip"></i>
+                    </label>
+
+                    <textarea name="message"
+                              class="mob-composer-input"
+                              id="mobReplyMessage"
+                              rows="1"
+                              maxlength="10000"
+                              placeholder="Type a message..."></textarea>
+
+                    <button class="mob-send-btn" type="submit" id="mobReplySubmitBtn">
+                        <i class="fa fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mob-chat-locked-bar" id="mobChatLockedWrap" style="{{ $canReply ? 'display: none;' : '' }}">
+            <div class="mob-chat-locked-text">
+                <i class="fa fa-lock"></i>
+                <span id="mobLockedStatusText">Ticket is {{ strtolower($currentStatusMeta['label']) }} · Replies are closed</span>
             </div>
-        @endif
+            <a href="{{ url('student-complaints') }}" class="mob-btn-back-compact">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
 
     </div>
 </div>
@@ -1189,11 +1246,43 @@ document.addEventListener('DOMContentLoaded', function () {
     var fileChip = document.getElementById('mobSelectedFileChip');
     var fileNameSpan = document.getElementById('mobSelectedFileName');
     var btnRemoveFile = document.getElementById('btnRemoveAttachment');
+    var composerError = document.getElementById('mobComposerError');
+    var composerErrorText = document.getElementById('mobComposerErrorText');
+    var btnDismissError = document.getElementById('btnDismissComposerError');
+    var composerWrap = document.getElementById('mobChatComposerWrap');
+    var lockedWrap = document.getElementById('mobChatLockedWrap');
+    var lockedStatusText = document.getElementById('mobLockedStatusText');
 
-    // Auto-scroll chat window to the latest message at the bottom
-    if (chatCanvas) {
-        chatCanvas.scrollTop = chatCanvas.scrollHeight;
+    var headerAvatar = document.getElementById('mobHeaderAvatar');
+    var headerOnlineDot = document.getElementById('mobHeaderOnlineDot');
+    var headerStatusPill = document.getElementById('mobHeaderStatusPill');
+    var headerStatusText = document.getElementById('mobHeaderStatusText');
+    var infoLastActivity = document.getElementById('mobInfoLastActivity');
+    var infoReplyCount = document.getElementById('mobInfoReplyCount');
+
+    var submittedAsLabel = chatCanvas ? (chatCanvas.getAttribute('data-submitted-as') || 'Student') : 'Student';
+    var pollUrl = chatCanvas ? chatCanvas.getAttribute('data-poll-url') : '';
+    var lastReplyId = chatCanvas ? (parseInt(chatCanvas.getAttribute('data-last-reply-id'), 10) || 0) : 0;
+    var isPolling = false;
+    var pendingSendCount = 0;
+    var tempCounter = 0;
+
+    function scrollToBottom(smooth) {
+        if (!chatCanvas) return;
+        if (smooth && typeof chatCanvas.scrollTo === 'function') {
+            chatCanvas.scrollTo({ top: chatCanvas.scrollHeight, behavior: 'smooth' });
+        } else {
+            chatCanvas.scrollTop = chatCanvas.scrollHeight;
+        }
     }
+
+    function isNearBottom() {
+        if (!chatCanvas) return true;
+        return (chatCanvas.scrollHeight - chatCanvas.scrollTop - chatCanvas.clientHeight) < 90;
+    }
+
+    // Initial scroll to bottom on load
+    scrollToBottom(false);
 
     // Toggle collapsible ticket info panel
     if (btnToggleMeta && metaDrawer) {
@@ -1204,11 +1293,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Auto-resize chat textarea as user types
+    function resetTextareaHeight() {
+        if (!replyInput) return;
+        replyInput.style.height = '32px';
+        var nextHeight = Math.min(replyInput.scrollHeight, 80);
+        replyInput.style.height = nextHeight + 'px';
+    }
+
     if (replyInput) {
-        replyInput.addEventListener('input', function () {
-            this.style.height = '32px';
-            var nextHeight = Math.min(this.scrollHeight, 80);
-            this.style.height = nextHeight + 'px';
+        replyInput.addEventListener('input', resetTextareaHeight);
+
+        // WhatsApp behavior: Enter sends message, Shift+Enter inserts newline
+        replyInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (replyForm) {
+                    replyForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }
         });
     }
 
@@ -1218,6 +1320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (this.files && this.files.length > 0) {
                 fileNameSpan.textContent = this.files[0].name;
                 fileChip.classList.add('show');
+                hideComposerError();
             } else {
                 fileChip.classList.remove('show');
                 fileNameSpan.textContent = '';
@@ -1225,19 +1328,481 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (btnRemoveFile && fileInput && fileChip) {
-        btnRemoveFile.addEventListener('click', function () {
-            fileInput.value = '';
-            fileChip.classList.remove('show');
-            fileNameSpan.textContent = '';
+    function clearAttachmentSelection() {
+        if (fileInput) fileInput.value = '';
+        if (fileChip) fileChip.classList.remove('show');
+        if (fileNameSpan) fileNameSpan.textContent = '';
+    }
+
+    if (btnRemoveFile) {
+        btnRemoveFile.addEventListener('click', clearAttachmentSelection);
+    }
+
+    function showComposerError(msg) {
+        if (!composerError || !composerErrorText) return;
+        composerErrorText.textContent = msg || 'Unable to send message.';
+        composerError.classList.add('show');
+    }
+
+    function hideComposerError() {
+        if (composerError) composerError.classList.remove('show');
+    }
+
+    if (btnDismissError) {
+        btnDismissError.addEventListener('click', hideComposerError);
+    }
+
+    function formatNowTime() {
+        var now = new Date();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        var hStr = hours < 10 ? '0' + hours : '' + hours;
+        var mStr = minutes < 10 ? '0' + minutes : '' + minutes;
+        return hStr + ':' + mStr + ' ' + ampm;
+    }
+
+    function getTodayDateKey() {
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, '0');
+        var d = String(now.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + d;
+    }
+
+    function ensureDateDivider(dateKey, dateHeading) {
+        if (!chatCanvas || !dateKey) return;
+        var existing = chatCanvas.querySelector('.mob-chat-date-divider[data-date-key="' + dateKey + '"]');
+        if (existing) return;
+
+        var divider = document.createElement('div');
+        divider.className = 'mob-chat-date-divider';
+        divider.setAttribute('data-date-key', dateKey);
+
+        var pill = document.createElement('span');
+        pill.className = 'mob-chat-date-pill';
+        pill.textContent = dateHeading || 'Today';
+        divider.appendChild(pill);
+
+        chatCanvas.appendChild(divider);
+    }
+
+    function removeEmptyState() {
+        var emptyEl = document.getElementById('mobChatEmptyState');
+        if (emptyEl && emptyEl.parentNode) {
+            emptyEl.parentNode.removeChild(emptyEl);
+        }
+    }
+
+    function createAttachmentLinkElement(url, filename) {
+        var wrap = document.createElement('div');
+        wrap.className = 'mob-bubble-attach-wrap';
+
+        var link = document.createElement('a');
+        link.className = 'mob-bubble-attachment';
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+
+        var clipIcon = document.createElement('i');
+        clipIcon.className = 'fa fa-paperclip';
+
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'mob-attach-filename';
+        nameSpan.textContent = filename || 'View Attachment';
+
+        var extIcon = document.createElement('i');
+        extIcon.className = 'fa fa-external-link';
+        extIcon.style.fontSize = '8.5px';
+        extIcon.style.opacity = '0.8';
+
+        link.appendChild(clipIcon);
+        link.appendChild(nameSpan);
+        link.appendChild(extIcon);
+        wrap.appendChild(link);
+        return wrap;
+    }
+
+    // Build WhatsApp-style optimistic outgoing bubble immediately on send
+    function appendOptimisticBubble(messageText, attachmentFile) {
+        removeEmptyState();
+        ensureDateDivider(getTodayDateKey(), 'Today');
+
+        tempCounter += 1;
+        var tempId = 'temp-' + Date.now() + '-' + tempCounter;
+
+        var row = document.createElement('div');
+        row.className = 'mob-chat-row mine is-new is-sending';
+        row.setAttribute('data-temp-id', tempId);
+
+        var bubble = document.createElement('div');
+        bubble.className = 'mob-chat-bubble';
+
+        var head = document.createElement('div');
+        head.className = 'mob-bubble-head';
+
+        var sender = document.createElement('span');
+        sender.className = 'mob-bubble-sender';
+        sender.innerHTML = '<i class="fa fa-user-circle-o"></i> ';
+        sender.appendChild(document.createTextNode('You · ' + submittedAsLabel));
+        head.appendChild(sender);
+        bubble.appendChild(head);
+
+        var body = document.createElement('div');
+        body.className = 'mob-bubble-text';
+        body.textContent = messageText || (attachmentFile ? ('Shared attachment: ' + attachmentFile.name) : '');
+        bubble.appendChild(body);
+
+        if (attachmentFile) {
+            var pendingAttach = document.createElement('div');
+            pendingAttach.className = 'mob-bubble-attach-wrap';
+            var pendingLink = document.createElement('span');
+            pendingLink.className = 'mob-bubble-attachment';
+            pendingLink.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ';
+            var fSpan = document.createElement('span');
+            fSpan.className = 'mob-attach-filename';
+            fSpan.textContent = attachmentFile.name;
+            pendingLink.appendChild(fSpan);
+            pendingAttach.appendChild(pendingLink);
+            bubble.appendChild(pendingAttach);
+        }
+
+        var meta = document.createElement('div');
+        meta.className = 'mob-bubble-meta';
+
+        var timeSpan = document.createElement('span');
+        timeSpan.className = 'mob-bubble-time';
+        timeSpan.textContent = formatNowTime();
+
+        var tickIcon = document.createElement('i');
+        tickIcon.className = 'fa fa-clock-o mob-tick-icon mob-tick-pending';
+        tickIcon.title = 'Sending...';
+
+        meta.appendChild(timeSpan);
+        meta.appendChild(tickIcon);
+        bubble.appendChild(meta);
+
+        var avatar = document.createElement('div');
+        avatar.className = 'mob-msg-avatar';
+        avatar.title = submittedAsLabel;
+        avatar.innerHTML = '<i class="fa fa-user"></i>';
+
+        row.appendChild(bubble);
+        row.appendChild(avatar);
+        chatCanvas.appendChild(row);
+
+        scrollToBottom(true);
+        return row;
+    }
+
+    // Upgrade optimistic bubble once server confirms save
+    function confirmOptimisticBubble(row, replyData) {
+        if (!row || !replyData) return;
+
+        // If polling already inserted this reply ID, remove the duplicate
+        var existingRow = chatCanvas.querySelector('.mob-chat-row[data-reply-id="' + replyData.id + '"]');
+        if (existingRow && existingRow !== row) {
+            if (row.parentNode) row.parentNode.removeChild(row);
+            return;
+        }
+
+        row.classList.remove('is-sending', 'send-failed');
+        row.removeAttribute('data-temp-id');
+        row.setAttribute('data-reply-id', replyData.id);
+
+        var textEl = row.querySelector('.mob-bubble-text');
+        if (textEl && replyData.message) {
+            textEl.textContent = replyData.message;
+        }
+
+        var oldAttachWrap = row.querySelector('.mob-bubble-attach-wrap');
+        if (oldAttachWrap && oldAttachWrap.parentNode) {
+            oldAttachWrap.parentNode.removeChild(oldAttachWrap);
+        }
+
+        if (replyData.has_attachment && replyData.attachment_url) {
+            var bubble = row.querySelector('.mob-chat-bubble');
+            var meta = row.querySelector('.mob-bubble-meta');
+            var newAttach = createAttachmentLinkElement(replyData.attachment_url, replyData.attachment_name);
+            if (bubble && meta) {
+                bubble.insertBefore(newAttach, meta);
+            }
+        }
+
+        var timeSpan = row.querySelector('.mob-bubble-time');
+        if (timeSpan && replyData.created_at_time) {
+            timeSpan.textContent = replyData.created_at_time;
+        }
+
+        var tickIcon = row.querySelector('.mob-tick-icon');
+        if (tickIcon) {
+            tickIcon.className = 'fa fa-check-circle mob-tick-icon mob-tick-sent';
+            tickIcon.title = 'Sent';
+        }
+    }
+
+    function markOptimisticBubbleFailed(row, errorMsg) {
+        if (!row) return;
+        row.classList.remove('is-sending');
+        row.classList.add('send-failed');
+
+        var tickIcon = row.querySelector('.mob-tick-icon');
+        if (tickIcon) {
+            tickIcon.className = 'fa fa-exclamation-circle mob-tick-icon mob-tick-failed';
+            tickIcon.title = errorMsg || 'Failed to send';
+        }
+    }
+
+    // Append incoming or synced reply bubble from server payload
+    function appendServerReplyBubble(replyData) {
+        if (!chatCanvas || !replyData || !replyData.id) return;
+        if (chatCanvas.querySelector('.mob-chat-row[data-reply-id="' + replyData.id + '"]')) {
+            return;
+        }
+
+        removeEmptyState();
+        ensureDateDivider(replyData.date_key, replyData.date_heading);
+
+        var isStudent = !!replyData.is_student;
+        var row = document.createElement('div');
+        row.className = 'mob-chat-row ' + (isStudent ? 'mine' : 'school') + ' is-new';
+        row.setAttribute('data-reply-id', replyData.id);
+
+        if (!isStudent) {
+            var schoolAvatar = document.createElement('div');
+            schoolAvatar.className = 'mob-msg-avatar';
+            schoolAvatar.title = 'School Administration';
+            schoolAvatar.innerHTML = '<i class="fa fa-headphones"></i>';
+            row.appendChild(schoolAvatar);
+        }
+
+        var bubble = document.createElement('div');
+        bubble.className = 'mob-chat-bubble';
+
+        var head = document.createElement('div');
+        head.className = 'mob-bubble-head';
+
+        var sender = document.createElement('span');
+        sender.className = 'mob-bubble-sender';
+        sender.innerHTML = '<i class="fa ' + (isStudent ? 'fa-user-circle-o' : 'fa-shield') + '"></i> ';
+        sender.appendChild(document.createTextNode(replyData.sender_label || (isStudent ? ('You · ' + submittedAsLabel) : 'School Support')));
+        head.appendChild(sender);
+
+        if (!isStudent && replyData.status_after_label) {
+            var tag = document.createElement('span');
+            tag.className = 'mob-bubble-tag';
+            tag.textContent = replyData.status_after_label;
+            head.appendChild(tag);
+        }
+
+        bubble.appendChild(head);
+
+        var body = document.createElement('div');
+        body.className = 'mob-bubble-text';
+        body.textContent = replyData.message || '';
+        bubble.appendChild(body);
+
+        if (replyData.has_attachment && replyData.attachment_url) {
+            bubble.appendChild(createAttachmentLinkElement(replyData.attachment_url, replyData.attachment_name));
+        }
+
+        var meta = document.createElement('div');
+        meta.className = 'mob-bubble-meta';
+
+        var timeSpan = document.createElement('span');
+        timeSpan.className = 'mob-bubble-time';
+        timeSpan.textContent = replyData.created_at_time || '';
+        meta.appendChild(timeSpan);
+
+        if (isStudent) {
+            var tick = document.createElement('i');
+            tick.className = 'fa fa-check-circle mob-tick-icon mob-tick-sent';
+            tick.title = 'Sent';
+            meta.appendChild(tick);
+        }
+
+        bubble.appendChild(meta);
+        row.appendChild(bubble);
+
+        if (isStudent) {
+            var stuAvatar = document.createElement('div');
+            stuAvatar.className = 'mob-msg-avatar';
+            stuAvatar.title = submittedAsLabel;
+            stuAvatar.innerHTML = '<i class="fa fa-user"></i>';
+            row.appendChild(stuAvatar);
+        }
+
+        chatCanvas.appendChild(row);
+    }
+
+    // Update header badge, ticket info drawer & composer lock state in real time
+    function updateTicketMetaUI(ticketMeta) {
+        if (!ticketMeta) return;
+
+        if (infoLastActivity && ticketMeta.last_activity) {
+            infoLastActivity.textContent = ticketMeta.last_activity;
+        }
+
+        if (infoReplyCount && ticketMeta.reply_label) {
+            var pLabel = infoReplyCount.getAttribute('data-priority-label') || 'Medium';
+            infoReplyCount.textContent = pLabel + ' · ' + ticketMeta.reply_label;
+        }
+
+        if (ticketMeta.status_meta) {
+            var sm = ticketMeta.status_meta;
+            if (headerStatusPill) {
+                headerStatusPill.className = 'mob-status-pill ' + (sm.badge_class || 'badge-soft-info');
+                headerStatusPill.innerHTML = '<i class="fa ' + (sm.icon || 'fa-circle-o') + '"></i> <span id="mobHeaderStatusText"></span>';
+                var newTextSpan = document.getElementById('mobHeaderStatusText');
+                if (newTextSpan) newTextSpan.textContent = sm.label || 'Open';
+            }
+            if (headerAvatar && sm.tone) {
+                headerAvatar.className = 'mob-chat-avatar tone-' + sm.tone;
+            }
+            if (lockedStatusText && sm.label) {
+                lockedStatusText.textContent = 'Ticket is ' + String(sm.label).toLowerCase() + ' · Replies are closed';
+            }
+        }
+
+        if (typeof ticketMeta.can_reply === 'boolean') {
+            if (headerOnlineDot) {
+                if (ticketMeta.can_reply) {
+                    headerOnlineDot.classList.remove('closed');
+                } else {
+                    headerOnlineDot.classList.add('closed');
+                }
+            }
+            if (composerWrap && lockedWrap) {
+                composerWrap.style.display = ticketMeta.can_reply ? '' : 'none';
+                lockedWrap.style.display = ticketMeta.can_reply ? 'none' : '';
+            }
+        }
+    }
+
+    // Real-time AJAX Form Submit (WhatsApp instant flow, zero page reload)
+    if (replyForm) {
+        replyForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            hideComposerError();
+
+            var messageVal = replyInput ? replyInput.value.trim() : '';
+            var selectedFile = (fileInput && fileInput.files && fileInput.files.length > 0) ? fileInput.files[0] : null;
+
+            if (!messageVal && !selectedFile) {
+                if (replyInput) replyInput.focus();
+                return;
+            }
+
+            // Build FormData before clearing inputs
+            var formData = new FormData(replyForm);
+            formData.set('message', messageVal);
+            formData.append('ajax', '1');
+
+            // Immediately clear input & attachment chip so user can keep typing (WhatsApp UX)
+            if (replyInput) {
+                replyInput.value = '';
+                replyInput.style.height = '32px';
+                replyInput.focus();
+            }
+            clearAttachmentSelection();
+
+            // Render optimistic bubble immediately
+            var optimisticRow = appendOptimisticBubble(messageVal, selectedFile);
+            pendingSendCount += 1;
+
+            fetch(replyForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(function (response) {
+                return response.json().then(function (data) {
+                    return { ok: response.ok, status: response.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.ok && result.data && result.data.status && result.data.reply) {
+                    var savedReply = result.data.reply;
+                    lastReplyId = Math.max(lastReplyId, parseInt(savedReply.id, 10) || 0);
+                    confirmOptimisticBubble(optimisticRow, savedReply);
+                    if (result.data.ticket_meta) {
+                        updateTicketMetaUI(result.data.ticket_meta);
+                    }
+                    scrollToBottom(true);
+                } else {
+                    var errMsg = (result.data && result.data.message) ? result.data.message : 'Could not send message. Please try again.';
+                    markOptimisticBubbleFailed(optimisticRow, errMsg);
+                    showComposerError(errMsg);
+                }
+            })
+            .catch(function () {
+                markOptimisticBubbleFailed(optimisticRow, 'Network error while sending message.');
+                showComposerError('Network error. Please check your connection.');
+            })
+            .finally(function () {
+                pendingSendCount = Math.max(0, pendingSendCount - 1);
+            });
         });
     }
 
-    // Prevent double submission
-    if (replyForm && replyBtn) {
-        replyForm.addEventListener('submit', function () {
-            replyBtn.disabled = true;
-            replyBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    // Background polling every 5 seconds for live School Support replies & status changes
+    function pollNewMessages() {
+        if (!pollUrl || isPolling || pendingSendCount > 0 || document.hidden) return;
+        isPolling = true;
+
+        var sep = pollUrl.indexOf('?') === -1 ? '?' : '&';
+        var url = pollUrl + sep + 'poll=1&after_id=' + encodeURIComponent(lastReplyId);
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(function (response) {
+            if (!response.ok) throw new Error('Poll failed');
+            return response.json();
+        })
+        .then(function (data) {
+            if (!data || !data.status) return;
+
+            if (data.ticket_meta) {
+                updateTicketMetaUI(data.ticket_meta);
+            }
+
+            if (Array.isArray(data.replies) && data.replies.length > 0) {
+                var shouldScroll = isNearBottom();
+                data.replies.forEach(function (replyItem) {
+                    appendServerReplyBubble(replyItem);
+                    lastReplyId = Math.max(lastReplyId, parseInt(replyItem.id, 10) || 0);
+                });
+                if (shouldScroll) {
+                    scrollToBottom(true);
+                }
+            }
+        })
+        .catch(function () {
+            // Ignore transient background poll errors silently
+        })
+        .finally(function () {
+            isPolling = false;
+        });
+    }
+
+    if (pollUrl) {
+        setInterval(pollNewMessages, 5000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                pollNewMessages();
+            }
         });
     }
 });

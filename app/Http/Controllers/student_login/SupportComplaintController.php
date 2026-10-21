@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class SupportComplaintController extends Controller
@@ -171,8 +172,28 @@ class SupportComplaintController extends Controller
         return redirect('student-complaints')->with('message', 'Complaint submitted successfully.');
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        if ($request->boolean('poll') || $request->ajax() || $request->wantsJson()) {
+            $complaint = $this->query()->withCount('replies')->findOrFail($id);
+            $afterId = (int) $request->query('after_id', 0);
+
+            $newReplies = $complaint->replies()
+                ->where('id', '>', $afterId)
+                ->orderBy('id')
+                ->get()
+                ->map(function ($reply) use ($complaint) {
+                    return $this->formatReplyPayload($complaint, $reply);
+                })
+                ->values();
+
+            return response()->json([
+                'status'      => true,
+                'replies'     => $newReplies,
+                'ticket_meta' => $this->formatTicketMetaPayload($complaint, (int) $complaint->replies_count),
+            ]);
+        }
+
         $complaint = $this->query()->with(['replies', 'student'])->findOrFail($id);
         return view('student_login.support_complaints.show', compact('complaint'));
     }
@@ -180,31 +201,142 @@ class SupportComplaintController extends Controller
     public function reply(Request $request, $id)
     {
         $complaint = $this->query()->findOrFail($id);
+        $isAjax = $request->ajax() || $request->wantsJson() || $request->boolean('ajax');
+
         if (in_array($complaint->status, ['resolved', 'closed'], true)) {
+            if ($isAjax) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'This complaint has been resolved or closed. Reply is disabled.',
+                ], 422);
+            }
             return redirect('student-complaints/' . $complaint->id)
                 ->with('error', 'This complaint has been resolved or closed. Reply is disabled.');
         }
-        $request->validate([
-            'message' => 'required|string|max:10000',
+
+        $validator = Validator::make($request->all(), [
+            'message'    => 'required_without:attachment|nullable|string|max:10000',
             'attachment' => ['nullable', 'file', 'max:10240', new ComplaintAttachment],
+        ], [
+            'message.required_without' => 'Please enter a message or attach a file.',
         ]);
+
+        if ($validator->fails()) {
+            if ($isAjax) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $validator->errors()->first(),
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+            return redirect('student-complaints/' . $complaint->id)
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         $attachment = $this->storeAttachment($request);
+        $messageText = trim((string) $request->input('message', ''));
+        if ($messageText === '' && !empty($attachment['attachment_name'])) {
+            $messageText = 'Shared attachment: ' . $attachment['attachment_name'];
+        }
+
         $reply = null;
-        DB::transaction(function () use ($complaint, $request, $attachment, &$reply) {
+        DB::transaction(function () use ($complaint, $messageText, $attachment, &$reply) {
             $reply = $complaint->replies()->create(array_merge($attachment, [
                 'sender_type' => $complaint->submitted_as,
-                'sender_id' => Session::get('id'), 'message' => $request->message,
+                'sender_id'   => Session::get('id'),
+                'message'     => $messageText,
             ]));
             $complaint->last_replied_by = $complaint->submitted_as;
             $complaint->last_replied_at = now();
-            if (in_array($complaint->status, ['resolved', 'closed'], true)) $complaint->status = 'reopened';
-            elseif ($complaint->status === 'awaiting_user') $complaint->status = 'in_progress';
+            if (in_array($complaint->status, ['resolved', 'closed'], true)) {
+                $complaint->status = 'reopened';
+            } elseif ($complaint->status === 'awaiting_user') {
+                $complaint->status = 'in_progress';
+            }
             $complaint->save();
             $reply->status_after = $complaint->status;
             $reply->save();
         });
+
         app(SupportComplaintNotificationService::class)->notifyAdmins($complaint->fresh(), $reply, false);
+
+        if ($isAjax) {
+            $replyCount = (int) $complaint->replies()->count();
+            return response()->json([
+                'status'      => true,
+                'message'     => 'Reply sent.',
+                'reply'       => $this->formatReplyPayload($complaint, $reply),
+                'ticket_meta' => $this->formatTicketMetaPayload($complaint, $replyCount),
+            ]);
+        }
+
         return redirect('student-complaints/'.$complaint->id)->with('message', 'Reply sent successfully.');
+    }
+
+    private function formatReplyPayload(SupportComplaint $complaint, $reply): array
+    {
+        $submittedAsLabel = $complaint->submitted_as === 'parent' ? 'Parent' : 'Student';
+        $isStudent = $reply->sender_type !== 'admin';
+        $replyDate = $reply->created_at ? $reply->created_at->format('Y-m-d') : now()->format('Y-m-d');
+
+        if ($replyDate === now()->format('Y-m-d')) {
+            $dateHeading = 'Today';
+        } elseif ($replyDate === now()->subDay()->format('Y-m-d')) {
+            $dateHeading = 'Yesterday';
+        } else {
+            $dateHeading = optional($reply->created_at)->format('d M Y') ?: 'Today';
+        }
+
+        $statusAfterLabel = $reply->status_after
+            ? (SupportComplaint::STATUSES[$reply->status_after] ?? ucfirst(str_replace('_', ' ', (string) $reply->status_after)))
+            : null;
+
+        return [
+            'id'                 => (int) $reply->id,
+            'sender_type'        => (string) $reply->sender_type,
+            'is_student'         => $isStudent,
+            'sender_label'       => $isStudent ? ('You · ' . $submittedAsLabel) : 'School Support',
+            'submitted_as_label' => $submittedAsLabel,
+            'message'            => (string) $reply->message,
+            'has_attachment'     => !empty($reply->attachment_path),
+            'attachment_url'     => $reply->attachment_path ? url('support-complaint-attachment/' . $reply->id) : null,
+            'attachment_name'    => $reply->attachment_name ?: 'View Attachment',
+            'status_after_label' => $statusAfterLabel,
+            'created_at_time'    => optional($reply->created_at)->format('h:i A') ?: now()->format('h:i A'),
+            'date_key'           => $replyDate,
+            'date_heading'       => $dateHeading,
+        ];
+    }
+
+    private function formatTicketMetaPayload(SupportComplaint $complaint, int $replyCount): array
+    {
+        $statusMetaMap = [
+            'open'          => ['label' => 'Open', 'badge_class' => 'badge-soft-info', 'tone' => 'blue', 'icon' => 'fa-clock-o'],
+            'acknowledged'  => ['label' => 'Acknowledged', 'badge_class' => 'badge-soft-info', 'tone' => 'blue', 'icon' => 'fa-check'],
+            'in_progress'   => ['label' => 'In Progress', 'badge_class' => 'badge-soft-info', 'tone' => 'blue', 'icon' => 'fa-spinner fa-spin'],
+            'awaiting_user' => ['label' => 'Awaiting Reply', 'badge_class' => 'badge-soft-amber', 'tone' => 'amber', 'icon' => 'fa-reply'],
+            'resolved'      => ['label' => 'Resolved', 'badge_class' => 'badge-soft-success', 'tone' => 'green', 'icon' => 'fa-check-circle'],
+            'closed'        => ['label' => 'Closed', 'badge_class' => 'badge-soft-slate', 'tone' => 'slate', 'icon' => 'fa-lock'],
+            'reopened'      => ['label' => 'Reopened', 'badge_class' => 'badge-soft-purple', 'tone' => 'purple', 'icon' => 'fa-refresh'],
+        ];
+
+        $fallbackLabel = SupportComplaint::STATUSES[$complaint->status] ?? ucfirst(str_replace('_', ' ', (string) $complaint->status));
+        $statusMeta = $statusMetaMap[$complaint->status] ?? [
+            'label'       => $fallbackLabel,
+            'badge_class' => 'badge-soft-info',
+            'tone'        => 'blue',
+            'icon'        => 'fa-circle-o',
+        ];
+
+        return [
+            'status'        => (string) $complaint->status,
+            'can_reply'     => !in_array($complaint->status, ['resolved', 'closed'], true),
+            'reply_count'   => $replyCount,
+            'reply_label'   => $replyCount . ' ' . Str::plural('msg', $replyCount),
+            'last_activity' => optional($complaint->last_replied_at)->format('d M Y, h:i A') ?: 'No replies',
+            'status_meta'   => $statusMeta,
+        ];
     }
 
     private function storeAttachment(Request $request): array
