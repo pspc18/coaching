@@ -665,6 +665,11 @@ class FeesController extends Controller
 
                 // Enforce FeesSetting policies
                 $feesSetting = FeesSetting::getSetting(Session::get('branch_id'), $session_id);
+                $allowedPaymentModes = array_values(array_filter(array_map('intval', explode(',', $feesSetting->allowed_payment_modes ?: '1,2,3,4'))));
+                if (!empty($allowedPaymentModes) && !in_array((int) $request->payment_mode_id, $allowedPaymentModes)) {
+                    return Response::json(['status' => 'error', 'message' => 'Selected payment mode is not enabled in Fees Settings.'], 422);
+                }
+
                 if ($submittedDiscount > 0) {
                     if (!$feesSetting->allow_manual_discount) {
                         return Response::json(['status' => 'error', 'message' => 'Manual discounts are disabled by institute fee settings.'], 422);
@@ -684,6 +689,33 @@ class FeesController extends Controller
                     ->first();
                 if (!$FeesAssign) {
                     return Response::json(['status' => 'error', 'message' => 'Fee assignment was not found for this student.'], 422);
+                }
+
+                // Enforce Partial Payment & Minimum Partial Amount settings
+                $hasPartialHead = false;
+                foreach ($request->selected_head as $idx => $headGroupId) {
+                    $headAssign = FeesAssignDetail::where('fees_assign_id', $FeesAssign->id)
+                        ->where('fees_group_id', $headGroupId)
+                        ->first();
+                    if ($headAssign) {
+                        $headPaid = FeesDetail::where('admission_id', $request->admission_id)
+                            ->where('fees_group_id', $headGroupId)
+                            ->whereIn('status', [0, 1])
+                            ->sum('total_amount');
+                        $headPending = max(0, ((float) $headAssign->fees_group_amount - (float) $headAssign->discount) - (float) $headPaid);
+                        $headSubmitting = (float) ($request->amount[$idx] ?? 0) + (float) ($request->discount_amount[$idx] ?? 0);
+                        if ($headPending > 0 && $headSubmitting < ($headPending - 0.5)) {
+                            $hasPartialHead = true;
+                        }
+                    }
+                }
+
+                if (!$feesSetting->allow_partial_payment && $hasPartialHead) {
+                    return Response::json(['status' => 'error', 'message' => 'Partial payment is disabled in Fees Settings. Selected fee heads must be paid in full.'], 422);
+                }
+
+                if ($feesSetting->allow_partial_payment && (float) ($feesSetting->min_partial_amount ?? 0) > 0 && $hasPartialHead && $submittedAmount < (float) $feesSetting->min_partial_amount) {
+                    return Response::json(['status' => 'error', 'message' => 'Minimum partial payment amount is ₹' . number_format((float) $feesSetting->min_partial_amount, 2) . ' as configured in Fees Settings.'], 422);
                 }
                 $fees_details_id =[];
                 $slip = "";
@@ -897,7 +929,7 @@ class FeesController extends Controller
                    if ($request->has('checkbox_whatsapp')) {     
                     $printPreview = Helper::printPreview('Fees Collect');
                             
-                            $pdf = PDF::loadView($printPreview,['data'=>$fess_print,'invoice_data'=>$invoice_data]);
+                            $pdf = PDF::loadView($printPreview,['data'=>$fess_print,'invoice_data'=>$invoice_data,'feesSetting'=>$feesSetting]);
         
 
                     $file_name = 'Fees Recipt '. $slip . '-' . time() . '.pdf';
@@ -908,14 +940,18 @@ class FeesController extends Controller
         
                     if($branch->whatsapp_srvc != 0){
                         if ($request->mobile != ""){
-                            if($template->whatsapp_status != 0){
+                            if(!empty($template) && $template->whatsapp_status != 0){
                                 $whatsapp = str_replace($arrey1,$arrey2,$template->whatsapp_content);
                                 Helper::sendWhatsappMessage($request->mobile,$whatsapp,$file_show_path);
-                                // if(File::exists(env('IMAGE_UPLOAD_PATH').'fees_receipt_pdf/'.$file_name)){
-                                //     File::delete(env('IMAGE_UPLOAD_PATH').'fees_receipt_pdf/'.$file_name);
-                                // } 
                             }
                         }
+                    }
+                }
+
+                if (!empty($feesSetting->send_receipt_sms) && !empty($request->mobile) && !empty($template) && !empty($template->sms_content) && ($template->sms_status ?? 0) != 0) {
+                    $smsText = str_replace($arrey1, $arrey2, $template->sms_content);
+                    if (method_exists(Helper::class, 'sendMessage')) {
+                        Helper::sendMessage($request->mobile, $smsText, $template->dlt_template_id ?? '');
                     }
                 }
                 $response = $this->callAction('printFeesInvoice', [ 
@@ -1169,8 +1205,8 @@ public function sendReceiptOnWhatsapp(Request $request)
                         $fess_print=$fess_print->get();
                         
                     $printPreview = Helper::printPreview('Fees Collect');
-                    // dd($printPreview);
-                    return view($printPreview, ['data'=>$fess_print,'invoice_data'=>$invoice_data]);
+                    $feesSetting = FeesSetting::getSetting($invoice_data->branch_id ?? Session::get('branch_id'), $invoice_data->session_id ?? Session::get('session_id'));
+                    return view($printPreview, ['data'=>$fess_print,'invoice_data'=>$invoice_data,'feesSetting'=>$feesSetting]);
                 } 
                 else{            
                     return redirect::to('fee_dashboard');
@@ -1742,6 +1778,61 @@ public function sendReceiptOnWhatsapp(Request $request)
                 }
             
                 $html .= '</tbody></table>';
+
+                // Also append Fee Receipts / Payment History with direct Receipt Print buttons synced with FeesSetting
+                $invoices = FeesDetailsInvoices::select('fees_details_invoices.*', 'payment_modes.name as payment_mode_name')
+                    ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_details_invoices.payment_mode')
+                    ->where('fees_details_invoices.admission_id', $request->admission_id)
+                    ->where('fees_details_invoices.session_id', Session::get('session_id'))
+                    ->where('fees_details_invoices.branch_id', Session::get('branch_id'))
+                    ->orderByDesc('fees_details_invoices.id')
+                    ->get();
+
+                if (!$invoices->isEmpty()) {
+                    $csrfToken = csrf_token();
+                    $printUrl = url('printFeesInvoice');
+                    $html .= '<div class="mt-3 mb-1 font-weight-bold" style="color: #002C54; font-size: 12.5px;"><i class="fa fa-file-text-o mr-1"></i> Fee Payment Receipts</div>';
+                    $html .= '<table class="table table-sm table-bordered mb-0">
+                        <thead>
+                            <tr class="sky_tr">
+                                <th>#</th>
+                                <th>Receipt No.</th>
+                                <th>Payment Date</th>
+                                <th>Mode</th>
+                                <th>Paid Amount</th>
+                                <th>Fine</th>
+                                <th>Status</th>
+                                <th class="text-center">Print Receipt</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+                    $rIdx = 1;
+                    foreach ($invoices as $inv) {
+                        $statusBadge = $inv->status == 0
+                            ? '<span class="badge badge-success">Received</span>'
+                            : ($inv->status == 1 ? '<span class="badge badge-warning">Pending</span>' : '<span class="badge badge-danger">Cancelled</span>');
+                        $payDate = !empty($inv->payment_date) ? date('d-m-Y', strtotime($inv->payment_date)) : '-';
+                        $html .= '<tr>
+                            <td>' . $rIdx++ . '</td>
+                            <td class="font-weight-bold">' . e($inv->invoice_no ?? $inv->offline_receipt_no ?? '-') . '</td>
+                            <td>' . $payDate . '</td>
+                            <td>' . e($inv->payment_mode_name ?? '-') . '</td>
+                            <td class="font-weight-bold text-success">₹' . number_format((float) ($inv->amount ?? 0), 2) . '</td>
+                            <td class="text-danger">₹' . number_format((float) ($inv->total_fine ?? 0), 2) . '</td>
+                            <td>' . $statusBadge . '</td>
+                            <td class="text-center">
+                                <form action="' . $printUrl . '" method="post" target="_blank" style="display:inline-block; margin:0;">
+                                    <input type="hidden" name="_token" value="' . $csrfToken . '">
+                                    <input type="hidden" name="fees_details_invoice_id" value="' . (int) $inv->id . '">
+                                    <button type="submit" class="btn btn-xs btn-primary" style="padding: 2px 8px; font-size: 11px;">
+                                        <i class="fa fa-print mr-1"></i> Print
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>';
+                    }
+                    $html .= '</tbody></table>';
+                }
             
                 return response()->json(['html' => $html]);
             }
@@ -1767,6 +1858,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 
                 $session = Session::get('session_id');
                 $branch_id = Session::get('branch_id');
+                $feesSetting = FeesSetting::getSetting($branch_id, $request->session_id ?? $session);
                 
                 $studentArray='';
                 if ($request->isMethod('post')) {     
@@ -1864,12 +1956,11 @@ public function sendReceiptOnWhatsapp(Request $request)
                             $student->class_name ?? '',
                             preg_replace('/<br\s*\/?>/', '', nl2br($AllRemainingFees)) ,
                             $setting->name ?? '',
-                            // date("d-m-Y", strtotime($installment_due_date)),
-                            '',
+                            !empty($installment_due_date) ? date("d-m-Y", strtotime($installment_due_date)) : '',
                         );
-                        $message = str_replace($arrey1,$arrey2,$template->whatsapp_content);       
+                        $message = str_replace($arrey1,$arrey2,$template->whatsapp_content ?? '');       
                         //dd($message);    
-                        if($remainingAmount > 0)
+                        if($total_pending > 0)
                             {
                                 $studentArray[] =  array( 'id'=>$student->id,
                                 'name'=>($student->first_name ?? 0).' '.($student->last_name ?? ''),
@@ -1900,7 +1991,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 $search['class_type_id'] = $studentArray[0]['class_type_ids'];
             }
            
-              return view('fees.dues.duesList',['data' => $studentArray,'search'=>$search]);
+              return view('fees.dues.duesList',['data' => $studentArray,'search'=>$search,'feesSetting'=>$feesSetting]);
             }
             
     

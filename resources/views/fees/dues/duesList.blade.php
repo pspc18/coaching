@@ -1,6 +1,7 @@
 @php
 $classType = Helper::classType();
 $getSession = Helper::getSession();
+$feesSetting = $feesSetting ?? \App\Models\FeesSetting::getSetting(Session::get('branch_id'), Session::get('session_id'));
 @endphp
 @extends('layout.app')
 @section('content')
@@ -57,9 +58,25 @@ $getSession = Helper::getSession();
             <div class="card-header bg-primary flex_items_toggel">
               <h3 class="card-title"><i class="fa fa-address-book-o"></i> &nbsp;{{ __('Fees Dues List') }}</h3>
               <div class="card-tools">
+                <a href="{{url('fees/settings')}}" class="btn btn-primary btn-sm mr-1" title="Configure Due Reminder Settings"><i class="fa fa-cogs"></i> <span class="Display_none_mobile">Fees Settings</span></a>
                 <a href="{{url('fee_dashboard')}}" class="btn btn-primary  btn-sm"><i class="fa fa-arrow-left"></i><span class="Display_none_mobile"> {{ __('common.Back') }} </span></a>
               </div>
 
+            </div>
+
+            <div class="mx-3 mt-2 px-3 py-2 rounded d-flex align-items-center justify-content-between flex-wrap" style="background: #f8fafc; border: 1px solid #cbd5e1; font-size: 12px;">
+                <div>
+                    <strong style="color: #002C54;"><i class="fa fa-bell mr-1 text-primary"></i> Automated Alert Policy:</strong>
+                    <span class="badge {{ ($feesSetting->due_reminder_enabled ?? 1) ? 'badge-success' : 'badge-secondary' }} ml-2">
+                        Upcoming Due Reminder: {{ ($feesSetting->due_reminder_enabled ?? 1) ? 'Enabled (' . ($feesSetting->due_reminder_days_before ?? 5) . ' days prior)' : 'Disabled' }}
+                    </span>
+                    <span class="badge {{ ($feesSetting->overdue_notice_enabled ?? 1) ? 'badge-danger' : 'badge-secondary' }} ml-1">
+                        Overdue Notice: {{ ($feesSetting->overdue_notice_enabled ?? 1) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                </div>
+                <a href="{{ url('fees/settings') }}#tab-alerts" class="text-primary font-weight-bold" style="font-size: 11.5px;">
+                    <i class="fa fa-sliders mr-1"></i> Edit Alert Rules
+                </a>
             </div>
             
             

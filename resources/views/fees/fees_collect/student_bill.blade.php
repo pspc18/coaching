@@ -43,6 +43,18 @@ if(!empty($fees_assign_details)) {
 }
 $nextSlipNo = $data['runningReceiptNo'] ?? ('REC-' . sprintf('%004s', ($data['BillCounter']['counter'] ?? 0) + 1));
 $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Session::get('branch_id'), Session::get('session_id'));
+$allowedPaymentModes = array_values(array_filter(array_map('intval', explode(',', $feesSetting->allowed_payment_modes ?: '1,2,3,4'))));
+if (empty($allowedPaymentModes)) {
+    $allowedPaymentModes = [1, 2, 3, 4];
+}
+$preferredModeOrder = [1, 3, 4, 2];
+$defaultPaymentMode = 1;
+foreach ($preferredModeOrder as $prefMode) {
+    if (in_array($prefMode, $allowedPaymentModes)) {
+        $defaultPaymentMode = $prefMode;
+        break;
+    }
+}
 @endphp
 
 <style>
@@ -986,7 +998,7 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                                                     </span>
                                                 </td>
                                                 <td style="text-align: right;">
-                                                    <input type="tel" class="dash-form-control amount_get aggregate_{{ $feesGroup->id }}" placeholder="0.00" id="amount_{{ $fees->id }}" name="amount[]" onkeypress="javascript:return isNumber(event)" required style="height: 25px; font-weight: 700; text-align: right;">
+                                                    <input type="tel" class="dash-form-control amount_get aggregate_{{ $feesGroup->id }}" placeholder="0.00" id="amount_{{ $fees->id }}" name="amount[]" onkeypress="javascript:return isNumber(event)" required {{ ($feesSetting->allow_partial_payment ?? 1) ? '' : 'readonly title="Partial payment is disabled in Fees Settings"' }} style="height: 25px; font-weight: 700; text-align: right; {{ ($feesSetting->allow_partial_payment ?? 1) ? '' : 'background-color: #f8fafc;' }}">
                                                     <!-- Hidden inputs for head-level discount & fine to preserve backend data integrity -->
                                                     <input type="hidden" class="head_discount_input" id="discount_{{ $fees->id }}" name="discount_amount[]" value="0" disabled>
                                                     <input type="hidden" class="head_fine_input" id="fine_{{ $fees->id }}" name="fine[]" value="0" disabled>
@@ -1031,29 +1043,39 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                     <div class="mb-1">
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <span class="dash-form-lbl mb-0">Select Payment Mode * <kbd class="kbd-hint">Alt+1-4</kbd></span>
-                            <button type="button" class="dash-btn dash-btn-light border" id="btn_show_upi_qr" style="height: 22px; font-size: 9.5px; padding: 0 6px; display: none;" title="Show dynamic QR code for parent to scan and pay">
+                            <button type="button" class="dash-btn dash-btn-light border" id="btn_show_upi_qr" style="height: 22px; font-size: 9.5px; padding: 0 6px; display: {{ $defaultPaymentMode == 3 ? 'inline-flex' : 'none' }};" title="Show dynamic QR code for parent to scan and pay">
                                 <i class="fa fa-qrcode text-primary mr-1"></i> Show Parent QR
                             </button>
                         </div>
                         <div class="payment-chips-row">
-                            <button type="button" class="pos-mode-btn active" data-mode="1"><i class="fa fa-money text-success mr-1"></i> 💵 Cash <kbd class="kbd-hint">Alt+1</kbd></button>
-                            <button type="button" class="pos-mode-btn" data-mode="3"><i class="fa fa-qrcode text-primary mr-1"></i> 📱 UPI / Online <kbd class="kbd-hint">Alt+2</kbd></button>
-                            <button type="button" class="pos-mode-btn" data-mode="4"><i class="fa fa-bank text-info mr-1"></i> 🏦 Bank Transfer <kbd class="kbd-hint">Alt+3</kbd></button>
-                            <button type="button" class="pos-mode-btn" data-mode="2"><i class="fa fa-file-text-o text-warning mr-1"></i> 📝 Cheque <kbd class="kbd-hint">Alt+4</kbd></button>
+                            @if(in_array(1, $allowedPaymentModes))
+                                <button type="button" class="pos-mode-btn {{ $defaultPaymentMode == 1 ? 'active' : '' }}" data-mode="1"><i class="fa fa-money text-success mr-1"></i> 💵 Cash <kbd class="kbd-hint">Alt+1</kbd></button>
+                            @endif
+                            @if(in_array(3, $allowedPaymentModes))
+                                <button type="button" class="pos-mode-btn {{ $defaultPaymentMode == 3 ? 'active' : '' }}" data-mode="3"><i class="fa fa-qrcode text-primary mr-1"></i> 📱 UPI / Online <kbd class="kbd-hint">Alt+2</kbd></button>
+                            @endif
+                            @if(in_array(4, $allowedPaymentModes))
+                                <button type="button" class="pos-mode-btn {{ $defaultPaymentMode == 4 ? 'active' : '' }}" data-mode="4"><i class="fa fa-bank text-info mr-1"></i> 🏦 Bank Transfer <kbd class="kbd-hint">Alt+3</kbd></button>
+                            @endif
+                            @if(in_array(2, $allowedPaymentModes))
+                                <button type="button" class="pos-mode-btn {{ $defaultPaymentMode == 2 ? 'active' : '' }}" data-mode="2"><i class="fa fa-file-text-o text-warning mr-1"></i> 📝 Cheque <kbd class="kbd-hint">Alt+4</kbd></button>
+                            @endif
                         </div>
 
                         <!-- Hidden Payment Mode Select for backend submission -->
                         <select class="dash-form-control" id="payment_mode_id" name="payment_mode_id" style="display:none;" required>
                             @if(!empty($getPaymentMode))
                                 @foreach($getPaymentMode as $value)
-                                    <option value="{{ $value->id }}">{{ $value->name ?? ''}}</option>
+                                    @if(in_array((int) $value->id, $allowedPaymentModes))
+                                        <option value="{{ $value->id }}" {{ (int) $value->id === $defaultPaymentMode ? 'selected' : '' }}>{{ $value->name ?? ''}}</option>
+                                    @endif
                                 @endforeach
                             @endif
                         </select>
                     </div>
 
                     <!-- Cash Tendered & Smart Currency Denominations -->
-                    <div id="cash_calc_row" class="cash-calc-box mb-2">
+                    <div id="cash_calc_row" class="cash-calc-box mb-2" style="display: {{ $defaultPaymentMode == 1 ? 'flex' : 'none' }};">
                         <div class="d-flex align-items-center gap-2 flex-wrap" style="flex: 1;">
                             <span class="dash-form-lbl mb-0 font-weight-bold"><i class="fa fa-calculator mr-1"></i> Tendered:</span>
                             <div style="position: relative; width: 110px;">
@@ -1093,15 +1115,14 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
 
                             <div class="col-6 col-md-3 px-1 mb-1">
                                 <label class="dash-form-lbl text-primary font-weight-bold">
-                                    <i class="fa fa-barcode mr-1"></i> Running Receipt No
+                                    <i class="fa fa-barcode mr-1"></i> Receipt No (Auto/Manual)
                                 </label>
-                                <div style="display: flex; align-items: center; justify-content: space-between; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 2px; padding: 0 8px; height: 25px;">
-                                    <span id="running_receipt_display" style="font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; font-weight: 700; color: #002C54; letter-spacing: .04em;">
-                                        <i class="fa fa-tag text-primary mr-1"></i>{{ $nextSlipNo }}
-                                    </span>
-                                    <span class="badge badge-primary" style="font-size: 9px; padding: 2px 5px; text-transform: uppercase;">Next #</span>
+                                <div class="d-flex align-items-center" style="gap: 3px;">
+                                    <input type="text" id="offline_receipt_no" name="offline_receipt_no" class="dash-form-control" value="{{ $nextSlipNo }}" placeholder="{{ $nextSlipNo }}" style="font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; font-weight: 700; color: #002C54; background: #eff6ff; border-color: #93c5fd; height: 25px; flex: 1;">
+                                    <button type="button" id="btn_auto_slip" class="dash-btn dash-btn-light border" style="height: 25px; padding: 0 6px; font-size: 9.5px; font-weight: 700; color: #0284c7;" title="Reset to Auto Running Receipt No ({{ $nextSlipNo }})">
+                                        <i class="fa fa-magic"></i> Auto
+                                    </button>
                                 </div>
-                                <input type="hidden" id="offline_receipt_no" name="offline_receipt_no" value="{{ $nextSlipNo }}">
                             </div>
 
                             <div class="col-6 col-md-3 px-1 mb-1">
@@ -1164,7 +1185,7 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
                     <div class="d-flex align-items-center gap-2">
                         @if(Helper::getPermisnByBranch()->whatsapp_srvc == 1)
                             <div class="form-check mr-2">
-                                <input type="checkbox" class="form-check-input pointer" id="checkbox_whatsapp" name="checkbox_whatsapp" value="1">
+                                <input type="checkbox" class="form-check-input pointer" id="checkbox_whatsapp" name="checkbox_whatsapp" value="1" {{ ($feesSetting->send_receipt_whatsapp ?? 1) ? 'checked' : '' }}>
                                 <label for="checkbox_whatsapp" class="form-check-label pointer font-weight-bold text-white small" style="font-size: 10.5px;">
                                     <i class="fa fa-whatsapp text-success mr-1"></i> WhatsApp
                                 </label>
@@ -1694,6 +1715,8 @@ $feesSetting = $data['feesSetting'] ?? \App\Models\FeesSetting::getSetting(Sessi
 <!-- Fast POS Script Handlers -->
 <script>
 var feesSettingConfig = {
+    allow_partial_payment: {{ (int) ($feesSetting->allow_partial_payment ?? 1) }},
+    min_partial_amount: {{ (float) ($feesSetting->min_partial_amount ?? 0) }},
     allow_manual_discount: {{ (int) ($feesSetting->allow_manual_discount ?? 1) }},
     max_discount_percentage: {{ (float) ($feesSetting->max_discount_percentage ?? 20) }},
     discount_requires_remark: {{ (int) ($feesSetting->discount_requires_remark ?? 0) }}
@@ -1977,7 +2000,10 @@ $(document).ready(function () {
             let pending = parseFloat(pendingEl.attr('data-pending_amount')) || 0;
 
             if (pending > 0) {
-                let allocate = Math.min(remaining, pending);
+                if (!feesSettingConfig.allow_partial_payment && remaining < pending) {
+                    return false;
+                }
+                let allocate = feesSettingConfig.allow_partial_payment ? Math.min(remaining, pending) : pending;
                 remaining -= allocate;
 
                 checkbox.prop('checked', true);
@@ -2103,6 +2129,7 @@ $(document).ready(function () {
             $('#transition_id').val('');
         }
     });
+    $('#payment_mode_id').trigger('change');
 
     /* Global Cashier Keyboard Hotkeys */
     $(document).on('keydown', function(e) {
@@ -2277,6 +2304,28 @@ $(document).ready(function () {
             return false;
         }
 
+        let selectedPendingSum = 0;
+        let hasPartialHead = false;
+        $(".selected_head:checked").each(function () {
+            let detailId = $(this).data("fees_assign_detail_id");
+            let headPending = parseFloat($('#pending_by_group_id_' + detailId).attr('data-pending_amount')) || 0;
+            let headAmt = parseFloat($("#amount_" + detailId).val()) || 0;
+            selectedPendingSum += headPending;
+            if (headAmt < (headPending - 0.01)) {
+                hasPartialHead = true;
+            }
+        });
+
+        if (!feesSettingConfig.allow_partial_payment && hasPartialHead) {
+            toastr.error('Partial payment is disabled in Fees Settings. Each selected fee head must be paid in full.');
+            return false;
+        }
+
+        if (feesSettingConfig.allow_partial_payment && feesSettingConfig.min_partial_amount > 0 && hasPartialHead && payableAmount < feesSettingConfig.min_partial_amount) {
+            toastr.error('Minimum partial payment amount is ₹' + feesSettingConfig.min_partial_amount.toFixed(2) + ' as configured in Fees Settings.');
+            return false;
+        }
+
         $('#loadingModal').modal('show');
         $('.collect_btn_hide').hide();
         var buttonValue = $('.collect_btn').val();
@@ -2310,17 +2359,9 @@ $(document).ready(function () {
                             success: function(response) {
                                 var printWindow = window.open('', '_blank');
                                 printWindow.document.open();
-                                printWindow.document.write('<html><head><title>Print Invoice</title>');
-                                printWindow.document.write('<style>body{font-size:12px;} table{font-size:12px;}</style>');
-                                printWindow.document.write('</head><body>');
                                 printWindow.document.write(response);
-                                printWindow.document.write('</body></html>');
                                 printWindow.document.close();
-                                printWindow.onload = function() {
-                                    printWindow.focus();
-                                    printWindow.print();
-                                    printWindow.close();
-                                };
+                                printWindow.focus();
                             }
                         });
                     }

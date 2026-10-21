@@ -1,6 +1,7 @@
 @php
     $classType = Helper::classType();
     $getSetting = Helper::getSetting();
+    $feesSetting = \App\Models\FeesSetting::getSetting(Session::get('branch_id'), Session::get('session_id'));
 @endphp
 
 @extends('layout.app')
@@ -1306,15 +1307,16 @@ $(document).ready(function() {
     // Print Modal Ledger History
     $('.btn-print').on('click', function() {
         const content = $('#exampleModal .response').html();
+        const showLogo = {{ ($feesSetting->show_school_logo ?? 1) ? 'true' : 'false' }};
         const leftLogo = "{{ env('IMAGE_SHOW_PATH') . '/setting/left_logo/' . ($getSetting['left_logo'] ?? '') }}";
         const schoolName = "{{ $getSetting['name'] ?? '' }}";
 
         const htmlContent = `
             <table style="width: 100%; border: none; margin-bottom: 15px;">
                 <tr>
-                    <td style="width: 110px; border: none; vertical-align: middle;">
+                    ${showLogo ? `<td style="width: 110px; border: none; vertical-align: middle;">
                         <img width="90" src="${leftLogo}" alt="Logo" />
-                    </td>
+                    </td>` : ''}
                     <td style="border: none; text-align: center; vertical-align: middle;">
                         <h2 style="margin: 0; font-size: 24px; font-weight: 700; color: #002C54;">${schoolName}</h2>
                         <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 4px;">Student Fee Ledger Statement</div>
