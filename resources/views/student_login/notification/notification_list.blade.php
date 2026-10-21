@@ -1608,6 +1608,7 @@ body.mob-sheet-lock {
                     <div class="mob-notif-info">
                         <div class="mob-notif-title-row">
                             <h3 class="mob-notif-title open-notif-trigger"
+                                onclick="openNotifSheet(this); return false;"
                                 data-id="{{ $notification->id }}"
                                 data-title="{{ e($notification->title ?: 'Notification') }}"
                                 data-time="{{ $createdAt->format('d M Y, h:i A') }}"
@@ -1748,6 +1749,7 @@ body.mob-sheet-lock {
 
                         <button type="button"
                                 class="mob-btn-action btn-view-quick open-notif-trigger"
+                                onclick="openNotifSheet(this); return false;"
                                 data-id="{{ $notification->id }}"
                                 data-title="{{ e($notification->title ?: 'Notification') }}"
                                 data-time="{{ $createdAt->format('d M Y, h:i A') }}"
@@ -1977,206 +1979,209 @@ body.mob-sheet-lock {
 // Global functions for modal bottom sheet
 function openNotifSheet(triggerEl) {
     if (!triggerEl) return;
-    const id = triggerEl.getAttribute('data-id');
-    const title = triggerEl.getAttribute('data-title') || 'Notification';
-    const time = triggerEl.getAttribute('data-time') || '-';
-    const type = triggerEl.getAttribute('data-type') || 'Notification';
-    const typeBadge = triggerEl.getAttribute('data-type-badge') || 'badge-soft-info';
-    const iconClass = triggerEl.getAttribute('data-icon') || 'fa-bell-o';
-    const content = triggerEl.getAttribute('data-content') || '';
-    const attachment = triggerEl.getAttribute('data-attachment') || '';
-    const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
-    const isUnread = triggerEl.getAttribute('data-unread') === '1';
-    const readUrl = triggerEl.getAttribute('data-read-url');
+    try {
+        const id = triggerEl.getAttribute('data-id');
+        const title = triggerEl.getAttribute('data-title') || 'Notification';
+        const time = triggerEl.getAttribute('data-time') || '-';
+        const type = triggerEl.getAttribute('data-type') || 'Notification';
+        const typeBadge = triggerEl.getAttribute('data-type-badge') || 'badge-soft-info';
+        const iconClass = triggerEl.getAttribute('data-icon') || 'fa-bell-o';
+        const content = triggerEl.getAttribute('data-content') || '';
+        const attachment = triggerEl.getAttribute('data-attachment') || '';
+        const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
+        const isUnread = triggerEl.getAttribute('data-unread') === '1';
+        const readUrl = triggerEl.getAttribute('data-read-url');
 
-    // Fee attributes
-    const isFee = triggerEl.getAttribute('data-is-fee') === '1';
-    const feeReceipt = triggerEl.getAttribute('data-fee-receipt') || '';
-    const feeStudent = triggerEl.getAttribute('data-fee-student') || '';
-    const feeDate = triggerEl.getAttribute('data-fee-date') || '';
-    const feeMode = triggerEl.getAttribute('data-fee-mode') || '';
-    const feeDetails = triggerEl.getAttribute('data-fee-details') || '';
-    const feeAmount = triggerEl.getAttribute('data-fee-amount') || '';
-    const feeDiscount = triggerEl.getAttribute('data-fee-discount') || '';
-    const feeFine = triggerEl.getAttribute('data-fee-fine') || '';
-    const feeTotal = triggerEl.getAttribute('data-fee-total') || '';
-    const feeStatus = triggerEl.getAttribute('data-fee-status') || 'Payment Received';
-    const feeDownloadUrl = triggerEl.getAttribute('data-fee-download-url') || '';
-    const feeViewUrl = triggerEl.getAttribute('data-fee-view-url') || '';
+        // Fee attributes
+        const isFee = triggerEl.getAttribute('data-is-fee') === '1';
+        const feeReceipt = triggerEl.getAttribute('data-fee-receipt') || '';
+        const feeStudent = triggerEl.getAttribute('data-fee-student') || '';
+        const feeDate = triggerEl.getAttribute('data-fee-date') || '';
+        const feeMode = triggerEl.getAttribute('data-fee-mode') || '';
+        const feeDetails = triggerEl.getAttribute('data-fee-details') || '';
+        const feeAmount = triggerEl.getAttribute('data-fee-amount') || '';
+        const feeDiscount = triggerEl.getAttribute('data-fee-discount') || '';
+        const feeFine = triggerEl.getAttribute('data-fee-fine') || '';
+        const feeTotal = triggerEl.getAttribute('data-fee-total') || '';
+        const feeStatus = triggerEl.getAttribute('data-fee-status') || 'Payment Received';
+        const feeDownloadUrl = triggerEl.getAttribute('data-fee-download-url') || '';
+        const feeViewUrl = triggerEl.getAttribute('data-fee-view-url') || '';
 
-    // Populate header icon & type badge
-    const iconEl = document.getElementById('sheetNotifIcon');
-    if (iconEl) iconEl.className = 'fa ' + iconClass;
+        // Populate header icon & type badge
+        const iconEl = document.getElementById('sheetNotifIcon');
+        if (iconEl) iconEl.className = 'fa ' + iconClass;
 
-    const typeEl = document.getElementById('sheetNotifTypeBadge');
-    if (typeEl) {
-        typeEl.className = 'mob-type-badge ' + typeBadge;
-        typeEl.innerHTML = '<i class="fa ' + iconClass + '"></i> ' + type;
-    }
-
-    // Populate time & status
-    const timeEl = document.getElementById('sheetNotifTime');
-    if (timeEl) timeEl.innerHTML = '<i class="fa fa-clock-o"></i> <span>' + time + '</span>';
-
-    const statusEl = document.getElementById('sheetNotifStatus');
-    if (statusEl) {
-        statusEl.className = 'sheet-meta-pill ' + (isUnread ? 'sheet-status-unread' : 'sheet-status-read');
-        statusEl.innerHTML = isUnread
-            ? '<i class="fa fa-circle text-primary" style="font-size:7px;"></i> Unread'
-            : '<i class="fa fa-check text-success"></i> Read';
-    }
-
-    // Populate title
-    const titleEl = document.getElementById('sheetNotifTitle');
-    if (titleEl) titleEl.textContent = title;
-
-    // Currency formatter
-    const formatCurrency = function(val) {
-        if (!val && val !== 0) return '0.00';
-        const clean = String(val).replace(/[^0-9.-]+/g, '');
-        const num = parseFloat(clean);
-        if (isNaN(num)) return val;
-        return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    const feeContainer = document.getElementById('sheetFeeContainer');
-    const stdContainer = document.getElementById('sheetStandardContainer');
-    const attachWrap = document.getElementById('sheetNotifAttachment');
-
-    if (isFee) {
-        if (stdContainer) stdContainer.style.display = 'none';
-        if (attachWrap) attachWrap.style.display = 'none';
-        if (feeContainer) {
-            feeContainer.style.display = 'block';
-
-            const feeReceiptTag = document.getElementById('sheetFeeReceiptTag');
-            if (feeReceiptTag) {
-                feeReceiptTag.innerHTML = feeReceipt ? '<i class="fa fa-file-text-o"></i> REC #' + feeReceipt : '<i class="fa fa-file-text-o"></i> Fee Receipt';
-            }
-
-            const feeStatusTag = document.getElementById('sheetFeeStatusTag');
-            if (feeStatusTag) {
-                feeStatusTag.innerHTML = '<i class="fa fa-check-circle text-success"></i> ' + (feeStatus || 'Payment Received');
-            }
-
-            const paidAmountEl = document.getElementById('sheetFeePaidAmount');
-            if (paidAmountEl) {
-                paidAmountEl.innerHTML = '<i class="fa fa-inr"></i> ' + formatCurrency(feeTotal || feeAmount);
-            }
-
-            const studentEl = document.getElementById('sheetFeeStudentVal');
-            if (studentEl) studentEl.textContent = feeStudent || '-';
-
-            const dateEl = document.getElementById('sheetFeeDateVal');
-            if (dateEl) dateEl.textContent = feeDate || time;
-
-            const modeEl = document.getElementById('sheetFeeModeVal');
-            if (modeEl) modeEl.textContent = feeMode || 'Cash';
-
-            const detailsEl = document.getElementById('sheetFeeDetailsVal');
-            if (detailsEl) detailsEl.textContent = feeDetails || 'School Fees';
-
-            const baseEl = document.getElementById('sheetFeeBaseVal');
-            if (baseEl) baseEl.textContent = '₹ ' + formatCurrency(feeAmount || feeTotal);
-
-            const rowDiscount = document.getElementById('sheetFeeRowDiscount');
-            const discountEl = document.getElementById('sheetFeeDiscountVal');
-            const discNum = parseFloat(String(feeDiscount).replace(/[^0-9.-]+/g, '')) || 0;
-            if (rowDiscount && discountEl) {
-                if (discNum > 0) {
-                    rowDiscount.style.display = 'flex';
-                    discountEl.textContent = '- ₹ ' + formatCurrency(feeDiscount);
-                } else {
-                    rowDiscount.style.display = 'none';
-                }
-            }
-
-            const rowFine = document.getElementById('sheetFeeRowFine');
-            const fineEl = document.getElementById('sheetFeeFineVal');
-            const fineNum = parseFloat(String(feeFine).replace(/[^0-9.-]+/g, '')) || 0;
-            if (rowFine && fineEl) {
-                if (fineNum > 0) {
-                    rowFine.style.display = 'flex';
-                    fineEl.textContent = '+ ₹ ' + formatCurrency(feeFine);
-                } else {
-                    rowFine.style.display = 'none';
-                }
-            }
-
-            const netEl = document.getElementById('sheetFeeNetVal');
-            if (netEl) netEl.textContent = '₹ ' + formatCurrency(feeTotal || feeAmount);
-
-            // Action buttons
-            const downloadBtn = document.getElementById('sheetFeeDownloadBtn');
-            if (downloadBtn) {
-                if (feeDownloadUrl) {
-                    downloadBtn.href = feeDownloadUrl;
-                    downloadBtn.style.display = 'inline-flex';
-                } else {
-                    downloadBtn.style.display = 'none';
-                }
-            }
-
-            const viewBtn = document.getElementById('sheetFeeViewBtn');
-            if (viewBtn) {
-                if (feeViewUrl) {
-                    viewBtn.href = feeViewUrl;
-                    viewBtn.style.display = 'inline-flex';
-                } else {
-                    viewBtn.style.display = 'none';
-                }
-            }
+        const typeEl = document.getElementById('sheetNotifTypeBadge');
+        if (typeEl) {
+            typeEl.className = 'mob-type-badge ' + typeBadge;
+            typeEl.innerHTML = '<i class="fa ' + iconClass + '"></i> ' + type;
         }
-    } else {
-        if (feeContainer) feeContainer.style.display = 'none';
-        if (stdContainer) stdContainer.style.display = 'block';
 
-        const bodyEl = document.getElementById('sheetNotifBody');
-        if (bodyEl) bodyEl.textContent = content;
+        // Populate time & status
+        const timeEl = document.getElementById('sheetNotifTime');
+        if (timeEl) timeEl.innerHTML = '<i class="fa fa-clock-o"></i> <span>' + time + '</span>';
 
-        // Attachment
-        const attachLink = document.getElementById('sheetAttachmentLink');
-        const attachName = document.getElementById('sheetAttachmentName');
-        const attachIcon = document.getElementById('sheetAttachmentIcon');
-        if (attachWrap && attachLink) {
-            if (attachment && attachment.trim() !== '') {
-                attachWrap.style.display = 'block';
-                attachLink.href = attachment;
-                if (attachName) attachName.textContent = attachmentName || attachment.split('/').pop() || 'Attachment';
-                if (attachIcon) {
-                    const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(attachment);
-                    const isPdf = /\.pdf$/i.test(attachment);
-                    attachIcon.className = 'mob-pdf-icon fa ' + (isImg ? 'fa-file-image-o text-success' : (isPdf ? 'fa-file-pdf-o text-danger' : 'fa-paperclip text-primary'));
-                }
-            } else {
-                attachWrap.style.display = 'none';
-            }
-        }
-    }
-
-    // Open sheet & backdrop
-    const backdrop = document.getElementById('mobNotifBackdrop');
-    const sheet = document.getElementById('mobNotifSheet');
-    if (backdrop) backdrop.classList.add('show');
-    if (sheet) sheet.classList.add('show');
-    document.body.classList.add('mob-sheet-lock');
-
-    // Optimistically mark as read
-    if (isUnread && readUrl) {
-        triggerEl.setAttribute('data-unread', '0');
+        const statusEl = document.getElementById('sheetNotifStatus');
         if (statusEl) {
-            statusEl.className = 'sheet-meta-pill sheet-status-read';
-            statusEl.innerHTML = '<i class="fa fa-check text-success"></i> Read';
+            statusEl.className = 'sheet-meta-pill ' + (isUnread ? 'sheet-status-unread' : 'sheet-status-read');
+            statusEl.innerHTML = isUnread
+                ? '<i class="fa fa-circle text-primary" style="font-size:7px;"></i> Unread'
+                : '<i class="fa fa-check text-success"></i> Read';
         }
-        if (typeof window.performMarkRead === 'function') {
-            window.performMarkRead(id, readUrl);
+
+        // Populate title
+        const titleEl = document.getElementById('sheetNotifTitle');
+        if (titleEl) titleEl.textContent = title;
+
+        // Currency formatter
+        const formatCurrency = function(val) {
+            if (!val && val !== 0) return '0.00';
+            const clean = String(val).replace(/[^0-9.-]+/g, '');
+            const num = parseFloat(clean);
+            if (isNaN(num)) return val;
+            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        const feeContainer = document.getElementById('sheetFeeContainer');
+        const stdContainer = document.getElementById('sheetStandardContainer');
+        const attachWrap = document.getElementById('sheetNotifAttachment');
+
+        if (isFee) {
+            if (stdContainer) stdContainer.style.display = 'none';
+            if (attachWrap) attachWrap.style.display = 'none';
+            if (feeContainer) {
+                feeContainer.style.display = 'block';
+
+                const feeReceiptTag = document.getElementById('sheetFeeReceiptTag');
+                if (feeReceiptTag) {
+                    feeReceiptTag.innerHTML = feeReceipt ? '<i class="fa fa-file-text-o"></i> REC #' + feeReceipt : '<i class="fa fa-file-text-o"></i> Fee Receipt';
+                }
+
+                const feeStatusTag = document.getElementById('sheetFeeStatusTag');
+                if (feeStatusTag) {
+                    feeStatusTag.innerHTML = '<i class="fa fa-check-circle text-success"></i> ' + (feeStatus || 'Payment Received');
+                }
+
+                const paidAmountEl = document.getElementById('sheetFeePaidAmount');
+                if (paidAmountEl) {
+                    paidAmountEl.innerHTML = '<i class="fa fa-inr"></i> ' + formatCurrency(feeTotal || feeAmount);
+                }
+
+                const studentEl = document.getElementById('sheetFeeStudentVal');
+                if (studentEl) studentEl.textContent = feeStudent || '-';
+
+                const dateEl = document.getElementById('sheetFeeDateVal');
+                if (dateEl) dateEl.textContent = feeDate || time;
+
+                const modeEl = document.getElementById('sheetFeeModeVal');
+                if (modeEl) modeEl.textContent = feeMode || 'Cash';
+
+                const detailsEl = document.getElementById('sheetFeeDetailsVal');
+                if (detailsEl) detailsEl.textContent = feeDetails || 'School Fees';
+
+                const baseEl = document.getElementById('sheetFeeBaseVal');
+                if (baseEl) baseEl.textContent = '₹ ' + formatCurrency(feeAmount || feeTotal);
+
+                const rowDiscount = document.getElementById('sheetFeeRowDiscount');
+                const discountEl = document.getElementById('sheetFeeDiscountVal');
+                const discNum = parseFloat(String(feeDiscount).replace(/[^0-9.-]+/g, '')) || 0;
+                if (rowDiscount && discountEl) {
+                    if (discNum > 0) {
+                        rowDiscount.style.display = 'flex';
+                        discountEl.textContent = '- ₹ ' + formatCurrency(feeDiscount);
+                    } else {
+                        rowDiscount.style.display = 'none';
+                    }
+                }
+
+                const rowFine = document.getElementById('sheetFeeRowFine');
+                const fineEl = document.getElementById('sheetFeeFineVal');
+                const fineNum = parseFloat(String(feeFine).replace(/[^0-9.-]+/g, '')) || 0;
+                if (rowFine && fineEl) {
+                    if (fineNum > 0) {
+                        rowFine.style.display = 'flex';
+                        fineEl.textContent = '+ ₹ ' + formatCurrency(feeFine);
+                    } else {
+                        rowFine.style.display = 'none';
+                    }
+                }
+
+                const netEl = document.getElementById('sheetFeeNetVal');
+                if (netEl) netEl.textContent = '₹ ' + formatCurrency(feeTotal || feeAmount);
+
+                // Action buttons
+                const downloadBtn = document.getElementById('sheetFeeDownloadBtn');
+                if (downloadBtn) {
+                    if (feeDownloadUrl) {
+                        downloadBtn.href = feeDownloadUrl;
+                        downloadBtn.style.display = 'inline-flex';
+                    } else {
+                        downloadBtn.style.display = 'none';
+                    }
+                }
+
+                const viewBtn = document.getElementById('sheetFeeViewBtn');
+                if (viewBtn) {
+                    if (feeViewUrl) {
+                        viewBtn.href = feeViewUrl;
+                        viewBtn.style.display = 'inline-flex';
+                    } else {
+                        viewBtn.style.display = 'none';
+                    }
+                }
+            }
+        } else {
+            if (feeContainer) feeContainer.style.display = 'none';
+            if (stdContainer) stdContainer.style.display = 'block';
+
+            const bodyEl = document.getElementById('sheetNotifBody');
+            if (bodyEl) bodyEl.textContent = content;
+
+            // Attachment
+            const attachLink = document.getElementById('sheetAttachmentLink');
+            const attachName = document.getElementById('sheetAttachmentName');
+            const attachIcon = document.getElementById('sheetAttachmentIcon');
+            if (attachWrap && attachLink) {
+                if (attachment && attachment.trim() !== '') {
+                    attachWrap.style.display = 'block';
+                    attachLink.href = attachment;
+                    if (attachName) attachName.textContent = attachmentName || attachment.split('/').pop() || 'Attachment';
+                    if (attachIcon) {
+                        const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(attachment);
+                        const isPdf = /\.pdf$/i.test(attachment);
+                        attachIcon.className = 'mob-pdf-icon fa ' + (isImg ? 'fa-file-image-o text-success' : (isPdf ? 'fa-file-pdf-o text-danger' : 'fa-paperclip text-primary'));
+                    }
+                } else {
+                    attachWrap.style.display = 'none';
+                }
+            }
         }
-    }
-}
+
+        // Open sheet & backdrop
+        const backdrop = document.getElementById('mobNotifBackdrop');
+        const sheet = document.getElementById('mobNotifSheet');
+        if (backdrop) backdrop.classList.add('show');
+        if (sheet) sheet.classList.add('show');
+        document.body.classList.add('mob-sheet-lock');
+
+        // Optimistically mark as read
+        if (isUnread && readUrl) {
+            triggerEl.setAttribute('data-unread', '0');
+            if (statusEl) {
+                statusEl.className = 'sheet-meta-pill sheet-status-read';
+                statusEl.innerHTML = '<i class="fa fa-check text-success"></i> Read';
+            }
+            if (typeof window.performMarkRead === 'function') {
+                window.performMarkRead(id, readUrl);
+            }
         }
-        if (typeof window.performMarkRead === 'function') {
-            window.performMarkRead(id, readUrl);
-        }
+    } catch (err) {
+        console.error('Error opening notification sheet:', err);
+        const backdrop = document.getElementById('mobNotifBackdrop');
+        const sheet = document.getElementById('mobNotifSheet');
+        if (backdrop) backdrop.classList.add('show');
+        if (sheet) sheet.classList.add('show');
+        document.body.classList.add('mob-sheet-lock');
     }
 }
 
