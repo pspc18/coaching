@@ -787,11 +787,20 @@ foreach ($preferredModeOrder as $prefMode) {
         <div class="col-1 pr-1 d-flex">
             <div class="student-profile-photo-card" title="{{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }} (#{{ $data['stuData']['admissionNo'] ?? '' }})">
                 @php
-                    $userImage = !empty($data['stuData']['image']) 
-                        ? env('IMAGE_SHOW_PATH').'profile/'.$data['stuData']['image'] 
-                        : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
+                    $stuGenderId = (int) ($data['stuData']['gender_id'] ?? 1);
+                    $genderAvatarFile = ($stuGenderId === 2) ? 'girl_avatar.svg' : 'boy_avatar.svg';
+                    $defaultGenderAvatar = asset('public/schoolimage/default/' . $genderAvatarFile);
+
+                    $rawStuImage = trim((string) ($data['stuData']['image'] ?? ''));
+                    if ($rawStuImage !== '' && file_exists(public_path('schoolimage/profile/' . $rawStuImage))) {
+                        $userImage = asset('public/schoolimage/profile/' . $rawStuImage);
+                    } elseif ($rawStuImage !== '' && file_exists(base_path('schoolimage/profile/' . $rawStuImage))) {
+                        $userImage = url('schoolimage/profile/' . $rawStuImage);
+                    } else {
+                        $userImage = $defaultGenderAvatar;
+                    }
                 @endphp
-                <img src="{{ $userImage }}" class="student-avatar-img" alt="Student Photo" onerror="this.src='{{ env('IMAGE_SHOW_PATH') }}default/user_image.jpg'">
+                <img src="{{ $userImage }}" class="student-avatar-img" alt="{{ ($stuGenderId === 2) ? 'Girl Student Avatar' : 'Boy Student Avatar' }}" onerror="this.onerror=null; this.src='{{ $defaultGenderAvatar }}';">
             </div>
         </div>
 
@@ -1647,11 +1656,9 @@ foreach ($preferredModeOrder as $prefMode) {
         <!-- Student Info Strip -->
         <div class="d-flex align-items-center gap-2 mb-2 p-1.5 rounded" style="background: #f1f5f9; border: 1px solid #e2e8f0;">
             @php
-                $quickUserImage = !empty($data['stuData']['image']) 
-                    ? env('IMAGE_SHOW_PATH').'profile/'.$data['stuData']['image'] 
-                    : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
+                $quickUserImage = $userImage ?? $defaultGenderAvatar;
             @endphp
-            <img src="{{ $quickUserImage }}" style="width: 36px; height: 36px; border-radius: 2px; object-fit: cover; border: 1px solid #cbd5e1;" onerror="this.src='{{ env('IMAGE_SHOW_PATH') }}default/user_image.jpg'">
+            <img src="{{ $quickUserImage }}" style="width: 36px; height: 36px; border-radius: 2px; object-fit: cover; border: 1px solid #cbd5e1;" alt="{{ ($stuGenderId === 2) ? 'Girl Student Avatar' : 'Boy Student Avatar' }}" onerror="this.onerror=null; this.src='{{ $defaultGenderAvatar }}';">
             <div style="min-width: 0; flex: 1;">
                 <div class="text-truncate" style="font-weight: 700; font-size: 12px; color: #002C54;">
                     {{ $data['stuData']['first_name'] ?? '' }} {{ $data['stuData']['last_name'] ?? '' }}
