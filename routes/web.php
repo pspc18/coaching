@@ -270,6 +270,7 @@ Route::match(['get', 'post'], 'student_exam_comparison_students', 'offline_exam\
 
 
 Route::match(['get', 'post'], 'feesRemainderCron', 'fees\FeesController@feesRemainderCron');
+Route::match(['get', 'post'], 'whatsappSendFeesRemainder', 'fees\FeesController@whatsappSendFeesRemainder');
 
 Route::match(['get', 'post'], 'sample_id_print', 'IdCardController@sample_id_print');
 Route::match(['get', 'post'], 'save_template', 'IdCardController@save_template');

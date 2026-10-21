@@ -1847,151 +1847,428 @@ public function sendReceiptOnWhatsapp(Request $request)
                 ->where('fees_master.class_type_id',$request->class_type_id)->where('fees_master.session_id', $request->session_id)->where('fees_master.branch_id', Session::get('branch_id'))->get();
                 return Response::json(array('data' => $data)); 
             }
-            public function feesRemainderCron(Request $request){
-                $search['name'] = $request->name;
-                $search['class_type_id'] = $request->class_type_id ?? '';
-                $serach['ending'] = $request->ending;
-                $search['status'] = $request->status;
-                //$search['batch'] = $request->batch;
-                $search['admissionNo'] = $request->admissionNo;
-                $search['session_id'] = $request->session_id;
-                
-                $session = Session::get('session_id');
-                $branch_id = Session::get('branch_id');
-                $feesSetting = FeesSetting::getSetting($branch_id, $request->session_id ?? $session);
-                
-                $studentArray='';
-                if ($request->isMethod('post')) {     
-                // Start Query
-                $admission_ids = Admission::select('admissions.*', 'class_types.name as class_name')
-                    ->leftJoin('class_types', 'class_types.id', '=', 'admissions.class_type_id')
+            public function feesRemainderCron(Request $request)
+            {
+                $sessionId = (int) ($request->input('session_id') ?: Session::get('session_id'));
+                $branchId  = (int) Session::get('branch_id');
+                $roleId    = (int) Session::get('role_id');
+
+                $feesSetting = FeesSetting::getSetting($branchId, $sessionId);
+                $reminderDays = max(1, (int) ($feesSetting->due_reminder_days_before ?? 5));
+
+                $page = max(1, (int) $request->input('page', 1));
+                $perPageRaw = $request->input('per_page', 25);
+                $perPage = ($perPageRaw === 'all') ? 'all' : (int) $perPageRaw;
+                if ($perPage !== 'all') {
+                    $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+                }
+
+                $search = [
+                    'admissionNo'   => trim((string) $request->input('admissionNo', $request->input('admission_no', ''))),
+                    'class_type_id' => trim((string) $request->input('class_type_id', '')),
+                    'name'          => trim((string) $request->input('name', '')),
+                    'father_name'   => trim((string) $request->input('father_name', '')),
+                    'mobile'        => trim((string) $request->input('mobile', '')),
+                    'gender_id'     => trim((string) $request->input('gender_id', '')),
+                    'status'        => (string) $request->input('status', '1'),
+                    'due_mode'      => trim((string) $request->input('due_mode', '')),
+                    'starting'      => trim((string) $request->input('starting', '')),
+                    'ending'        => trim((string) $request->input('ending', '')),
+                    'session_id'    => $sessionId,
+                ];
+
+                // Pre-aggregated paid totals subquery per student for zero N+1 overhead
+                $paidSub = DB::table('fees_detail')
+                    ->select(
+                        'admission_id',
+                        DB::raw('COALESCE(SUM(total_amount), 0) as total_paid'),
+                        DB::raw('COALESCE(SUM(discount), 0) as paid_discount')
+                    )
+                    ->where('session_id', $sessionId)
+                    ->whereIn('status', [0, 1])
+                    ->whereNull('deleted_at')
+                    ->groupBy('admission_id');
+
+                $baseQuery = Admission::leftJoin('class_types', 'class_types.id', '=', 'admissions.class_type_id')
+                    ->leftJoin('gender', function ($join) {
+                        $join->on('gender.id', '=', 'admissions.gender_id')
+                             ->whereNull('gender.deleted_at');
+                    })
+                    ->join('fees_assigns', function ($join) use ($sessionId) {
+                        $join->on('fees_assigns.admission_id', '=', 'admissions.id')
+                             ->where('fees_assigns.session_id', '=', $sessionId)
+                             ->whereNull('fees_assigns.deleted_at');
+                    })
+                    ->leftJoinSub($paidSub, 'paid_sub', function ($join) {
+                        $join->on('paid_sub.admission_id', '=', 'admissions.id');
+                    })
                     ->where('admissions.school', 1)
-                    ->where('admissions.session_id', $request->session_id ?? $session)
-                    ->where('admissions.branch_id', $branch_id);
-                
-                // Apply Search Filter
-                if (!empty($request->name)) {
-                    $value = $request->name;
-                    $admission_ids->where(function ($query) use ($value) {
-                        $query->where("admissions.first_name", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.last_name", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.mobile", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.email", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.aadhaar", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.father_name", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.mother_name", 'like', '%' . $value . '%')
-                              ->orWhere("admissions.address", 'like', '%' . $value . '%');
+                    ->where('admissions.session_id', $sessionId)
+                    ->where('admissions.branch_id', $branchId)
+                    ->whereRaw('(COALESCE(fees_assigns.total_amount, 0) - COALESCE(fees_assigns.total_discount, 0) - COALESCE(paid_sub.total_paid, 0)) > 0');
+
+                if ($roleId === 2) {
+                    $baseQuery->where('admissions.class_type_id', Session::get('class_type_id'));
+                }
+
+                // Filter by Student Name / General Keyword
+                if ($search['name'] !== '') {
+                    $value = $search['name'];
+                    $baseQuery->where(function ($query) use ($value) {
+                        $query->where('admissions.first_name', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.last_name', 'like', '%' . $value . '%')
+                              ->orWhere(DB::raw("CONCAT(COALESCE(admissions.first_name,''), ' ', COALESCE(admissions.last_name,''))"), 'like', '%' . $value . '%')
+                              ->orWhere('admissions.mobile', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.email', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.aadhaar', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.father_name', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.mother_name', 'like', '%' . $value . '%')
+                              ->orWhere('admissions.admissionNo', 'like', '%' . $value . '%');
                     });
                 }
-                
-                // Filter by Admission Number
-                if (!empty($request->admissionNo)) {
-                    $admission_ids->where("admissions.admissionNo", $request->admissionNo);
-                }
-                
-                // Filter by Class Type
-                if (!empty($request->class_type_id)) {
-                    $admission_ids->where('admissions.class_type_id', $request->class_type_id);
-                }
-                
-                // Filter by Batch
-                /*if (!empty($request->batch)) {
-                    $admission_ids->where("admissions.batch", $request->batch);
-                }*/
-                
-                // Filter by Status
-                if (isset($request->status) && $request->status !== '') {
-                    $admission_ids->where("admissions.status", $request->status);
-                } else {
-                    $admission_ids->where("admissions.status", 1);
-                }
-                
-                $admission_ids = $admission_ids->orderBy('admissions.class_type_id', 'ASC')->get();
 
-                $template = MessageTemplate::Select('message_templates.*','message_types.slug')
-                ->leftjoin('message_types','message_types.id','message_templates.message_type_id')
-                ->where('message_types.status',1)->where('message_types.slug','feesreminder')->first();
-                $setting = Setting::where('session_id',$session)->where('branch_id', Session::get('branch_id'))->first();     
-                $studentArray =[];
-                foreach($admission_ids as $student){
-                    $fees_assigned = FeesAssign::where('admission_id',$student->id)->where('session_id',$session)->first();
-                   $fees_collected = FeesDetail::where('admission_id',$student->id)->whereIn('status',[0,1])->sum('total_amount');
+                if ($search['admissionNo'] !== '') {
+                    $baseQuery->where('admissions.admissionNo', 'like', '%' . $search['admissionNo'] . '%');
+                }
 
-                    $isRemaining = (($fees_assigned->total_amount ?? 0)-($fees_assigned->total_discount ?? 0))-($fees_collected ?? 0);
-                    // dd($isRemaining);
-                    if($isRemaining >0 ){
-                        $getHead =  FeesAssignDetail::Select('fees_assign_details.*','fees_group.name as group_name')
-                        ->leftjoin('fees_group','fees_group.id','fees_assign_details.fees_group_id')
-                        ->where('admission_id',$student->id)->where('fees_assign_details.session_id',$session)
-                        //   ->whereNotNull('installment_due_date')
-                        //   ->whereDate('installment_due_date','<=', date('Y-m-d'))
-                        ->get();
-                        $AllRemainingFees = '';
-                        $total_pending = 0;
-                        $remainingAmount = 0;
-                        $installment_due_date = '';
-                        foreach($getHead as $head){
-                            //if($head->installment_due_date >= date('Y-m-d') || $head->installment_due_date === null)
-                            //{
-                                $feesDetails = FeesDetail::where('admission_id',$student->id)->where('fees_group_id',$head->fees_group_id)->whereIn('status',[0,1])->sum('paid_amount');
-                                $remainingAmount = (($head->fees_group_amount ?? 0) - ($head->discount ?? 0)) - ($feesDetails ?? 0);
-                                if($remainingAmount > 0){
-                                    $line = $head->group_name . ' = Rs.' . number_format($remainingAmount);
-                                    $AllRemainingFees .= $line . "\n";
-                                    $total_pending += $remainingAmount;
-                                    $installment_due_date = $head->installment_due_date;
-                                }
-                            // }
-                        }         
-                        $AllRemainingFees .= '<span class="bg-danger p-1">*TOTAL PENDING:' . ' = Rs.' . $total_pending.'*</span>';
-                        $arrey1 = array(
-                            '{#name#}',
-                            '{#class_name#}',
-                            '{#fees_remain#}',
-                            '{#school_name#}',
-                            '{#dur_date#}',
-                        );
-                        $arrey2 = array(
-                            ($student->first_name ?? 0).' '.($student->last_name ?? ''),
-                            $student->class_name ?? '',
-                            preg_replace('/<br\s*\/?>/', '', nl2br($AllRemainingFees)) ,
-                            $setting->name ?? '',
-                            !empty($installment_due_date) ? date("d-m-Y", strtotime($installment_due_date)) : '',
-                        );
-                        $message = str_replace($arrey1,$arrey2,$template->whatsapp_content ?? '');       
-                        //dd($message);    
-                        if($total_pending > 0)
-                            {
-                                $studentArray[] =  array( 'id'=>$student->id,
-                                'name'=>($student->first_name ?? 0).' '.($student->last_name ?? ''),
-                                'className'=>$student->class_name,
-                                'class_type_ids'=>$student->class_type_id,
-                                'mobile'=>$student->mobile,
-                                'admission_id'=>$student->id,
-                                'admissionNo'=>$student->admissionNo,
-                                'father_name'=>$student->father_name,
-                                'category'=>$student->category,
-                                'student_type'=>$student->student_type,
-                                'course'=>$student->course,
-                                'batch'=>$student->batch,
-                                'status'=>$student->status,
-                                'gender_id'=>$student->gender_id,
-                                'session_id'=>$student->session_id,
-                                'fees_assigned'=>$fees_assigned->total_amount,
-                                'pendings'=>$AllRemainingFees,
-                                'message'=>$message,
-                            );
-                            
-                            
+                if ($search['father_name'] !== '') {
+                    $baseQuery->where('admissions.father_name', 'like', '%' . $search['father_name'] . '%');
+                }
+
+                if ($search['mobile'] !== '') {
+                    $baseQuery->where('admissions.mobile', 'like', '%' . $search['mobile'] . '%');
+                }
+
+                if ($search['class_type_id'] !== '') {
+                    $baseQuery->where('admissions.class_type_id', (int) $search['class_type_id']);
+                }
+
+                if ($search['gender_id'] !== '') {
+                    $baseQuery->where('admissions.gender_id', (int) $search['gender_id']);
+                }
+
+                if ($search['status'] !== '' && $search['status'] !== 'all') {
+                    $baseQuery->where('admissions.status', (int) $search['status']);
+                }
+
+                // Due Mode & Installment Due Date Filters
+                if ($search['due_mode'] === 'overdue') {
+                    $today = date('Y-m-d');
+                    $baseQuery->whereExists(function ($q) use ($sessionId, $today) {
+                        $q->select(DB::raw(1))
+                          ->from('fees_assign_details')
+                          ->whereColumn('fees_assign_details.admission_id', 'admissions.id')
+                          ->where('fees_assign_details.session_id', $sessionId)
+                          ->whereNull('fees_assign_details.deleted_at')
+                          ->whereNotNull('fees_assign_details.installment_due_date')
+                          ->whereDate('fees_assign_details.installment_due_date', '<', $today);
+                    });
+                } elseif ($search['due_mode'] === 'upcoming') {
+                    $today = date('Y-m-d');
+                    $upcomingDate = date('Y-m-d', strtotime('+' . $reminderDays . ' days'));
+                    $baseQuery->whereExists(function ($q) use ($sessionId, $today, $upcomingDate) {
+                        $q->select(DB::raw(1))
+                          ->from('fees_assign_details')
+                          ->whereColumn('fees_assign_details.admission_id', 'admissions.id')
+                          ->where('fees_assign_details.session_id', $sessionId)
+                          ->whereNull('fees_assign_details.deleted_at')
+                          ->whereNotNull('fees_assign_details.installment_due_date')
+                          ->whereBetween('fees_assign_details.installment_due_date', [$today, $upcomingDate]);
+                    });
+                }
+
+                if ($search['starting'] !== '' || $search['ending'] !== '') {
+                    $baseQuery->whereExists(function ($q) use ($sessionId, $search) {
+                        $q->select(DB::raw(1))
+                          ->from('fees_assign_details')
+                          ->whereColumn('fees_assign_details.admission_id', 'admissions.id')
+                          ->where('fees_assign_details.session_id', $sessionId)
+                          ->whereNull('fees_assign_details.deleted_at')
+                          ->whereNotNull('fees_assign_details.installment_due_date');
+                        if ($search['starting'] !== '' && $search['ending'] !== '') {
+                            $q->whereBetween('fees_assign_details.installment_due_date', [$search['starting'], $search['ending']]);
+                        } elseif ($search['starting'] !== '') {
+                            $q->whereDate('fees_assign_details.installment_due_date', '>=', $search['starting']);
+                        } elseif ($search['ending'] !== '') {
+                            $q->whereDate('fees_assign_details.installment_due_date', '<=', $search['ending']);
                         }
+                    });
+                }
+
+                // Single-query aggregate statistics for all filtered students
+                $statsRaw = (clone $baseQuery)->selectRaw('
+                    COUNT(admissions.id) as total_students,
+                    COALESCE(SUM(fees_assigns.total_amount), 0) as gross_assigned,
+                    COALESCE(SUM(fees_assigns.total_discount), 0) as assign_discount,
+                    COALESCE(SUM(paid_sub.total_paid), 0) as total_paid,
+                    COALESCE(SUM(paid_sub.paid_discount), 0) as paid_discount
+                ')->first();
+
+                $totalCount = (int) ($statsRaw->total_students ?? 0);
+                $grossAssigned = (float) ($statsRaw->gross_assigned ?? 0);
+                $assignDiscount = (float) ($statsRaw->assign_discount ?? 0);
+                $netAssigned = max(0, $grossAssigned - $assignDiscount);
+                $totalCollected = (float) ($statsRaw->total_paid ?? 0);
+                $totalDiscount = $assignDiscount + (float) ($statsRaw->paid_discount ?? 0);
+                $totalPending = max(0, $netAssigned - $totalCollected);
+
+                $stats = [
+                    'total_students'  => $totalCount,
+                    'total_assigned'  => $netAssigned,
+                    'total_discount'  => $totalDiscount,
+                    'total_collected' => $totalCollected,
+                    'total_pending'   => $totalPending,
+                ];
+
+                // Fetch paginated rows
+                $dataQuery = (clone $baseQuery)->select(
+                    'admissions.id',
+                    'admissions.admissionNo',
+                    'admissions.first_name',
+                    'admissions.last_name',
+                    'admissions.father_name',
+                    'admissions.mobile',
+                    'admissions.category',
+                    'admissions.student_type',
+                    'admissions.course',
+                    'admissions.batch',
+                    'admissions.status',
+                    'admissions.gender_id',
+                    'admissions.session_id',
+                    'admissions.class_type_id',
+                    'class_types.name as class_name',
+                    'gender.name as gender_name',
+                    'fees_assigns.total_amount as gross_assigned',
+                    'fees_assigns.total_discount as assign_discount',
+                    DB::raw('COALESCE(paid_sub.total_paid, 0) as total_paid')
+                )->orderBy('admissions.class_type_id', 'ASC')->orderBy('admissions.first_name', 'ASC');
+
+                if ($perPage === 'all') {
+                    $studentsPage = $dataQuery->get();
+                    $startIndex = 0;
+                    $lastPage = 1;
+                } else {
+                    $studentsPage = $dataQuery->forPage($page, $perPage)->get();
+                    $startIndex = ($page - 1) * $perPage;
+                    $lastPage = max(1, (int) ceil($totalCount / $perPage));
+                }
+
+                // Dynamic Fee Groups for Selected Class (Single Query)
+                $feesGroups = collect();
+                $groupTotals = [];
+                if ($search['class_type_id'] !== '') {
+                    $feesGroups = DB::table('fees_master')
+                        ->leftJoin('fees_group', 'fees_master.fees_group_id', '=', 'fees_group.id')
+                        ->where('fees_master.session_id', $sessionId)
+                        ->where('fees_master.branch_id', $branchId)
+                        ->whereNull('fees_master.deleted_at')
+                        ->where('fees_master.class_type_id', (int) $search['class_type_id'])
+                        ->groupBy('fees_master.fees_group_id')
+                        ->select('fees_master.id', 'fees_master.fees_group_id', 'fees_group.name as group_name')
+                        ->get();
+                }
+
+                // Batch-fetch Fee Heads & Paid Details for current page students (Zero N+1!)
+                $pageStudentIds = $studentsPage->pluck('id')->filter()->all();
+                $assignDetailsByStudent = collect();
+                $paidByStudentGroup = [];
+
+                if (!empty($pageStudentIds)) {
+                    $assignDetailsByStudent = FeesAssignDetail::select('fees_assign_details.*', 'fees_group.name as group_name')
+                        ->leftJoin('fees_group', 'fees_group.id', '=', 'fees_assign_details.fees_group_id')
+                        ->whereIn('fees_assign_details.admission_id', $pageStudentIds)
+                        ->where('fees_assign_details.session_id', $sessionId)
+                        ->whereNull('fees_assign_details.deleted_at')
+                        ->get()
+                        ->groupBy('admission_id');
+
+                    $paidRows = DB::table('fees_detail')
+                        ->whereIn('admission_id', $pageStudentIds)
+                        ->where('session_id', $sessionId)
+                        ->whereIn('status', [0, 1])
+                        ->whereNull('deleted_at')
+                        ->groupBy('admission_id', 'fees_group_id')
+                        ->select(
+                            'admission_id',
+                            'fees_group_id',
+                            DB::raw('COALESCE(SUM(paid_amount), 0) as sum_paid_amount'),
+                            DB::raw('COALESCE(SUM(total_amount), 0) as sum_total_amount')
+                        )
+                        ->get();
+
+                    foreach ($paidRows as $pr) {
+                        $paidByStudentGroup[$pr->admission_id][$pr->fees_group_id] = [
+                            'paid_amount'  => (float) $pr->sum_paid_amount,
+                            'total_amount' => (float) $pr->sum_total_amount,
+                        ];
                     }
                 }
+
+                $template = MessageTemplate::select('message_templates.*', 'message_types.slug')
+                    ->leftJoin('message_types', 'message_types.id', '=', 'message_templates.message_type_id')
+                    ->where('message_types.status', 1)
+                    ->where('message_types.slug', 'feesreminder')
+                    ->first();
+                $setting = Setting::where('session_id', $sessionId)->where('branch_id', $branchId)->first();
+
+                $studentArray = [];
+                foreach ($studentsPage as $student) {
+                    $stuHeads = $assignDetailsByStudent->get($student->id, collect());
+                    $AllRemainingFees = '';
+                    $headSummaryPlain = [];
+                    $totalPendingCalc = 0;
+                    $installmentDueDate = '';
+                    $groupBreakdown = [];
+
+                    foreach ($stuHeads as $head) {
+                        $paidInfo = $paidByStudentGroup[$student->id][$head->fees_group_id] ?? ['paid_amount' => 0.0, 'total_amount' => 0.0];
+                        $remainingAmount = max(0, ((float) ($head->fees_group_amount ?? 0) - (float) ($head->discount ?? 0)) - $paidInfo['paid_amount']);
+                        if ($remainingAmount > 0) {
+                            $line = ($head->group_name ?? 'Fee') . ' = Rs.' . number_format($remainingAmount);
+                            $AllRemainingFees .= $line . "\n";
+                            $headSummaryPlain[] = $line;
+                            $totalPendingCalc += $remainingAmount;
+                            if (!empty($head->installment_due_date)) {
+                                $installmentDueDate = $head->installment_due_date;
+                            }
+                        }
+                    }
+
+                    // Populate dynamic class fee group breakdown if class is selected
+                    if ($feesGroups->isNotEmpty()) {
+                        foreach ($feesGroups as $fg) {
+                            $fgAssign = $stuHeads->where('fees_group_id', $fg->fees_group_id)->where('fees_master_id', $fg->id)->sum('fees_group_amount');
+                            $fgDiscount = $stuHeads->where('fees_group_id', $fg->fees_group_id)->where('fees_master_id', $fg->id)->sum('discount');
+                            $fgPaid = $paidByStudentGroup[$student->id][$fg->fees_group_id]['total_amount'] ?? 0;
+                            $fgDue = max(0, ($fgAssign - $fgDiscount) - $fgPaid);
+                            $groupBreakdown[$fg->id] = $fgDue;
+                            $groupTotals[$fg->id] = ($groupTotals[$fg->id] ?? 0) + $fgDue;
+                        }
+                    }
+
+                    $netAssignedStu = max(0, (float) ($student->gross_assigned ?? 0) - (float) ($student->assign_discount ?? 0));
+                    $paidStu = (float) ($student->total_paid ?? 0);
+                    $effectivePending = $totalPendingCalc > 0 ? $totalPendingCalc : max(0, $netAssignedStu - $paidStu);
+
+                    $AllRemainingFeesHtml = $AllRemainingFees . '<span class="bg-danger p-1">*TOTAL PENDING: = Rs.' . $effectivePending . '*</span>';
+                    $arrey1 = ['{#name#}', '{#class_name#}', '{#fees_remain#}', '{#school_name#}', '{#dur_date#}'];
+                    $arrey2 = [
+                        trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')),
+                        $student->class_name ?? '',
+                        preg_replace('/<br\s*\/?>/', '', nl2br($AllRemainingFeesHtml)),
+                        $setting->name ?? '',
+                        !empty($installmentDueDate) ? date('d-m-Y', strtotime($installmentDueDate)) : '',
+                    ];
+                    $message = !empty($template->whatsapp_content)
+                        ? str_replace($arrey1, $arrey2, $template->whatsapp_content)
+                        : ('Dear Parent, Fee Reminder for ' . trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')) . ' (' . ($student->class_name ?? '') . '). Pending Fee Balance: Rs.' . number_format($effectivePending, 2) . '. - ' . ($setting->name ?? 'School'));
+
+                    $studentArray[] = [
+                        'id'                 => $student->id,
+                        'name'               => trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')),
+                        'className'          => $student->class_name,
+                        'class_type_ids'     => $student->class_type_id,
+                        'mobile'             => $student->mobile,
+                        'admission_id'       => $student->id,
+                        'admissionNo'        => $student->admissionNo,
+                        'father_name'        => $student->father_name,
+                        'category'           => $student->category,
+                        'student_type'       => $student->student_type,
+                        'course'             => $student->course,
+                        'batch'              => $student->batch,
+                        'status'             => $student->status,
+                        'gender_id'          => $student->gender_id,
+                        'gender_name'        => $student->gender_name,
+                        'session_id'         => $student->session_id,
+                        'fees_assigned'      => $netAssignedStu,
+                        'fees_paid'          => $paidStu,
+                        'total_pending'      => $effectivePending,
+                        'pendings'           => $AllRemainingFeesHtml,
+                        'head_summary_plain' => implode(' | ', $headSummaryPlain),
+                        'group_breakdown'    => $groupBreakdown,
+                        'message'            => $message,
+                    ];
+                }
+
+                if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                    $html = view('fees.dues.dues_rows', [
+                        'data'       => $studentArray,
+                        'startIndex' => $startIndex,
+                        'feesGroups' => $feesGroups,
+                    ])->render();
+
+                    return response()->json([
+                        'status'       => true,
+                        'html'         => $html,
+                        'total'        => $totalCount,
+                        'from'         => $totalCount > 0 ? $startIndex + 1 : 0,
+                        'to'           => $perPage === 'all' ? $totalCount : min($startIndex + count($studentArray), $totalCount),
+                        'current_page' => $page,
+                        'last_page'    => $lastPage,
+                        'per_page'     => $perPage,
+                        'stats'        => $stats,
+                        'fee_groups'   => $feesGroups->values(),
+                        'group_totals' => $groupTotals,
+                    ]);
+                }
+
+                return view('fees.dues.duesList', [
+                    'data'        => $studentArray,
+                    'search'      => $search,
+                    'feesSetting' => $feesSetting,
+                    'feesGroups'  => $feesGroups,
+                    'groupTotals' => $groupTotals,
+                    'totalCount'  => $totalCount,
+                    'startIndex'  => $startIndex,
+                    'lastPage'    => $lastPage,
+                    'currentPage' => $page,
+                    'perPage'     => $perPage,
+                    'stats'       => $stats,
+                ]);
             }
-            if (isset($studentArray[0]['class_type_ids']) && empty($request->class_type_id)) {
-                $search['class_type_id'] = $studentArray[0]['class_type_ids'];
-            }
-           
-              return view('fees.dues.duesList',['data' => $studentArray,'search'=>$search,'feesSetting'=>$feesSetting]);
+
+            public function whatsappSendFeesRemainder(Request $request)
+            {
+                $selectedIds = (array) $request->input('checkbox', []);
+                $messages    = (array) $request->input('message', []);
+                $mobiles     = (array) $request->input('mobile', []);
+
+                if (empty($selectedIds)) {
+                    if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                        return response()->json(['status' => false, 'message' => 'Please select at least one student.']);
+                    }
+                    return redirect('feesRemainderCron')->with('error', 'Please select at least one student.');
+                }
+
+                $branch = Branch::find(Session::get('branch_id'));
+                $sentCount = 0;
+
+                foreach ($selectedIds as $stuId) {
+                    $mobile = trim((string) ($mobiles[$stuId] ?? ''));
+                    $msgText = strip_tags((string) ($messages[$stuId] ?? ''));
+
+                    if ($mobile !== '' && $msgText !== '' && !empty($branch) && (int) ($branch->whatsapp_srvc ?? 0) === 1) {
+                        Helper::MessageQueue($mobile, $msgText);
+                    }
+
+                    $student = Admission::find($stuId);
+                    if ($student) {
+                        $this->createFeeNotification(
+                            $student,
+                            'Fee Due Reminder',
+                            $msgText !== '' ? $msgText : 'Kindly clear your pending fee dues at the earliest.',
+                            (int) ($student->session_id ?: Session::get('session_id'))
+                        );
+                    }
+                    $sentCount++;
+                }
+
+                $successMsg = "Fee reminder queued for {$sentCount} student(s) successfully!";
+                if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                    return response()->json(['status' => true, 'message' => $successMsg]);
+                }
+
+                return redirect('feesRemainderCron')->with('message', $successMsg);
             }
             
     
@@ -2398,41 +2675,220 @@ public function sendReceiptOnWhatsapp(Request $request)
                 ]);
             }
         
-            public function fees_cheque(Request $request){
-                $search['name'] = $request->name;
-                $search['class_type_id'] = $request->class_type_id ?? '';
-                $serach['starting'] = $request->starting;
-                $serach['ending'] = $request->ending;
-                if ($request->isMethod('post')) {
-                    $update = FeesDetailsInvoices::find($request->id);
-                    
-                    if(!empty($update))
-                    {
-                        $update->status = $request->status_id ?? '';
-                        $update->remark = $request->remark ?? '';
+            public function fees_cheque(Request $request)
+            {
+                $sessionId = (int) Session::get('session_id');
+                $branchId  = (int) Session::get('branch_id');
+                $roleId    = (int) Session::get('role_id');
+
+                // Handle Real-Time or Form POST Status Update
+                if ($request->isMethod('post') && $request->filled('id')) {
+                    $update = FeesDetailsInvoices::where('id', (int) $request->id)
+                        ->where('branch_id', $branchId)
+                        ->first();
+
+                    if (!empty($update)) {
+                        $newStatus = (int) $request->input('status_id', 0);
+                        $update->status = $newStatus;
+                        $update->remark = (string) $request->input('remark', '');
                         $update->save();
-                        $feesDetailsId = explode(',', $update->fees_details_id); // Convert string to array
 
-                if (!empty($feesDetailsId)) {
-        $fees_ = FeesDetail::whereIn('id', $feesDetailsId)->update(['status' => 0]);
-        
-    } 
+                        $feesDetailsId = array_filter(array_map('intval', explode(',', (string) $update->fees_details_id)));
+                        if (!empty($feesDetailsId)) {
+                            FeesDetail::whereIn('id', $feesDetailsId)->update(['status' => $newStatus]);
+                        }
 
+                        if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                            return response()->json([
+                                'status'  => true,
+                                'message' => 'Cheque status updated successfully!',
+                            ]);
+                        }
+                    } elseif ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                        return response()->json([
+                            'status'  => false,
+                            'message' => 'Invoice record not found.',
+                        ], 404);
                     }
                 }
-                $data =  FeesDetailsInvoices::select('fees_details_invoices.*','class.name as class_name','admissions.admissionNo','admissions.mobile','admissions.first_name'
-                ,'admissions.last_name','admissions.father_name','admissions.school','payment_modes.name as payment_mode','payment_modes.id as payment_mode_id')
-                ->leftjoin('admissions as admissions', 'admissions.id', 'fees_details_invoices.admission_id')
-                ->leftjoin('class_types as class','class.id','admissions.class_type_id')
-                ->leftjoin('payment_modes','payment_modes.id','fees_details_invoices.payment_mode')
-                ->where('fees_details_invoices.session_id', Session::get('session_id'))
-                ->where('fees_details_invoices.branch_id', Session::get('branch_id'))
-                ->where('fees_details_invoices.status', 1);
-                if (Session::get('role_id') == 2) {
-                    $data = $data->where('admissions.class_type_id', Session::get('class_type_id'));
-                } 
-                $data = $data->where('school', '>', 0)->orderBy('fees_details_invoices.payment_date','DESC')->get();
-                return view('fees.fees_cheque', ['data' => $data, 'search' => $search]);
+
+                $page = max(1, (int) $request->input('page', 1));
+                $perPageRaw = $request->input('per_page', 25);
+                $perPage = ($perPageRaw === 'all') ? 'all' : (int) $perPageRaw;
+                if ($perPage !== 'all') {
+                    $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+                }
+
+                $search = [
+                    'invoice_no'      => trim((string) $request->input('invoice_no', '')),
+                    'status'          => (string) $request->input('status', '1'),
+                    'admission_no'    => trim((string) $request->input('admission_no', '')),
+                    'class_type_id'   => trim((string) $request->input('class_type_id', '')),
+                    'name'            => trim((string) $request->input('name', '')),
+                    'father_name'     => trim((string) $request->input('father_name', '')),
+                    'mobile'          => trim((string) $request->input('mobile', '')),
+                    'cheque_info'     => trim((string) $request->input('cheque_info', '')),
+                    'payment_mode_id' => trim((string) $request->input('payment_mode_id', '')),
+                    'starting'        => trim((string) $request->input('starting', '')),
+                    'ending'          => trim((string) $request->input('ending', '')),
+                ];
+
+                $baseQuery = FeesDetailsInvoices::leftJoin('admissions', 'admissions.id', '=', 'fees_details_invoices.admission_id')
+                    ->leftJoin('class_types as class', 'class.id', '=', 'admissions.class_type_id')
+                    ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_details_invoices.payment_mode')
+                    ->where('fees_details_invoices.session_id', $sessionId)
+                    ->where('fees_details_invoices.branch_id', $branchId)
+                    ->where('admissions.school', '>', 0);
+
+                if ($roleId === 2) {
+                    $baseQuery->where('admissions.class_type_id', Session::get('class_type_id'));
+                }
+
+                // Apply common non-status filters first so we can compute status-breakdown KPI counts accurately
+                if ($search['invoice_no'] !== '') {
+                    $baseQuery->where('fees_details_invoices.invoice_no', 'like', '%' . $search['invoice_no'] . '%');
+                }
+
+                if ($search['admission_no'] !== '') {
+                    $baseQuery->where('admissions.admissionNo', 'like', '%' . $search['admission_no'] . '%');
+                }
+
+                if ($search['class_type_id'] !== '') {
+                    $baseQuery->where('admissions.class_type_id', (int) $search['class_type_id']);
+                }
+
+                if ($search['name'] !== '') {
+                    $kw = $search['name'];
+                    $baseQuery->where(function ($q) use ($kw) {
+                        $q->where('admissions.first_name', 'like', '%' . $kw . '%')
+                          ->orWhere('admissions.last_name', 'like', '%' . $kw . '%')
+                          ->orWhere(DB::raw("CONCAT(COALESCE(admissions.first_name,''), ' ', COALESCE(admissions.last_name,''))"), 'like', '%' . $kw . '%')
+                          ->orWhere('admissions.admissionNo', 'like', '%' . $kw . '%')
+                          ->orWhere('fees_details_invoices.invoice_no', 'like', '%' . $kw . '%');
+                    });
+                }
+
+                if ($search['father_name'] !== '') {
+                    $baseQuery->where('admissions.father_name', 'like', '%' . $search['father_name'] . '%');
+                }
+
+                if ($search['mobile'] !== '') {
+                    $baseQuery->where('admissions.mobile', 'like', '%' . $search['mobile'] . '%');
+                }
+
+                if ($search['cheque_info'] !== '') {
+                    $ci = $search['cheque_info'];
+                    $baseQuery->where(function ($q) use ($ci) {
+                        $q->where('fees_details_invoices.cheque_number', 'like', '%' . $ci . '%')
+                          ->orWhere('fees_details_invoices.bank_name', 'like', '%' . $ci . '%')
+                          ->orWhere('fees_details_invoices.transaction_id', 'like', '%' . $ci . '%')
+                          ->orWhere('fees_details_invoices.remark', 'like', '%' . $ci . '%');
+                    });
+                }
+
+                if ($search['payment_mode_id'] !== '') {
+                    $baseQuery->where('fees_details_invoices.payment_mode', (int) $search['payment_mode_id']);
+                }
+
+                if ($search['starting'] !== '' && $search['ending'] !== '') {
+                    $baseQuery->whereBetween('fees_details_invoices.payment_date', [$search['starting'], $search['ending']]);
+                } elseif ($search['starting'] !== '') {
+                    $baseQuery->whereDate('fees_details_invoices.payment_date', '>=', $search['starting']);
+                } elseif ($search['ending'] !== '') {
+                    $baseQuery->whereDate('fees_details_invoices.payment_date', '<=', $search['ending']);
+                }
+
+                // Compute status breakdown stats across the filtered criteria (single query)
+                $statusBreakdownRaw = (clone $baseQuery)->selectRaw('
+                    SUM(CASE WHEN fees_details_invoices.status = 1 THEN 1 ELSE 0 END) as pending_count,
+                    COALESCE(SUM(CASE WHEN fees_details_invoices.status = 1 THEN fees_details_invoices.amount ELSE 0 END), 0) as pending_amount,
+                    SUM(CASE WHEN fees_details_invoices.status = 0 THEN 1 ELSE 0 END) as realised_count,
+                    COALESCE(SUM(CASE WHEN fees_details_invoices.status = 0 THEN fees_details_invoices.amount ELSE 0 END), 0) as realised_amount,
+                    SUM(CASE WHEN fees_details_invoices.status = 2 THEN 1 ELSE 0 END) as dishonoured_count,
+                    COALESCE(SUM(CASE WHEN fees_details_invoices.status = 2 THEN fees_details_invoices.amount ELSE 0 END), 0) as dishonoured_amount
+                ')->first();
+
+                // Apply Status filter (defaults to 1 = Pending Realisation so output matches original behaviour)
+                if ($search['status'] !== '' && $search['status'] !== 'all') {
+                    $baseQuery->where('fees_details_invoices.status', (int) $search['status']);
+                }
+
+                $filteredTotalsRaw = (clone $baseQuery)->selectRaw('
+                    COUNT(fees_details_invoices.id) as total_count,
+                    COALESCE(SUM(fees_details_invoices.amount), 0) as filtered_amount
+                ')->first();
+
+                $totalCount = (int) ($filteredTotalsRaw->total_count ?? 0);
+                $filteredAmount = (float) ($filteredTotalsRaw->filtered_amount ?? 0);
+
+                $stats = [
+                    'total_count'        => $totalCount,
+                    'filtered_amount'    => $filteredAmount,
+                    'pending_count'      => (int) ($statusBreakdownRaw->pending_count ?? 0),
+                    'pending_amount'     => (float) ($statusBreakdownRaw->pending_amount ?? 0),
+                    'realised_count'     => (int) ($statusBreakdownRaw->realised_count ?? 0),
+                    'realised_amount'    => (float) ($statusBreakdownRaw->realised_amount ?? 0),
+                    'dishonoured_count'  => (int) ($statusBreakdownRaw->dishonoured_count ?? 0),
+                    'dishonoured_amount' => (float) ($statusBreakdownRaw->dishonoured_amount ?? 0),
+                ];
+
+                $dataQuery = (clone $baseQuery)->select(
+                    'fees_details_invoices.*',
+                    'class.name as class_name',
+                    'admissions.admissionNo',
+                    'admissions.mobile',
+                    'admissions.first_name',
+                    'admissions.last_name',
+                    'admissions.father_name',
+                    'admissions.school',
+                    'payment_modes.name as payment_mode',
+                    'payment_modes.id as payment_mode_id'
+                )->orderBy('fees_details_invoices.payment_date', 'DESC')->orderBy('fees_details_invoices.id', 'DESC');
+
+                if ($perPage === 'all') {
+                    $data = $dataQuery->get();
+                    $startIndex = 0;
+                    $lastPage = 1;
+                } else {
+                    $data = $dataQuery->forPage($page, $perPage)->get();
+                    $startIndex = ($page - 1) * $perPage;
+                    $lastPage = max(1, (int) ceil($totalCount / $perPage));
+                }
+
+                if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
+                    $html = view('fees.cheque_rows', [
+                        'data'       => $data,
+                        'startIndex' => $startIndex,
+                    ])->render();
+
+                    return response()->json([
+                        'status'       => true,
+                        'html'         => $html,
+                        'total'        => $totalCount,
+                        'from'         => $totalCount > 0 ? $startIndex + 1 : 0,
+                        'to'           => $perPage === 'all' ? $totalCount : min($startIndex + count($data), $totalCount),
+                        'current_page' => $page,
+                        'last_page'    => $lastPage,
+                        'per_page'     => $perPage,
+                        'stats'        => $stats,
+                    ]);
+                }
+
+                $classType = Helper::classType();
+                $paymentModes = Helper::getPaymentMode();
+
+                return view('fees.fees_cheque', [
+                    'data'         => $data,
+                    'search'       => $search,
+                    'totalCount'   => $totalCount,
+                    'startIndex'   => $startIndex,
+                    'lastPage'     => $lastPage,
+                    'currentPage'  => $page,
+                    'perPage'      => $perPage,
+                    'stats'        => $stats,
+                    'classType'    => $classType,
+                    'paymentModes' => $paymentModes,
+                ]);
             }
      
 
