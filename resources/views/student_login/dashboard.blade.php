@@ -1299,7 +1299,7 @@
                 $attachmentUrl = $hasAttachment ? url('notice-management/'.$notice->id.'/attachment') : '';
                 $attachmentName = $notice->attachment_name ?: 'Notice Circular.pdf';
                 $attachmentSize = !empty($notice->attachment_size) ? ($notice->attachment_size >= 1048576 ? number_format($notice->attachment_size / 1048576, 1) . ' MB' : number_format($notice->attachment_size / 1024, 0) . ' KB') : '';
-                $fullNoticeUrl = url('student-notices?notice_id='.$notice->id);
+                $fullNoticeUrl = url('student-notices');
             @endphp
             <div class="native-list-item dash-notice-item" 
                  onclick="openDashNoticeModal({{ $notice->id }})" 
@@ -1476,7 +1476,7 @@ function openDashNoticeModal(noticeId) {
 
     var fullPageBtn = document.getElementById('dashSheetFullPageBtn');
     if (fullPageBtn) {
-        fullPageBtn.href = fullUrl;
+        fullPageBtn.href = "{{ url('student-notices') }}";
     }
 
     var bodyEl = document.querySelector('#dashNoticeSheet .mob-sheet-body');
