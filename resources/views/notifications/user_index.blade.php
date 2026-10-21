@@ -87,10 +87,10 @@
                     </button>
                 </form>
 
-                <form method="POST" action="{{ route('user.notifications.clear-all') }}" class="d-inline" onsubmit="return confirm('Are you sure you want to clear all notifications? This action cannot be undone.');">
+                <form method="POST" action="{{ route('user.notifications.clear-all') }}" class="d-inline" id="clearAllForm">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="dash-btn dash-btn-danger" {{ $notifications->total() === 0 ? 'disabled' : '' }} title="Clear and remove all notifications">
+                    <button type="button" class="dash-btn dash-btn-danger" id="btnClearAll" {{ $notifications->total() === 0 ? 'disabled' : '' }} title="Clear and remove all notifications">
                         <i class="fa fa-trash"></i> Clear All
                     </button>
                 </form>
@@ -260,6 +260,7 @@
 
                                     <button type="button" class="btn-card-action btn-delete-item text-danger" 
                                             data-id="{{ $notification->id }}" 
+                                            data-title="{{ e($notification->title ?: 'Notification Alert') }}"
                                             data-delete-url="{{ route('user.notifications.destroy', $notification->id) }}" 
                                             title="Delete notification">
                                         <i class="fa fa-trash-o"></i>
@@ -374,7 +375,7 @@
                             <div class="approval-review-container">
                                 @if($managedNotice->status === 'pending')
                                     <form action="{{ url('notice-management/'.$managedNotice->id.'/review') }}" method="POST" 
-                                          class="inline-review-card" onsubmit="return confirmNoticeReview(event, this);">
+                                          class="inline-review-card" id="noticeReviewForm-{{ $notification->id }}">
                                         @csrf
                                         <input type="hidden" name="return_to" value="user-notifications">
 
@@ -459,10 +460,14 @@
                                         </div>
 
                                         <div class="review-btn-toolbar">
-                                            <button type="submit" name="decision" value="approved" class="btn btn-sm btn-erp-success">
+                                            <button type="button" class="btn btn-sm btn-erp-success btn-trigger-review" 
+                                                    data-decision="approved" 
+                                                    data-notice-id="{{ $managedNotice->id }}">
                                                 <i class="fa fa-check"></i> Approve & Publish
                                             </button>
-                                            <button type="submit" name="decision" value="rejected" class="btn btn-sm btn-erp-danger">
+                                            <button type="button" class="btn btn-sm btn-erp-danger btn-trigger-review" 
+                                                    data-decision="rejected" 
+                                                    data-notice-id="{{ $managedNotice->id }}">
                                                 <i class="fa fa-times"></i> Reject Notice
                                             </button>
                                             <a href="{{ url('notice-management?status=pending') }}" class="btn btn-sm btn-erp-outline" target="_blank">
@@ -539,6 +544,133 @@
 
     </div>
 </div>
+
+{{-- =========================================================================
+     THEME-BASED MODALS (Replacing Browser Native alert() and confirm())
+     Reference: Student Promote Page Modal System
+     ========================================================================= --}}
+
+{{-- Modal 1: Clear All Notifications Confirmation --}}
+<div class="modal fade" id="clearAllModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); color: #ffffff; padding: 10px 14px;">
+                <h5 class="modal-title" style="font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-trash"></i> Clear All Notifications
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1; border: none; background: transparent; font-size: 20px; line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: #fee2e2; color: #dc2626; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </div>
+                <h6 style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+                    Clear All Notifications?
+                </h6>
+                <p style="font-size: 11.5px; color: #64748b; line-height: 1.45; margin-bottom: 0;">
+                    Are you sure you want to clear all <b>{{ $notifications->total() }}</b> notifications? This will permanently remove all unread and read alerts from your notification feed.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; justify-content: space-between;">
+                <button type="button" class="btn btn-xs btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-xs btn-danger font-weight-bold" id="confirmClearAllBtn">
+                    <i class="fa fa-trash mr-1"></i> Yes, Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal 2: Delete Single Notification Confirmation --}}
+<div class="modal fade" id="deleteSingleModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px;">
+                <h5 class="modal-title" style="font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-trash-o"></i> Remove Notification
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1; border: none; background: transparent; font-size: 20px; line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: #fef2f2; color: #dc2626; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <i class="fa fa-trash"></i>
+                </div>
+                <h6 style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+                    Remove this notification?
+                </h6>
+                <p id="deleteItemTitle" style="font-size: 11.5px; color: #002C54; font-weight: 600; margin-bottom: 4px; word-break: break-word;"></p>
+                <p style="font-size: 11px; color: #64748b; line-height: 1.4; margin-bottom: 0;">
+                    This item will be removed from your notifications feed.
+                </p>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; justify-content: space-between;">
+                <button type="button" class="btn btn-xs btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-xs btn-danger font-weight-bold" id="confirmDeleteSingleBtn">
+                    <i class="fa fa-trash-o mr-1"></i> Remove
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal 3: Notice Approval / Rejection Confirmation --}}
+<div class="modal fade" id="noticeReviewConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+            <div class="modal-header" id="noticeReviewModalHeader" style="color: #ffffff; padding: 10px 14px;">
+                <h5 class="modal-title" id="noticeReviewModalTitle" style="font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-check-circle"></i> Confirm Action
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1; border: none; background: transparent; font-size: 20px; line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div id="noticeReviewIconCircle" style="width: 48px; height: 48px; border-radius: 50%; font-size: 22px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <i class="fa fa-check"></i>
+                </div>
+                <h6 id="noticeReviewHeading" style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 6px;"></h6>
+                <p id="noticeReviewPrompt" style="font-size: 11.5px; color: #64748b; line-height: 1.45; margin-bottom: 0;"></p>
+            </div>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; justify-content: space-between;">
+                <button type="button" class="btn btn-xs btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-xs font-weight-bold" id="confirmNoticeReviewBtn">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal 4: General Information / Alert Dialog (Replaces native browser alert()) --}}
+<div class="modal fade" id="notifyAlertModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px;">
+                <h5 class="modal-title" style="font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-info-circle text-warning"></i> Notification Alert
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1; border: none; background: transparent; font-size: 20px; line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <div id="notifyAlertIcon" style="width: 44px; height: 44px; border-radius: 50%; background: #f0f9ff; color: #0284c7; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <i class="fa fa-info"></i>
+                </div>
+                <p id="notifyAlertMessage" style="font-size: 12px; color: #334155; line-height: 1.45; margin-bottom: 0; font-weight: 500;"></p>
+            </div>
+            <div class="modal-footer justify-content-center" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px;">
+                <button type="button" class="btn btn-xs btn-primary px-4 font-weight-bold" data-dismiss="modal" data-bs-dismiss="modal">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
 
 {{-- Unified Styling Matching Arise ERP Desktop Standards --}}
 @section('styles')
@@ -1640,26 +1772,32 @@
 
 @section('scripts')
 <script>
-function confirmNoticeReview(event, form) {
-    var submitter = event.submitter || document.activeElement;
-    var decisionValue = submitter && submitter.value === 'rejected' ? 'rejected' : 'approved';
-    var decisionLabel = decisionValue === 'rejected' ? 'reject' : 'approve and publish';
-    if (!window.confirm('Are you sure you want to ' + decisionLabel + ' this notice?')) {
-        return false;
-    }
-    var hiddenDecision = document.createElement('input');
-    hiddenDecision.type = 'hidden';
-    hiddenDecision.name = 'decision';
-    hiddenDecision.value = decisionValue;
-    form.appendChild(hiddenDecision);
-    form.querySelectorAll('button[type="submit"]').forEach(function(button) {
-        button.disabled = true;
-    });
-    return true;
-}
-
 $(document).ready(function() {
     var csrfToken = '{{ csrf_token() }}';
+
+    // Helper: Show Theme-Based Alert Modal (replaces browser native alert)
+    function showThemeAlert(message, type) {
+        type = type || 'info';
+        var iconHtml = '<i class="fa fa-info"></i>';
+        var bg = '#f0f9ff';
+        var col = '#0284c7';
+        if (type === 'danger') {
+            iconHtml = '<i class="fa fa-exclamation-triangle"></i>';
+            bg = '#fef2f2';
+            col = '#dc2626';
+        } else if (type === 'warning') {
+            iconHtml = '<i class="fa fa-exclamation-circle"></i>';
+            bg = '#fffbeb';
+            col = '#d97706';
+        } else if (type === 'success') {
+            iconHtml = '<i class="fa fa-check-circle"></i>';
+            bg = '#ecfdf5';
+            col = '#059669';
+        }
+        $('#notifyAlertIcon').css({ 'background': bg, 'color': col }).html(iconHtml);
+        $('#notifyAlertMessage').text(message);
+        $('#notifyAlertModal').modal('show');
+    }
 
     // 1. Message View More / View Less Toggle
     $(document).on('click', '.btn-msg-toggle', function() {
@@ -1721,6 +1859,7 @@ $(document).ready(function() {
             },
             error: function() {
                 btn.prop('disabled', false).html('<i class="fa fa-check"></i> <span>Mark Read</span>');
+                showThemeAlert('Failed to mark notification as read. Please try again.', 'danger');
             }
         });
     });
@@ -1765,25 +1904,45 @@ $(document).ready(function() {
             },
             error: function() {
                 btn.prop('disabled', false).html('<i class="fa fa-envelope-o"></i> <span>Mark Unread</span>');
+                showThemeAlert('Failed to mark notification as unread. Please try again.', 'danger');
             }
         });
     });
 
-    // 4. AJAX Delete Single Item
+    // 4. Clear All Notifications Confirmation Modal
+    $('#btnClearAll').on('click', function(e) {
+        e.preventDefault();
+        if ($(this).is(':disabled')) return;
+        $('#clearAllModal').modal('show');
+    });
+
+    $('#confirmClearAllBtn').on('click', function() {
+        $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Clearing...');
+        $('#clearAllForm').submit();
+    });
+
+    // 5. Delete Single Notification Confirmation Modal
+    var pendingDelete = { id: null, url: null, card: null };
+
     $(document).on('click', '.btn-delete-item', function(e) {
         e.preventDefault();
         var btn = $(this);
-        var id = btn.data('id');
-        var url = btn.data('delete-url');
-        var card = $('#notify-card-' + id);
+        pendingDelete.id = btn.data('id');
+        pendingDelete.url = btn.data('delete-url');
+        pendingDelete.card = $('#notify-card-' + pendingDelete.id);
 
-        if (!confirm('Are you sure you want to remove this notification?')) {
-            return false;
-        }
+        var title = btn.data('title') || 'Notification #' + pendingDelete.id;
+        $('#deleteItemTitle').text('"' + title + '"');
+        $('#deleteSingleModal').modal('show');
+    });
 
-        btn.prop('disabled', true);
+    $('#confirmDeleteSingleBtn').on('click', function() {
+        if (!pendingDelete.url) return;
+        var confirmBtn = $(this);
+        confirmBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Removing...');
+
         $.ajax({
-            url: url,
+            url: pendingDelete.url,
             type: 'POST',
             data: {
                 _token: csrfToken,
@@ -1791,8 +1950,10 @@ $(document).ready(function() {
             },
             dataType: 'json',
             success: function(res) {
-                if (res && res.ok) {
-                    card.fadeOut(250, function() {
+                $('#deleteSingleModal').modal('hide');
+                confirmBtn.prop('disabled', false).html('<i class="fa fa-trash-o mr-1"></i> Remove');
+                if (pendingDelete.card && pendingDelete.card.length) {
+                    pendingDelete.card.fadeOut(250, function() {
                         $(this).remove();
                         if ($('.notify-card').length === 0) {
                             location.reload();
@@ -1801,13 +1962,69 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                btn.prop('disabled', false);
-                alert('Failed to remove notification. Please try again.');
+                $('#deleteSingleModal').modal('hide');
+                confirmBtn.prop('disabled', false).html('<i class="fa fa-trash-o mr-1"></i> Remove');
+                showThemeAlert('Failed to remove notification. Please try again.', 'danger');
             }
         });
     });
 
-    // 5. Recipient Details Drawer Toggle
+    // 6. Notice Approval / Rejection Confirmation Modal
+    var pendingReview = { form: null, decision: null };
+
+    $(document).on('click', '.btn-trigger-review', function(e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        var decision = $(this).data('decision') === 'rejected' ? 'rejected' : 'approved';
+        var notesInput = form.find('textarea[name="review_notes"]');
+        var notesVal = (notesInput.val() || '').trim();
+
+        if (!notesVal) {
+            notesInput.focus();
+            showThemeAlert('Please write approval notes or rejection reason before proceeding.', 'warning');
+            return;
+        }
+
+        pendingReview.form = form;
+        pendingReview.decision = decision;
+
+        if (decision === 'approved') {
+            $('#noticeReviewModalHeader').css('background', 'linear-gradient(135deg, #047857 0%, #059669 100%)');
+            $('#noticeReviewModalTitle').html('<i class="fa fa-check-circle"></i> Approve & Publish Notice');
+            $('#noticeReviewIconCircle').css({ 'background': '#ecfdf5', 'color': '#059669' }).html('<i class="fa fa-check"></i>');
+            $('#noticeReviewHeading').text('Approve this notice?');
+            $('#noticeReviewPrompt').text('This notice will be published immediately to all designated student and staff recipients.');
+            $('#confirmNoticeReviewBtn').removeClass('btn-danger').addClass('btn-success')
+                .html('<i class="fa fa-check mr-1"></i> Yes, Approve & Publish');
+        } else {
+            $('#noticeReviewModalHeader').css('background', 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)');
+            $('#noticeReviewModalTitle').html('<i class="fa fa-times-circle"></i> Reject Notice');
+            $('#noticeReviewIconCircle').css({ 'background': '#fef2f2', 'color': '#dc2626' }).html('<i class="fa fa-times"></i>');
+            $('#noticeReviewHeading').text('Reject this notice?');
+            $('#noticeReviewPrompt').text('This notice will be rejected and sent back with your review notes.');
+            $('#confirmNoticeReviewBtn').removeClass('btn-success').addClass('btn-danger')
+                .html('<i class="fa fa-times mr-1"></i> Yes, Reject Notice');
+        }
+
+        $('#noticeReviewConfirmModal').modal('show');
+    });
+
+    $('#confirmNoticeReviewBtn').on('click', function() {
+        if (!pendingReview.form || !pendingReview.decision) return;
+        $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Processing...');
+
+        var form = pendingReview.form;
+        var hiddenDecision = form.find('input[name="decision"]');
+        if (!hiddenDecision.length) {
+            hiddenDecision = $('<input type="hidden" name="decision">');
+            form.append(hiddenDecision);
+        }
+        hiddenDecision.val(pendingReview.decision);
+        form.find('button').prop('disabled', true);
+        form.submit();
+    });
+
+    // 7. Recipient Details Drawer Toggle
     $(document).on('click', '.recipient-detail-toggle', function() {
         var targetId = $(this).data('target');
         var drawer = $('#' + targetId);
@@ -1822,5 +2039,4 @@ $(document).ready(function() {
     });
 });
 </script>
-@endsection
 @endsection
