@@ -664,6 +664,17 @@
     border-bottom: none;
     padding-bottom: 0;
 }
+.dash-notice-item {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 8px 6px;
+    margin: 0 -6px;
+    transition: background .12s ease;
+}
+.dash-notice-item:hover,
+.dash-notice-item:active {
+    background: #f8fafc;
+}
 .item-circle-badge {
     width: 32px;
     height: 32px;
@@ -676,6 +687,7 @@
 }
 .item-info-col {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
 }
 .item-primary-txt {
@@ -685,6 +697,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.3;
 }
 .item-secondary-txt {
     font-size: 9.5px;
@@ -693,6 +706,245 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.notice-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    font-size: 10px;
+    color: #64748b;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.notice-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1.5px 6px;
+    border-radius: 3px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 1.25;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+}
+.notice-meta-chip i {
+    font-size: 10px;
+    line-height: 1;
+}
+.notice-meta-chip.chip-upcoming {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+.notice-meta-chip.chip-active {
+    background: #ecfdf5;
+    color: #15803d;
+    border-color: #a7f3d0;
+}
+.notice-meta-chip.chip-pdf {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+    font-weight: 800;
+}
+.notice-meta-dot {
+    color: #94a3b8;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+.notice-desc-preview {
+    color: #64748b;
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+/* Custom Mobile Bottom Sheet Modal for Notices */
+.mob-notice-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
+    z-index: 2050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.mob-notice-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+.mob-notice-sheet {
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+    border-top: 2px solid #0284c7;
+    z-index: 2051;
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
+}
+.mob-notice-sheet.show {
+    bottom: 0;
+}
+.mob-sheet-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+.mob-sheet-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.mob-sheet-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 3px;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .12s ease;
+}
+.mob-sheet-close:active {
+    background: rgba(255, 255, 255, 0.25);
+}
+.mob-sheet-fixed-meta {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+.sheet-fixed-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.sheet-meta-pill {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.sheet-pub-pill {
+    color: #64748b;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+.mob-sheet-body {
+    padding: 13px 14px 20px 14px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+.sheet-notice-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.35;
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    word-break: break-word;
+}
+.sheet-notice-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 11px 12px;
+}
+.sheet-notice-text {
+    font-size: 12px;
+    line-height: 1.65;
+    color: #1e293b;
+    word-break: break-word;
+}
+.mob-pdf-btn {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none !important;
+    transition: all .12s ease;
+}
+.mob-pdf-btn:active {
+    background: #e0f2fe;
+    border-color: #0284c7;
+}
+.mob-pdf-icon {
+    font-size: 18px;
+    color: #dc2626;
+    flex-shrink: 0;
+}
+.mob-pdf-info {
+    flex: 1;
+    min-width: 0;
+}
+.mob-pdf-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.mob-pdf-size {
+    font-size: 9px;
+    color: #64748b;
+    font-weight: 600;
+}
+.mob-pdf-download {
+    font-size: 11px;
+    color: #0284c7;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 9. Student Profile Details Grid */
@@ -1020,56 +1272,92 @@
                 $isActive = $fromDate && $toDate && $fromDate->toDateString() <= $todayDate && $toDate->toDateString() >= $todayDate;
                 $noticeDesc = trim(strip_tags($notice->description ?? $notice->message ?? ''));
                 $hasAttachment = !empty($notice->attachment_path);
+                $publishedAt = !empty($notice->published_at) ? \Carbon\Carbon::parse($notice->published_at) : null;
 
                 if ($isUpcoming) {
                     $badgeStyle = 'background:#fffbeb; color:#d97706; border:1px solid #fde68a;';
                     $iconClass = 'fa-clock-o';
-                    $statusTag = 'Upcoming';
-                    $statusTagStyle = 'background:#fef3c7; color:#b45309; border:1px solid #fcd34d;';
-                    $noticeUrl = url('student-notices?filter=upcoming#noticeCard-'.$notice->id);
+                    $statusLabel = 'Upcoming';
                 } elseif ($isActive) {
                     $badgeStyle = 'background:#ecfdf5; color:#16a34a; border:1px solid #a7f3d0;';
                     $iconClass = 'fa-bullhorn';
-                    $statusTag = 'Active';
-                    $statusTagStyle = 'background:#dcfce7; color:#15803d; border:1px solid #86efac;';
-                    $noticeUrl = url('student-notices?filter=active#noticeCard-'.$notice->id);
+                    $statusLabel = 'Active';
                 } else {
                     $badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
                     $iconClass = 'fa-file-text-o';
-                    $statusTag = 'Notice';
-                    $statusTagStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
-                    $noticeUrl = url('student-notices#noticeCard-'.$notice->id);
+                    $statusLabel = 'Notice';
                 }
+
+                $dateRangeStr = '';
+                if ($fromDate && $toDate) {
+                    $dateRangeStr = $fromDate->format('d M Y') . ' – ' . $toDate->format('d M Y');
+                } elseif ($fromDate) {
+                    $dateRangeStr = $fromDate->format('d M Y');
+                }
+
+                $pubStr = $publishedAt ? $publishedAt->format('d M Y, h:i A') : ($fromDate ? $fromDate->format('d M Y') : '');
+                $attachmentUrl = $hasAttachment ? url('notice-management/'.$notice->id.'/attachment') : '';
+                $attachmentName = $notice->attachment_name ?: 'Notice Circular.pdf';
+                $attachmentSize = !empty($notice->attachment_size) ? Helper::formatFileSize($notice->attachment_size) : '';
+                $fullNoticeUrl = url('student-notices?notice_id='.$notice->id);
             @endphp
-            <a href="{{ $noticeUrl }}" class="native-list-item" title="View Notice Details">
+            <div class="native-list-item dash-notice-item" 
+                 onclick="openDashNoticeModal({{ $notice->id }})" 
+                 role="button" 
+                 tabindex="0"
+                 title="Tap to view full notice">
                 <div class="item-circle-badge" style="{{ $badgeStyle }}">
                     <i class="fa {{ $iconClass }}"></i>
                 </div>
                 <div class="item-info-col">
-                    <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
-                        <div class="item-primary-txt">{{ $noticeTitle }}</div>
-                        <span class="badge" style="{{ $statusTagStyle }} font-size:8.5px; padding:1.5px 5px; border-radius:3px; font-weight:800; white-space:nowrap; flex-shrink:0;">
-                            {{ $statusTag }}
-                        </span>
-                    </div>
-                    <div class="item-secondary-txt">
+                    <div class="item-primary-txt">{{ $noticeTitle }}</div>
+                    <div class="notice-meta-row">
                         @if($isUpcoming && $fromDate)
-                            <span class="mr-2 text-warning font-weight-bold"><i class="fa fa-clock-o mr-1"></i>From {{ $fromDate->format('d M') }}</span>
+                            <span class="notice-meta-chip chip-upcoming" title="Upcoming Notice">
+                                <i class="fa fa-clock-o"></i>
+                                <span>From {{ $fromDate->format('d M') }}</span>
+                            </span>
                         @elseif($isActive && $toDate)
-                            <span class="mr-2 text-success font-weight-bold"><i class="fa fa-calendar-check-o mr-1"></i>Till {{ $toDate->format('d M') }}</span>
+                            <span class="notice-meta-chip chip-active" title="Active Notice">
+                                <i class="fa fa-calendar-check-o"></i>
+                                <span>Till {{ $toDate->format('d M') }}</span>
+                            </span>
                         @elseif($fromDate)
-                            <span class="mr-2"><i class="fa fa-calendar-o mr-1"></i>{{ $fromDate->format('d M') }}</span>
+                            <span class="notice-meta-chip" title="Notice Date">
+                                <i class="fa fa-calendar-o"></i>
+                                <span>{{ $fromDate->format('d M') }}</span>
+                            </span>
                         @endif
+
                         @if($hasAttachment)
-                            <span class="mr-2 text-danger font-weight-bold"><i class="fa fa-file-pdf-o"></i> PDF</span>
+                            <span class="notice-meta-chip chip-pdf" title="PDF Attachment">
+                                <i class="fa fa-file-pdf-o"></i>
+                                <span>PDF</span>
+                            </span>
                         @endif
+
                         @if(!empty($noticeDesc))
-                            &bull; {{ \Illuminate\Support\Str::limit($noticeDesc, 55) }}
+                            <span class="notice-meta-dot">&bull;</span>
+                            <span class="notice-desc-preview">{{ \Illuminate\Support\Str::limit($noticeDesc, 55) }}</span>
                         @endif
                     </div>
                 </div>
-                <i class="fa fa-angle-right text-muted" style="font-size:11px;"></i>
-            </a>
+                <i class="fa fa-angle-right text-muted" style="font-size:12px; margin-left:4px; flex-shrink:0;"></i>
+
+                {{-- Hidden Notice Payload for Modal --}}
+                <div id="dash-notice-data-{{ $notice->id }}" style="display:none;"
+                     data-id="{{ $notice->id }}"
+                     data-title="{{ $noticeTitle }}"
+                     data-status="{{ $statusLabel }}"
+                     data-dates="{{ $dateRangeStr }}"
+                     data-published="{{ $pubStr }}"
+                     data-attachment="{{ $attachmentUrl }}"
+                     data-attachment-name="{{ $attachmentName }}"
+                     data-attachment-size="{{ $attachmentSize }}"
+                     data-full-url="{{ $fullNoticeUrl }}">
+                    <div class="dash-notice-raw-msg">{!! nl2br(e($notice->message ?? $notice->description ?? '')) !!}</div>
+                </div>
+            </div>
         @empty
             <div class="text-center py-3 text-muted" style="font-size: 11px;">
                 <i class="fa fa-bell-slash-o fa-2x text-muted mb-1 d-block" style="opacity:0.5;"></i>
@@ -1113,7 +1401,161 @@ function switchNativeTab(targetId, btnElement) {
         }
     }
 }
+
+// Notice Bottom Sheet Modal Handlers on Dashboard
+function openDashNoticeModal(noticeId) {
+    var dataEl = document.getElementById('dash-notice-data-' + noticeId);
+    if (!dataEl) return;
+
+    var title = dataEl.getAttribute('data-title') || 'Notice Circular';
+    var status = dataEl.getAttribute('data-status') || '';
+    var dates = dataEl.getAttribute('data-dates') || '';
+    var published = dataEl.getAttribute('data-published') || '';
+    var attachmentUrl = dataEl.getAttribute('data-attachment') || '';
+    var attachmentName = dataEl.getAttribute('data-attachment-name') || 'Notice Circular.pdf';
+    var attachmentSize = dataEl.getAttribute('data-attachment-size') || '';
+    var fullUrl = dataEl.getAttribute('data-full-url') || "{{ url('student-notices') }}";
+    var rawMsgEl = dataEl.querySelector('.dash-notice-raw-msg');
+    var messageHtml = rawMsgEl ? rawMsgEl.innerHTML : '';
+
+    var statusEl = document.getElementById('dashSheetNoticeStatus');
+    if (statusEl) {
+        if (status) {
+            statusEl.style.display = 'inline-flex';
+            if (status === 'Upcoming') {
+                statusEl.className = 'sheet-meta-pill';
+                statusEl.style.cssText = 'background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-weight:700;';
+                statusEl.innerHTML = '<i class="fa fa-clock-o"></i> ' + status;
+            } else if (status === 'Active') {
+                statusEl.className = 'sheet-meta-pill';
+                statusEl.style.cssText = 'background:#ecfdf5; color:#15803d; border:1px solid #a7f3d0; font-weight:700;';
+                statusEl.innerHTML = '<i class="fa fa-check-circle"></i> ' + status;
+            } else {
+                statusEl.className = 'sheet-meta-pill';
+                statusEl.style.cssText = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-weight:700;';
+                statusEl.innerHTML = '<i class="fa fa-bullhorn"></i> ' + status;
+            }
+        } else {
+            statusEl.style.display = 'none';
+        }
+    }
+
+    var datesEl = document.getElementById('dashSheetNoticeDates');
+    if (datesEl) {
+        if (dates) {
+            datesEl.style.display = 'inline-flex';
+            datesEl.innerHTML = '<i class="fa fa-calendar"></i> ' + dates;
+        } else {
+            datesEl.style.display = 'none';
+        }
+    }
+
+    var pubEl = document.getElementById('dashSheetNoticePublished');
+    if (pubEl) {
+        if (published) {
+            pubEl.style.display = 'inline-flex';
+            pubEl.innerHTML = '<i class="fa fa-clock-o"></i> ' + published;
+        } else {
+            pubEl.style.display = 'none';
+        }
+    }
+
+    document.getElementById('dashSheetNoticeTitle').textContent = title;
+    document.getElementById('dashSheetNoticeBody').innerHTML = messageHtml || '<span class="text-muted">No message details provided.</span>';
+
+    var attachWrap = document.getElementById('dashSheetNoticeAttachment');
+    if (attachmentUrl) {
+        attachWrap.style.display = 'block';
+        document.getElementById('dashSheetAttachmentLink').href = attachmentUrl;
+        document.getElementById('dashSheetAttachmentName').textContent = attachmentName;
+        var sizeEl = document.getElementById('dashSheetAttachmentSize');
+        if (sizeEl) sizeEl.textContent = attachmentSize ? ('Size: ' + attachmentSize + ' • Tap to view/download') : 'Tap to view / download PDF circular';
+    } else {
+        attachWrap.style.display = 'none';
+    }
+
+    var fullPageBtn = document.getElementById('dashSheetFullPageBtn');
+    if (fullPageBtn) {
+        fullPageBtn.href = fullUrl;
+    }
+
+    var bodyEl = document.querySelector('#dashNoticeSheet .mob-sheet-body');
+    if (bodyEl) bodyEl.scrollTop = 0;
+
+    var backdrop = document.getElementById('dashNoticeBackdrop');
+    var sheet = document.getElementById('dashNoticeSheet');
+    if (backdrop) backdrop.classList.add('show');
+    if (sheet) sheet.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDashNoticeModal() {
+    var backdrop = document.getElementById('dashNoticeBackdrop');
+    var sheet = document.getElementById('dashNoticeSheet');
+    if (backdrop) backdrop.classList.remove('show');
+    if (sheet) sheet.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDashNoticeModal();
+});
 </script>
+
+{{-- Notice Details Bottom Sheet Modal on Dashboard --}}
+<div class="mob-notice-modal-backdrop" id="dashNoticeBackdrop" onclick="closeDashNoticeModal()"></div>
+<div class="mob-notice-sheet" id="dashNoticeSheet">
+    {{-- Header --}}
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-bullhorn text-warning"></i>
+            <span>Notice Circular Details</span>
+        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeDashNoticeModal()" aria-label="Close">&times;</button>
+    </div>
+
+    {{-- Fixed Meta Strip --}}
+    <div class="mob-sheet-fixed-meta">
+        <div class="sheet-fixed-meta-row">
+            <span id="dashSheetNoticeStatus" class="sheet-meta-pill" style="display:none;"></span>
+            <span id="dashSheetNoticeDates" class="sheet-meta-pill" style="display:none;"></span>
+            <span id="dashSheetNoticePublished" class="sheet-meta-pill sheet-pub-pill" style="display:none;"></span>
+        </div>
+    </div>
+
+    {{-- Moveable / Scrollable Body --}}
+    <div class="mob-sheet-body">
+        <h3 id="dashSheetNoticeTitle" class="sheet-notice-title"></h3>
+
+        <div class="sheet-notice-card">
+            <div id="dashSheetNoticeBody" class="sheet-notice-text"></div>
+        </div>
+
+        {{-- Attachment Download Pill if available --}}
+        <div id="dashSheetNoticeAttachment" style="display: none; margin-top: 12px;">
+            <a id="dashSheetAttachmentLink" href="#" target="_blank" class="mob-pdf-btn">
+                <i class="fa fa-file-pdf-o mob-pdf-icon"></i>
+                <div class="mob-pdf-info">
+                    <div class="mob-pdf-title" id="dashSheetAttachmentName">Notice Circular.pdf</div>
+                    <div class="mob-pdf-size" id="dashSheetAttachmentSize">Tap to view / download PDF circular</div>
+                </div>
+                <div class="mob-pdf-download">
+                    <i class="fa fa-download"></i>
+                </div>
+            </a>
+        </div>
+
+        {{-- Actions --}}
+        <div style="margin-top: 16px; display: flex; gap: 8px;">
+            <button type="button" class="btn btn-sm btn-light" onclick="closeDashNoticeModal()" style="flex:1; border:1px solid #cbd5e1; font-weight:700; font-size:11.5px; padding:7px 12px; border-radius:4px; color:#475569; background:#f8fafc;">
+                <i class="fa fa-times mr-1"></i> Close
+            </button>
+            <a id="dashSheetFullPageBtn" href="{{ url('student-notices') }}" class="btn btn-sm btn-primary" style="flex:1.2; background:#0284c7; border-color:#0284c7; font-weight:700; font-size:11.5px; padding:7px 12px; border-radius:4px; color:#ffffff; display:inline-flex; align-items:center; justify-content:center; gap:5px; text-decoration:none;">
+                <span>All Notices</span> <i class="fa fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
 
 @include('student_login.payment.modal')
 @endsection

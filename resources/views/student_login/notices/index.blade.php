@@ -1230,6 +1230,24 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(updateReadMoreVisibility, 50);
         });
     }
+
+    // Auto-open notice details modal if notice_id parameter or hash is present in URL
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const noticeIdParam = urlParams.get('notice_id') || urlParams.get('id');
+        const hashMatch = window.location.hash.match(/noticeCard-(\d+)/);
+        const targetNoticeId = noticeIdParam || (hashMatch ? hashMatch[1] : null);
+
+        if (targetNoticeId) {
+            setTimeout(function() {
+                const cardEl = document.getElementById('noticeCard-' + targetNoticeId);
+                if (cardEl) {
+                    cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                openNoticeSheet(targetNoticeId);
+            }, 180);
+        }
+    } catch(err) {}
 });
 </script>
 @endsection
