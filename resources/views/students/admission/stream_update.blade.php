@@ -63,6 +63,7 @@
     flex-direction: column;
     overflow: hidden;
     padding: 6px 8px 0;
+    gap: 4px;
 }
 
 /* 1. Hero Header Banner */
@@ -77,7 +78,6 @@
     flex-wrap: wrap;
     gap: 6px;
     box-shadow: 0 1px 3px rgba(0, 44, 84, 0.15);
-    margin-bottom: 4px;
     flex-shrink: 0;
 }
 .stream-hero-text {
@@ -201,7 +201,6 @@
     border: 1px solid #cbd5e1;
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0,0,0,.05);
-    margin-bottom: 4px;
     flex-shrink: 0;
 }
 .filter-card-header {
@@ -955,8 +954,8 @@ select.excel-col-filter option {
     justify-content: center;
     width: 100%;
     flex: 1;
-    min-height: calc(100vh - var(--header-height, 56px) - 230px);
-    padding: 40px 16px;
+    min-height: 0;
+    padding: 30px 16px;
     text-align: center;
     background: #ffffff;
     color: #475569;
@@ -1056,7 +1055,7 @@ select.excel-col-filter option {
                 <div class="filter-card">
                     <div class="filter-card-header">
                         <span><i class="fa fa-filter mr-1"></i> Class Selection Filter</span>
-                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Choose higher class to load students &amp; subjects</span>
+                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Choose class to load students &amp; stream subjects</span>
                     </div>
                     <div class="filter-card-body">
                         <form action="{{ url('stream_update') }}" method="GET" id="streamClassForm" class="filter-form-row">
@@ -1065,11 +1064,9 @@ select.excel-col-filter option {
                                 <select name="class_type_id" class="filter-select select2" required onchange="document.getElementById('streamClassForm').submit()">
                                     <option value="">-- Choose Class --</option>
                                     @foreach($classType as $type)
-                                        @if($type->orderBy > 10)
-                                            <option value="{{ $type->id }}" {{ (int)$type->id === (int)($search['class_type_id'] ?? 0) ? 'selected' : '' }}>
-                                                {{ $type->name }}
-                                            </option>
-                                        @endif
+                                        <option value="{{ $type->id }}" {{ (int)$type->id === (int)($search['class_type_id'] ?? 0) ? 'selected' : '' }}>
+                                            {{ $type->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -1345,7 +1342,7 @@ select.excel-col-filter option {
 
                     </form>
                 @elseif(!empty($search['class_type_id']))
-                    <div class="dash-table-card">
+                    <div class="dash-table-card" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                         <div class="dash-empty-state">
                             <div class="empty-icon"><i class="fa fa-graduation-cap"></i></div>
                             <div class="empty-title">No Active Students Found</div>
@@ -1353,11 +1350,11 @@ select.excel-col-filter option {
                         </div>
                     </div>
                 @else
-                    <div class="dash-table-card">
+                    <div class="dash-table-card" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                         <div class="dash-empty-state">
                             <div class="empty-icon text-primary"><i class="fa fa-filter"></i></div>
                             <div class="empty-title">Please Select a Class to Begin</div>
-                            <div class="empty-desc">Choose a secondary or higher secondary class from the dropdown above to load students and stream subjects.</div>
+                            <div class="empty-desc">Choose a class from the dropdown above to load students and stream subjects.</div>
                         </div>
                     </div>
                 @endif
@@ -1365,11 +1362,197 @@ select.excel-col-filter option {
             </div>
         </div>
     </section>
+
+    {{-- ==========================================================================
+         CUSTOM THEME MODALS (Student Promote Reference Pattern)
+         ========================================================================== --}}
+
+    {{-- 1. Subject Chip Removal Confirmation Modal --}}
+    <div class="modal fade" id="confirmRemoveSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document" style="max-width: 420px;">
+            <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); color: #ffffff; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <h5 class="modal-title m-0" style="font-size: 13px; font-weight: 700; color: #ffffff;">
+                        <i class="fa fa-trash mr-1"></i> Remove Subject Assignment
+                    </h5>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" style="background: none; border: none; font-size: 18px; line-height: 1; opacity: 1; cursor: pointer; color: #ffffff;">&times;</button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <div style="font-size: 38px; color: #dc2626; margin-bottom: 8px;">
+                        <i class="fa fa-exclamation-triangle"></i>
+                    </div>
+                    <h6 style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                        Remove Assigned Subject?
+                    </h6>
+                    <p class="text-muted mb-2" style="font-size: 11px;">
+                        Are you sure you want to remove this subject from the student? This unassigns the subject immediately.
+                    </p>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 8px 12px; font-size: 11.5px; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span class="text-muted">Student Name:</span>
+                            <strong id="removeModalStudentName" class="text-dark">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span class="text-muted">Admission No:</span>
+                            <code id="removeModalAdmissionNo" style="font-weight: 700; color: #002C54;">-</code>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="text-muted">Subject to Remove:</span>
+                            <span class="badge badge-danger font-weight-bold" id="removeModalSubjectName" style="font-size: 11px;">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; display: flex; justify-content: space-between;">
+                    <button type="button" class="btn btn-xs btn-secondary px-3" data-bs-dismiss="modal" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-xs btn-danger font-weight-bold px-3" id="btnConfirmDeleteSubject">
+                        <i class="fa fa-trash mr-1"></i> Confirm Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 2. Confirm Bulk Subject Assignment Save Modal --}}
+    <div class="modal fade" id="confirmSaveAssignmentsModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document" style="max-width: 480px;">
+            <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <h5 class="modal-title m-0" style="font-size: 13px; font-weight: 700; color: #ffffff;">
+                        <i class="fa fa-check-circle mr-1 text-warning"></i> Confirm Stream Assignment
+                    </h5>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" style="background: none; border: none; font-size: 18px; line-height: 1; opacity: 1; cursor: pointer; color: #ffffff;">&times;</button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="text-center mb-2">
+                        <div style="font-size: 38px; color: #0284c7; margin-bottom: 6px;">
+                            <i class="fa fa-graduation-cap"></i>
+                        </div>
+                        <h6 style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+                            Assign Selected Subjects to Students?
+                        </h6>
+                        <p class="text-muted mb-0" style="font-size: 11px;">
+                            The selected subjects will be assigned to all checked students for class <b>{{ $selectedClass->name ?? '' }}</b>.
+                        </p>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px 12px; font-size: 11.5px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span class="text-muted">Target Class:</span>
+                            <strong class="text-dark">{{ $selectedClass->name ?? 'Not Selected' }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span class="text-muted">Selected Students:</span>
+                            <span class="badge badge-primary font-weight-bold" id="confirmModalStudentCount" style="font-size: 11px;">0 Students</span>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <span class="text-muted d-block mb-1">Selected Subjects (<span id="confirmModalSubjectCount">0</span>):</span>
+                            <div id="confirmModalSubjectList" style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 90px; overflow-y: auto; padding: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; display: flex; justify-content: space-between;">
+                    <button type="button" class="btn btn-xs btn-secondary px-3" data-bs-dismiss="modal" data-dismiss="modal">
+                        <i class="fa fa-times mr-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-xs btn-success font-weight-bold px-3" id="btnConfirmExecuteSave">
+                        <i class="fa fa-check-circle mr-1"></i> Confirm &amp; Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 3. Dynamic Theme Alert / Warning / Notice Modal (Replaces browser alert()) --}}
+    <div class="modal fade" id="streamAlertModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document" style="max-width: 400px;">
+            <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+                <div class="modal-header" id="streamAlertHeader" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <h5 class="modal-title m-0" id="streamAlertTitle" style="font-size: 13px; font-weight: 700; color: #ffffff;">
+                        <i class="fa fa-info-circle mr-1"></i> Notification
+                    </h5>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" style="background: none; border: none; font-size: 18px; line-height: 1; opacity: 1; cursor: pointer; color: #ffffff;">&times;</button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <div id="streamAlertIcon" style="font-size: 38px; margin-bottom: 8px;">
+                        <i class="fa fa-exclamation-circle text-warning"></i>
+                    </div>
+                    <p id="streamAlertMessage" style="font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 0; line-height: 1.4;">
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px;">
+                    <button type="button" class="btn btn-xs btn-primary font-weight-bold px-4" data-bs-dismiss="modal" data-dismiss="modal">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+@endsection
 
 @section('scripts')
 <script>
 const streamBaseUrl = @json(url('/'));
+
+// Modal Helpers (Supporting Bootstrap 4, 5, and jQuery)
+function openModal(selector) {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        var modalEl = document.querySelector(selector);
+        if (modalEl) {
+            var modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalObj.show();
+            return;
+        }
+    }
+    if ($.fn.modal) {
+        $(selector).modal('show');
+    }
+}
+
+function closeModal(selector) {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        var modalEl = document.querySelector(selector);
+        if (modalEl) {
+            var modalObj = bootstrap.Modal.getInstance(modalEl);
+            if (modalObj) modalObj.hide();
+        }
+    }
+    if ($.fn.modal) {
+        $(selector).modal('hide');
+    }
+}
+
+function showStreamAlert(message, type, title) {
+    type = type || 'warning';
+    var $header = $('#streamAlertHeader');
+    var $icon = $('#streamAlertIcon');
+    var $title = $('#streamAlertTitle');
+    var $msg = $('#streamAlertMessage');
+
+    $msg.html(message);
+
+    if (type === 'danger' || type === 'error') {
+        $header.css('background', 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)');
+        $icon.html('<i class="fa fa-times-circle text-danger"></i>');
+        $title.html('<i class="fa fa-exclamation-triangle mr-1"></i> ' + (title || 'Error Occurred'));
+    } else if (type === 'success') {
+        $header.css('background', 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)');
+        $icon.html('<i class="fa fa-check-circle text-success"></i>');
+        $title.html('<i class="fa fa-check mr-1"></i> ' + (title || 'Success'));
+    } else if (type === 'info') {
+        $header.css('background', 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)');
+        $icon.html('<i class="fa fa-info-circle text-info"></i>');
+        $title.html('<i class="fa fa-info mr-1"></i> ' + (title || 'Information'));
+    } else {
+        $header.css('background', 'linear-gradient(135deg, #d97706 0%, #b45309 100%)');
+        $icon.html('<i class="fa fa-exclamation-circle text-warning"></i>');
+        $title.html('<i class="fa fa-exclamation-circle mr-1"></i> ' + (title || 'Attention Required'));
+    }
+
+    openModal('#streamAlertModal');
+}
 
 // Creative 1-Click Stream Presets Auto-Selector
 function applySubjectPreset(presetType) {
@@ -1711,42 +1894,91 @@ $(document).ready(function() {
         $('#masterSelectCheckbox').prop('checked', false);
     });
 
-    // Form submission validation
+    // Form submission validation & confirmation modal
+    var isConfirmedSubmit = false;
+
     $('#streamAssignForm').on('submit', function(e) {
-        var checkedSubjects = $('.subject-checkbox:checked').length;
-        var checkedStudents = $('.student-checkbox:checked').length;
+        if (isConfirmedSubmit) {
+            return true;
+        }
 
-        if (checkedSubjects === 0) {
-            e.preventDefault();
-            if (window.toastr) {
-                toastr.warning('Please select at least one subject to assign.');
-            } else {
-                alert('Please select at least one subject to assign.');
-            }
+        e.preventDefault();
+
+        var checkedSubjects = $('.subject-checkbox:checked');
+        var checkedStudents = $('.student-checkbox:checked');
+
+        if (checkedSubjects.length === 0) {
+            showStreamAlert('Please select at least one subject from the left panel to assign.', 'warning', 'No Subject Selected');
             return false;
         }
 
-        if (checkedStudents === 0) {
-            e.preventDefault();
-            if (window.toastr) {
-                toastr.warning('Please select at least one student to receive the subjects.');
-            } else {
-                alert('Please select at least one student to receive the subjects.');
-            }
+        if (checkedStudents.length === 0) {
+            showStreamAlert('Please select at least one student from the table to receive the subjects.', 'warning', 'No Student Selected');
             return false;
         }
+
+        // Populate confirm modal details
+        $('#confirmModalStudentCount').text(checkedStudents.length + ' Student' + (checkedStudents.length > 1 ? 's' : ''));
+        $('#confirmModalSubjectCount').text(checkedSubjects.length);
+
+        var $subjectListWrap = $('#confirmModalSubjectList');
+        $subjectListWrap.empty();
+        checkedSubjects.each(function() {
+            var sName = $(this).closest('.subject-picker-tile').find('.subject-tile-name').text().trim();
+            $subjectListWrap.append('<span class="badge" style="font-size: 10.5px; padding: 3px 7px; background: #0284c7; color: #fff; border-radius: 2px;">' + sName + '</span>');
+        });
+
+        openModal('#confirmSaveAssignmentsModal');
+        return false;
     });
 
-    // Real-time Ajax delete for single subject chip
+    $('#btnConfirmExecuteSave').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Assigning...');
+        isConfirmedSubmit = true;
+        document.getElementById('streamAssignForm').submit();
+    });
+
+    // Real-time Ajax delete for single subject chip with theme confirmation modal
+    var pendingDeleteData = null;
+
     $(document).on('click', '.delete-subject', function(e) {
         e.preventDefault();
-        const button = $(this);
-        const admissionId = button.data('admission-id');
-        const subjectId = button.data('subject-id');
-        const chip = button.closest('.subject-chip');
+        var button = $(this);
+        var admissionId = button.data('admission-id');
+        var subjectId = button.data('subject-id');
+        var chip = button.closest('.subject-chip');
+        var subjectName = chip.find('span:first-child').text().trim();
+        var $row = chip.closest('tr');
+        var studentName = $row.find('.student-name-text').text().trim() || 'Student';
+        var admissionNo = $row.find('code').text().trim() || 'N/A';
 
-        if (!confirm('Remove this subject assignment for the student?')) return;
+        pendingDeleteData = {
+            button: button,
+            admissionId: admissionId,
+            subjectId: subjectId,
+            chip: chip,
+            $row: $row
+        };
 
+        $('#removeModalStudentName').text(studentName);
+        $('#removeModalAdmissionNo').text(admissionNo);
+        $('#removeModalSubjectName').text(subjectName);
+
+        openModal('#confirmRemoveSubjectModal');
+    });
+
+    // Confirm button inside delete subject modal
+    $('#btnConfirmDeleteSubject').on('click', function() {
+        if (!pendingDeleteData) return;
+
+        var button = pendingDeleteData.button;
+        var admissionId = pendingDeleteData.admissionId;
+        var subjectId = pendingDeleteData.subjectId;
+        var chip = pendingDeleteData.chip;
+        var $row = pendingDeleteData.$row;
+
+        closeModal('#confirmRemoveSubjectModal');
         button.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
 
         $.ajax({
@@ -1754,8 +1986,7 @@ $(document).ready(function() {
             type: 'POST',
             data: { _token: '{{ csrf_token() }}' },
             success: function(response) {
-                const list = $('#subject-list-' + admissionId);
-                const $row = list.closest('tr');
+                var list = $('#subject-list-' + admissionId);
                 chip.fadeOut(150, function() {
                     $(this).remove();
                     var remaining = list.find('.subject-chip').length;
@@ -1776,15 +2007,17 @@ $(document).ready(function() {
                 if (window.toastr) {
                     toastr.success(response.message || 'Subject removed successfully.');
                 }
+                pendingDeleteData = null;
             },
             error: function(xhr) {
-                const response = xhr.responseJSON || {};
+                var response = xhr.responseJSON || {};
+                var errorMsg = response.error || response.message || 'Subject could not be removed.';
                 if (window.toastr) {
-                    toastr.error(response.error || response.message || 'Subject could not be removed.');
-                } else {
-                    alert(response.error || response.message || 'Subject could not be removed.');
+                    toastr.error(errorMsg);
                 }
+                showStreamAlert(errorMsg, 'danger', 'Subject Removal Failed');
                 button.prop('disabled', false).html('<i class="fa fa-times-circle"></i>');
+                pendingDeleteData = null;
             }
         });
     });
@@ -1793,6 +2026,4 @@ $(document).ready(function() {
     updateStudentPagination();
 });
 </script>
-@endsection
-
 @endsection
