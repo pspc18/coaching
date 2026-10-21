@@ -19,6 +19,27 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
     $userNotificationUnreadCount = (clone $userNotificationQuery)->where('message_seen', 0)->count();
     $headerUserNotifications = (clone $userNotificationQuery)->orderByDesc('id')->take(4)->get();
 }
+
+// User Avatar & Initial computation
+$headerUserName = trim((string) (Session::get('first_name') ?: ($getUser['first_name'] ?? 'Admin')));
+$headerUserInitial = !empty($headerUserName) ? mb_strtoupper(mb_substr($headerUserName, 0, 1)) : 'A';
+$headerUserImageName = !empty($getUser['image']) ? $getUser['image'] : null;
+$headerHasProfileImage = false;
+$headerProfileImageSrc = '';
+
+if (!empty($headerUserImageName)) {
+    if (filter_var($headerUserImageName, FILTER_VALIDATE_URL)) {
+        $headerHasProfileImage = true;
+        $headerProfileImageSrc = $headerUserImageName;
+    } else {
+        $uploadPath = env('IMAGE_UPLOAD_PATH') ? rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . '/profile/' . $headerUserImageName : null;
+        $publicPath = public_path('schoolimage/profile/' . $headerUserImageName);
+        if (($uploadPath && file_exists($uploadPath)) || file_exists($publicPath)) {
+            $headerHasProfileImage = true;
+            $headerProfileImageSrc = rtrim(env('IMAGE_SHOW_PATH'), '/') . '/profile/' . $headerUserImageName;
+        }
+    }
+}
 @endphp
 @php
     $apkData = DB::table('settings')->first();
@@ -96,6 +117,43 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
       30% { transform: rotate(10deg); }
       40% { transform: rotate(-6deg); }
       50% { transform: rotate(0deg); }
+  }
+
+  /* ==========================================================================
+     Profile Initial Avatar (Fallback when profile image is missing/broken)
+     ========================================================================== */
+  .user-avatar-initial {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #002C54 0%, #0a4d8c 100%);
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1;
+      text-transform: uppercase;
+      user-select: none;
+      letter-spacing: 0.5px;
+  }
+  .dropdown-user-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 2px;
+      margin: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #002C54 0%, #0a4d8c 100%);
+      color: #ffffff !important;
+      font-weight: 800;
+      font-size: 22px;
+      line-height: 1;
+      text-transform: uppercase;
+      user-select: none;
+      border: 1px solid #001f3d;
+      box-shadow: 0 2px 4px rgba(0, 44, 84, 0.2);
   }
 </style>
 
@@ -178,21 +236,22 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
 </div>
     @if(!empty(Session::get('id')))
     <li class="nav-item dropdown ">
-      <a class="user-panel" data-toggle="dropdown" href="#">
-        @if(Session::get('role_id')==3)
-        <img src="{{ env('IMAGE_SHOW_PATH').'/profile/'.$getUser['image'] }}" class="img-circle elevation-2" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'default/user_image.jpg' }}'">
+      <a class="user-panel" data-toggle="dropdown" href="#" title="{{ $headerUserName }}">
+        @if($headerHasProfileImage)
+          <img src="{{ $headerProfileImageSrc }}" class="img-circle elevation-2" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}">
+          <span class="user-avatar-initial" style="display:none;">{{ $headerUserInitial }}</span>
         @else
-        <img src="{{ env('IMAGE_SHOW_PATH').'/profile/'.$getUser['image'] }}" class="img-circle elevation-2" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'default/user_image.jpg' }}'">
+          <span class="user-avatar-initial">{{ $headerUserInitial }}</span>
         @endif
-       
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
         <div class="row border-bottom mr-0">
           <div class="col-md-4 col-4">
-            @if(Session::get('role_id')==3)
-            <img class="profile_user_img" src="{{ env('IMAGE_SHOW_PATH').'/profile/'.$getUser['image'] }}" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
+            @if($headerHasProfileImage)
+              <img class="profile_user_img" src="{{ $headerProfileImageSrc }}" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}">
+              <span class="dropdown-user-avatar" style="display:none;">{{ $headerUserInitial }}</span>
             @else
-            <img class="profile_user_img" src="{{ env('IMAGE_SHOW_PATH').'/profile/'.$getUser['image'] }}" onerror="this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
+              <span class="dropdown-user-avatar">{{ $headerUserInitial }}</span>
             @endif
           </div>
           <div class="col-md-8 col-8 align_centerd">
@@ -260,12 +319,6 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto flex_centerd_profile">
   
-    @php
-        $profileImageSrc = !empty($getUser['image'])
-            ? env('IMAGE_SHOW_PATH').'/profile/'.$getUser['image']
-            : env('IMAGE_SHOW_PATH').'default/user_image.jpg';
-    @endphp
-
     @php
         $totalBirthdaysCount = count($getstudentbirthday ?? []) + count($getUsersBirthday ?? []);
     @endphp
@@ -372,8 +425,13 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
 </div>
     @if(!empty(Session::get('id')))
     <li class="nav-item dropdown mobile_padding">
-      <a class="user-panel" data-toggle="dropdown" href="#">
-        <img src="{{ $profileImageSrc }}" class="img-circle elevation-2" onerror="this.onerror=null;this.src='{{ env('IMAGE_SHOW_PATH').'default/user_image.jpg' }}'">
+      <a class="user-panel" data-toggle="dropdown" href="#" title="{{ $headerUserName }}">
+        @if($headerHasProfileImage)
+          <img src="{{ $headerProfileImageSrc }}" class="img-circle elevation-2" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}">
+          <span class="user-avatar-initial" style="display:none;">{{ $headerUserInitial }}</span>
+        @else
+          <span class="user-avatar-initial">{{ $headerUserInitial }}</span>
+        @endif
         {{-- <span class="badge badge-warning navbar-badge">15</span> --}}
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
@@ -381,7 +439,12 @@ if ((int) Session::get('role_id') !== 3 && !empty(Session::get('id'))) {
         {{-- <div class="dropdown-divider"></div> --}}
         <div class="row border-bottom mr-0">
           <div class="col-md-4 col-4">
-            <img class="profile_user_img" src="{{ $profileImageSrc }}" onerror="this.onerror=null;this.src='{{ env('IMAGE_SHOW_PATH').'/default/user_image.jpg' }}'">
+            @if($headerHasProfileImage)
+              <img class="profile_user_img" src="{{ $headerProfileImageSrc }}" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='flex';}">
+              <span class="dropdown-user-avatar" style="display:none;">{{ $headerUserInitial }}</span>
+            @else
+              <span class="dropdown-user-avatar">{{ $headerUserInitial }}</span>
+            @endif
           </div>
           <div class="col-md-8 col-8 align_centerd">
             <div>
