@@ -39,6 +39,15 @@
         return url('notificationFatchStudent' . (count($params) ? '?' . http_build_query($params) : ''));
     };
 
+    if (!function_exists('cleanStudentCurrency')) {
+        function cleanStudentCurrency($val) {
+            if ($val === null || $val === '') return '0.00';
+            $cleaned = preg_replace('/[^0-9.]/', '', (string) $val);
+            if ($cleaned === '' || !is_numeric($cleaned)) return '0.00';
+            return number_format((float) $cleaned, 2);
+        }
+    }
+
     if (!function_exists('parseStudentFeeNotificationContent')) {
         function parseStudentFeeNotificationContent($rawContent) {
             $text = trim((string) $rawContent);
@@ -74,6 +83,90 @@
                 $parsed['receipt_no'] = $parsed['offline_receipt_no'];
             }
 
+            return $parsed;
+        }
+    }
+
+    if (!function_exists('parseStudentAttendanceNotificationContent')) {
+        function parseStudentAttendanceNotificationContent($text) {
+            $parsed = [
+                'name' => '',
+                'date' => '',
+                'status' => 'Present',
+                'check_in' => '',
+                'check_out' => '',
+                'institute' => '',
+            ];
+            if (preg_match('/Name:\s*([^\r\n]+)/i', $text, $m)) $parsed['name'] = trim($m[1]);
+            if (preg_match('/Date:\s*([^\r\n]+)/i', $text, $m)) $parsed['date'] = trim($m[1]);
+            if (preg_match('/Status:\s*([^\r\n]+)/i', $text, $m)) $parsed['status'] = trim($m[1]);
+            if (preg_match('/Check-in:\s*([^\r\n]+)/i', $text, $m)) $parsed['check_in'] = trim($m[1]);
+            if (preg_match('/Check-out:\s*([^\r\n]+)/i', $text, $m)) $parsed['check_out'] = trim($m[1]);
+            if (preg_match('/(?:Status:[^\r\n]+\r?\n)([\s\S]+)$/i', $text, $m)) {
+                $parsed['institute'] = trim(preg_replace('/\s+/', ' ', $m[1]));
+            }
+            return $parsed;
+        }
+    }
+
+    if (!function_exists('parseStudentComplaintNotificationContent')) {
+        function parseStudentComplaintNotificationContent($text) {
+            $parsed = [
+                'ticket' => '',
+                'status' => 'Updated',
+                'message' => '',
+                'subject' => '',
+            ];
+            if (preg_match('/(CMP-[0-9A-Za-z_-]+)/i', $text, $m)) $parsed['ticket'] = trim($m[1]);
+            if (preg_match('/Status:\s*([^\r\n]+)/i', $text, $m)) $parsed['status'] = trim($m[1]);
+            elseif (preg_match('/status changed to\s*([^\r\n.]+)/i', $text, $m)) $parsed['status'] = trim($m[1]);
+            if (preg_match('/Subject:\s*([^\r\n]+)/i', $text, $m)) $parsed['subject'] = trim($m[1]);
+            if (preg_match('/Message:\s*([\s\S]+)$/i', $text, $m)) {
+                $parsed['message'] = trim($m[1]);
+            } else {
+                $parsed['message'] = trim($text);
+            }
+            return $parsed;
+        }
+    }
+
+    if (!function_exists('parseStudentExamNotificationContent')) {
+        function parseStudentExamNotificationContent($text, $title = '') {
+            $parsed = [
+                'exam' => '',
+                'message' => $text,
+            ];
+            if (preg_match('/result for\s+([^.]+?)\s+has been published/i', $text, $m)) {
+                $parsed['exam'] = trim($m[1]);
+            } elseif (preg_match('/Exam Result:\s*([^\r\n]+)/i', $text, $m)) {
+                $parsed['exam'] = trim($m[1]);
+            } else {
+                $parsed['exam'] = trim(str_ireplace(['Exam Result Published', 'Exam Result'], '', (string) $title)) ?: 'Examination Result';
+            }
+            return $parsed;
+        }
+    }
+
+    if (!function_exists('parseStudentFeeRevertNotificationContent')) {
+        function parseStudentFeeRevertNotificationContent($text) {
+            $parsed = [
+                'student' => '',
+                'receipt_no' => '',
+                'date' => '',
+                'mode' => '',
+                'details' => '',
+                'total_reverted' => '',
+                'status' => 'Payment Reverted',
+            ];
+            if (preg_match('/Student:\s*([^\r\n]+)/i', $text, $m)) $parsed['student'] = trim($m[1]);
+            if (preg_match('/Receipt No:\s*([^\r\n]+)/i', $text, $m)) $parsed['receipt_no'] = trim($m[1]);
+            if (preg_match('/(?:Original Payment Date|Date):\s*([^\r\n]+)/i', $text, $m)) $parsed['date'] = trim($m[1]);
+            if (preg_match('/Payment Mode:\s*([^\r\n]+)/i', $text, $m)) $parsed['mode'] = trim($m[1]);
+            if (preg_match('/Reverted Fee Details:\s*([\s\S]*?)(?=Amount Reverted:|Discount Reversed:|Total Reverted:|Status:|$)/i', $text, $m)) {
+                $parsed['details'] = trim(preg_replace('/\s+/', ' ', $m[1]));
+            }
+            if (preg_match('/Total Reverted:\s*([^\r\n]+)/i', $text, $m)) $parsed['total_reverted'] = trim($m[1]);
+            elseif (preg_match('/Amount Reverted:\s*([^\r\n]+)/i', $text, $m)) $parsed['total_reverted'] = trim($m[1]);
             return $parsed;
         }
     }
@@ -593,101 +686,189 @@
     white-space: pre-line;
 }
 
-/* Fee Payment Structured Notification Card Summary */
-.mob-fee-card-summary {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+/* Generalized Structured Card Summary for All Categories */
+.mob-structured-summary, .mob-fee-card-summary {
     border-radius: 4px;
     padding: 6px 8px;
     margin-top: 3px;
     margin-bottom: 5px;
+    border: 1px solid transparent;
 }
-.mob-fee-summary-header {
+.mob-structured-summary.tone-green, .mob-fee-card-summary { background: #f0fdf4; border-color: #bbf7d0; }
+.mob-structured-summary.tone-blue  { background: #f0f9ff; border-color: #bae6fd; }
+.mob-structured-summary.tone-amber { background: #fffbeb; border-color: #fde68a; }
+.mob-structured-summary.tone-purple{ background: #faf5ff; border-color: #e9d5ff; }
+.mob-structured-summary.tone-cyan  { background: #ecfeff; border-color: #a5f3fc; }
+.mob-structured-summary.tone-red   { background: #fff1f2; border-color: #fecdd3; }
+
+.mob-summary-header, .mob-fee-summary-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
     margin-bottom: 5px;
 }
-.mob-fee-receipt-tag {
+.mob-summary-tag, .mob-fee-receipt-tag {
     font-size: 9.5px;
     font-weight: 800;
-    color: #15803d;
-    background: #dcfce7;
-    border: 1px solid #86efac;
     padding: 1.5px 6px;
     border-radius: 3px;
     letter-spacing: 0.3px;
     font-family: monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 3.5px;
 }
-.mob-fee-status-badge {
+.tone-green .mob-summary-tag, .mob-fee-receipt-tag { color: #15803d; background: #dcfce7; border: 1px solid #86efac; }
+.tone-blue  .mob-summary-tag { color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; }
+.tone-amber .mob-summary-tag { color: #b45309; background: #fef3c7; border: 1px solid #fcd34d; }
+.tone-purple .mob-summary-tag{ color: #7e22ce; background: #f3e8ff; border: 1px solid #d8b4fe; }
+.tone-cyan  .mob-summary-tag { color: #0e7490; background: #cffafe; border: 1px solid #67e8f9; }
+.tone-red   .mob-summary-tag { color: #be123c; background: #ffe4e6; border: 1px solid #fda4af; }
+
+.mob-summary-status-badge, .mob-fee-status-badge {
     font-size: 8.5px;
     font-weight: 800;
-    color: #166534;
     background: #ffffff;
-    border: 1px solid #bbf7d0;
     padding: 1px 6px;
     border-radius: 10px;
     display: inline-flex;
     align-items: center;
     gap: 3px;
     text-transform: uppercase;
+    border: 1px solid transparent;
 }
-.mob-fee-amount-hero {
+.tone-green .mob-summary-status-badge, .mob-fee-status-badge { color: #166534; border-color: #bbf7d0; }
+.tone-blue  .mob-summary-status-badge { color: #0369a1; border-color: #bae6fd; }
+.tone-amber .mob-summary-status-badge { color: #92400e; border-color: #fde68a; }
+.tone-purple .mob-summary-status-badge{ color: #6b21a8; border-color: #e9d5ff; }
+.tone-cyan  .mob-summary-status-badge { color: #155e75; border-color: #a5f3fc; }
+.tone-red   .mob-summary-status-badge { color: #9f1239; border-color: #fecdd3; }
+
+.mob-summary-hero, .mob-fee-amount-hero {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     background: #ffffff;
-    border: 1px solid #dcfce7;
     border-radius: 3px;
     padding: 4px 8px;
     margin-bottom: 5px;
+    border: 1px solid transparent;
 }
-.mob-fee-amount-lbl {
+.tone-green .mob-summary-hero, .mob-fee-amount-hero { border-color: #dcfce7; }
+.tone-blue  .mob-summary-hero { border-color: #e0f2fe; }
+.tone-amber .mob-summary-hero { border-color: #fef3c7; }
+.tone-purple .mob-summary-hero{ border-color: #f3e8ff; }
+.tone-cyan  .mob-summary-hero { border-color: #cffafe; }
+.tone-red   .mob-summary-hero { border-color: #ffe4e6; }
+
+.mob-summary-hero-lbl, .mob-fee-amount-lbl {
     font-size: 9.5px;
     font-weight: 700;
     color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
-.mob-fee-amount-val {
-    font-size: 13.5px;
+.mob-summary-hero-val, .mob-fee-amount-val {
+    font-size: 13px;
     font-weight: 800;
-    color: #15803d;
     letter-spacing: -0.3px;
 }
-.mob-fee-mini-grid {
+.tone-green .mob-summary-hero-val, .mob-fee-amount-val { color: #15803d; }
+.tone-blue  .mob-summary-hero-val { color: #0284c7; }
+.tone-amber .mob-summary-hero-val { color: #b45309; }
+.tone-purple .mob-summary-hero-val{ color: #7e22ce; }
+.tone-cyan  .mob-summary-hero-val { color: #0e7490; }
+.tone-red   .mob-summary-hero-val { color: #be123c; }
+
+.mob-summary-grid, .mob-fee-mini-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
     font-size: 9px;
 }
-.mob-fee-mini-item {
+.mob-summary-item, .mob-fee-mini-item {
     background: rgba(255, 255, 255, 0.75);
-    border: 1px solid #dcfce7;
     border-radius: 2px;
     padding: 2.5px 5px;
     display: flex;
     align-items: center;
     gap: 4px;
     overflow: hidden;
+    border: 1px solid transparent;
 }
-.mob-fee-mini-item.full {
+.tone-green .mob-summary-item, .mob-fee-mini-item { border-color: #dcfce7; }
+.tone-blue  .mob-summary-item { border-color: #e0f2fe; }
+.tone-amber .mob-summary-item { border-color: #fef3c7; }
+.tone-purple .mob-summary-item{ border-color: #f3e8ff; }
+.tone-cyan  .mob-summary-item { border-color: #cffafe; }
+.tone-red   .mob-summary-item { border-color: #ffe4e6; }
+
+.mob-summary-item.full, .mob-fee-mini-item.full {
     grid-column: span 2;
 }
-.mob-fee-mini-item .lbl {
+.mob-summary-item .lbl, .mob-fee-mini-item .lbl {
     color: #64748b;
     font-weight: 600;
     white-space: nowrap;
     font-size: 8.5px;
+    flex-shrink: 0;
 }
-.mob-fee-mini-item .val {
+.mob-summary-item .val, .mob-fee-mini-item .val {
     color: #0f172a;
     font-weight: 700;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.mob-summary-snippet {
+    background: #ffffff;
+    border-radius: 3px;
+    padding: 4px 7px;
+    font-size: 9.5px;
+    line-height: 1.4;
+    color: #334155;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    border: 1px dashed #cbd5e1;
+}
+
+/* Action Link Pills on Cards */
+.mob-card-action-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-decoration: none !important;
+    margin-bottom: 6px;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+}
+.mob-card-action-pill.tone-green  { background: #ecfdf5; border-color: #86efac; color: #047857; }
+.mob-card-action-pill.tone-green:hover  { background: #d1fae5; color: #065f46; }
+.mob-card-action-pill.tone-blue   { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+.mob-card-action-pill.tone-blue:hover   { background: #dbeafe; color: #1e40af; }
+.mob-card-action-pill.tone-amber  { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+.mob-card-action-pill.tone-amber:hover  { background: #fef3c7; color: #92400e; }
+.mob-card-action-pill.tone-purple { background: #faf5ff; border-color: #d8b4fe; color: #7e22ce; }
+.mob-card-action-pill.tone-purple:hover { background: #f3e8ff; color: #6b21a8; }
+.mob-card-action-pill.tone-cyan   { background: #ecfeff; border-color: #67e8f9; color: #0e7490; }
+.mob-card-action-pill.tone-cyan:hover   { background: #cffafe; color: #155e75; }
+.mob-card-action-pill.tone-red    { background: #fff1f2; border-color: #fda4af; color: #be123c; }
+.mob-card-action-pill.tone-red:hover    { background: #ffe4e6; color: #9f1239; }
+.mob-card-action-pill span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .mob-notif-attach.mob-notif-fee-receipt {
     background: #ecfdf5;
     border-color: #86efac;
@@ -1125,57 +1306,75 @@ body.mob-sheet-lock {
     word-break: break-word;
 }
 
-/* Modal Fee Receipt Structured Card */
-.sheet-fee-receipt-card {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+/* Modal Structured Cards for All Categories */
+.sheet-structured-card, .sheet-fee-receipt-card {
     border-radius: 4px;
     padding: 10px 12px;
     margin-bottom: 10px;
+    border: 1px solid transparent;
 }
-.sheet-fee-top-strip {
+.sheet-structured-card.tone-green, .sheet-fee-receipt-card { background: #f0fdf4; border-color: #bbf7d0; }
+.sheet-structured-card.tone-blue  { background: #f0f9ff; border-color: #bae6fd; }
+.sheet-structured-card.tone-amber { background: #fffbeb; border-color: #fde68a; }
+.sheet-structured-card.tone-purple{ background: #faf5ff; border-color: #e9d5ff; }
+.sheet-structured-card.tone-cyan  { background: #ecfeff; border-color: #a5f3fc; }
+.sheet-structured-card.tone-red   { background: #fff1f2; border-color: #fecdd3; }
+
+.sheet-top-strip, .sheet-fee-top-strip {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 8px;
     padding-bottom: 7px;
-    border-bottom: 1px dashed #bbf7d0;
+    border-bottom: 1px dashed #cbd5e1;
 }
-.sheet-fee-rec-badge {
+.sheet-badge-tag, .sheet-fee-rec-badge {
     font-size: 10.5px;
     font-weight: 800;
-    color: #15803d;
-    background: #dcfce7;
-    border: 1px solid #86efac;
     padding: 1.5px 7px;
     border-radius: 3px;
     letter-spacing: 0.3px;
     font-family: monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
-.sheet-fee-status-badge {
+.tone-green .sheet-badge-tag, .sheet-fee-rec-badge { color: #15803d; background: #dcfce7; border: 1px solid #86efac; }
+.tone-blue  .sheet-badge-tag { color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; }
+.tone-amber .sheet-badge-tag { color: #b45309; background: #fef3c7; border: 1px solid #fcd34d; }
+.tone-purple .sheet-badge-tag{ color: #7e22ce; background: #f3e8ff; border: 1px solid #d8b4fe; }
+.tone-cyan  .sheet-badge-tag { color: #0e7490; background: #cffafe; border: 1px solid #67e8f9; }
+.tone-red   .sheet-badge-tag { color: #be123c; background: #ffe4e6; border: 1px solid #fda4af; }
+
+.sheet-status-pill, .sheet-fee-status-badge {
     font-size: 9.5px;
     font-weight: 800;
-    color: #166534;
     background: #ffffff;
-    border: 1px solid #86efac;
     padding: 1.5px 7px;
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
     gap: 3.5px;
     text-transform: uppercase;
+    border: 1px solid transparent;
 }
-.sheet-fee-paid-hero {
+.tone-green .sheet-status-pill, .sheet-fee-status-badge { color: #166534; border-color: #86efac; }
+.tone-blue  .sheet-status-pill { color: #0369a1; border-color: #7dd3fc; }
+.tone-amber .sheet-status-pill { color: #92400e; border-color: #fcd34d; }
+.tone-purple .sheet-status-pill{ color: #6b21a8; border-color: #d8b4fe; }
+.tone-cyan  .sheet-status-pill { color: #155e75; border-color: #67e8f9; }
+.tone-red   .sheet-status-pill { color: #9f1239; border-color: #fda4af; }
+
+.sheet-hero-box, .sheet-fee-paid-hero {
     text-align: center;
     background: #ffffff;
-    border: 1px solid #bbf7d0;
     border-radius: 4px;
     padding: 8px 10px;
     margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.05);
+    border: 1px solid #e2e8f0;
 }
-.sheet-fee-hero-lbl {
+.sheet-hero-box-lbl, .sheet-fee-hero-lbl {
     font-size: 9.5px;
     font-weight: 800;
     color: #64748b;
@@ -1183,19 +1382,25 @@ body.mob-sheet-lock {
     letter-spacing: 0.5px;
     margin-bottom: 2px;
 }
-.sheet-fee-hero-amount {
-    font-size: 20px;
+.sheet-hero-box-val, .sheet-fee-hero-amount {
+    font-size: 18px;
     font-weight: 900;
-    color: #15803d;
     letter-spacing: -0.4px;
     line-height: 1.1;
 }
-.sheet-fee-breakdown-list {
+.tone-green .sheet-hero-box-val, .sheet-fee-hero-amount { color: #15803d; }
+.tone-blue  .sheet-hero-box-val { color: #0284c7; }
+.tone-amber .sheet-hero-box-val { color: #b45309; }
+.tone-purple .sheet-hero-box-val{ color: #7e22ce; }
+.tone-cyan  .sheet-hero-box-val { color: #0e7490; }
+.tone-red   .sheet-hero-box-val { color: #be123c; }
+
+.sheet-breakdown-list, .sheet-fee-breakdown-list {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
-.sheet-fee-row {
+.sheet-row, .sheet-fee-row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1204,14 +1409,15 @@ body.mob-sheet-lock {
     padding: 4px 6px;
     background: rgba(255, 255, 255, 0.75);
     border-radius: 3px;
+    border: 1px solid rgba(226, 232, 240, 0.4);
 }
-.sheet-fee-row .row-lbl {
+.sheet-row .row-lbl, .sheet-fee-row .row-lbl {
     color: #475569;
     font-weight: 600;
     flex-shrink: 0;
     font-size: 10.5px;
 }
-.sheet-fee-row .row-val {
+.sheet-row .row-val, .sheet-fee-row .row-val {
     color: #0f172a;
     font-weight: 700;
     text-align: right;
@@ -1231,12 +1437,23 @@ body.mob-sheet-lock {
     font-weight: 900;
     font-size: 12px;
 }
-.sheet-fee-action-bar {
+.sheet-msg-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #1e293b;
+    margin-bottom: 10px;
+    white-space: pre-line;
+}
+.sheet-action-bar, .sheet-fee-action-bar {
     display: flex;
     gap: 8px;
     margin-top: 10px;
 }
-.sheet-fee-btn-primary {
+.sheet-btn-primary, .sheet-fee-btn-primary {
     flex: 1;
     display: inline-flex;
     align-items: center;
@@ -1244,20 +1461,20 @@ body.mob-sheet-lock {
     gap: 6px;
     padding: 8px 12px;
     border-radius: 4px;
-    background: #15803d;
-    border: 1px solid #166534;
-    color: #ffffff !important;
     font-size: 11px;
     font-weight: 800;
     text-decoration: none !important;
-    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
     transition: all .15s ease;
+    border: 1px solid transparent;
 }
-.sheet-fee-btn-primary:hover {
-    background: #166534;
-    color: #ffffff !important;
-}
-.sheet-fee-btn-secondary {
+.sheet-btn-primary.tone-green, .sheet-fee-btn-primary { background: #15803d; border-color: #166534; color: #ffffff !important; box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25); }
+.sheet-btn-primary.tone-blue  { background: #0284c7; border-color: #0369a1; color: #ffffff !important; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25); }
+.sheet-btn-primary.tone-amber { background: #b45309; border-color: #92400e; color: #ffffff !important; box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25); }
+.sheet-btn-primary.tone-purple{ background: #7e22ce; border-color: #6b21a8; color: #ffffff !important; box-shadow: 0 2px 6px rgba(126, 34, 206, 0.25); }
+.sheet-btn-primary.tone-cyan  { background: #0e7490; border-color: #155e75; color: #ffffff !important; box-shadow: 0 2px 6px rgba(14, 116, 144, 0.25); }
+.sheet-btn-primary.tone-red   { background: #be123c; border-color: #9f1239; color: #ffffff !important; box-shadow: 0 2px 6px rgba(190, 18, 60, 0.25); }
+
+.sheet-btn-secondary, .sheet-fee-btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1273,7 +1490,7 @@ body.mob-sheet-lock {
     transition: all .15s ease;
     flex-shrink: 0;
 }
-.sheet-fee-btn-secondary:hover {
+.sheet-btn-secondary:hover, .sheet-fee-btn-secondary:hover {
     background: #f1f5f9;
 }
 
@@ -1405,15 +1622,24 @@ body.mob-sheet-lock {
 :root[data-theme="dark"] .sheet-notif-title { color: #f8fafc; border-color: #334155; }
 :root[data-theme="dark"] .sheet-notif-card { background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .sheet-notif-text { color: #cbd5e1; }
-:root[data-theme="dark"] .mob-fee-card-summary { background: #064e3b33; border-color: #065f46; }
-:root[data-theme="dark"] .mob-fee-amount-hero { background: #1e293b; border-color: #065f46; }
-:root[data-theme="dark"] .mob-fee-mini-item { background: #1e293b; border-color: #334155; }
-:root[data-theme="dark"] .mob-fee-mini-item .val { color: #f1f5f9; }
-:root[data-theme="dark"] .sheet-fee-receipt-card { background: #0f172a; border-color: #065f46; }
-:root[data-theme="dark"] .sheet-fee-paid-hero { background: #1e293b; border-color: #065f46; }
-:root[data-theme="dark"] .sheet-fee-row { background: #1e293b; }
-:root[data-theme="dark"] .sheet-fee-row .row-val { color: #f1f5f9; }
-:root[data-theme="dark"] .sheet-fee-btn-secondary { background: #1e293b; border-color: #334155; color: #f8fafc !important; }
+:root[data-theme="dark"] .mob-structured-summary.tone-green, :root[data-theme="dark"] .mob-fee-card-summary { background: #064e3b33; border-color: #065f46; }
+:root[data-theme="dark"] .mob-structured-summary.tone-blue  { background: #0c4a6e33; border-color: #0284c7; }
+:root[data-theme="dark"] .mob-structured-summary.tone-amber { background: #78350f33; border-color: #b45309; }
+:root[data-theme="dark"] .mob-structured-summary.tone-purple{ background: #581c8733; border-color: #7e22ce; }
+:root[data-theme="dark"] .mob-structured-summary.tone-cyan  { background: #164e6333; border-color: #0e7490; }
+:root[data-theme="dark"] .mob-structured-summary.tone-red   { background: #88133733; border-color: #be123c; }
+
+:root[data-theme="dark"] .mob-summary-hero, :root[data-theme="dark"] .mob-fee-amount-hero { background: #1e293b; }
+:root[data-theme="dark"] .mob-summary-item, :root[data-theme="dark"] .mob-fee-mini-item { background: #1e293b; border-color: #334155; }
+:root[data-theme="dark"] .mob-summary-item .val, :root[data-theme="dark"] .mob-fee-mini-item .val { color: #f1f5f9; }
+:root[data-theme="dark"] .mob-summary-snippet { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+
+:root[data-theme="dark"] .sheet-structured-card, :root[data-theme="dark"] .sheet-fee-receipt-card { background: #0f172a; }
+:root[data-theme="dark"] .sheet-hero-box, :root[data-theme="dark"] .sheet-fee-paid-hero { background: #1e293b; border-color: #334155; }
+:root[data-theme="dark"] .sheet-row, :root[data-theme="dark"] .sheet-fee-row { background: #1e293b; border-color: #334155; }
+:root[data-theme="dark"] .sheet-row .row-val, :root[data-theme="dark"] .sheet-fee-row .row-val { color: #f1f5f9; }
+:root[data-theme="dark"] .sheet-msg-box { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+:root[data-theme="dark"] .sheet-btn-secondary, :root[data-theme="dark"] .sheet-fee-btn-secondary { background: #1e293b; border-color: #334155; color: #f8fafc !important; }
 :root[data-theme="dark"] .mob-sheet-footer { background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .mob-sheet-btn.secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 :root[data-theme="dark"] .mob-pagination-fixed-bar { background: rgba(15, 23, 42, 0.96); border-color: #334155; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); }
@@ -1586,12 +1812,113 @@ body.mob-sheet-lock {
                     $attachmentName = basename($attachRaw);
                 }
 
-                // Fee Payment determination & real-time receipt generation links
-                $isFeePayment = ($notificationType === 'fee_payment' || stripos($notification->title ?? '', 'Fee Payment') !== false || stripos($content, 'Receipt No:') !== false);
+                // Determine category / structured type
+                $titleLower = strtolower((string) ($notification->title ?? ''));
+                $contentLower = strtolower($content);
+
+                $isFeePayment = ($notificationType === 'fee_payment' || stripos($titleLower, 'fee payment') !== false || stripos($content, 'Receipt No:') !== false);
+                $isFeeRevert = ($notificationType === 'fee_revert' || stripos($titleLower, 'revert') !== false || stripos($content, 'Total Reverted:') !== false || stripos($content, 'Amount Reverted:') !== false);
+                $isAttendance = ($notificationType === 'attendance' || stripos($notificationType, 'attendance') !== false || stripos($titleLower, 'attendance') !== false || stripos($content, 'Status: In') !== false || stripos($content, 'Status: Out') !== false || stripos($content, 'Status: Absent') !== false || stripos($content, 'Status: Present') !== false);
+                $isExam = ($notificationType === 'exam_result' || stripos($titleLower, 'exam result') !== false || stripos($titleLower, 'result published') !== false || stripos($content, 'has been published') !== false);
+                $isComplaint = (strpos($notificationType, 'complaint') !== false || stripos($titleLower, 'complaint') !== false || preg_match('/CMP-\d+/i', $content));
+                $isNotice = ($notificationType === 'notice' || stripos($titleLower, 'notice') !== false || stripos($titleLower, 'circular') !== false);
+
+                $structuredType = 'standard';
+                if ($isFeePayment) {
+                    $structuredType = 'fee_payment';
+                    $config = ['icon' => 'fa-inr', 'label' => 'Payment', 'tone' => 'green', 'badge_class' => 'badge-soft-success'];
+                } elseif ($isFeeRevert) {
+                    $structuredType = 'fee_revert';
+                    $config = ['icon' => 'fa-undo', 'label' => 'Fee Update', 'tone' => 'red', 'badge_class' => 'badge-soft-danger'];
+                } elseif ($isAttendance) {
+                    $structuredType = 'attendance';
+                    $config = ['icon' => 'fa-calendar-check-o', 'label' => 'Attendance', 'tone' => 'blue', 'badge_class' => 'badge-soft-info'];
+                } elseif ($isExam) {
+                    $structuredType = 'exam_result';
+                    $config = ['icon' => 'fa-file-text-o', 'label' => 'Result', 'tone' => 'purple', 'badge_class' => 'badge-soft-purple'];
+                } elseif ($isComplaint) {
+                    $structuredType = 'complaint';
+                    $config = ['icon' => 'fa-comments-o', 'label' => 'Complaint', 'tone' => 'blue', 'badge_class' => 'badge-soft-slate'];
+                } elseif ($isNotice) {
+                    $structuredType = 'notice';
+                    $config = ['icon' => 'fa-bullhorn', 'label' => 'Notice', 'tone' => 'amber', 'badge_class' => 'badge-soft-amber'];
+                }
+
                 $feeData = $isFeePayment ? parseStudentFeeNotificationContent($content) : null;
                 $feeReceiptNo = $notification->fee_receipt_no ?? ($feeData['receipt_no'] ?? '');
                 $feeReceiptDownloadUrl = $notification->fee_download_url ?? (!empty($feeReceiptNo) ? url('fees_receipt/'.$feeReceiptNo.'/download') : null);
                 $feeReceiptViewUrl = $notification->fee_view_url ?? (!empty($feeReceiptNo) ? url('fees_receipt/'.$feeReceiptNo.'/view') : null);
+
+                $revertData = $isFeeRevert ? parseStudentFeeRevertNotificationContent($content) : null;
+                $attData = $isAttendance ? parseStudentAttendanceNotificationContent($content) : null;
+                $examData = $isExam ? parseStudentExamNotificationContent($content, $notification->title ?? '') : null;
+                $compData = $isComplaint ? parseStudentComplaintNotificationContent($content) : null;
+
+                // Shared trigger data attributes
+                $triggerAttrs = 'data-id="' . $notification->id . '" '
+                    . 'data-title="' . e($notification->title ?: 'Notification') . '" '
+                    . 'data-time="' . $createdAt->format('d M Y, h:i A') . '" '
+                    . 'data-type="' . $config['label'] . '" '
+                    . 'data-type-badge="' . $config['badge_class'] . '" '
+                    . 'data-icon="' . $config['icon'] . '" '
+                    . 'data-content="' . e($content) . '" '
+                    . 'data-attachment="' . e($attachmentUrl) . '" '
+                    . 'data-attachment-name="' . e($attachmentName) . '" '
+                    . 'data-unread="' . ($isUnread ? '1' : '0') . '" '
+                    . 'data-read-url="' . route('student.attendance-notifications.mark-read', $notification->id) . '" '
+                    . 'data-structured-type="' . $structuredType . '" '
+                    . 'data-is-fee="' . ($isFeePayment ? '1' : '0') . '"';
+
+                if ($isFeePayment && $feeData) {
+                    $triggerAttrs .= ' data-fee-student="' . e($feeData['student'] ?: $studentName) . '"'
+                        . ' data-fee-receipt="' . e($feeReceiptNo) . '"'
+                        . ' data-fee-offline-receipt="' . e($feeData['offline_receipt_no'] ?? '') . '"'
+                        . ' data-fee-date="' . e($feeData['payment_date'] ?? '') . '"'
+                        . ' data-fee-mode="' . e($feeData['payment_mode'] ?? '') . '"'
+                        . ' data-fee-amount="' . e($feeData['amount'] ?? '') . '"'
+                        . ' data-fee-discount="' . e($feeData['discount'] ?? '') . '"'
+                        . ' data-fee-fine="' . e($feeData['fine'] ?? '') . '"'
+                        . ' data-fee-total="' . e($feeData['total_paid'] ?: $feeData['amount']) . '"'
+                        . ' data-fee-status="' . e($feeData['status'] ?? 'Payment Received') . '"'
+                        . ' data-fee-details="' . e($feeData['fee_details'] ?? '') . '"'
+                        . ' data-fee-download-url="' . e($feeReceiptDownloadUrl ?: '') . '"'
+                        . ' data-fee-view-url="' . e($feeReceiptViewUrl ?: '') . '"';
+                } elseif ($isAttendance && $attData) {
+                    $triggerAttrs .= ' data-att-name="' . e($attData['name'] ?: $studentName) . '"'
+                        . ' data-att-date="' . e($attData['date'] ?: $createdAt->format('d M Y')) . '"'
+                        . ' data-att-status="' . e($attData['status'] ?: 'Present') . '"'
+                        . ' data-att-check-in="' . e($attData['check_in'] ?? '') . '"'
+                        . ' data-att-check-out="' . e($attData['check_out'] ?? '') . '"'
+                        . ' data-att-institute="' . e($attData['institute'] ?? '') . '"'
+                        . ' data-att-url="' . url('AttendanceView_student') . '"';
+                } elseif ($isExam && $examData) {
+                    $triggerAttrs .= ' data-exam-name="' . e($examData['exam'] ?: 'Examination') . '"'
+                        . ' data-exam-student="' . e($studentName) . '"'
+                        . ' data-exam-class="' . e($className) . '"'
+                        . ' data-exam-date="' . $createdAt->format('d M Y') . '"'
+                        . ' data-exam-msg="' . e($examData['message'] ?? $content) . '"'
+                        . ' data-exam-url="' . url('/student/result-card') . '"';
+                } elseif ($isComplaint && $compData) {
+                    $triggerAttrs .= ' data-comp-ticket="' . e($compData['ticket'] ?: '') . '"'
+                        . ' data-comp-status="' . e($compData['status'] ?: 'Updated') . '"'
+                        . ' data-comp-subject="' . e($compData['subject'] ?? '') . '"'
+                        . ' data-comp-date="' . $createdAt->format('d M Y') . '"'
+                        . ' data-comp-msg="' . e($compData['message'] ?? $content) . '"'
+                        . ' data-comp-url="' . url('student-complaints') . '"';
+                } elseif ($isFeeRevert && $revertData) {
+                    $triggerAttrs .= ' data-revert-student="' . e($revertData['student'] ?: $studentName) . '"'
+                        . ' data-revert-receipt="' . e($revertData['receipt_no'] ?? '') . '"'
+                        . ' data-revert-date="' . e($revertData['date'] ?: $createdAt->format('d M Y')) . '"'
+                        . ' data-revert-mode="' . e($revertData['mode'] ?: 'Reversal') . '"'
+                        . ' data-revert-total="' . e($revertData['total_reverted'] ?? '') . '"'
+                        . ' data-revert-details="' . e($revertData['details'] ?? '') . '"'
+                        . ' data-revert-url="' . url('fees_history') . '"';
+                } elseif ($isNotice) {
+                    $triggerAttrs .= ' data-notice-title="' . e($notification->title ?: 'Notice') . '"'
+                        . ' data-notice-date="' . $createdAt->format('d M Y') . '"'
+                        . ' data-notice-msg="' . e($content) . '"'
+                        . ' data-notice-url="' . url('student-notices') . '"';
+                }
             @endphp
 
             <div class="mob-notif-card {{ $isUnread ? 'is-unread' : '' }} tone-{{ $config['tone'] }}"
@@ -1609,33 +1936,7 @@ body.mob-sheet-lock {
                         <div class="mob-notif-title-row">
                             <h3 class="mob-notif-title open-notif-trigger"
                                 onclick="openNotifSheet(this); return false;"
-                                data-id="{{ $notification->id }}"
-                                data-title="{{ e($notification->title ?: 'Notification') }}"
-                                data-time="{{ $createdAt->format('d M Y, h:i A') }}"
-                                data-type="{{ $config['label'] }}"
-                                data-type-badge="{{ $config['badge_class'] }}"
-                                data-icon="{{ $config['icon'] }}"
-                                data-content="{{ e($content) }}"
-                                data-attachment="{{ $attachmentUrl }}"
-                                data-attachment-name="{{ $attachmentName }}"
-                                data-unread="{{ $isUnread ? '1' : '0' }}"
-                                data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
-                                data-is-fee="{{ $isFeePayment ? '1' : '0' }}"
-                                @if($isFeePayment && $feeData)
-                                    data-fee-student="{{ e($feeData['student'] ?: $studentName) }}"
-                                    data-fee-receipt="{{ e($feeReceiptNo) }}"
-                                    data-fee-offline-receipt="{{ e($feeData['offline_receipt_no']) }}"
-                                    data-fee-date="{{ e($feeData['payment_date']) }}"
-                                    data-fee-mode="{{ e($feeData['payment_mode']) }}"
-                                    data-fee-amount="{{ e($feeData['amount']) }}"
-                                    data-fee-discount="{{ e($feeData['discount']) }}"
-                                    data-fee-fine="{{ e($feeData['fine']) }}"
-                                    data-fee-total="{{ e($feeData['total_paid'] ?: $feeData['amount']) }}"
-                                    data-fee-status="{{ e($feeData['status']) }}"
-                                    data-fee-details="{{ e($feeData['fee_details']) }}"
-                                    data-fee-download-url="{{ $feeReceiptDownloadUrl ?: '' }}"
-                                    data-fee-view-url="{{ $feeReceiptViewUrl ?: '' }}"
-                                @endif
+                                {!! $triggerAttrs !!}
                                 title="Tap to view full details">
                                 {{ $notification->title ?: 'Notification' }}
                             </h3>
@@ -1654,7 +1955,7 @@ body.mob-sheet-lock {
                 </div>
 
                 {{-- Card Message Body --}}
-                @if($isFeePayment && !empty($feeData) && (!empty($feeData['total_paid']) || !empty($feeData['receipt_no'])))
+                @if($structuredType === 'fee_payment' && !empty($feeData) && (!empty($feeData['total_paid']) || !empty($feeData['receipt_no'])))
                     <div class="mob-fee-card-summary">
                         <div class="mob-fee-summary-header">
                             @if(!empty($feeReceiptNo))
@@ -1670,7 +1971,7 @@ body.mob-sheet-lock {
                         <div class="mob-fee-amount-hero">
                             <span class="mob-fee-amount-lbl">Total Paid</span>
                             <span class="mob-fee-amount-val">
-                                <i class="fa fa-inr"></i> {{ number_format((float) ($feeData['total_paid'] ?: $feeData['amount']), 2) }}
+                                <i class="fa fa-inr"></i> {{ cleanStudentCurrency($feeData['total_paid'] ?: $feeData['amount']) }}
                             </span>
                         </div>
 
@@ -1695,29 +1996,258 @@ body.mob-sheet-lock {
                             @endif
                         </div>
                     </div>
-                @else
-                    <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">{{ $content !== '' ? $content : 'No message content available.' }}</div>
-                @endif
 
-                {{-- Real-time Fee Receipt Download Pill OR Generic Attachment Pill --}}
-                @if(!empty($feeReceiptDownloadUrl))
-                    <a href="{{ $feeReceiptDownloadUrl }}"
-                       class="mob-notif-attach mob-notif-fee-receipt"
-                       target="_blank"
-                       title="Download Real-Time Fee Receipt PDF">
-                        <i class="fa fa-file-pdf-o text-danger"></i>
-                        <span>Download Receipt PDF{{ !empty($feeReceiptNo) ? ' (#'.$feeReceiptNo.')' : '' }}</span>
-                        <i class="fa fa-download ms-auto text-success"></i>
+                    @if(!empty($feeReceiptDownloadUrl))
+                        <a href="{{ $feeReceiptDownloadUrl }}"
+                           class="mob-notif-attach mob-notif-fee-receipt"
+                           target="_blank"
+                           title="Download Real-Time Fee Receipt PDF">
+                            <i class="fa fa-file-pdf-o text-danger"></i>
+                            <span>Download Receipt PDF{{ !empty($feeReceiptNo) ? ' (#'.$feeReceiptNo.')' : '' }}</span>
+                            <span class="mob-fee-dl-badge ms-auto"><i class="fa fa-download"></i> PDF</span>
+                        </a>
+                    @endif
+
+                @elseif($structuredType === 'attendance' && !empty($attData))
+                    <div class="mob-structured-summary tone-blue">
+                        <div class="mob-summary-header">
+                            <span class="mob-summary-tag">
+                                <i class="fa fa-calendar-check-o"></i> {{ $attData['date'] ?: $createdAt->format('d M Y') }}
+                            </span>
+                            <span class="mob-summary-status-badge">
+                                @php $stLower = strtolower($attData['status'] ?? ''); @endphp
+                                @if(in_array($stLower, ['present', 'in', 'p']))
+                                    <i class="fa fa-check-circle text-success"></i> {{ $attData['status'] }}
+                                @elseif(in_array($stLower, ['absent', 'a']))
+                                    <i class="fa fa-times-circle text-danger"></i> Absent
+                                @elseif(in_array($stLower, ['out']))
+                                    <i class="fa fa-sign-out text-info"></i> Out
+                                @else
+                                    <i class="fa fa-info-circle text-primary"></i> {{ $attData['status'] ?: 'Present' }}
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-hero">
+                            <span class="mob-summary-hero-lbl">Attendance Status</span>
+                            <span class="mob-summary-hero-val">
+                                {{ strtoupper($attData['status'] ?: 'PRESENT') }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-grid">
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-user-o"></i> Student</span>
+                                <span class="val">{{ $attData['name'] ?: $studentName }}</span>
+                            </div>
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-calendar-o"></i> Date</span>
+                                <span class="val">{{ $attData['date'] ?: $createdAt->format('d M Y') }}</span>
+                            </div>
+                            @if(!empty($attData['check_in']))
+                                <div class="mob-summary-item">
+                                    <span class="lbl"><i class="fa fa-sign-in"></i> In Time</span>
+                                    <span class="val">{{ $attData['check_in'] }}</span>
+                                </div>
+                            @endif
+                            @if(!empty($attData['check_out']))
+                                <div class="mob-summary-item">
+                                    <span class="lbl"><i class="fa fa-sign-out"></i> Out Time</span>
+                                    <span class="val">{{ $attData['check_out'] }}</span>
+                                </div>
+                            @endif
+                            @if(!empty($attData['institute']))
+                                <div class="mob-summary-item full">
+                                    <span class="lbl"><i class="fa fa-building-o"></i> Campus</span>
+                                    <span class="val">{{ $attData['institute'] }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <a href="{{ url('AttendanceView_student') }}" class="mob-card-action-pill tone-blue" title="View Attendance Register">
+                        <i class="fa fa-calendar-check-o"></i>
+                        <span>View Attendance Register</span>
+                        <i class="fa fa-arrow-right ms-auto"></i>
                     </a>
-                @elseif(!empty($attachmentUrl))
-                    <a href="{{ $attachmentUrl }}"
-                       class="mob-notif-attach"
-                       target="_blank"
-                       download>
-                        <i class="fa {{ preg_match('/\.(jpg|jpeg|png|webp)$/i', $attachmentUrl) ? 'fa-file-image-o text-success' : 'fa-file-pdf-o text-danger' }}"></i>
-                        <span>{{ $attachmentName ?: 'Download Attachment' }}</span>
-                        <i class="fa fa-download ms-auto text-muted"></i>
+
+                @elseif($structuredType === 'exam_result' && !empty($examData))
+                    <div class="mob-structured-summary tone-purple">
+                        <div class="mob-summary-header">
+                            <span class="mob-summary-tag">
+                                <i class="fa fa-trophy"></i> EXAM RESULT
+                            </span>
+                            <span class="mob-summary-status-badge">
+                                <i class="fa fa-check-circle" style="color:#7e22ce;"></i> Published
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-hero">
+                            <span class="mob-summary-hero-lbl">Examination</span>
+                            <span class="mob-summary-hero-val" style="font-size:12px; font-weight:800;">
+                                {{ $examData['exam'] ?: 'Exam Result' }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-grid">
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-graduation-cap"></i> Class</span>
+                                <span class="val">{{ $className }}</span>
+                            </div>
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-calendar-o"></i> Declared</span>
+                                <span class="val">{{ $createdAt->format('d M Y') }}</span>
+                            </div>
+                        </div>
+
+                        @if(!empty($examData['message']))
+                            <div class="mob-summary-snippet">
+                                {{ $examData['message'] }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <a href="{{ url('/student/result-card') }}" class="mob-card-action-pill tone-purple" title="View & Download Result Card">
+                        <i class="fa fa-file-text-o"></i>
+                        <span>View & Download Result Card</span>
+                        <i class="fa fa-arrow-right ms-auto"></i>
                     </a>
+
+                @elseif($structuredType === 'complaint' && !empty($compData))
+                    <div class="mob-structured-summary tone-blue">
+                        <div class="mob-summary-header">
+                            <span class="mob-summary-tag">
+                                <i class="fa fa-ticket"></i> {{ $compData['ticket'] ?: 'SUPPORT' }}
+                            </span>
+                            <span class="mob-summary-status-badge">
+                                <i class="fa fa-circle text-primary" style="font-size:7px;"></i> {{ $compData['status'] ?: 'Updated' }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-hero">
+                            <span class="mob-summary-hero-lbl">Ticket Status</span>
+                            <span class="mob-summary-hero-val">
+                                {{ strtoupper($compData['status'] ?: 'UPDATED') }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-grid">
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-hashtag"></i> Ticket ID</span>
+                                <span class="val">{{ $compData['ticket'] ?: 'Helpdesk' }}</span>
+                            </div>
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-calendar-o"></i> Date</span>
+                                <span class="val">{{ $createdAt->format('d M Y') }}</span>
+                            </div>
+                        </div>
+
+                        @if(!empty($compData['message']))
+                            <div class="mob-summary-snippet">
+                                {{ $compData['message'] }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <a href="{{ url('student-complaints') }}" class="mob-card-action-pill tone-blue" title="Open Complaint Desk">
+                        <i class="fa fa-comments-o"></i>
+                        <span>View Complaint Discussion</span>
+                        <i class="fa fa-arrow-right ms-auto"></i>
+                    </a>
+
+                @elseif($structuredType === 'fee_revert' && !empty($revertData))
+                    <div class="mob-structured-summary tone-red">
+                        <div class="mob-summary-header">
+                            <span class="mob-summary-tag">
+                                <i class="fa fa-undo"></i> {{ !empty($revertData['receipt_no']) ? 'REC #'.$revertData['receipt_no'] : 'REVERSAL' }}
+                            </span>
+                            <span class="mob-summary-status-badge">
+                                <i class="fa fa-exclamation-circle text-danger"></i> Reverted
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-hero">
+                            <span class="mob-summary-hero-lbl">Total Reverted</span>
+                            <span class="mob-summary-hero-val">
+                                <i class="fa fa-inr"></i> {{ cleanStudentCurrency($revertData['total_reverted']) }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-grid">
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-calendar-o"></i> Date</span>
+                                <span class="val">{{ $revertData['date'] ?: $createdAt->format('d M Y') }}</span>
+                            </div>
+                            <div class="mob-summary-item">
+                                <span class="lbl"><i class="fa fa-credit-card"></i> Mode</span>
+                                <span class="val">{{ $revertData['mode'] ?: 'Reversal' }}</span>
+                            </div>
+                            @if(!empty($revertData['details']))
+                                <div class="mob-summary-item full">
+                                    <span class="lbl"><i class="fa fa-bookmark-o"></i> Details</span>
+                                    <span class="val">{{ $revertData['details'] }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <a href="{{ url('fees_history') }}" class="mob-card-action-pill tone-red" title="View Fee History">
+                        <i class="fa fa-history"></i>
+                        <span>View Fees Transaction History</span>
+                        <i class="fa fa-arrow-right ms-auto"></i>
+                    </a>
+
+                @elseif($structuredType === 'notice')
+                    <div class="mob-structured-summary tone-amber">
+                        <div class="mob-summary-header">
+                            <span class="mob-summary-tag">
+                                <i class="fa fa-bullhorn"></i> NOTICE
+                            </span>
+                            <span class="mob-summary-status-badge">
+                                <i class="fa fa-clock-o text-warning"></i> {{ $createdAt->format('d M Y') }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-hero">
+                            <span class="mob-summary-hero-lbl">Circular Topic</span>
+                            <span class="mob-summary-hero-val" style="font-size:12px; font-weight:800;">
+                                {{ $notification->title ?: 'Notice Announcement' }}
+                            </span>
+                        </div>
+
+                        <div class="mob-summary-snippet">
+                            {{ $content !== '' ? $content : 'Circular update published by administration.' }}
+                        </div>
+                    </div>
+
+                    @if(!empty($attachmentUrl))
+                        <a href="{{ $attachmentUrl }}" class="mob-card-action-pill tone-amber" target="_blank" download title="Download Notice Attachment">
+                            <i class="fa {{ preg_match('/\.(jpg|jpeg|png|webp)$/i', $attachmentUrl) ? 'fa-file-image-o' : 'fa-file-pdf-o' }}"></i>
+                            <span>{{ $attachmentName ?: 'Download Notice Attachment' }}</span>
+                            <i class="fa fa-download ms-auto"></i>
+                        </a>
+                    @endif
+
+                    <a href="{{ url('student-notices') }}" class="mob-card-action-pill tone-amber" title="Open Notice Board">
+                        <i class="fa fa-bullhorn"></i>
+                        <span>Open School Notice Board</span>
+                        <i class="fa fa-arrow-right ms-auto"></i>
+                    </a>
+
+                @else
+                    {{-- Standard fallback --}}
+                    <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">{{ $content !== '' ? $content : 'No message content available.' }}</div>
+
+                    @if(!empty($attachmentUrl))
+                        <a href="{{ $attachmentUrl }}"
+                           class="mob-notif-attach"
+                           target="_blank"
+                           download>
+                            <i class="fa {{ preg_match('/\.(jpg|jpeg|png|webp)$/i', $attachmentUrl) ? 'fa-file-image-o text-success' : 'fa-file-pdf-o text-danger' }}"></i>
+                            <span>{{ $attachmentName ?: 'Download Attachment' }}</span>
+                            <i class="fa fa-download ms-auto text-muted"></i>
+                        </a>
+                    @endif
                 @endif
 
                 {{-- Card Footer & Actions --}}
@@ -1727,7 +2257,7 @@ body.mob-sheet-lock {
                     </span>
 
                     <div class="mob-notif-actions">
-                        @if($isLong && (!$isFeePayment || empty($feeData['total_paid'])))
+                        @if($isLong && $structuredType === 'standard')
                             <button type="button"
                                     class="mob-btn-action btn-toggle-expand"
                                     data-id="{{ $notification->id }}"
@@ -1750,33 +2280,7 @@ body.mob-sheet-lock {
                         <button type="button"
                                 class="mob-btn-action btn-view-quick open-notif-trigger"
                                 onclick="openNotifSheet(this); return false;"
-                                data-id="{{ $notification->id }}"
-                                data-title="{{ e($notification->title ?: 'Notification') }}"
-                                data-time="{{ $createdAt->format('d M Y, h:i A') }}"
-                                data-type="{{ $config['label'] }}"
-                                data-type-badge="{{ $config['badge_class'] }}"
-                                data-icon="{{ $config['icon'] }}"
-                                data-content="{{ e($content) }}"
-                                data-attachment="{{ $attachmentUrl }}"
-                                data-attachment-name="{{ $attachmentName }}"
-                                data-unread="{{ $isUnread ? '1' : '0' }}"
-                                data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
-                                data-is-fee="{{ $isFeePayment ? '1' : '0' }}"
-                                @if($isFeePayment && $feeData)
-                                    data-fee-student="{{ e($feeData['student'] ?: $studentName) }}"
-                                    data-fee-receipt="{{ e($feeReceiptNo) }}"
-                                    data-fee-offline-receipt="{{ e($feeData['offline_receipt_no']) }}"
-                                    data-fee-date="{{ e($feeData['payment_date']) }}"
-                                    data-fee-mode="{{ e($feeData['payment_mode']) }}"
-                                    data-fee-amount="{{ e($feeData['amount']) }}"
-                                    data-fee-discount="{{ e($feeData['discount']) }}"
-                                    data-fee-fine="{{ e($feeData['fine']) }}"
-                                    data-fee-total="{{ e($feeData['total_paid'] ?: $feeData['amount']) }}"
-                                    data-fee-status="{{ e($feeData['status']) }}"
-                                    data-fee-details="{{ e($feeData['fee_details']) }}"
-                                    data-fee-download-url="{{ $feeReceiptDownloadUrl ?: '' }}"
-                                    data-fee-view-url="{{ $feeReceiptViewUrl ?: '' }}"
-                                @endif>
+                                {!! $triggerAttrs !!}>
                             <i class="fa fa-eye"></i> View
                         </button>
                     </div>
@@ -1890,9 +2394,9 @@ body.mob-sheet-lock {
     <div class="mob-sheet-body">
         <h3 id="sheetNotifTitle" class="sheet-notif-title"></h3>
 
-        {{-- Fee Payment Structured Section (Visible only when is-fee) --}}
+        {{-- 1. Fee Payment Structured Section --}}
         <div id="sheetFeeContainer" style="display: none;">
-            <div class="sheet-fee-receipt-card">
+            <div class="sheet-fee-receipt-card tone-green">
                 <div class="sheet-fee-top-strip">
                     <span class="sheet-fee-rec-badge" id="sheetFeeReceiptTag"><i class="fa fa-file-text-o"></i> REC #-</span>
                     <span class="sheet-fee-status-badge" id="sheetFeeStatusTag"><i class="fa fa-check-circle text-success"></i> Payment Received</span>
@@ -1949,6 +2453,192 @@ body.mob-sheet-lock {
             </div>
         </div>
 
+        {{-- 2. Attendance Structured Section --}}
+        <div id="sheetAttendanceContainer" style="display: none;">
+            <div class="sheet-structured-card tone-blue">
+                <div class="sheet-top-strip">
+                    <span class="sheet-badge-tag" id="sheetAttBadgeTag"><i class="fa fa-calendar-check-o"></i> Attendance</span>
+                    <span class="sheet-status-pill" id="sheetAttStatusBadge"><i class="fa fa-check-circle text-success"></i> Present</span>
+                </div>
+
+                <div class="sheet-hero-box">
+                    <div class="sheet-hero-box-lbl">ATTENDANCE STATUS</div>
+                    <div class="sheet-hero-box-val" id="sheetAttHeroVal">PRESENT</div>
+                </div>
+
+                <div class="sheet-breakdown-list">
+                    <div class="sheet-row">
+                        <span class="row-lbl">Student Name</span>
+                        <span class="row-val" id="sheetAttStudentVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Attendance Date</span>
+                        <span class="row-val" id="sheetAttDateVal">-</span>
+                    </div>
+                    <div class="sheet-row" id="sheetAttRowCheckIn" style="display:none;">
+                        <span class="row-lbl">Check-in Time</span>
+                        <span class="row-val" id="sheetAttCheckInVal">-</span>
+                    </div>
+                    <div class="sheet-row" id="sheetAttRowCheckOut" style="display:none;">
+                        <span class="row-lbl">Check-out Time</span>
+                        <span class="row-val" id="sheetAttCheckOutVal">-</span>
+                    </div>
+                    <div class="sheet-row" id="sheetAttRowInstitute" style="display:none;">
+                        <span class="row-lbl">Campus / Branch</span>
+                        <span class="row-val" id="sheetAttInstituteVal">-</span>
+                    </div>
+                </div>
+
+                <div class="sheet-action-bar">
+                    <a href="{{ url('AttendanceView_student') }}" id="sheetAttLinkBtn" class="sheet-btn-primary tone-blue">
+                        <i class="fa fa-calendar-check-o"></i> View Attendance Register
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 3. Exam Result Structured Section --}}
+        <div id="sheetExamContainer" style="display: none;">
+            <div class="sheet-structured-card tone-purple">
+                <div class="sheet-top-strip">
+                    <span class="sheet-badge-tag"><i class="fa fa-trophy"></i> EXAM RESULT</span>
+                    <span class="sheet-status-pill" style="color:#6b21a8; border-color:#d8b4fe;"><i class="fa fa-check-circle"></i> Published</span>
+                </div>
+
+                <div class="sheet-hero-box">
+                    <div class="sheet-hero-box-lbl">EXAMINATION</div>
+                    <div class="sheet-hero-box-val" id="sheetExamHeroVal" style="font-size:15px;">-</div>
+                </div>
+
+                <div class="sheet-breakdown-list" style="margin-bottom:8px;">
+                    <div class="sheet-row">
+                        <span class="row-lbl">Student Name</span>
+                        <span class="row-val" id="sheetExamStudentVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Class / Course</span>
+                        <span class="row-val" id="sheetExamClassVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Declaration Date</span>
+                        <span class="row-val" id="sheetExamDateVal">-</span>
+                    </div>
+                </div>
+
+                <div class="sheet-msg-box" id="sheetExamMsgVal"></div>
+
+                <div class="sheet-action-bar">
+                    <a href="{{ url('/student/result-card') }}" id="sheetExamLinkBtn" class="sheet-btn-primary tone-purple">
+                        <i class="fa fa-trophy"></i> Open Result Card
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. Complaint / Support Structured Section --}}
+        <div id="sheetComplaintContainer" style="display: none;">
+            <div class="sheet-structured-card tone-blue">
+                <div class="sheet-top-strip">
+                    <span class="sheet-badge-tag" id="sheetCompTicketTag"><i class="fa fa-ticket"></i> TICKET</span>
+                    <span class="sheet-status-pill" id="sheetCompStatusTag"><i class="fa fa-circle text-primary" style="font-size:7px;"></i> Open</span>
+                </div>
+
+                <div class="sheet-hero-box">
+                    <div class="sheet-hero-box-lbl">TICKET STATUS</div>
+                    <div class="sheet-hero-box-val" id="sheetCompHeroVal">-</div>
+                </div>
+
+                <div class="sheet-breakdown-list" style="margin-bottom:8px;">
+                    <div class="sheet-row">
+                        <span class="row-lbl">Ticket Number</span>
+                        <span class="row-val" id="sheetCompTicketVal">-</span>
+                    </div>
+                    <div class="sheet-row" id="sheetCompRowSubject" style="display:none;">
+                        <span class="row-lbl">Subject</span>
+                        <span class="row-val" id="sheetCompSubjectVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Updated On</span>
+                        <span class="row-val" id="sheetCompDateVal">-</span>
+                    </div>
+                </div>
+
+                <div class="sheet-msg-box" id="sheetCompMsgVal"></div>
+
+                <div class="sheet-action-bar">
+                    <a href="{{ url('student-complaints') }}" id="sheetCompLinkBtn" class="sheet-btn-primary tone-blue">
+                        <i class="fa fa-comments-o"></i> Go to Complaints Desk
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 5. Fee Revert Structured Section --}}
+        <div id="sheetFeeRevertContainer" style="display: none;">
+            <div class="sheet-structured-card tone-red">
+                <div class="sheet-top-strip">
+                    <span class="sheet-badge-tag" id="sheetRevertReceiptTag"><i class="fa fa-undo"></i> REC #-</span>
+                    <span class="sheet-status-pill" style="color:#9f1239; border-color:#fda4af;"><i class="fa fa-exclamation-circle"></i> Reverted</span>
+                </div>
+
+                <div class="sheet-hero-box">
+                    <div class="sheet-hero-box-lbl">TOTAL AMOUNT REVERTED</div>
+                    <div class="sheet-hero-box-val" id="sheetRevertHeroVal"><i class="fa fa-inr"></i> 0.00</div>
+                </div>
+
+                <div class="sheet-breakdown-list">
+                    <div class="sheet-row">
+                        <span class="row-lbl">Student Name</span>
+                        <span class="row-val" id="sheetRevertStudentVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Reversal Date</span>
+                        <span class="row-val" id="sheetRevertDateVal">-</span>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="row-lbl">Payment Mode</span>
+                        <span class="row-val" id="sheetRevertModeVal">-</span>
+                    </div>
+                    <div class="sheet-row" id="sheetRevertRowDetails" style="display:none;">
+                        <span class="row-lbl">Reverted Details</span>
+                        <span class="row-val" id="sheetRevertDetailsVal">-</span>
+                    </div>
+                </div>
+
+                <div class="sheet-action-bar">
+                    <a href="{{ url('fees_history') }}" id="sheetRevertLinkBtn" class="sheet-btn-primary tone-red">
+                        <i class="fa fa-history"></i> View Fees History
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 6. Notice / Circular Structured Section --}}
+        <div id="sheetNoticeContainer" style="display: none;">
+            <div class="sheet-structured-card tone-amber">
+                <div class="sheet-top-strip">
+                    <span class="sheet-badge-tag"><i class="fa fa-bullhorn"></i> NOTICE</span>
+                    <span class="sheet-status-pill" id="sheetNoticeDateTag"><i class="fa fa-clock-o"></i> Date</span>
+                </div>
+
+                <div class="sheet-hero-box">
+                    <div class="sheet-hero-box-lbl">CIRCULAR TOPIC</div>
+                    <div class="sheet-hero-box-val" id="sheetNoticeHeroVal" style="font-size:14px;">-</div>
+                </div>
+
+                <div class="sheet-msg-box" id="sheetNoticeMsgVal"></div>
+
+                <div class="sheet-action-bar" style="flex-direction: column;">
+                    <a href="#" id="sheetNoticeAttachBtn" class="sheet-btn-secondary" target="_blank" download style="display:none; justify-content:center;">
+                        <i class="fa fa-paperclip"></i> Download Attachment
+                    </a>
+                    <a href="{{ url('student-notices') }}" id="sheetNoticeLinkBtn" class="sheet-btn-primary tone-amber">
+                        <i class="fa fa-bullhorn"></i> Open School Notice Board
+                    </a>
+                </div>
+            </div>
+        </div>
+
         {{-- Standard Message Body (for general alerts / notices) --}}
         <div id="sheetStandardContainer">
             <div class="sheet-notif-card">
@@ -1991,6 +2681,7 @@ function openNotifSheet(triggerEl) {
         const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
         const isUnread = triggerEl.getAttribute('data-unread') === '1';
         const readUrl = triggerEl.getAttribute('data-read-url');
+        const structuredType = triggerEl.getAttribute('data-structured-type') || (triggerEl.getAttribute('data-is-fee') === '1' ? 'fee_payment' : 'standard');
 
         // Fee attributes
         const isFee = triggerEl.getAttribute('data-is-fee') === '1';
@@ -2042,13 +2733,24 @@ function openNotifSheet(triggerEl) {
             return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
 
-        const feeContainer = document.getElementById('sheetFeeContainer');
-        const stdContainer = document.getElementById('sheetStandardContainer');
+        const containers = {
+            'fee_payment': document.getElementById('sheetFeeContainer'),
+            'attendance': document.getElementById('sheetAttendanceContainer'),
+            'exam_result': document.getElementById('sheetExamContainer'),
+            'complaint': document.getElementById('sheetComplaintContainer'),
+            'fee_revert': document.getElementById('sheetFeeRevertContainer'),
+            'notice': document.getElementById('sheetNoticeContainer'),
+            'standard': document.getElementById('sheetStandardContainer')
+        };
         const attachWrap = document.getElementById('sheetNotifAttachment');
 
-        if (isFee) {
-            if (stdContainer) stdContainer.style.display = 'none';
-            if (attachWrap) attachWrap.style.display = 'none';
+        // Hide all containers initially
+        Object.keys(containers).forEach(function(k) {
+            if (containers[k]) containers[k].style.display = 'none';
+        });
+
+        if (structuredType === 'fee_payment') {
+            const feeContainer = containers['fee_payment'];
             if (feeContainer) {
                 feeContainer.style.display = 'block';
 
@@ -2130,8 +2832,230 @@ function openNotifSheet(triggerEl) {
                     }
                 }
             }
+        } else if (structuredType === 'attendance') {
+            const attContainer = containers['attendance'];
+            if (attContainer) {
+                attContainer.style.display = 'block';
+
+                const attName = triggerEl.getAttribute('data-att-name') || '-';
+                const attDate = triggerEl.getAttribute('data-att-date') || time;
+                const attStatus = (triggerEl.getAttribute('data-att-status') || 'Present').trim();
+                const attCheckIn = triggerEl.getAttribute('data-att-check-in') || '';
+                const attCheckOut = triggerEl.getAttribute('data-att-check-out') || '';
+                const attInstitute = triggerEl.getAttribute('data-att-institute') || '';
+                const attUrl = triggerEl.getAttribute('data-att-url') || '#';
+
+                const badgeTag = document.getElementById('sheetAttBadgeTag');
+                if (badgeTag) badgeTag.innerHTML = '<i class="fa fa-calendar-check-o"></i> ' + attDate;
+
+                const statusBadge = document.getElementById('sheetAttStatusBadge');
+                const stLower = attStatus.toLowerCase();
+                let iconHtml = '<i class="fa fa-info-circle text-primary"></i> ';
+                if (['present', 'in', 'p'].includes(stLower)) {
+                    iconHtml = '<i class="fa fa-check-circle text-success"></i> ';
+                } else if (['absent', 'a'].includes(stLower)) {
+                    iconHtml = '<i class="fa fa-times-circle text-danger"></i> ';
+                } else if (['out'].includes(stLower)) {
+                    iconHtml = '<i class="fa fa-sign-out text-info"></i> ';
+                }
+                if (statusBadge) statusBadge.innerHTML = iconHtml + attStatus;
+
+                const heroVal = document.getElementById('sheetAttHeroVal');
+                if (heroVal) heroVal.textContent = attStatus.toUpperCase();
+
+                const studentEl = document.getElementById('sheetAttStudentVal');
+                if (studentEl) studentEl.textContent = attName;
+
+                const dateEl = document.getElementById('sheetAttDateVal');
+                if (dateEl) dateEl.textContent = attDate;
+
+                const rowIn = document.getElementById('sheetAttRowCheckIn');
+                const valIn = document.getElementById('sheetAttCheckInVal');
+                if (rowIn && valIn) {
+                    if (attCheckIn) {
+                        rowIn.style.display = 'flex';
+                        valIn.textContent = attCheckIn;
+                    } else {
+                        rowIn.style.display = 'none';
+                    }
+                }
+
+                const rowOut = document.getElementById('sheetAttRowCheckOut');
+                const valOut = document.getElementById('sheetAttCheckOutVal');
+                if (rowOut && valOut) {
+                    if (attCheckOut) {
+                        rowOut.style.display = 'flex';
+                        valOut.textContent = attCheckOut;
+                    } else {
+                        rowOut.style.display = 'none';
+                    }
+                }
+
+                const rowInst = document.getElementById('sheetAttRowInstitute');
+                const valInst = document.getElementById('sheetAttInstituteVal');
+                if (rowInst && valInst) {
+                    if (attInstitute) {
+                        rowInst.style.display = 'flex';
+                        valInst.textContent = attInstitute;
+                    } else {
+                        rowInst.style.display = 'none';
+                    }
+                }
+
+                const linkBtn = document.getElementById('sheetAttLinkBtn');
+                if (linkBtn && attUrl) linkBtn.href = attUrl;
+            }
+        } else if (structuredType === 'exam_result') {
+            const examContainer = containers['exam_result'];
+            if (examContainer) {
+                examContainer.style.display = 'block';
+
+                const examName = triggerEl.getAttribute('data-exam-name') || 'Examination';
+                const examStudent = triggerEl.getAttribute('data-exam-student') || '-';
+                const examClass = triggerEl.getAttribute('data-exam-class') || '-';
+                const examDate = triggerEl.getAttribute('data-exam-date') || time;
+                const examMsg = triggerEl.getAttribute('data-exam-msg') || content;
+                const examUrl = triggerEl.getAttribute('data-exam-url') || '#';
+
+                const heroVal = document.getElementById('sheetExamHeroVal');
+                if (heroVal) heroVal.textContent = examName;
+
+                const studentEl = document.getElementById('sheetExamStudentVal');
+                if (studentEl) studentEl.textContent = examStudent;
+
+                const classEl = document.getElementById('sheetExamClassVal');
+                if (classEl) classEl.textContent = examClass;
+
+                const dateEl = document.getElementById('sheetExamDateVal');
+                if (dateEl) dateEl.textContent = examDate;
+
+                const msgEl = document.getElementById('sheetExamMsgVal');
+                if (msgEl) msgEl.textContent = examMsg;
+
+                const linkBtn = document.getElementById('sheetExamLinkBtn');
+                if (linkBtn && examUrl) linkBtn.href = examUrl;
+            }
+        } else if (structuredType === 'complaint') {
+            const compContainer = containers['complaint'];
+            if (compContainer) {
+                compContainer.style.display = 'block';
+
+                const compTicket = triggerEl.getAttribute('data-comp-ticket') || 'SUPPORT';
+                const compStatus = triggerEl.getAttribute('data-comp-status') || 'Updated';
+                const compSubject = triggerEl.getAttribute('data-comp-subject') || '';
+                const compDate = triggerEl.getAttribute('data-comp-date') || time;
+                const compMsg = triggerEl.getAttribute('data-comp-msg') || content;
+                const compUrl = triggerEl.getAttribute('data-comp-url') || '#';
+
+                const tagEl = document.getElementById('sheetCompTicketTag');
+                if (tagEl) tagEl.innerHTML = '<i class="fa fa-ticket"></i> ' + compTicket;
+
+                const statusTag = document.getElementById('sheetCompStatusTag');
+                if (statusTag) statusTag.innerHTML = '<i class="fa fa-circle text-primary" style="font-size:7px;"></i> ' + compStatus;
+
+                const heroVal = document.getElementById('sheetCompHeroVal');
+                if (heroVal) heroVal.textContent = compStatus.toUpperCase();
+
+                const ticketEl = document.getElementById('sheetCompTicketVal');
+                if (ticketEl) ticketEl.textContent = compTicket;
+
+                const rowSub = document.getElementById('sheetCompRowSubject');
+                const valSub = document.getElementById('sheetCompSubjectVal');
+                if (rowSub && valSub) {
+                    if (compSubject) {
+                        rowSub.style.display = 'flex';
+                        valSub.textContent = compSubject;
+                    } else {
+                        rowSub.style.display = 'none';
+                    }
+                }
+
+                const dateEl = document.getElementById('sheetCompDateVal');
+                if (dateEl) dateEl.textContent = compDate;
+
+                const msgEl = document.getElementById('sheetCompMsgVal');
+                if (msgEl) msgEl.textContent = compMsg;
+
+                const linkBtn = document.getElementById('sheetCompLinkBtn');
+                if (linkBtn && compUrl) linkBtn.href = compUrl;
+            }
+        } else if (structuredType === 'fee_revert') {
+            const revertContainer = containers['fee_revert'];
+            if (revertContainer) {
+                revertContainer.style.display = 'block';
+
+                const revStudent = triggerEl.getAttribute('data-revert-student') || '-';
+                const revReceipt = triggerEl.getAttribute('data-revert-receipt') || '';
+                const revDate = triggerEl.getAttribute('data-revert-date') || time;
+                const revMode = triggerEl.getAttribute('data-revert-mode') || 'Reversal';
+                const revTotal = triggerEl.getAttribute('data-revert-total') || '0.00';
+                const revDetails = triggerEl.getAttribute('data-revert-details') || '';
+                const revUrl = triggerEl.getAttribute('data-revert-url') || '#';
+
+                const recTag = document.getElementById('sheetRevertReceiptTag');
+                if (recTag) recTag.innerHTML = revReceipt ? '<i class="fa fa-undo"></i> REC #' + revReceipt : '<i class="fa fa-undo"></i> Reverted';
+
+                const heroVal = document.getElementById('sheetRevertHeroVal');
+                if (heroVal) heroVal.innerHTML = '<i class="fa fa-inr"></i> ' + formatCurrency(revTotal);
+
+                const studentEl = document.getElementById('sheetRevertStudentVal');
+                if (studentEl) studentEl.textContent = revStudent;
+
+                const dateEl = document.getElementById('sheetRevertDateVal');
+                if (dateEl) dateEl.textContent = revDate;
+
+                const modeEl = document.getElementById('sheetRevertModeVal');
+                if (modeEl) modeEl.textContent = revMode;
+
+                const rowDetails = document.getElementById('sheetRevertRowDetails');
+                const valDetails = document.getElementById('sheetRevertDetailsVal');
+                if (rowDetails && valDetails) {
+                    if (revDetails) {
+                        rowDetails.style.display = 'flex';
+                        valDetails.textContent = revDetails;
+                    } else {
+                        rowDetails.style.display = 'none';
+                    }
+                }
+
+                const linkBtn = document.getElementById('sheetRevertLinkBtn');
+                if (linkBtn && revUrl) linkBtn.href = revUrl;
+            }
+        } else if (structuredType === 'notice') {
+            const noticeContainer = containers['notice'];
+            if (noticeContainer) {
+                noticeContainer.style.display = 'block';
+
+                const noticeTitle = triggerEl.getAttribute('data-notice-title') || title;
+                const noticeDate = triggerEl.getAttribute('data-notice-date') || time;
+                const noticeMsg = triggerEl.getAttribute('data-notice-msg') || content;
+                const noticeUrl = triggerEl.getAttribute('data-notice-url') || '#';
+
+                const dateTag = document.getElementById('sheetNoticeDateTag');
+                if (dateTag) dateTag.innerHTML = '<i class="fa fa-clock-o"></i> ' + noticeDate;
+
+                const heroVal = document.getElementById('sheetNoticeHeroVal');
+                if (heroVal) heroVal.textContent = noticeTitle;
+
+                const msgEl = document.getElementById('sheetNoticeMsgVal');
+                if (msgEl) msgEl.textContent = noticeMsg;
+
+                const attachBtn = document.getElementById('sheetNoticeAttachBtn');
+                if (attachBtn) {
+                    if (attachment && attachment.trim() !== '') {
+                        attachBtn.href = attachment;
+                        attachBtn.style.display = 'inline-flex';
+                        attachBtn.innerHTML = '<i class="fa fa-paperclip"></i> ' + (attachmentName || 'Download Attachment');
+                    } else {
+                        attachBtn.style.display = 'none';
+                    }
+                }
+
+                const linkBtn = document.getElementById('sheetNoticeLinkBtn');
+                if (linkBtn && noticeUrl) linkBtn.href = noticeUrl;
+            }
         } else {
-            if (feeContainer) feeContainer.style.display = 'none';
+            const stdContainer = containers['standard'];
             if (stdContainer) stdContainer.style.display = 'block';
 
             const bodyEl = document.getElementById('sheetNotifBody');
