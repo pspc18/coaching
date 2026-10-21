@@ -20,12 +20,6 @@ use Intervention\Image\Facades\Image;
 
 class InitialController extends Controller
 {
-
-    public function helpAndUpdate(Request $request){
-        $softwareTokenNo = env('SOFTWARE_TOKEN_NO');
-        return view('initial.helpAndUpdateView', ['softwareTokenNo' => $softwareTokenNo]);
-    }
-    
     public function backup(RuntimeSync $RuntimeSync, Request $request)
     {
         try {

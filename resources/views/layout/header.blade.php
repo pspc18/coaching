@@ -463,17 +463,7 @@ if (!empty($headerUserImageName)) {
           <i class="fa fa-key mr-2"></i>Change Password
           {{-- <span class="float-right text-muted text-sm">3 mins</span> --}}
         </a>
-        
 
-       
-
-        @if(Session::get('role_id') == 1)
-        <a href="{{url('helpAndUpdate')}}" class="text-warning dropdown-item border-bottom">
-          <i class="fa fa-question-circle-o mr-2"></i>Help & Updates
-          {{-- <span class="float-right text-muted text-sm">3 mins</span> --}}
-        </a>
-        @endif
-        
    @if(Session::get('role_id') == 1 || Session::get('role_id') == 2)
         <div class="dropdown-item border-bottom Display_none_PC">
          
