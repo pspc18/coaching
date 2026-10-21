@@ -95,6 +95,8 @@ Route::match(['get', 'post'], 'qr_code', 'EnquiryController@qrCode');
 Route::match(['get', 'post'], 'firebase-notification', 'NotificationController@notification');
 
 Route::get('user-notifications', 'UserNotificationController@index')->name('user.notifications.index');
+Route::post('user-notifications/{id}/mark-unread', 'UserNotificationController@markUnread')->where('id', '[0-9]+')->name('user.notifications.mark-unread');
+Route::delete('user-notifications/{id}', 'UserNotificationController@destroy')->where('id', '[0-9]+')->name('user.notifications.destroy');
 Route::post('user-notifications/{id}/mark-read', 'UserNotificationController@markRead')
     ->where('id', '[0-9]+')->name('user.notifications.mark-read');
 Route::post('user-notifications/mark-all-read', 'UserNotificationController@markAllRead')
