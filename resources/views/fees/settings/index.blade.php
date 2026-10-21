@@ -576,6 +576,54 @@
     line-height: 1.35;
 }
 
+/* Theme Color Picker Section */
+.theme-picker-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    transition: border-color .15s ease;
+}
+.theme-picker-card:hover {
+    border-color: #cbd5e1;
+}
+.theme-swatch-btn {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.theme-swatch-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+.theme-swatch-btn.active {
+    border-color: #002C54;
+    box-shadow: 0 0 0 1.5px #002C54;
+    font-weight: 600;
+    background: #eff6ff;
+}
+.theme-preview-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #ffffff;
+    transition: all .2s ease;
+}
+
 /* Docked Bottom Action Toolbar (Permanently fixed at bottom of page layout) */
 .settings-bottom-bar {
     flex-shrink: 0;
@@ -961,6 +1009,59 @@
                                     </div>
                                 </div>
 
+                                {{-- Receipt Theme & Logo Branding Color --}}
+                                <div class="theme-picker-card">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap mb-2" style="gap: 8px;">
+                                        <div>
+                                            <label class="form-label-erp mb-0" style="font-size: 12.5px; font-weight: 700; color: #0f172a;">
+                                                <i class="fa fa-paint-brush text-primary"></i> Receipt Theme Color (Matching Logo) <span class="badge-req">*</span>
+                                            </label>
+                                            <p class="form-hint mb-0" style="font-size: 11px; color: #64748b;">
+                                                Select primary brand color matching your school/institute logo. Applied dynamically to receipt school name, divider border, fee table borders, copy badge, and accents.
+                                            </p>
+                                        </div>
+                                        <div class="theme-preview-pill" id="themePreviewPill" style="border: 1.5px solid {{ $setting->receipt_theme_color ?? '#8b2635' }}; color: {{ $setting->receipt_theme_color ?? '#8b2635' }};">
+                                            <span class="preview-dot" style="width: 12px; height: 12px; border-radius: 50%; background: {{ $setting->receipt_theme_color ?? '#8b2635' }}; display: inline-block;"></span>
+                                            <span id="themePreviewText">Sample: {{ strtoupper($setting->receipt_theme_color ?? '#8b2635') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
+                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                            <input type="color" id="themeColorPicker" value="{{ old('receipt_theme_color', $setting->receipt_theme_color ?? '#8b2635') }}" 
+                                                   style="width: 44px; height: 36px; padding: 2px; border: 1.5px solid #cbd5e1; border-radius: 4px; cursor: pointer; background: #fff;">
+                                            <input type="text" class="form-control-erp" id="themeColorText" name="receipt_theme_color" 
+                                                   value="{{ old('receipt_theme_color', $setting->receipt_theme_color ?? '#8b2635') }}" 
+                                                   maxlength="7" placeholder="#8B2635" 
+                                                   style="width: 105px; font-family: monospace; font-weight: 700; text-transform: uppercase;">
+                                        </div>
+
+                                        <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Presets:</span>
+                                            @php
+                                                $themePresets = [
+                                                    ['name' => 'Burgundy', 'hex' => '#8b2635'],
+                                                    ['name' => 'Navy Blue', 'hex' => '#002C54'],
+                                                    ['name' => 'Royal Blue', 'hex' => '#1e40af'],
+                                                    ['name' => 'Emerald Green', 'hex' => '#065f46'],
+                                                    ['name' => 'Crimson Red', 'hex' => '#991b1b'],
+                                                    ['name' => 'Classic Maroon', 'hex' => '#7f1d1d'],
+                                                    ['name' => 'Deep Indigo', 'hex' => '#4338ca'],
+                                                    ['name' => 'Slate Charcoal', 'hex' => '#334155'],
+                                                ];
+                                                $currentColor = strtolower($setting->receipt_theme_color ?? '#8b2635');
+                                            @endphp
+                                            @foreach($themePresets as $preset)
+                                                <button type="button" class="theme-swatch-btn {{ strtolower($preset['hex']) === $currentColor ? 'active' : '' }}" 
+                                                        data-color="{{ $preset['hex'] }}">
+                                                    <span style="width: 10px; height: 10px; border-radius: 50%; background: {{ $preset['hex'] }}; display: inline-block;"></span>
+                                                    {{ $preset['name'] }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- Print Elements Toggles --}}
                                 <div class="form-grid-2">
                                     <div class="switch-group-row">
@@ -1213,6 +1314,45 @@ $(document).ready(function() {
 
     $('#btnTestPreview').on('click', function() {
         updateLivePreview();
+    });
+
+    // 6. Theme Color Picker & Swatches Sync
+    function applyReceiptThemeColor(hex) {
+        if (!hex) return;
+        hex = hex.trim();
+        if (!hex.startsWith('#')) {
+            hex = '#' + hex;
+        }
+        if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+            hex = hex.toUpperCase();
+            $('#themeColorPicker').val(hex);
+            $('#themeColorText').val(hex);
+            $('#themePreviewPill').css({
+                'border-color': hex,
+                'color': hex
+            });
+            $('#themePreviewPill .preview-dot').css('background', hex);
+            $('#themePreviewText').text('Sample: ' + hex);
+
+            $('.theme-swatch-btn').each(function() {
+                var btnColor = ($(this).data('color') || '').toUpperCase();
+                $(this).toggleClass('active', btnColor === hex);
+            });
+        }
+    }
+
+    $('#themeColorPicker').on('input change', function() {
+        applyReceiptThemeColor($(this).val());
+    });
+
+    $('#themeColorText').on('input change', function() {
+        applyReceiptThemeColor($(this).val());
+    });
+
+    $('.theme-swatch-btn').on('click', function(e) {
+        e.preventDefault();
+        var col = $(this).data('color');
+        applyReceiptThemeColor(col);
     });
 });
 </script>

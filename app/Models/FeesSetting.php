@@ -37,6 +37,7 @@ class FeesSetting extends Model
 
         // 3. Receipt Print & Letterhead Format
         'receipt_layout',
+        'receipt_theme_color',
         'show_school_logo',
         'show_watermark',
         'show_signature_box',
@@ -94,6 +95,7 @@ class FeesSetting extends Model
                     'max_discount_percentage'       => 20.00,
                     'discount_requires_remark'      => 1,
                     'receipt_layout'                => 'a4_dual',
+                    'receipt_theme_color'           => '#8b2635',
                     'show_school_logo'              => 1,
                     'show_watermark'                => 1,
                     'show_signature_box'            => 1,

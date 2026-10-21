@@ -1,3 +1,43 @@
+@php
+    $isCollection = $data instanceof \Illuminate\Support\Collection;
+    $detailsList = $isCollection ? $data : collect(is_object($data) ? [$data] : (is_array($data) ? [$data] : []));
+    $firstDetail = $detailsList->first();
+    $dataArr = is_array($data) ? $data : [];
+    $invoiceObj = isset($invoice_data) && is_object($invoice_data) ? $invoice_data : null;
+    $admissionObj = ($firstDetail && isset($firstDetail->Admission) && is_object($firstDetail->Admission)) ? $firstDetail->Admission : null;
+
+    $branchId = $invoiceObj->branch_id ?? ($firstDetail->branch_id ?? (Session::get('branch_id') ?: 1));
+    $sessionId = $invoiceObj->session_id ?? ($firstDetail->session_id ?? (Session::get('session_id') ?: 1));
+    $getSetting = \App\Models\Setting::where('branch_id', $branchId)->first() ?? Helper::getSetting();
+    $feesSetting = isset($feesSetting) && $feesSetting instanceof \App\Models\FeesSetting
+        ? $feesSetting
+        : \App\Models\FeesSetting::getSetting($branchId, $sessionId);
+
+    $rawThemeColor = trim((string) ($feesSetting->receipt_theme_color ?? ''));
+    $themeColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $rawThemeColor) ? $rawThemeColor : '#8b2635';
+
+    if (!function_exists('ariseHexTint')) {
+        function ariseHexTint($hex, $factor = 0.90) {
+            $hex = ltrim($hex, '#');
+            if (strlen($hex) === 3) {
+                $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+            }
+            if (strlen($hex) !== 6) {
+                return '#f3f4f6';
+            }
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+            $r = (int) round($r + (255 - $r) * $factor);
+            $g = (int) round($g + (255 - $g) * $factor);
+            $b = (int) round($b + (255 - $b) * $factor);
+            return sprintf("#%02x%02x%02x", $r, $g, $b);
+        }
+    }
+    $themeHeaderBg = ariseHexTint($themeColor, 0.90);
+    $themeLightBg = ariseHexTint($themeColor, 0.95);
+    $themeBorderColor = ariseHexTint($themeColor, 0.45);
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,7 +86,7 @@
             overflow: hidden;
         }
         .receipt-full .org-header-table {
-            border-bottom: 2.2px solid #8b2635;
+            border-bottom: 2.2px solid {{ $themeColor }};
             padding-bottom: 8px;
             margin-bottom: 10px;
         }
@@ -150,7 +190,7 @@
         .org-header-table {
             width: 100%;
             border-collapse: collapse;
-            border-bottom: 1.8px solid #8b2635;
+            border-bottom: 1.8px solid {{ $themeColor }};
             padding-bottom: 5px;
             margin-bottom: 6px;
         }
@@ -181,13 +221,13 @@
         .org-logo-initial {
             font-size: 19px;
             font-weight: bold;
-            color: #8b2635;
+            color: {{ $themeColor }};
             line-height: 44px;
         }
         .org-title {
             font-size: 16.5px;
             font-weight: bold;
-            color: #8b2635;
+            color: {{ $themeColor }};
             text-transform: uppercase;
             letter-spacing: 0.4px;
             margin: 0 0 2px 0;
@@ -211,14 +251,14 @@
         }
         .copy-box {
             display: inline-block;
-            border: 1.3px solid #1f2937;
+            border: 1.3px solid {{ $themeColor }};
             padding: 3px 11px;
             font-size: 9px;
             font-weight: bold;
-            color: #111827;
+            color: {{ $themeColor }};
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            background: #ffffff;
+            background: {{ $themeLightBg }};
         }
         .session-sub {
             font-size: 7.8px;
@@ -286,21 +326,21 @@
             margin-bottom: 5px;
         }
         .fee-table th {
-            background: #f3f4f6;
-            color: #111827;
+            background: {{ $themeHeaderBg }};
+            color: {{ $themeColor }};
             font-size: 8.5px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             padding: 4px 7px;
-            border: 1px solid #374151;
+            border: 1px solid {{ $themeColor }};
         }
         .fee-table tbody td {
             padding: 2.6px 7px;
             font-size: 9px;
             color: #111827;
-            border-left: 1px solid #374151;
-            border-right: 1px solid #374151;
+            border-left: 1px solid {{ $themeBorderColor }};
+            border-right: 1px solid {{ $themeBorderColor }};
             border-top: none;
             border-bottom: none;
             height: 4.4mm;
@@ -312,12 +352,12 @@
             height: 3.6mm;
         }
         .fee-table tfoot td {
-            background: #f9fafb;
-            border: 1px solid #374151;
+            background: {{ $themeLightBg }};
+            border: 1px solid {{ $themeColor }};
             padding: 4px 7px;
             font-size: 10px;
             font-weight: bold;
-            color: #111827;
+            color: {{ $themeColor }};
             height: auto;
         }
         .text-center {
@@ -374,7 +414,7 @@
         }
         .sign-line-box {
             width: 165px;
-            border-top: 1.2px solid #1f2937;
+            border-top: 1.2px solid {{ $themeColor }};
             padding-top: 3.5px;
             text-align: center;
             font-size: 9.2px;
@@ -423,13 +463,6 @@
     </style>
 </head>
 @php
-    $branchId = $invoiceObj->branch_id ?? ($firstDetail->branch_id ?? (Session::get('branch_id') ?: 1));
-    $sessionId = $invoiceObj->session_id ?? ($firstDetail->session_id ?? (Session::get('session_id') ?: 1));
-    $getSetting = \App\Models\Setting::where('branch_id', $branchId)->first() ?? Helper::getSetting();
-    $feesSetting = isset($feesSetting) && $feesSetting instanceof \App\Models\FeesSetting
-        ? $feesSetting
-        : \App\Models\FeesSetting::getSetting($branchId, $sessionId);
-
     $receiptLayout = ($feesSetting->receipt_layout ?? 'a4_dual') === 'a4_single' ? 'a4_single' : 'a4_dual';
     $showSchoolLogo = (bool) ($feesSetting->show_school_logo ?? 1);
     $showWatermark = (bool) ($feesSetting->show_watermark ?? 1);
@@ -437,13 +470,6 @@
     $showPaymentModeDetails = (bool) ($feesSetting->show_payment_mode_details ?? 1);
     $receiptHeaderTitle = trim((string) ($feesSetting->receipt_header_title ?? 'FEE RECEIPT')) ?: 'FEE RECEIPT';
     $receiptTerms = trim((string) ($feesSetting->receipt_terms_conditions ?? ''));
-
-    $isCollection = $data instanceof \Illuminate\Support\Collection;
-    $detailsList = $isCollection ? $data : collect(is_object($data) ? [$data] : (is_array($data) ? [$data] : []));
-    $firstDetail = $detailsList->first();
-    $dataArr = is_array($data) ? $data : [];
-    $invoiceObj = isset($invoice_data) && is_object($invoice_data) ? $invoice_data : null;
-    $admissionObj = ($firstDetail && isset($firstDetail->Admission) && is_object($firstDetail->Admission)) ? $firstDetail->Admission : null;
 
     $receiptNo = ($invoiceObj->invoice_no ?? null)
         ?: ($invoiceObj->offline_receipt_no ?? null)

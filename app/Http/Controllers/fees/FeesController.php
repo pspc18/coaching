@@ -2900,6 +2900,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'min_deposit_percentage'        => 'nullable|numeric|min:0|max:100',
             'max_discount_percentage'       => 'nullable|numeric|min:0|max:100',
             'receipt_layout'                => 'required|in:a4_single,a4_dual',
+            'receipt_theme_color'           => 'nullable|string|max:30',
             'receipt_header_title'          => 'nullable|string|max:100',
             'due_reminder_days_before'      => 'nullable|integer|min:1|max:30',
         ]);
@@ -2927,6 +2928,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'max_discount_percentage'       => (float) $request->input('max_discount_percentage', 20),
             'discount_requires_remark'      => (int) $request->has('discount_requires_remark'),
             'receipt_layout'                => $request->input('receipt_layout', 'a4_dual'),
+            'receipt_theme_color'           => $request->input('receipt_theme_color', '#8b2635'),
             'show_school_logo'              => (int) $request->has('show_school_logo'),
             'show_watermark'                => (int) $request->has('show_watermark'),
             'show_signature_box'            => (int) $request->has('show_signature_box'),
@@ -2953,6 +2955,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             'receipt_include_month'     => $setting->receipt_include_month,
             'receipt_reset_cycle'       => $setting->receipt_reset_cycle,
             'receipt_layout'            => $setting->receipt_layout,
+            'receipt_theme_color'       => $setting->receipt_theme_color,
             'show_school_logo'          => $setting->show_school_logo,
             'show_watermark'            => $setting->show_watermark,
             'show_signature_box'        => $setting->show_signature_box,
