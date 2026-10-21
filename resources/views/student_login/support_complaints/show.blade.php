@@ -604,12 +604,14 @@
     color: #334155;
 }
 
-/* Attachment Pill inside Chat Bubble */
+/* Attachment Pill inside Chat Bubble (Displayed above message text like WhatsApp) */
+.mob-bubble-attach-wrap {
+    margin: 4px 0 5px;
+}
 .mob-bubble-attachment {
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-top: 6px;
     padding: 4px 7px;
     border-radius: 3px;
     font-size: 9.5px;
@@ -1137,8 +1139,6 @@
                             @endif
                         </div>
 
-                        <div class="mob-bubble-text">{{ $reply->message }}</div>
-
                         @if($reply->attachment_path)
                             <div class="mob-bubble-attach-wrap">
                                 <a class="mob-bubble-attachment" href="{{ url('support-complaint-attachment/'.$reply->id) }}" target="_blank" rel="noopener">
@@ -1148,6 +1148,8 @@
                                 </a>
                             </div>
                         @endif
+
+                        <div class="mob-bubble-text">{{ $reply->message }}</div>
 
                         <div class="mob-bubble-meta">
                             <span class="mob-bubble-time">{{ optional($reply->created_at)->format('h:i A') }}</span>
@@ -1450,11 +1452,6 @@ document.addEventListener('DOMContentLoaded', function () {
         head.appendChild(sender);
         bubble.appendChild(head);
 
-        var body = document.createElement('div');
-        body.className = 'mob-bubble-text';
-        body.textContent = messageText || (attachmentFile ? ('Shared attachment: ' + attachmentFile.name) : '');
-        bubble.appendChild(body);
-
         if (attachmentFile) {
             var pendingAttach = document.createElement('div');
             pendingAttach.className = 'mob-bubble-attach-wrap';
@@ -1468,6 +1465,11 @@ document.addEventListener('DOMContentLoaded', function () {
             pendingAttach.appendChild(pendingLink);
             bubble.appendChild(pendingAttach);
         }
+
+        var body = document.createElement('div');
+        body.className = 'mob-bubble-text';
+        body.textContent = messageText || (attachmentFile ? ('Shared attachment: ' + attachmentFile.name) : '');
+        bubble.appendChild(body);
 
         var meta = document.createElement('div');
         meta.className = 'mob-bubble-meta';
@@ -1524,10 +1526,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (replyData.has_attachment && replyData.attachment_url) {
             var bubble = row.querySelector('.mob-chat-bubble');
-            var meta = row.querySelector('.mob-bubble-meta');
+            var refEl = textEl || row.querySelector('.mob-bubble-meta');
             var newAttach = createAttachmentLinkElement(replyData.attachment_url, replyData.attachment_name);
-            if (bubble && meta) {
-                bubble.insertBefore(newAttach, meta);
+            if (bubble && refEl) {
+                bubble.insertBefore(newAttach, refEl);
             }
         }
 
@@ -1599,14 +1601,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         bubble.appendChild(head);
 
+        if (replyData.has_attachment && replyData.attachment_url) {
+            bubble.appendChild(createAttachmentLinkElement(replyData.attachment_url, replyData.attachment_name));
+        }
+
         var body = document.createElement('div');
         body.className = 'mob-bubble-text';
         body.textContent = replyData.message || '';
         bubble.appendChild(body);
-
-        if (replyData.has_attachment && replyData.attachment_url) {
-            bubble.appendChild(createAttachmentLinkElement(replyData.attachment_url, replyData.attachment_name));
-        }
 
         var meta = document.createElement('div');
         meta.className = 'mob-bubble-meta';
