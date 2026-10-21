@@ -68,7 +68,9 @@
                             </span>
                             <span class="mob-menu-text">{{ $item['name'] }}</span>
                         </div>
-                        <i class="fa fa-chevron-right mob-menu-chevron"></i>
+                        @if(!empty($item['children']))
+                            <i class="fa fa-chevron-right mob-menu-chevron"></i>
+                        @endif
                     </a>
                 </li>
             @endforeach
