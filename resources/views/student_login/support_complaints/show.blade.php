@@ -1,9 +1,10 @@
 @php
     $student = $complaint->student;
+    $studentFullName = trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')) ?: 'Student';
     $className = optional($student->ClassTypes)->name ?: 'Student';
     $statusLabel = \App\Models\SupportComplaint::STATUSES[$complaint->status] ?? ucfirst(str_replace('_', ' ', (string) $complaint->status));
     $categoryLabel = \App\Models\SupportComplaint::CATEGORIES[$complaint->category] ?? ucfirst(str_replace('_', ' ', (string) $complaint->category));
-    $submittedAs = $complaint->submitted_as === 'parent' ? 'Parent / Guardian' : 'Student';
+    $submittedAs = $complaint->submitted_as === 'parent' ? 'Parent' : 'Student';
     $replyCount = $complaint->replies->count();
     $canReply = !in_array($complaint->status, ['resolved', 'closed'], true);
 
@@ -47,46 +48,55 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - NATIVE MOBILE COMPLAINT SUPPORT CHAT WINDOW
-   Strictly aligned with student_login mobile theme typography, buttons & badges
+   ARISE ERP - NATIVE MOBILE COMPLAINT SUPPORT CHAT WINDOW (MOBILE-ONLY)
+   Strictly aligned with student_login mobile theme cards, borders & badges
    ========================================================================== */
 
 .mob-complaint-chat-page {
     width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
     color: #0f172a;
-}
-
-/* Full-Height Native Chat Window Shell */
-.mob-chat-shell {
     display: flex;
     flex-direction: column;
     height: calc(100vh - var(--header-height, 48px) - var(--bottom-nav-height, 52px) - var(--safe-bottom, 0px) - 20px);
     min-height: 460px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 24, 51, 0.12);
-    position: relative;
 }
 
-/* 1. Sticky Navy Chat Header (Matching .mob-hero-card) */
-.mob-chat-header {
+/* 1. Standalone Glassmorphic Navy Hero Header Card (Matches index.blade.php .mob-hero-card) */
+.mob-chat-hero-card {
     background: linear-gradient(135deg, #001833 0%, #002244 55%, #002C54 100%);
-    color: #ffffff;
+    border-radius: 4px;
     padding: 9px 10px;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.22);
-    flex-shrink: 0;
+    color: #ffffff;
+    box-shadow: 0 4px 14px -2px rgba(0, 24, 51, 0.25);
+    border: 1px solid rgba(56, 189, 248, 0.16);
     position: relative;
-    z-index: 5;
+    overflow: hidden;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.mob-chat-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -28px;
+    right: -28px;
+    width: 96px;
+    height: 96px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .mob-chat-header-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
+    position: relative;
+    z-index: 1;
 }
 
 .mob-chat-header-left {
@@ -98,23 +108,23 @@
 }
 
 .mob-back-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 3px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     color: #ffffff !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10.5px;
     text-decoration: none !important;
     flex-shrink: 0;
     transition: all 0.15s ease;
 }
 
 .mob-back-btn:hover {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .mob-chat-avatar {
@@ -180,10 +190,10 @@
     font-weight: 800;
     color: #38bdf8;
     background: rgba(56, 189, 248, 0.16);
-    border: 1px solid rgba(56, 189, 248, 0.32);
+    border: 1px solid rgba(56, 189, 248, 0.3);
     padding: 0.5px 5px;
     border-radius: 2px;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.25px;
     font-family: monospace;
     flex-shrink: 0;
 }
@@ -231,6 +241,9 @@
     text-transform: uppercase;
     letter-spacing: 0.3px;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
 }
 .priority-low    { background: #f1f5f9; color: #475569; }
 .priority-medium { background: #fef3c7; color: #b45309; }
@@ -241,15 +254,16 @@
     width: 24px;
     height: 24px;
     border-radius: 3px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(56, 189, 248, 0.14);
+    color: #38bdf8;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10.5px;
     cursor: pointer;
     transition: all 0.15s ease;
+    padding: 0;
 }
 .mob-info-toggle-btn.active,
 .mob-info-toggle-btn:hover {
@@ -258,56 +272,30 @@
     color: #ffffff;
 }
 
-/* Collapsible Ticket Metadata Drawer inside Header */
-.mob-chat-meta-drawer {
-    display: none;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-.mob-chat-meta-drawer.show {
-    display: block;
-}
-.mob-chat-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
-}
-.mob-chat-meta-cell {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 3px;
-    padding: 4px 7px;
-}
-.mob-chat-meta-lbl {
-    font-size: 8px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-}
-.mob-chat-meta-val {
-    font-size: 10px;
-    font-weight: 700;
-    color: #ffffff;
-    display: block;
-    white-space: nowrap;
+/* 2. Main White Mobile Chat Card (Matches .mob-filter-box & .mob-complaint-card) */
+.mob-chat-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
     overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: 0 2px 8px rgba(0, 24, 51, 0.06);
+    width: 100%;
 }
 
-/* 2. Pinned Ticket Subject Strip */
+/* Pinned Ticket Context Strip */
 .mob-chat-pinned-bar {
-    background: #f8fafc;
+    background: #ffffff;
     border-bottom: 1px solid #e2e8f0;
-    padding: 5px 10px;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
     flex-shrink: 0;
-    font-size: 10px;
 }
 .mob-chat-pinned-left {
     display: flex;
@@ -322,9 +310,140 @@
     flex-shrink: 0;
 }
 .mob-chat-pinned-text {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mob-chat-pinned-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+/* Clean Mobile Ticket Information Sheet (Light Theme Matched, Zero Overflow) */
+.mob-ticket-info-panel {
+    display: none;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 9px;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.mob-ticket-info-panel.show {
+    display: block;
+}
+
+/* Student Banner Row inside Info Panel (Full Width so long names/classes never clip) */
+.mob-info-student-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #0284c7;
+    border-radius: 3px;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    min-width: 0;
+}
+.mob-info-stu-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+}
+.mob-info-stu-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+.mob-info-stu-text {
+    min-width: 0;
+    flex: 1;
+}
+.mob-info-stu-lbl {
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    line-height: 1.1;
+}
+.mob-info-stu-name {
     font-size: 10.5px;
+    font-weight: 800;
+    color: #0f172a;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mob-info-class-pill {
+    font-size: 8.5px;
+    font-weight: 700;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #dbeafe;
+    padding: 1.5px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+    max-width: 135px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+/* 2-Column Mobile Grid with Strict minmax(0, 1fr) to Prevent Right-Side Overflow */
+.mob-info-grid-2col {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+.mob-info-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 4px 7px;
+    min-width: 0;
+    overflow: hidden;
+}
+.mob-info-box-lbl {
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 3.5px;
+    margin-bottom: 1px;
+    white-space: nowrap;
+}
+.mob-info-box-lbl i {
+    color: #0284c7;
+    font-size: 8.5px;
+}
+.mob-info-box-val {
+    font-size: 9.5px;
     font-weight: 700;
     color: #1e293b;
+    display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -333,9 +452,11 @@
 /* 3. Scrollable Chat Conversation Canvas */
 .mob-chat-canvas {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 10px 9px 12px;
-    background-color: #eef2f6;
+    background-color: #f1f5f9;
     background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
     background-size: 14px 14px;
     display: flex;
@@ -352,16 +473,16 @@
     margin: 2px 0;
 }
 .mob-chat-date-pill {
-    font-size: 8.5px;
+    font-size: 8px;
     font-weight: 800;
     color: #475569;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid #cbd5e1;
-    padding: 2px 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 2px 9px;
     border-radius: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    letter-spacing: 0.35px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 /* Chat Message Row */
@@ -370,6 +491,7 @@
     align-items: flex-end;
     gap: 6px;
     width: 100%;
+    min-width: 0;
 }
 .mob-chat-row.mine {
     justify-content: flex-end;
@@ -392,33 +514,36 @@
 .mob-chat-row.school .mob-msg-avatar {
     background: #0284c7;
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
 }
 .mob-chat-row.mine .mob-msg-avatar {
     background: #002C54;
     color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    border: 1px solid rgba(56, 189, 248, 0.25);
 }
 
 /* Chat Bubble */
 .mob-chat-bubble {
-    max-width: 82%;
+    max-width: calc(100% - 34px);
+    width: auto;
+    min-width: 160px;
     padding: 7px 9px;
     position: relative;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
     word-break: break-word;
+    overflow: hidden;
 }
 
 .mob-chat-row.mine .mob-chat-bubble {
     background: linear-gradient(135deg, #001f3f 0%, #002C54 100%);
-    border: 1px solid #001833;
+    border: 1px solid rgba(56, 189, 248, 0.18);
     border-radius: 6px 6px 1px 6px;
     color: #ffffff;
 }
 
 .mob-chat-row.school .mob-chat-bubble {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #e2e8f0;
     border-left: 3px solid #0284c7;
     border-radius: 6px 6px 6px 1px;
     color: #0f172a;
@@ -453,6 +578,7 @@
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: 0.25px;
+    flex-shrink: 0;
 }
 .mob-chat-row.mine .mob-bubble-tag {
     background: rgba(56, 189, 248, 0.16);
@@ -467,7 +593,7 @@
 
 .mob-bubble-text {
     font-size: 11.5px;
-    line-height: 1.5;
+    line-height: 1.45;
     white-space: pre-line;
     word-break: break-word;
 }
@@ -480,11 +606,11 @@
 
 /* Attachment Pill inside Chat Bubble */
 .mob-bubble-attachment {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     margin-top: 6px;
-    padding: 4px 8px;
+    padding: 4px 7px;
     border-radius: 3px;
     font-size: 9.5px;
     font-weight: 700;
@@ -493,12 +619,12 @@
     transition: all 0.15s ease;
 }
 .mob-chat-row.mine .mob-bubble-attachment {
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     color: #ffffff !important;
 }
 .mob-chat-row.mine .mob-bubble-attachment:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.18);
 }
 .mob-chat-row.school .mob-bubble-attachment {
     background: #eff6ff;
@@ -513,6 +639,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .mob-bubble-meta {
@@ -536,32 +664,32 @@
 .mob-chat-empty {
     margin: auto;
     text-align: center;
-    padding: 20px 14px;
-    background: rgba(255, 255, 255, 0.9);
+    padding: 18px 14px;
+    background: #ffffff;
     border: 1px dashed #cbd5e1;
     border-radius: 4px;
-    max-width: 280px;
+    max-width: 260px;
 }
 .mob-chat-empty-icon {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: #e0f2fe;
     color: #0284c7;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    margin-bottom: 6px;
+    font-size: 15px;
+    margin-bottom: 5px;
 }
 .mob-chat-empty-title {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 800;
     color: #0f172a;
     margin-bottom: 2px;
 }
 .mob-chat-empty-sub {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #64748b;
     line-height: 1.4;
 }
@@ -569,13 +697,12 @@
 /* 4. Sticky Bottom Chat Composer Bar */
 .mob-chat-composer {
     background: #ffffff;
-    border-top: 1px solid #cbd5e1;
+    border-top: 1px solid #e2e8f0;
     padding: 7px 8px;
     flex-shrink: 0;
     z-index: 5;
 }
 
-/* Selected Attachment Preview Chip above Input */
 .mob-composer-file-chip {
     display: none;
     align-items: center;
@@ -640,7 +767,7 @@
     flex: 1;
     height: 32px;
     min-height: 32px;
-    max-height: 84px;
+    max-height: 80px;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
     background: #f8fafc;
@@ -676,7 +803,6 @@
     cursor: pointer;
     flex-shrink: 0;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.22);
 }
 .mob-send-btn:hover {
     background: #0284c7;
@@ -690,7 +816,7 @@
 /* Locked Footer Bar (Resolved / Closed) */
 .mob-chat-locked-bar {
     background: #f8fafc;
-    border-top: 1px solid #cbd5e1;
+    border-top: 1px solid #e2e8f0;
     padding: 8px 10px;
     display: flex;
     align-items: center;
@@ -735,6 +861,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 .mob-chat-alert.success {
     background: #dcfce7;
@@ -748,15 +875,28 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .mob-chat-shell {
+[data-theme="dark"] .mob-chat-card {
     background: #1e293b;
     border-color: #334155;
 }
 [data-theme="dark"] .mob-chat-pinned-bar {
-    background: #0f172a;
+    background: #1e293b;
     border-bottom-color: #334155;
 }
 [data-theme="dark"] .mob-chat-pinned-text {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .mob-ticket-info-panel {
+    background: #0f172a;
+    border-bottom-color: #334155;
+}
+[data-theme="dark"] .mob-info-student-strip,
+[data-theme="dark"] .mob-info-box {
+    background: #1e293b;
+    border-color: #334155;
+}
+[data-theme="dark"] .mob-info-stu-name,
+[data-theme="dark"] .mob-info-box-val {
     color: #f1f5f9;
 }
 [data-theme="dark"] .mob-chat-canvas {
@@ -804,70 +944,88 @@
         </div>
     @endif
 
-    <div class="mob-chat-shell">
-
-        {{-- 1. Sticky Top Chat Header --}}
-        <div class="mob-chat-header">
-            <div class="mob-chat-header-top">
-                <div class="mob-chat-header-left">
-                    <a href="{{ url('student-complaints') }}" class="mob-back-btn" title="Back to Complaints">
-                        <i class="fa fa-chevron-left"></i>
-                    </a>
-                    <div class="mob-chat-avatar tone-{{ $currentStatusMeta['tone'] }}">
-                        <i class="fa {{ $catIcon }}"></i>
-                        <span class="mob-chat-online-dot {{ $canReply ? '' : 'closed' }}"></span>
-                    </div>
-                    <div class="mob-chat-title-wrap">
-                        <h1 class="mob-chat-subject" title="{{ $complaint->subject }}">{{ $complaint->subject }}</h1>
-                        <div class="mob-chat-subrow">
-                            <span class="mob-ticket-badge">#{{ $complaint->ticket_no }}</span>
-                            <span class="mob-chat-subtext">{{ $categoryLabel }} · {{ $submittedAs }}</span>
-                        </div>
-                    </div>
+    {{-- 1. Standalone Glassmorphic Navy Hero Card (Matches student_login theme without white border) --}}
+    <div class="mob-chat-hero-card">
+        <div class="mob-chat-header-top">
+            <div class="mob-chat-header-left">
+                <a href="{{ url('student-complaints') }}" class="mob-back-btn" title="Back to Complaints">
+                    <i class="fa fa-chevron-left"></i>
+                </a>
+                <div class="mob-chat-avatar tone-{{ $currentStatusMeta['tone'] }}">
+                    <i class="fa {{ $catIcon }}"></i>
+                    <span class="mob-chat-online-dot {{ $canReply ? '' : 'closed' }}"></span>
                 </div>
-
-                <div class="mob-chat-header-right">
-                    <span class="mob-status-pill {{ $currentStatusMeta['badge_class'] }}">
-                        <i class="fa {{ $currentStatusMeta['icon'] }}"></i> {{ $currentStatusMeta['label'] }}
-                    </span>
-                    <button type="button" class="mob-info-toggle-btn" id="btnToggleTicketMeta" title="Ticket Info">
-                        <i class="fa fa-info"></i>
-                    </button>
+                <div class="mob-chat-title-wrap">
+                    <h1 class="mob-chat-subject" title="{{ $complaint->subject }}">{{ $complaint->subject }}</h1>
+                    <div class="mob-chat-subrow">
+                        <span class="mob-ticket-badge">#{{ $complaint->ticket_no }}</span>
+                        <span class="mob-chat-subtext">{{ $categoryLabel }} · {{ $submittedAs }}</span>
+                    </div>
                 </div>
             </div>
 
-            {{-- Collapsible Ticket Details Drawer --}}
-            <div class="mob-chat-meta-drawer" id="ticketMetaDrawer">
-                <div class="mob-chat-meta-grid">
-                    <div class="mob-chat-meta-cell">
-                        <span class="mob-chat-meta-lbl">Student</span>
-                        <span class="mob-chat-meta-val">{{ $student->first_name ?? 'Student' }} ({{ $className }})</span>
-                    </div>
-                    <div class="mob-chat-meta-cell">
-                        <span class="mob-chat-meta-lbl">Priority & Replies</span>
-                        <span class="mob-chat-meta-val">{{ $currentPriorityMeta['label'] }} · {{ $replyCount }} {{ \Illuminate\Support\Str::plural('msg', $replyCount) }}</span>
-                    </div>
-                    <div class="mob-chat-meta-cell">
-                        <span class="mob-chat-meta-lbl">Created On</span>
-                        <span class="mob-chat-meta-val">{{ optional($complaint->created_at)->format('d M Y, h:i A') ?: 'N/A' }}</span>
-                    </div>
-                    <div class="mob-chat-meta-cell">
-                        <span class="mob-chat-meta-lbl">Last Activity</span>
-                        <span class="mob-chat-meta-val">{{ optional($complaint->last_replied_at)->format('d M Y, h:i A') ?: 'No replies' }}</span>
-                    </div>
-                </div>
+            <div class="mob-chat-header-right">
+                <span class="mob-status-pill {{ $currentStatusMeta['badge_class'] }}">
+                    <i class="fa {{ $currentStatusMeta['icon'] }}"></i> {{ $currentStatusMeta['label'] }}
+                </span>
+                <button type="button" class="mob-info-toggle-btn" id="btnToggleTicketMeta" title="Toggle Ticket Information">
+                    <i class="fa fa-info"></i>
+                </button>
             </div>
         </div>
+    </div>
 
-        {{-- 2. Pinned Ticket Context Bar --}}
+    {{-- 2. Main Mobile Chat Card --}}
+    <div class="mob-chat-card">
+
+        {{-- Pinned Subject & Priority Bar --}}
         <div class="mob-chat-pinned-bar">
             <div class="mob-chat-pinned-left">
                 <i class="fa fa-thumb-tack"></i>
                 <span class="mob-chat-pinned-text">{{ $complaint->subject }}</span>
             </div>
-            <span class="mob-priority-tag {{ $currentPriorityMeta['class'] }}">
-                <i class="fa fa-flag"></i> {{ $currentPriorityMeta['label'] }}
-            </span>
+            <div class="mob-chat-pinned-right">
+                <span class="mob-priority-tag {{ $currentPriorityMeta['class'] }}">
+                    <i class="fa fa-flag"></i> {{ $currentPriorityMeta['label'] }}
+                </span>
+            </div>
+        </div>
+
+        {{-- Collapsible Mobile Ticket Information Panel (Clean Light Card Theme, Zero Clipping) --}}
+        <div class="mob-ticket-info-panel" id="ticketMetaDrawer">
+            {{-- Full-width Student & Class Strip --}}
+            <div class="mob-info-student-strip">
+                <div class="mob-info-stu-left">
+                    <div class="mob-info-stu-icon">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="mob-info-stu-text">
+                        <span class="mob-info-stu-lbl">Student ({{ $submittedAs }})</span>
+                        <span class="mob-info-stu-name" title="{{ $studentFullName }}">{{ $studentFullName }}</span>
+                    </div>
+                </div>
+                <span class="mob-info-class-pill" title="{{ $className }}">{{ $className }}</span>
+            </div>
+
+            {{-- 2x2 Balanced Mobile Info Grid (minmax(0, 1fr) prevents right-side overflow) --}}
+            <div class="mob-info-grid-2col">
+                <div class="mob-info-box">
+                    <span class="mob-info-box-lbl"><i class="fa fa-calendar-plus-o"></i> Created On</span>
+                    <span class="mob-info-box-val">{{ optional($complaint->created_at)->format('d M Y, h:i A') ?: 'N/A' }}</span>
+                </div>
+                <div class="mob-info-box">
+                    <span class="mob-info-box-lbl"><i class="fa fa-clock-o"></i> Last Activity</span>
+                    <span class="mob-info-box-val">{{ optional($complaint->last_replied_at)->format('d M Y, h:i A') ?: 'No replies' }}</span>
+                </div>
+                <div class="mob-info-box">
+                    <span class="mob-info-box-lbl"><i class="fa fa-folder-open-o"></i> Category</span>
+                    <span class="mob-info-box-val">{{ $categoryLabel }}</span>
+                </div>
+                <div class="mob-info-box">
+                    <span class="mob-info-box-lbl"><i class="fa fa-comments-o"></i> Priority & Msgs</span>
+                    <span class="mob-info-box-val">{{ $currentPriorityMeta['label'] }} · {{ $replyCount }} {{ \Illuminate\Support\Str::plural('msg', $replyCount) }}</span>
+                </div>
+            </div>
         </div>
 
         {{-- 3. Scrollable Chat Conversation Canvas --}}
@@ -894,7 +1052,7 @@
                     $isStudent = $reply->sender_type !== 'admin';
                     $senderLabel = $reply->sender_type === 'admin'
                         ? 'School Support'
-                        : ('You · ' . ($complaint->submitted_as === 'parent' ? 'Parent' : 'Student'));
+                        : ('You · ' . $submittedAs);
                     $replyStatusLabel = $reply->status_after
                         ? (\App\Models\SupportComplaint::STATUSES[$reply->status_after] ?? ucfirst(str_replace('_', ' ', (string) $reply->status_after)))
                         : null;
@@ -1037,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chatCanvas.scrollTop = chatCanvas.scrollHeight;
     }
 
-    // Toggle collapsible ticket info drawer in chat header
+    // Toggle collapsible ticket info panel
     if (btnToggleMeta && metaDrawer) {
         btnToggleMeta.addEventListener('click', function () {
             metaDrawer.classList.toggle('show');
@@ -1049,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (replyInput) {
         replyInput.addEventListener('input', function () {
             this.style.height = '32px';
-            var nextHeight = Math.min(this.scrollHeight, 84);
+            var nextHeight = Math.min(this.scrollHeight, 80);
             this.style.height = nextHeight + 'px';
         });
     }
