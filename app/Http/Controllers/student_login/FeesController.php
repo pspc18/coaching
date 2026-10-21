@@ -11,6 +11,7 @@ use App\Models\Master\Homework;
 use Illuminate\Validation\Validator; 
 use App\Models\Master\PaymentMode;
 use App\Models\FeesDetail;
+use App\Models\FeesSetting;
 use App\Models\fees\FeesDetailsInvoices;
 use App\Models\fees\FeesAssignDetail;
 use Session;
@@ -69,19 +70,12 @@ class FeesController extends Controller
         ]);
     }
 
-    private function getStudentReceiptData($invoiceId): array
+    public function getReceiptData($invoiceId): array
     {
-        $currentAdmission = Admission::find(Session::get('id'));
-        abort_unless($currentAdmission, 404);
+        $roleId = (int) Session::get('role_id');
+        $sessionBranchId = Session::get('branch_id');
 
-        $admissionIds = collect([$currentAdmission->id]);
-        if (!empty($currentAdmission->unique_system_id)) {
-            $admissionIds = Admission::where('unique_system_id', $currentAdmission->unique_system_id)
-                ->where('branch_id', $currentAdmission->branch_id)
-                ->pluck('id');
-        }
-
-        $invoice = FeesDetailsInvoices::select(
+        $query = FeesDetailsInvoices::select(
                 'fees_details_invoices.*',
                 'admissions.first_name',
                 'admissions.last_name',
@@ -113,11 +107,30 @@ class FeesController extends Controller
                       ->orWhere('fees_details_invoices.offline_receipt_no', $unpadded);
                 }
             })
-            ->where('fees_details_invoices.branch_id', $currentAdmission->branch_id)
-            ->whereIn('fees_details_invoices.admission_id', $admissionIds)
-            ->whereIn('fees_details_invoices.status', [0, 1])
-            ->first();
+            ->whereIn('fees_details_invoices.status', [0, 1]);
 
+        // Student Role (role_id == 3): Strictly scope to logged-in student & siblings
+        if ($roleId === 3) {
+            $currentAdmission = Admission::find(Session::get('id'));
+            abort_unless($currentAdmission, 404);
+
+            $admissionIds = collect([$currentAdmission->id]);
+            if (!empty($currentAdmission->unique_system_id)) {
+                $admissionIds = Admission::where('unique_system_id', $currentAdmission->unique_system_id)
+                    ->where('branch_id', $currentAdmission->branch_id)
+                    ->pluck('id');
+            }
+
+            $query->where('fees_details_invoices.branch_id', $currentAdmission->branch_id)
+                  ->whereIn('fees_details_invoices.admission_id', $admissionIds);
+        } else {
+            // Admin or Staff Role: Scope by branch if staff and not superadmin
+            if (!empty($sessionBranchId) && $roleId > 1) {
+                $query->where('fees_details_invoices.branch_id', $sessionBranchId);
+            }
+        }
+
+        $invoice = $query->first();
         abort_unless($invoice, 404);
         $invoice->date = $invoice->payment_date;
 
@@ -140,27 +153,42 @@ class FeesController extends Controller
         return [$invoice, $details];
     }
 
+    private function getStudentReceiptData($invoiceId): array
+    {
+        return $this->getReceiptData($invoiceId);
+    }
+
     public function viewReceipt($invoice)
     {
-        [$invoiceData, $details] = $this->getStudentReceiptData($invoice);
+        [$invoiceData, $details] = $this->getReceiptData($invoice);
         $printPreview = Helper::printPreview('Fees Collect');
         $fileName = 'fees-receipt-'.($invoiceData->invoice_no ?: $invoiceData->id).'.pdf';
+        $feesSetting = FeesSetting::getSetting(
+            $invoiceData->branch_id ?? Session::get('branch_id'),
+            $invoiceData->session_id ?? Session::get('session_id')
+        );
 
         return PDF::loadView($printPreview, [
             'data' => $details,
             'invoice_data' => $invoiceData,
+            'feesSetting' => $feesSetting,
         ])->setPaper('A4', 'portrait')->stream($fileName);
     }
 
     public function downloadReceipt($invoice)
     {
-        [$invoiceData, $details] = $this->getStudentReceiptData($invoice);
+        [$invoiceData, $details] = $this->getReceiptData($invoice);
         $printPreview = Helper::printPreview('Fees Collect');
         $fileName = 'fees-receipt-'.($invoiceData->invoice_no ?: $invoiceData->id).'.pdf';
+        $feesSetting = FeesSetting::getSetting(
+            $invoiceData->branch_id ?? Session::get('branch_id'),
+            $invoiceData->session_id ?? Session::get('session_id')
+        );
 
         return PDF::loadView($printPreview, [
             'data' => $details,
             'invoice_data' => $invoiceData,
+            'feesSetting' => $feesSetting,
         ])->setPaper('A4', 'portrait')->download($fileName);
     }
 

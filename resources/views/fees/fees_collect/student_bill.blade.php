@@ -1342,13 +1342,9 @@ foreach ($preferredModeOrder as $prefMode) {
                                     <td class="font-weight-bold" style="color: #002C54;">{{ $head_names ?: '-' }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-1 flex-wrap">
-                                            <form target="_blank" action="{{ url('printFeesInvoice') }}" method="post" style="display:inline-block; margin:0;">
-                                                @csrf
-                                                <input type="hidden" name="fees_details_invoice_id" value="{{ $val->id }}" />
-                                                <button type="submit" class="dash-btn dash-btn-primary" style="height: 22px; font-size: 10px; padding: 0 6px;" title="Print Receipt #{{ $val->invoice_no ?? '' }}">
-                                                    <i class="fa fa-print mr-1"></i> {{ $val->invoice_no ?? '' }}
-                                                </button>
-                                            </form>
+                                            <a target="_blank" href="{{ url('fees_receipt/'.$val->id.'/view') }}" class="dash-btn dash-btn-primary" style="height: 22px; font-size: 10px; padding: 0 6px; display:inline-flex; align-items:center; text-decoration:none;" title="Print Receipt #{{ $val->invoice_no ?? '' }}">
+                                                <i class="fa fa-print mr-1"></i> {{ $val->invoice_no ?? '' }}
+                                            </a>
                                             @if(!empty($val->offline_receipt_no) && $val->offline_receipt_no !== '-')
                                                 <span class="badge badge-light border text-dark font-weight-bold" title="Offline Slip No." style="font-size: 9.5px;">#{{ $val->offline_receipt_no }}</span>
                                             @endif
@@ -2356,21 +2352,9 @@ $(document).ready(function () {
                     showData(data.unique_system_id, data.session_id);
                     if(buttonValue == 'print'){
                         var fees_details_invoice_id = data.fees_details_invoice_id;
-                        $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                            },
-                            type: 'post',
-                            url: BASEURL + '/printFeesInvoice',
-                            data: { fees_details_invoice_id: fees_details_invoice_id },
-                            success: function(response) {
-                                var printWindow = window.open('', '_blank');
-                                printWindow.document.open();
-                                printWindow.document.write(response);
-                                printWindow.document.close();
-                                printWindow.focus();
-                            }
-                        });
+                        if(fees_details_invoice_id) {
+                            window.open(BASEURL + '/fees_receipt/' + fees_details_invoice_id + '/view', '_blank');
+                        }
                     }
                 } else {
                     $('#collect_btn').show();

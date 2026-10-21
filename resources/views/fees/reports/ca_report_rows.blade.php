@@ -41,12 +41,9 @@
 
             {{-- 2. Receipt No (Invoice Button) --}}
             <td style="white-space: nowrap; vertical-align: middle;">
-                <form action="{{ url('printFeesInvoice') }}" method="post" target="_blank" class="m-0 p-0 d-inline-block">
-                    @csrf
-                    <button type="submit" name="fees_details_invoice_id" value="{{ $receipt->id ?? '' }}" class="ca-invoice-link font-weight-bold" title="Click to view & print invoice">
-                        <i class="fa fa-print mr-1 text-primary"></i>{{ $receipt->invoice_no ?: '-' }}
-                    </button>
-                </form>
+                <a href="{{ url('fees_receipt/'.$receipt->id.'/view') }}" target="_blank" class="ca-invoice-link font-weight-bold" title="Click to view & print invoice">
+                    <i class="fa fa-print mr-1 text-primary"></i>{{ $receipt->invoice_no ?: '-' }}
+                </a>
             </td>
 
             {{-- 3. Offline Slip No --}}
@@ -136,12 +133,9 @@
             {{-- 15. Action Column --}}
             <td class="text-center fixed_action_col" style="white-space: nowrap; vertical-align: middle;">
                 <div class="table-actions">
-                    <form action="{{ url('printFeesInvoice') }}" method="post" target="_blank" class="d-inline-block m-0 p-0">
-                        @csrf
-                        <button type="submit" name="fees_details_invoice_id" value="{{ $receipt->id ?? '' }}" class="ca-action-btn btn-print" title="Print Fee Receipt">
-                            <i class="fa fa-print"></i>
-                        </button>
-                    </form>
+                    <a href="{{ url('fees_receipt/'.$receipt->id.'/view') }}" target="_blank" class="ca-action-btn btn-print" title="Print Fee Receipt">
+                        <i class="fa fa-print"></i>
+                    </a>
                     @if(!empty($receipt->admission_id))
                         <a href="{{ url('studentDetail/' . $receipt->admission_id) }}" class="ca-action-btn btn-view" title="View Student Profile">
                             <i class="fa fa-eye"></i>

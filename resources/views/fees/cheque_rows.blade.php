@@ -41,12 +41,9 @@
 
             {{-- 2. Receipt No. --}}
             <td class="col-receipt">
-                <form action="{{ url('printFeesInvoice') }}" method="post" target="_blank" class="m-0 p-0 d-inline-block">
-                    @csrf
-                    <button type="submit" name="fees_details_invoice_id" value="{{ $receipt->id ?? '' }}" class="ca-invoice-link font-weight-bold" title="Print Fee Receipt ({{ $receipt->invoice_no ?? '' }})">
-                        <i class="fa fa-print mr-1 text-primary"></i>{{ $receipt->invoice_no ?: '-' }}
-                    </button>
-                </form>
+                <a href="{{ url('fees_receipt/'.$receipt->id.'/view') }}" target="_blank" class="ca-invoice-link font-weight-bold" title="Print Fee Receipt ({{ $receipt->invoice_no ?? '' }})">
+                    <i class="fa fa-print mr-1 text-primary"></i>{{ $receipt->invoice_no ?: '-' }}
+                </a>
             </td>
 
             {{-- 3. Status --}}

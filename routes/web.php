@@ -485,6 +485,8 @@ Route::match(['get', 'post'], 'feesMasterDelete', 'fees\FeesMasterController@fee
 	Route::match(['get', 'post'], 'fees_search_data', 'fees\FeesController@feesSearchData');
 	Route::match(['get', 'post'], 'print_payement/{id}', 'fees\FeesController@printPayement');
 	Route::match(['get', 'post'], 'printFeesInvoice', 'fees\FeesController@printFeesInvoice');
+	Route::get('fees_receipt/{invoice}/view', 'student_login\FeesController@viewReceipt')->name('fees.receipt.view');
+	Route::get('fees_receipt/{invoice}/download', 'student_login\FeesController@downloadReceipt')->name('fees.receipt.download');
 	Route::match(['get', 'post'], 'print_payement_generate/{id}', 'fees\FeesController@printPayementGenerate');
 	Route::match(['get', 'post'], 'getSessionwiseFeesDetails', 'fees\FeesController@getSessionwiseFeesDetails');
 	Route::match(['get', 'post'], 'sendReceiptOnWhatsapp', 'fees\FeesController@sendReceiptOnWhatsapp');

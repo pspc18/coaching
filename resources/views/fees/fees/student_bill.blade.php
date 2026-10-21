@@ -420,24 +420,22 @@ $feesDetails = DB::table('fees_assign_details')
         
             
             <div class="col-md-7 text-left mb-2 " style='align-items: center;'> 
-             <form target='_blank'action="{{ url('printFeesInvoice') }}" method="post">
-                     @csrf
-            <div class='d-flex'>
-               
-             <span>Invoice Print :: </span>&nbsp;  <select class="form-control w-50" name='fees_invoice_id' required>
-                                    @if(!empty($data['FeesDetailsInvoices']))
-                                     
-                                         <option value="">Select Invoice</option>
-                                         @foreach($data['FeesDetailsInvoices'] as $val)
-                                         
-                                        <option value="{{$val->fees_details_id ?? ''}}">{{ $val->invoice_no ?? '' }} [{{ date('d-M-Y', strtotime($val->created_at)) }}]</option>
-                                        @endforeach
-                                    @endif  
-                                </select>
-                                &nbsp;<button type="submit" class="btn btn-primary" target="_blank" ><i class="fa fa-money"></i> {{ __('Print Invoice') }}</button>
-                       </div>
-                       </form>
-                          </div>  
+                <div class='d-flex align-items-center'>
+                    <span>Invoice Print :: </span>&nbsp;  
+                    <select class="form-control w-50" id="select_fees_invoice_id">
+                        @if(!empty($data['FeesDetailsInvoices']))
+                            <option value="">Select Invoice</option>
+                            @foreach($data['FeesDetailsInvoices'] as $val)
+                                <option value="{{ $val->id ?? '' }}">{{ $val->invoice_no ?? '' }} [{{ date('d-M-Y', strtotime($val->created_at)) }}]</option>
+                            @endforeach
+                        @endif  
+                    </select>
+                    &nbsp;
+                    <button type="button" class="btn btn-primary" onclick="var invId = $('#select_fees_invoice_id').val(); if(invId){ window.open('{{ url('fees_receipt') }}/' + invId + '/view', '_blank'); } else { alert('Please select an invoice'); }">
+                        <i class="fa fa-print mr-1"></i> {{ __('Print Invoice') }}
+                    </button>
+                </div>
+            </div>  
                           
     </div>
         <table class="table table-bordered small_td p-3 " id="trColor">
@@ -461,7 +459,11 @@ $feesDetails = DB::table('fees_assign_details')
                                          @foreach($data['FeesDetailsInvoices'] as $val)
                           
                             <th></th>
-                            <th>{{$val->invoice_no ?? ''}}</th>
+                            <th>
+                                <a href="{{ url('fees_receipt/'.$val->id.'/view') }}" target="_blank" class="font-weight-bold text-primary" title="Print Fee Receipt">
+                                    <i class="fa fa-print mr-1"></i>{{$val->invoice_no ?? ''}}
+                                </a>
+                            </th>
                                          
                             
                                         @endforeach

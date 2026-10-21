@@ -246,16 +246,9 @@ $getStudentSession = DB::table('sessions')->whereIn('id', $sessionIds)->get();
                                                                        @endphp
                                                                         <td>{{ $i++ }}</td>
                                                                         <td>
-                                                                               <form target='_blank'action="{{ url('printFeesInvoice') }}" method="post">
-                                                                                     @csrf
-                                                                                     
-                                                                                     <input type='hidden' name='fees_details_invoice_id' value='{{$item2->id}}' />
-                                                                                     <button class='btn btn-xs btn-primary'>
-                                                                                    {{ $item2->invoice_no ?? '' }}
-                                                                                    
-                                                                                    </button>
-                                                                                    
-                                                                                </form>
+                                                                               <a target="_blank" href="{{ url('fees_receipt/'.$item2->id.'/view') }}" class="btn btn-xs btn-primary" title="View & Print Receipt">
+                                                                                   <i class="fa fa-print mr-1"></i>{{ $item2->invoice_no ?? '' }}
+                                                                               </a>
                                                                             </td>
                                                                         <td>{{ $head_names ?? '' }}</td>
                                                                         <td>

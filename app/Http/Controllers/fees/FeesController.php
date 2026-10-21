@@ -954,11 +954,6 @@ class FeesController extends Controller
                         Helper::sendMessage($request->mobile, $smsText, $template->dlt_template_id ?? '');
                     }
                 }
-                $response = $this->callAction('printFeesInvoice', [ 
-                    'request' => new Request([
-                        'fees_details_invoice_id' => $fees_details_invoice_id,
-                    ])
-                ]);
                 DB::commit();
 
                 $pushResult = $this->sendFeePush(
@@ -1183,35 +1178,11 @@ public function sendReceiptOnWhatsapp(Request $request)
             }
     
             public function printFeesInvoice(Request $request){
-                // dd($request);
-                $explode = [];
-                if(!empty($request->fees_details_invoice_id)){
-                    $invoice_data =  FeesDetailsInvoices::select('fees_details_invoices.*','admissions.first_name','users.email as user_email',
-                    'admissions.last_name','admissions.category','class_types.name as class_name','gender.name as gender_name','class_types.id as class_type_id','admissions.father_name',
-                    'admissions.admissionNo','payment_modes.name as payment_mode','payment_modes.id as payment_mode_id')
-                    ->leftjoin('admissions as admissions', 'admissions.id', 'fees_details_invoices.admission_id')
-                    ->leftjoin('users as users', 'users.id', 'fees_details_invoices.user_id')
-                    ->leftjoin('class_types','class_types.id','admissions.class_type_id')
-                    ->leftjoin('gender','gender.id','admissions.gender_id')
-                    ->leftjoin('payment_modes','payment_modes.id','fees_details_invoices.payment_mode')
-                    ->where('fees_details_invoices.branch_id', Session::get('branch_id'))
-                    ->where('fees_details_invoices.id',$request->fees_details_invoice_id)->first();
-                    $explode = explode(',',$invoice_data->fees_details_id);
-                    $fess_print = FeesDetail::select('fees_detail.*','payment_modes.name as payment_mode','fees_group.name as fees_group_name')
-                        ->leftJoin('payment_modes','payment_modes.id','fees_detail.payment_mode_id')
-                        ->leftJoin('fees_collect','fees_collect.id','fees_detail.fees_collect_id')
-                        ->leftJoin('fees_group','fees_group.id','fees_detail.fees_group_id')
-                        ->whereIn('fees_detail.id',$explode);
-                        $fess_print=$fess_print->get();
-                        
-                    $printPreview = Helper::printPreview('Fees Collect');
-                    $feesSetting = FeesSetting::getSetting($invoice_data->branch_id ?? Session::get('branch_id'), $invoice_data->session_id ?? Session::get('session_id'));
-                    return view($printPreview, ['data'=>$fess_print,'invoice_data'=>$invoice_data,'feesSetting'=>$feesSetting]);
+                $invoiceId = $request->input('fees_details_invoice_id') ?: $request->input('fees_invoice_id');
+                if(!empty($invoiceId)){
+                    return redirect('fees_receipt/' . $invoiceId . '/view');
                 } 
-                else{            
-                    return redirect::to('fee_dashboard');
-                }
-                //dd($fess_print);
+                return redirect('fee_dashboard');
             }
     
             public function printPayementGenerate($id){
@@ -1789,8 +1760,6 @@ public function sendReceiptOnWhatsapp(Request $request)
                     ->get();
 
                 if (!$invoices->isEmpty()) {
-                    $csrfToken = csrf_token();
-                    $printUrl = url('printFeesInvoice');
                     $html .= '<div class="mt-3 mb-1 font-weight-bold" style="color: #002C54; font-size: 12.5px;"><i class="fa fa-file-text-o mr-1"></i> Fee Payment Receipts</div>';
                     $html .= '<table class="table table-sm table-bordered mb-0">
                         <thead>
@@ -1821,13 +1790,9 @@ public function sendReceiptOnWhatsapp(Request $request)
                             <td class="text-danger">₹' . number_format((float) ($inv->total_fine ?? 0), 2) . '</td>
                             <td>' . $statusBadge . '</td>
                             <td class="text-center">
-                                <form action="' . $printUrl . '" method="post" target="_blank" style="display:inline-block; margin:0;">
-                                    <input type="hidden" name="_token" value="' . $csrfToken . '">
-                                    <input type="hidden" name="fees_details_invoice_id" value="' . (int) $inv->id . '">
-                                    <button type="submit" class="btn btn-xs btn-primary" style="padding: 2px 8px; font-size: 11px;">
-                                        <i class="fa fa-print mr-1"></i> Print
-                                    </button>
-                                </form>
+                                <a href="' . url('fees_receipt/' . $inv->id . '/view') . '" target="_blank" class="btn btn-xs btn-primary" style="padding: 2px 8px; font-size: 11px;" title="View & Print Receipt">
+                                    <i class="fa fa-print mr-1"></i> Print
+                                </a>
                             </td>
                         </tr>';
                     }
