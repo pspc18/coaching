@@ -30,10 +30,15 @@
         <span>Alerts</span>
     </a>
 
-    {{-- 5. Slide-over Menu Trigger --}}
-    <a href="javascript:void(0);" class="dock-nav-item" id="btnBottomMore">
-        <div class="dock-nav-icon"><i class="fa fa-bars"></i></div>
-        <span>Menu</span>
+    {{-- 5. Support / Complaints --}}
+    <a href="{{ url('student-complaints') }}" class="dock-nav-item dock-nav-support {{ request()->is('student-complaints*') || request()->is('*complaint*') ? 'active' : '' }}" title="Helpdesk & Support">
+        <div class="dock-nav-icon dock-support-icon">
+            <span class="support-soundwave wave-left"></span>
+            <i class="fa fa-headphones support-icon-anim"></i>
+            <span class="support-soundwave wave-right"></span>
+            <span class="support-live-beacon" title="Live Support Active"></span>
+        </div>
+        <span>Support</span>
     </a>
 </nav>
 
@@ -118,5 +123,99 @@
     padding: 0 2px;
     border: 1px solid #001428;
     box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+}
+
+/* --- Support Animated Icon & Beacon --- */
+.dock-support-icon {
+    position: relative;
+    overflow: visible;
+}
+.support-icon-anim {
+    display: inline-block;
+    color: #38bdf8;
+    animation: supportHeadsetBob 2.6s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+.dock-nav-item.active.dock-nav-support .support-icon-anim,
+.dock-nav-item:hover .support-icon-anim {
+    animation-duration: 1.6s;
+}
+.support-soundwave {
+    position: absolute;
+    bottom: 7px;
+    width: 2px;
+    height: 7px;
+    background: #38bdf8;
+    border-radius: 1px;
+    opacity: 0.8;
+    animation: supportWavePulse 1.2s ease-in-out infinite alternate;
+}
+.support-soundwave.wave-left {
+    left: 2px;
+    animation-delay: 0.15s;
+}
+.support-soundwave.wave-right {
+    right: 2px;
+    animation-delay: 0.45s;
+}
+.support-live-beacon {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 1px solid #001428;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: supportBeaconPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes supportHeadsetBob {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+    20% {
+        transform: translateY(-2px) rotate(-6deg) scale(1.08);
+    }
+    40% {
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+    60% {
+        transform: translateY(-1.5px) rotate(6deg) scale(1.08);
+    }
+    80% {
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+}
+
+@keyframes supportWavePulse {
+    0% {
+        height: 3px;
+        opacity: 0.35;
+    }
+    50% {
+        height: 10px;
+        opacity: 0.95;
+    }
+    100% {
+        height: 4px;
+        opacity: 0.45;
+    }
+}
+
+@keyframes supportBeaconPulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.85);
+    }
+    65% {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 </style>
