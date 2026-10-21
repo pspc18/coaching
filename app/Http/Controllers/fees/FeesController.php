@@ -2022,20 +2022,7 @@ public function sendReceiptOnWhatsapp(Request $request)
 
                 // Fetch paginated rows
                 $dataQuery = (clone $baseQuery)->select(
-                    'admissions.id',
-                    'admissions.admissionNo',
-                    'admissions.first_name',
-                    'admissions.last_name',
-                    'admissions.father_name',
-                    'admissions.mobile',
-                    'admissions.category',
-                    'admissions.student_type',
-                    'admissions.course',
-                    'admissions.batch',
-                    'admissions.status',
-                    'admissions.gender_id',
-                    'admissions.session_id',
-                    'admissions.class_type_id',
+                    'admissions.*',
                     'class_types.name as class_name',
                     'gender.name as gender_name',
                     'fees_assigns.total_amount as gross_assigned',
@@ -2064,7 +2051,11 @@ public function sendReceiptOnWhatsapp(Request $request)
                         ->whereNull('fees_master.deleted_at')
                         ->where('fees_master.class_type_id', (int) $search['class_type_id'])
                         ->groupBy('fees_master.fees_group_id')
-                        ->select('fees_master.id', 'fees_master.fees_group_id', 'fees_group.name as group_name')
+                        ->select(
+                            DB::raw('MAX(fees_master.id) as id'),
+                            'fees_master.fees_group_id',
+                            DB::raw('MAX(fees_group.name) as group_name')
+                        )
                         ->get();
                 }
 
