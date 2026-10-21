@@ -169,7 +169,7 @@
         </div>
 
         {{-- 4. Main Scrollable Notification Feed --}}
-        <main class="notify-feed-container" id="notifyFeedContainer">
+        <main class="notify-feed-container {{ $notifications->isEmpty() ? 'is-empty' : '' }}" id="notifyFeedContainer">
             @forelse($notifications as $notification)
                 @php
                     $isUnread = (int) $notification->message_seen === 0;
@@ -1082,6 +1082,13 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    margin-bottom: 4px;
+}
+.notify-feed-container.is-empty,
+.notify-feed-container:has(.notify-empty-state) {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 4px;
 }
 
 /* Notification Card */
@@ -1657,39 +1664,49 @@
     color: #475569;
 }
 
-/* 4. Empty State */
+/* 4. Empty State (Full Width & Height, Centered in Body) */
 .notify-empty-state {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     padding: 40px 20px;
     background: #ffffff;
-    border: 1px dashed #cbd5e1;
-    border-radius: 4px;
-    margin: 20px auto;
-    max-width: 520px;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    margin: 0;
 }
 .empty-icon-circle {
-    width: 60px;
-    height: 60px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     background: #f1f5f9;
     color: #94a3b8;
-    font-size: 26px;
+    font-size: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 12px auto;
+    margin: 0 auto 16px auto;
+    border: 1px solid #e2e8f0;
 }
 .empty-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #0f172a;
-    margin-bottom: 6px;
+    margin: 0 0 8px 0;
 }
 .empty-desc {
-    font-size: 12px;
+    font-size: 12.5px;
     color: #64748b;
-    line-height: 1.5;
-    margin-bottom: 16px;
+    line-height: 1.55;
+    margin: 0 auto 20px auto;
+    max-width: 520px;
 }
 .empty-actions {
     display: flex;
