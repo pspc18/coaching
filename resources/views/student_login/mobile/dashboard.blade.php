@@ -1296,7 +1296,7 @@
                 $pubStr = $publishedAt ? $publishedAt->format('d M Y, h:i A') : ($fromDate ? $fromDate->format('d M Y') : '');
                 $attachmentUrl = $hasAttachment ? url('notice-management/'.$notice->id.'/attachment') : '';
                 $attachmentName = $notice->attachment_name ?: 'Notice Circular.pdf';
-                $attachmentSize = !empty($notice->attachment_size) ? Helper::formatFileSize($notice->attachment_size) : '';
+                $attachmentSize = !empty($notice->attachment_size) ? ($notice->attachment_size >= 1048576 ? number_format($notice->attachment_size / 1048576, 1) . ' MB' : number_format($notice->attachment_size / 1024, 0) . ' KB') : '';
                 $fullNoticeUrl = url('student-notices?notice_id='.$notice->id);
             @endphp
             <div class="native-list-item dash-notice-item" 

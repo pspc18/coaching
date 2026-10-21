@@ -270,6 +270,16 @@ class Helper{
         });
     }
 
+    public static function formatFileSize($bytes)
+    {
+        $bytes = (float) $bytes;
+        if ($bytes <= 0) return '';
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 1) . ' MB';
+        }
+        return number_format($bytes / 1024, 0) . ' KB';
+    }
+
     public static function printPreview($subModule)
     {
         $map = [
