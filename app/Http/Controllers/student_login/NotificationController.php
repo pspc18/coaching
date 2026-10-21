@@ -96,6 +96,72 @@ class NotificationController extends Controller
                     'search' => $search !== '' ? $search : null,
                 ]));
 
+            // Batch associate Fee Payment notifications with real-time Fee Receipt PDF routes
+            $admissionId = (int) Session::get('id');
+            $feeNotifs = $notifications->getCollection()->filter(function ($n) {
+                return in_array($n->type, ['fee_payment', 'fee_revert'], true)
+                    || stripos((string) $n->title, 'Fee Payment') !== false
+                    || stripos((string) $n->content, 'Receipt No:') !== false;
+            });
+
+            if ($feeNotifs->isNotEmpty()) {
+                $receiptMap = [];
+                foreach ($feeNotifs as $n) {
+                    $recNo = null;
+                    if (preg_match('/Receipt No:\s*([^\r\n]+)/i', (string) $n->content, $m)) {
+                        $recNo = trim($m[1]);
+                    } elseif (preg_match('/Offline Receipt No:\s*([^\r\n]+)/i', (string) $n->content, $m)) {
+                        $recNo = trim($m[1]);
+                    }
+                    if ($recNo !== null && $recNo !== '') {
+                        $receiptMap[$n->id] = $recNo;
+                    }
+                }
+
+                $candidateNos = array_values(array_unique(array_filter($receiptMap)));
+                $invoices = collect();
+                if (!empty($candidateNos)) {
+                    $invoices = \App\Models\fees\FeesDetailsInvoices::where('admission_id', $admissionId)
+                        ->where(function ($q) use ($candidateNos) {
+                            $q->whereIn('invoice_no', $candidateNos)
+                              ->orWhereIn('offline_receipt_no', $candidateNos);
+                            foreach ($candidateNos as $cno) {
+                                if (is_numeric($cno)) {
+                                    $unpadded = (string) (int) $cno;
+                                    $q->orWhere('invoice_no', $unpadded)
+                                      ->orWhere('offline_receipt_no', $unpadded);
+                                }
+                            }
+                        })
+                        ->whereIn('status', [0, 1])
+                        ->get();
+                }
+
+                foreach ($feeNotifs as $n) {
+                    $recNo = $receiptMap[$n->id] ?? null;
+                    $matchedInvoice = null;
+                    if ($recNo !== null) {
+                        $unpadded = is_numeric($recNo) ? (string) (int) $recNo : null;
+                        $matchedInvoice = $invoices->first(function ($inv) use ($recNo, $unpadded) {
+                            return (string) $inv->invoice_no === (string) $recNo
+                                || (string) $inv->offline_receipt_no === (string) $recNo
+                                || ($unpadded !== null && ((string) $inv->invoice_no === $unpadded || (string) $inv->offline_receipt_no === $unpadded));
+                        });
+                    }
+
+                    if ($matchedInvoice) {
+                        $n->fee_invoice_id = $matchedInvoice->id;
+                        $n->fee_receipt_no = $matchedInvoice->invoice_no ?: ($matchedInvoice->offline_receipt_no ?: $recNo);
+                        $n->fee_download_url = route('student.fees.receipt.download', $matchedInvoice->id);
+                        $n->fee_view_url = route('student.fees.receipt.view', $matchedInvoice->id);
+                    } elseif ($recNo !== null) {
+                        $n->fee_receipt_no = $recNo;
+                        $n->fee_download_url = route('student.fees.receipt.download', $recNo);
+                        $n->fee_view_url = route('student.fees.receipt.view', $recNo);
+                    }
+                }
+            }
+
             $categoryCounts = $this->notificationsService()->counts((int) Session::get('id'));
             $unreadCount = (int) ($categoryCounts[$category] ?? $categoryCounts['all'] ?? 0);
 

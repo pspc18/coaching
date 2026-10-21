@@ -37,10 +37,8 @@ Route::group(['middleware' => 'islogin'], function () {
     Route::match(['get', 'post'], 'getAttendanceDatesStudent', 'student_login\AttendanceController@getAttendanceDates');
     Route::match(['get', 'post'], 'fees_history', 'student_login\FeesController@feesHistory');
     Route::get('fees_receipt/{invoice}/view', 'student_login\FeesController@viewReceipt')
-        ->where('invoice', '[0-9]+')
         ->name('student.fees.receipt.view');
     Route::get('fees_receipt/{invoice}/download', 'student_login\FeesController@downloadReceipt')
-        ->where('invoice', '[0-9]+')
         ->name('student.fees.receipt.download');
     Route::match(['get','post'],'student_homework','student_login\HomeworkController@view'); 
     Route::match(['get','post'],'upload_homework_student','student_login\HomeworkController@uploadHomework')->name('student.homework.upload');

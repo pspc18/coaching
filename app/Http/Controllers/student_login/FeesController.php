@@ -103,7 +103,16 @@ class FeesController extends Controller
             ->leftJoin('gender', 'gender.id', '=', 'admissions.gender_id')
             ->leftJoin('payment_modes', 'payment_modes.id', '=', 'fees_details_invoices.payment_mode')
             ->leftJoin('sessions', 'sessions.id', '=', 'fees_details_invoices.session_id')
-            ->where('fees_details_invoices.id', $invoiceId)
+            ->where(function ($q) use ($invoiceId) {
+                $q->where('fees_details_invoices.id', $invoiceId)
+                  ->orWhere('fees_details_invoices.invoice_no', (string) $invoiceId)
+                  ->orWhere('fees_details_invoices.offline_receipt_no', (string) $invoiceId);
+                if (is_numeric($invoiceId)) {
+                    $unpadded = (string) (int) $invoiceId;
+                    $q->orWhere('fees_details_invoices.invoice_no', $unpadded)
+                      ->orWhere('fees_details_invoices.offline_receipt_no', $unpadded);
+                }
+            })
             ->where('fees_details_invoices.branch_id', $currentAdmission->branch_id)
             ->whereIn('fees_details_invoices.admission_id', $admissionIds)
             ->whereIn('fees_details_invoices.status', [0, 1])

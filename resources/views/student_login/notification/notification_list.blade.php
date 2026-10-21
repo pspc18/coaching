@@ -39,6 +39,45 @@
         return url('notificationFatchStudent' . (count($params) ? '?' . http_build_query($params) : ''));
     };
 
+    if (!function_exists('parseStudentFeeNotificationContent')) {
+        function parseStudentFeeNotificationContent($rawContent) {
+            $text = trim((string) $rawContent);
+            $parsed = [
+                'student' => '',
+                'receipt_no' => '',
+                'payment_date' => '',
+                'payment_mode' => '',
+                'offline_receipt_no' => '',
+                'fee_details' => '',
+                'amount' => '',
+                'discount' => '',
+                'fine' => '',
+                'total_paid' => '',
+                'status' => 'Payment Received',
+            ];
+
+            if (preg_match('/Student:\s*([^\r\n]+)/i', $text, $m)) $parsed['student'] = trim($m[1]);
+            if (preg_match('/Receipt No:\s*([^\r\n]+)/i', $text, $m)) $parsed['receipt_no'] = trim($m[1]);
+            if (preg_match('/Payment Date:\s*([^\r\n]+)/i', $text, $m)) $parsed['payment_date'] = trim($m[1]);
+            if (preg_match('/Payment Mode:\s*([^\r\n]+)/i', $text, $m)) $parsed['payment_mode'] = trim($m[1]);
+            if (preg_match('/Offline Receipt No:\s*([^\r\n]+)/i', $text, $m)) $parsed['offline_receipt_no'] = trim($m[1]);
+            if (preg_match('/Fee Details:\s*([\s\S]*?)(?=Amount:|Discount:|Fine:|Total Paid:|Status:|$)/i', $text, $m)) {
+                $parsed['fee_details'] = trim(preg_replace('/\s+/', ' ', $m[1]));
+            }
+            if (preg_match('/Amount:\s*([^\r\n]+)/i', $text, $m)) $parsed['amount'] = trim($m[1]);
+            if (preg_match('/Discount:\s*([^\r\n]+)/i', $text, $m)) $parsed['discount'] = trim($m[1]);
+            if (preg_match('/Fine:\s*([^\r\n]+)/i', $text, $m)) $parsed['fine'] = trim($m[1]);
+            if (preg_match('/Total Paid:\s*([^\r\n]+)/i', $text, $m)) $parsed['total_paid'] = trim($m[1]);
+            if (preg_match('/Status:\s*([^\r\n]+)/i', $text, $m)) $parsed['status'] = trim($m[1]);
+
+            if (empty($parsed['receipt_no']) && !empty($parsed['offline_receipt_no'])) {
+                $parsed['receipt_no'] = $parsed['offline_receipt_no'];
+            }
+
+            return $parsed;
+        }
+    }
+
     $currentSearch = (string) ($search ?? request('search', ''));
     $studentName = Session::get('first_name') ?: ($getUser->first_name ?? 'Student');
     $className = optional($getUser)->ClassTypes->name ?? 'Student';
@@ -538,6 +577,7 @@
     border-radius: 3px;
     padding: 6px 8px;
     margin-bottom: 6px;
+    white-space: pre-line;
 }
 
 .mob-notif-body.collapsed {
@@ -545,6 +585,125 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Fee Payment Structured Notification Card Summary */
+.mob-fee-card-summary {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+}
+.mob-fee-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 5px;
+}
+.mob-fee-receipt-tag {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    padding: 1.5px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    font-family: monospace;
+}
+.mob-fee-status-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    color: #166534;
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    padding: 1px 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    text-transform: uppercase;
+}
+.mob-fee-amount-hero {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #dcfce7;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 5px;
+}
+.mob-fee-amount-lbl {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.mob-fee-amount-val {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #15803d;
+    letter-spacing: -0.3px;
+}
+.mob-fee-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    font-size: 9px;
+}
+.mob-fee-mini-item {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid #dcfce7;
+    border-radius: 2px;
+    padding: 2.5px 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+}
+.mob-fee-mini-item.full {
+    grid-column: span 2;
+}
+.mob-fee-mini-item .lbl {
+    color: #64748b;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 8.5px;
+}
+.mob-fee-mini-item .val {
+    color: #0f172a;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mob-notif-attach.mob-notif-fee-receipt {
+    background: #ecfdf5;
+    border-color: #86efac;
+    color: #047857;
+    width: 100%;
+    margin-bottom: 6px;
+    justify-content: space-between;
+}
+.mob-notif-attach.mob-notif-fee-receipt:hover {
+    background: #d1fae5;
+    color: #065f46;
+}
+.mob-fee-dl-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    background: #047857;
+    color: #ffffff;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .mob-notif-attach {
@@ -959,6 +1118,158 @@ body.mob-sheet-lock {
     word-break: break-word;
 }
 
+/* Modal Fee Receipt Structured Card */
+.sheet-fee-receipt-card {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+.sheet-fee-top-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px dashed #bbf7d0;
+}
+.sheet-fee-rec-badge {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    padding: 1.5px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    font-family: monospace;
+}
+.sheet-fee-status-badge {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #166534;
+    background: #ffffff;
+    border: 1px solid #86efac;
+    padding: 1.5px 7px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3.5px;
+    text-transform: uppercase;
+}
+.sheet-fee-paid-hero {
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.05);
+}
+.sheet-fee-hero-lbl {
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.sheet-fee-hero-amount {
+    font-size: 20px;
+    font-weight: 900;
+    color: #15803d;
+    letter-spacing: -0.4px;
+    line-height: 1.1;
+}
+.sheet-fee-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.sheet-fee-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 3px;
+}
+.sheet-fee-row .row-lbl {
+    color: #475569;
+    font-weight: 600;
+    flex-shrink: 0;
+    font-size: 10.5px;
+}
+.sheet-fee-row .row-val {
+    color: #0f172a;
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+    font-size: 11px;
+}
+.sheet-fee-row.highlight {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+.sheet-fee-row.highlight .row-lbl {
+    color: #166534;
+    font-weight: 800;
+}
+.sheet-fee-row.highlight .row-val {
+    color: #15803d;
+    font-weight: 900;
+    font-size: 12px;
+}
+.sheet-fee-action-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+.sheet-fee-btn-primary {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #15803d;
+    border: 1px solid #166534;
+    color: #ffffff !important;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none !important;
+    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+    transition: all .15s ease;
+}
+.sheet-fee-btn-primary:hover {
+    background: #166534;
+    color: #ffffff !important;
+}
+.sheet-fee-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #002C54 !important;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none !important;
+    transition: all .15s ease;
+    flex-shrink: 0;
+}
+.sheet-fee-btn-secondary:hover {
+    background: #f1f5f9;
+}
+
 /* Attachment Pill */
 .sheet-attach-wrap {
     margin-top: 12px;
@@ -1087,6 +1398,15 @@ body.mob-sheet-lock {
 :root[data-theme="dark"] .sheet-notif-title { color: #f8fafc; border-color: #334155; }
 :root[data-theme="dark"] .sheet-notif-card { background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .sheet-notif-text { color: #cbd5e1; }
+:root[data-theme="dark"] .mob-fee-card-summary { background: #064e3b33; border-color: #065f46; }
+:root[data-theme="dark"] .mob-fee-amount-hero { background: #1e293b; border-color: #065f46; }
+:root[data-theme="dark"] .mob-fee-mini-item { background: #1e293b; border-color: #334155; }
+:root[data-theme="dark"] .mob-fee-mini-item .val { color: #f1f5f9; }
+:root[data-theme="dark"] .sheet-fee-receipt-card { background: #0f172a; border-color: #065f46; }
+:root[data-theme="dark"] .sheet-fee-paid-hero { background: #1e293b; border-color: #065f46; }
+:root[data-theme="dark"] .sheet-fee-row { background: #1e293b; }
+:root[data-theme="dark"] .sheet-fee-row .row-val { color: #f1f5f9; }
+:root[data-theme="dark"] .sheet-fee-btn-secondary { background: #1e293b; border-color: #334155; color: #f8fafc !important; }
 :root[data-theme="dark"] .mob-sheet-footer { background: #0f172a; border-color: #334155; }
 :root[data-theme="dark"] .mob-sheet-btn.secondary { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 :root[data-theme="dark"] .mob-pagination-fixed-bar { background: rgba(15, 23, 42, 0.96); border-color: #334155; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); }
@@ -1254,6 +1574,13 @@ body.mob-sheet-lock {
                     $attachmentUrl = Str::startsWith($attachRaw, ['http://', 'https://', '/']) ? $attachRaw : asset($attachRaw);
                     $attachmentName = basename($attachRaw);
                 }
+
+                // Fee Payment determination & real-time receipt generation links
+                $isFeePayment = ($notificationType === 'fee_payment' || stripos($notification->title ?? '', 'Fee Payment') !== false || stripos($content, 'Receipt No:') !== false);
+                $feeData = $isFeePayment ? parseStudentFeeNotificationContent($content) : null;
+                $feeReceiptNo = $notification->fee_receipt_no ?? ($feeData['receipt_no'] ?? '');
+                $feeReceiptDownloadUrl = $notification->fee_download_url ?? (!empty($feeReceiptNo) ? url('fees_receipt/'.$feeReceiptNo.'/download') : null);
+                $feeReceiptViewUrl = $notification->fee_view_url ?? (!empty($feeReceiptNo) ? url('fees_receipt/'.$feeReceiptNo.'/view') : null);
             @endphp
 
             <div class="mob-notif-card {{ $isUnread ? 'is-unread' : '' }} tone-{{ $config['tone'] }}"
@@ -1281,6 +1608,22 @@ body.mob-sheet-lock {
                                 data-attachment-name="{{ $attachmentName }}"
                                 data-unread="{{ $isUnread ? '1' : '0' }}"
                                 data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
+                                data-is-fee="{{ $isFeePayment ? '1' : '0' }}"
+                                @if($isFeePayment && $feeData)
+                                    data-fee-student="{{ e($feeData['student'] ?: $studentName) }}"
+                                    data-fee-receipt="{{ e($feeReceiptNo) }}"
+                                    data-fee-offline-receipt="{{ e($feeData['offline_receipt_no']) }}"
+                                    data-fee-date="{{ e($feeData['payment_date']) }}"
+                                    data-fee-mode="{{ e($feeData['payment_mode']) }}"
+                                    data-fee-amount="{{ e($feeData['amount']) }}"
+                                    data-fee-discount="{{ e($feeData['discount']) }}"
+                                    data-fee-fine="{{ e($feeData['fine']) }}"
+                                    data-fee-total="{{ e($feeData['total_paid'] ?: $feeData['amount']) }}"
+                                    data-fee-status="{{ e($feeData['status']) }}"
+                                    data-fee-details="{{ e($feeData['fee_details']) }}"
+                                    data-fee-download-url="{{ $feeReceiptDownloadUrl ?: '' }}"
+                                    data-fee-view-url="{{ $feeReceiptViewUrl ?: '' }}"
+                                @endif
                                 title="Tap to view full details">
                                 {{ $notification->title ?: 'Notification' }}
                             </h3>
@@ -1299,12 +1642,64 @@ body.mob-sheet-lock {
                 </div>
 
                 {{-- Card Message Body --}}
-                <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">
-                    {{ $content !== '' ? $content : 'No message content available.' }}
-                </div>
+                @if($isFeePayment && !empty($feeData) && (!empty($feeData['total_paid']) || !empty($feeData['receipt_no'])))
+                    <div class="mob-fee-card-summary">
+                        <div class="mob-fee-summary-header">
+                            @if(!empty($feeReceiptNo))
+                                <span class="mob-fee-receipt-tag">
+                                    <i class="fa fa-file-text-o"></i> REC #{{ $feeReceiptNo }}
+                                </span>
+                            @endif
+                            <span class="mob-fee-status-badge">
+                                <i class="fa fa-check-circle text-success"></i> {{ $feeData['status'] ?: 'Payment Received' }}
+                            </span>
+                        </div>
 
-                {{-- Attachment Pill (if present) --}}
-                @if(!empty($attachmentUrl))
+                        <div class="mob-fee-amount-hero">
+                            <span class="mob-fee-amount-lbl">Total Paid</span>
+                            <span class="mob-fee-amount-val">
+                                <i class="fa fa-inr"></i> {{ number_format((float) ($feeData['total_paid'] ?: $feeData['amount']), 2) }}
+                            </span>
+                        </div>
+
+                        <div class="mob-fee-mini-grid">
+                            @if(!empty($feeData['payment_date']))
+                                <div class="mob-fee-mini-item">
+                                    <span class="lbl"><i class="fa fa-calendar-o"></i> Date</span>
+                                    <span class="val">{{ $feeData['payment_date'] }}</span>
+                                </div>
+                            @endif
+                            @if(!empty($feeData['payment_mode']))
+                                <div class="mob-fee-mini-item">
+                                    <span class="lbl"><i class="fa fa-credit-card"></i> Mode</span>
+                                    <span class="val">{{ $feeData['payment_mode'] }}</span>
+                                </div>
+                            @endif
+                            @if(!empty($feeData['fee_details']))
+                                <div class="mob-fee-mini-item" style="grid-column: span 2;">
+                                    <span class="lbl"><i class="fa fa-bookmark-o"></i> Fee Head</span>
+                                    <span class="val">{{ $feeData['fee_details'] }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">
+                        {{ $content !== '' ? $content : 'No message content available.' }}
+                    </div>
+                @endif
+
+                {{-- Real-time Fee Receipt Download Pill OR Generic Attachment Pill --}}
+                @if(!empty($feeReceiptDownloadUrl))
+                    <a href="{{ $feeReceiptDownloadUrl }}"
+                       class="mob-notif-attach mob-notif-fee-receipt"
+                       target="_blank"
+                       title="Download Real-Time Fee Receipt PDF">
+                        <i class="fa fa-file-pdf-o text-danger"></i>
+                        <span>Download Receipt PDF{{ !empty($feeReceiptNo) ? ' (#'.$feeReceiptNo.')' : '' }}</span>
+                        <i class="fa fa-download ms-auto text-success"></i>
+                    </a>
+                @elseif(!empty($attachmentUrl))
                     <a href="{{ $attachmentUrl }}"
                        class="mob-notif-attach"
                        target="_blank"
@@ -1322,7 +1717,7 @@ body.mob-sheet-lock {
                     </span>
 
                     <div class="mob-notif-actions">
-                        @if($isLong)
+                        @if($isLong && (!$isFeePayment || empty($feeData['total_paid'])))
                             <button type="button"
                                     class="mob-btn-action btn-toggle-expand"
                                     data-id="{{ $notification->id }}"
@@ -1354,7 +1749,23 @@ body.mob-sheet-lock {
                                 data-attachment="{{ $attachmentUrl }}"
                                 data-attachment-name="{{ $attachmentName }}"
                                 data-unread="{{ $isUnread ? '1' : '0' }}"
-                                data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}">
+                                data-read-url="{{ route('student.attendance-notifications.mark-read', $notification->id) }}"
+                                data-is-fee="{{ $isFeePayment ? '1' : '0' }}"
+                                @if($isFeePayment && $feeData)
+                                    data-fee-student="{{ e($feeData['student'] ?: $studentName) }}"
+                                    data-fee-receipt="{{ e($feeReceiptNo) }}"
+                                    data-fee-offline-receipt="{{ e($feeData['offline_receipt_no']) }}"
+                                    data-fee-date="{{ e($feeData['payment_date']) }}"
+                                    data-fee-mode="{{ e($feeData['payment_mode']) }}"
+                                    data-fee-amount="{{ e($feeData['amount']) }}"
+                                    data-fee-discount="{{ e($feeData['discount']) }}"
+                                    data-fee-fine="{{ e($feeData['fine']) }}"
+                                    data-fee-total="{{ e($feeData['total_paid'] ?: $feeData['amount']) }}"
+                                    data-fee-status="{{ e($feeData['status']) }}"
+                                    data-fee-details="{{ e($feeData['fee_details']) }}"
+                                    data-fee-download-url="{{ $feeReceiptDownloadUrl ?: '' }}"
+                                    data-fee-view-url="{{ $feeReceiptViewUrl ?: '' }}"
+                                @endif>
                             <i class="fa fa-eye"></i> View
                         </button>
                     </div>
@@ -1467,8 +1878,71 @@ body.mob-sheet-lock {
     {{-- Scrollable Body --}}
     <div class="mob-sheet-body">
         <h3 id="sheetNotifTitle" class="sheet-notif-title"></h3>
-        <div class="sheet-notif-card">
-            <div id="sheetNotifBody" class="sheet-notif-text"></div>
+
+        {{-- Fee Payment Structured Section (Visible only when is-fee) --}}
+        <div id="sheetFeeContainer" style="display: none;">
+            <div class="sheet-fee-receipt-card">
+                <div class="sheet-fee-top-strip">
+                    <span class="sheet-fee-rec-badge" id="sheetFeeReceiptTag"><i class="fa fa-file-text-o"></i> REC #-</span>
+                    <span class="sheet-fee-status-badge" id="sheetFeeStatusTag"><i class="fa fa-check-circle text-success"></i> Payment Received</span>
+                </div>
+
+                <div class="sheet-fee-paid-hero">
+                    <div class="sheet-fee-hero-lbl">Total Amount Paid</div>
+                    <div class="sheet-fee-hero-amount" id="sheetFeePaidAmount"><i class="fa fa-inr"></i> 0.00</div>
+                </div>
+
+                <div class="sheet-fee-breakdown-list">
+                    <div class="sheet-fee-row" id="sheetFeeRowStudent">
+                        <span class="row-lbl">Student Name</span>
+                        <span class="row-val" id="sheetFeeStudentVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowDate">
+                        <span class="row-lbl">Payment Date</span>
+                        <span class="row-val" id="sheetFeeDateVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowMode">
+                        <span class="row-lbl">Payment Mode</span>
+                        <span class="row-val" id="sheetFeeModeVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowDetails">
+                        <span class="row-lbl">Fee Head / Remarks</span>
+                        <span class="row-val" id="sheetFeeDetailsVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowBase">
+                        <span class="row-lbl">Amount</span>
+                        <span class="row-val" id="sheetFeeBaseVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowDiscount" style="display:none;">
+                        <span class="row-lbl">Discount</span>
+                        <span class="row-val" id="sheetFeeDiscountVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row" id="sheetFeeRowFine" style="display:none;">
+                        <span class="row-lbl">Fine / Late Fee</span>
+                        <span class="row-val" id="sheetFeeFineVal">-</span>
+                    </div>
+                    <div class="sheet-fee-row highlight">
+                        <span class="row-lbl">Net Total Paid</span>
+                        <span class="row-val" id="sheetFeeNetVal">-</span>
+                    </div>
+                </div>
+
+                <div class="sheet-fee-action-bar">
+                    <a href="#" id="sheetFeeDownloadBtn" class="sheet-fee-btn-primary" target="_blank">
+                        <i class="fa fa-file-pdf-o"></i> Download Receipt PDF
+                    </a>
+                    <a href="#" id="sheetFeeViewBtn" class="sheet-fee-btn-secondary" target="_blank">
+                        <i class="fa fa-external-link"></i> View Receipt
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Standard Message Body (for general alerts / notices) --}}
+        <div id="sheetStandardContainer">
+            <div class="sheet-notif-card">
+                <div id="sheetNotifBody" class="sheet-notif-text"></div>
+            </div>
         </div>
 
         {{-- Attachment Download Pill if available --}}
@@ -1502,8 +1976,24 @@ function openNotifSheet(triggerEl) {
     const iconClass = triggerEl.getAttribute('data-icon') || 'fa-bell-o';
     const content = triggerEl.getAttribute('data-content') || '';
     const attachment = triggerEl.getAttribute('data-attachment') || '';
+    const attachmentName = triggerEl.getAttribute('data-attachment-name') || '';
     const isUnread = triggerEl.getAttribute('data-unread') === '1';
     const readUrl = triggerEl.getAttribute('data-read-url');
+
+    // Fee attributes
+    const isFee = triggerEl.getAttribute('data-is-fee') === '1';
+    const feeReceipt = triggerEl.getAttribute('data-fee-receipt') || '';
+    const feeStudent = triggerEl.getAttribute('data-fee-student') || '';
+    const feeDate = triggerEl.getAttribute('data-fee-date') || '';
+    const feeMode = triggerEl.getAttribute('data-fee-mode') || '';
+    const feeDetails = triggerEl.getAttribute('data-fee-details') || '';
+    const feeAmount = triggerEl.getAttribute('data-fee-amount') || '';
+    const feeDiscount = triggerEl.getAttribute('data-fee-discount') || '';
+    const feeFine = triggerEl.getAttribute('data-fee-fine') || '';
+    const feeTotal = triggerEl.getAttribute('data-fee-total') || '';
+    const feeStatus = triggerEl.getAttribute('data-fee-status') || 'Payment Received';
+    const feeDownloadUrl = triggerEl.getAttribute('data-fee-download-url') || '';
+    const feeViewUrl = triggerEl.getAttribute('data-fee-view-url') || '';
 
     // Populate header icon & type badge
     const iconEl = document.getElementById('sheetNotifIcon');
@@ -1527,30 +2017,131 @@ function openNotifSheet(triggerEl) {
             : '<i class="fa fa-check text-success"></i> Read';
     }
 
-    // Populate title & body text
+    // Populate title
     const titleEl = document.getElementById('sheetNotifTitle');
     if (titleEl) titleEl.textContent = title;
 
-    const bodyEl = document.getElementById('sheetNotifBody');
-    if (bodyEl) bodyEl.textContent = content;
+    // Currency formatter
+    const formatCurrency = function(val) {
+        if (!val && val !== 0) return '0.00';
+        const clean = String(val).replace(/[^0-9.-]+/g, '');
+        const num = parseFloat(clean);
+        if (isNaN(num)) return val;
+        return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
 
-    // Attachment
+    const feeContainer = document.getElementById('sheetFeeContainer');
+    const stdContainer = document.getElementById('sheetStandardContainer');
     const attachWrap = document.getElementById('sheetNotifAttachment');
-    const attachLink = document.getElementById('sheetAttachmentLink');
-    const attachName = document.getElementById('sheetAttachmentName');
-    const attachIcon = document.getElementById('sheetAttachmentIcon');
-    if (attachWrap && attachLink) {
-        if (attachment && attachment.trim() !== '') {
-            attachWrap.style.display = 'block';
-            attachLink.href = attachment;
-            if (attachName) attachName.textContent = attachmentName || attachment.split('/').pop() || 'Attachment';
-            if (attachIcon) {
-                const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(attachment);
-                const isPdf = /\.pdf$/i.test(attachment);
-                attachIcon.className = 'mob-pdf-icon fa ' + (isImg ? 'fa-file-image-o text-success' : (isPdf ? 'fa-file-pdf-o text-danger' : 'fa-paperclip text-primary'));
+
+    if (isFee) {
+        if (stdContainer) stdContainer.style.display = 'none';
+        if (attachWrap) attachWrap.style.display = 'none';
+        if (feeContainer) {
+            feeContainer.style.display = 'block';
+
+            const feeReceiptTag = document.getElementById('sheetFeeReceiptTag');
+            if (feeReceiptTag) {
+                feeReceiptTag.innerHTML = feeReceipt ? '<i class="fa fa-file-text-o"></i> REC #' + feeReceipt : '<i class="fa fa-file-text-o"></i> Fee Receipt';
             }
-        } else {
-            attachWrap.style.display = 'none';
+
+            const feeStatusTag = document.getElementById('sheetFeeStatusTag');
+            if (feeStatusTag) {
+                feeStatusTag.innerHTML = '<i class="fa fa-check-circle text-success"></i> ' + (feeStatus || 'Payment Received');
+            }
+
+            const paidAmountEl = document.getElementById('sheetFeePaidAmount');
+            if (paidAmountEl) {
+                paidAmountEl.innerHTML = '<i class="fa fa-inr"></i> ' + formatCurrency(feeTotal || feeAmount);
+            }
+
+            const studentEl = document.getElementById('sheetFeeStudentVal');
+            if (studentEl) studentEl.textContent = feeStudent || '-';
+
+            const dateEl = document.getElementById('sheetFeeDateVal');
+            if (dateEl) dateEl.textContent = feeDate || time;
+
+            const modeEl = document.getElementById('sheetFeeModeVal');
+            if (modeEl) modeEl.textContent = feeMode || 'Cash';
+
+            const detailsEl = document.getElementById('sheetFeeDetailsVal');
+            if (detailsEl) detailsEl.textContent = feeDetails || 'School Fees';
+
+            const baseEl = document.getElementById('sheetFeeBaseVal');
+            if (baseEl) baseEl.textContent = '₹ ' + formatCurrency(feeAmount || feeTotal);
+
+            const rowDiscount = document.getElementById('sheetFeeRowDiscount');
+            const discountEl = document.getElementById('sheetFeeDiscountVal');
+            const discNum = parseFloat(String(feeDiscount).replace(/[^0-9.-]+/g, '')) || 0;
+            if (rowDiscount && discountEl) {
+                if (discNum > 0) {
+                    rowDiscount.style.display = 'flex';
+                    discountEl.textContent = '- ₹ ' + formatCurrency(feeDiscount);
+                } else {
+                    rowDiscount.style.display = 'none';
+                }
+            }
+
+            const rowFine = document.getElementById('sheetFeeRowFine');
+            const fineEl = document.getElementById('sheetFeeFineVal');
+            const fineNum = parseFloat(String(feeFine).replace(/[^0-9.-]+/g, '')) || 0;
+            if (rowFine && fineEl) {
+                if (fineNum > 0) {
+                    rowFine.style.display = 'flex';
+                    fineEl.textContent = '+ ₹ ' + formatCurrency(feeFine);
+                } else {
+                    rowFine.style.display = 'none';
+                }
+            }
+
+            const netEl = document.getElementById('sheetFeeNetVal');
+            if (netEl) netEl.textContent = '₹ ' + formatCurrency(feeTotal || feeAmount);
+
+            // Action buttons
+            const downloadBtn = document.getElementById('sheetFeeDownloadBtn');
+            if (downloadBtn) {
+                if (feeDownloadUrl) {
+                    downloadBtn.href = feeDownloadUrl;
+                    downloadBtn.style.display = 'inline-flex';
+                } else {
+                    downloadBtn.style.display = 'none';
+                }
+            }
+
+            const viewBtn = document.getElementById('sheetFeeViewBtn');
+            if (viewBtn) {
+                if (feeViewUrl) {
+                    viewBtn.href = feeViewUrl;
+                    viewBtn.style.display = 'inline-flex';
+                } else {
+                    viewBtn.style.display = 'none';
+                }
+            }
+        }
+    } else {
+        if (feeContainer) feeContainer.style.display = 'none';
+        if (stdContainer) stdContainer.style.display = 'block';
+
+        const bodyEl = document.getElementById('sheetNotifBody');
+        if (bodyEl) bodyEl.textContent = content;
+
+        // Attachment
+        const attachLink = document.getElementById('sheetAttachmentLink');
+        const attachName = document.getElementById('sheetAttachmentName');
+        const attachIcon = document.getElementById('sheetAttachmentIcon');
+        if (attachWrap && attachLink) {
+            if (attachment && attachment.trim() !== '') {
+                attachWrap.style.display = 'block';
+                attachLink.href = attachment;
+                if (attachName) attachName.textContent = attachmentName || attachment.split('/').pop() || 'Attachment';
+                if (attachIcon) {
+                    const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(attachment);
+                    const isPdf = /\.pdf$/i.test(attachment);
+                    attachIcon.className = 'mob-pdf-icon fa ' + (isImg ? 'fa-file-image-o text-success' : (isPdf ? 'fa-file-pdf-o text-danger' : 'fa-paperclip text-primary'));
+                }
+            } else {
+                attachWrap.style.display = 'none';
+            }
         }
     }
 
@@ -1567,6 +2158,12 @@ function openNotifSheet(triggerEl) {
         if (statusEl) {
             statusEl.className = 'sheet-meta-pill sheet-status-read';
             statusEl.innerHTML = '<i class="fa fa-check text-success"></i> Read';
+        }
+        if (typeof window.performMarkRead === 'function') {
+            window.performMarkRead(id, readUrl);
+        }
+    }
+}
         }
         if (typeof window.performMarkRead === 'function') {
             window.performMarkRead(id, readUrl);
