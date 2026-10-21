@@ -183,18 +183,15 @@
 </div>
 
 {{-- =========================================================================
-     THEME-BASED SUCCESS MODAL (Student Promote Reference)
+     THEME-BASED SUCCESS MODAL (Auto-Redirect Countdown)
      ========================================================================= --}}
-<div class="modal fade" id="cpSuccessModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+<div class="modal fade" id="cpSuccessModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
-            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #047857 0%, #059669 100%); color: #ffffff; padding: 10px 14px; border: none;">
                 <h5 class="modal-title" style="font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa fa-check-circle text-success"></i> Password Updated
+                    <i class="fa fa-check-circle"></i> Password Updated
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: .85; font-size: 18px; outline: none;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div class="modal-body text-center" style="padding: 22px 18px;">
                 <div style="width: 54px; height: 54px; border-radius: 50%; background: #ecfdf5; color: #059669; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; border: 1px solid #a7f3d0;">
@@ -202,15 +199,20 @@
                 </div>
                 <h4 style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Success!</h4>
                 <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0;" id="cpSuccessMessage">
-                    Your password has been changed successfully. You can use your new password next time you log in.
+                    Password has been changed successfully!
                 </p>
+
+                {{-- 3-Second Live Countdown Banner --}}
+                <div style="margin-top: 14px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa fa-spinner fa-spin text-success" style="font-size: 13px;"></i>
+                    <span style="font-size: 12px; font-weight: 600; color: #166534;">
+                        Redirecting to Dashboard in <b id="cpTimerCount" style="display: inline-block; width: 20px; height: 20px; line-height: 20px; background: #059669; color: #ffffff; border-radius: 50%; text-align: center; font-size: 11px; font-weight: 700;">3</b>s...
+                    </span>
+                </div>
             </div>
-            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; display: flex; justify-content: space-between;">
-                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
-                    Close
-                </button>
-                <a href="{{ url('dashboard') }}" class="btn btn-sm btn-primary" style="background: #002C54; border-color: #001f3d;">
-                    <i class="fa fa-home mr-1"></i> Dashboard
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 14px; display: flex; justify-content: center;">
+                <a href="{{ url('dashboard') }}" class="btn btn-sm btn-primary" id="btnRedirectDashboard" style="background: linear-gradient(135deg, #002C54 0%, #0a4d8c 100%); border-color: #001f3d; font-weight: 600; padding: 6px 20px;">
+                    <i class="fa fa-home mr-1"></i> Dashboard (<span id="cpBtnTimer">3s</span>)
                 </a>
             </div>
         </div>
@@ -883,7 +885,31 @@ $(document).ready(function() {
                 if (res && res.message) {
                     $('#cpSuccessMessage').text(res.message);
                 }
-                $('#cpSuccessModal').modal('show');
+
+                // Show modal with static backdrop & no keyboard dismissal
+                $('#cpSuccessModal').modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                    show: true
+                });
+
+                // 3-Second Live Countdown & Automatic Redirect to Dashboard
+                var countdown = 3;
+                $('#cpTimerCount').text(countdown);
+                $('#cpBtnTimer').text(countdown + 's');
+
+                var redirectInterval = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(redirectInterval);
+                        $('#cpTimerCount').text('0');
+                        $('#cpBtnTimer').text('0s');
+                        window.location.href = "{{ url('dashboard') }}";
+                    } else {
+                        $('#cpTimerCount').text(countdown);
+                        $('#cpBtnTimer').text(countdown + 's');
+                    }
+                }, 1000);
             },
             error: function(xhr) {
                 $btnSubmit.prop('disabled', false).html('<i class="fa fa-check-circle"></i> <span>Update Password</span>');
