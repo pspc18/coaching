@@ -482,7 +482,7 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .mob-notif-icon {
@@ -569,15 +569,16 @@
 
 .mob-notif-body {
     font-size: 11px;
-    line-height: 1.5;
+    line-height: 1.45;
     color: #334155;
     word-break: break-word;
     background: #f8fafc;
     border: 1px solid #f1f5f9;
     border-radius: 3px;
-    padding: 6px 8px;
-    margin-bottom: 6px;
-    white-space: pre-line;
+    padding: 5px 8px;
+    margin-top: 3px;
+    margin-bottom: 5px;
+    white-space: normal;
 }
 
 .mob-notif-body.collapsed {
@@ -585,6 +586,11 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    white-space: normal;
+}
+
+.mob-notif-body:not(.collapsed) {
+    white-space: pre-line;
 }
 
 /* Fee Payment Structured Notification Card Summary */
@@ -592,8 +598,9 @@
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
     border-radius: 4px;
-    padding: 7px 9px;
-    margin-bottom: 6px;
+    padding: 6px 8px;
+    margin-top: 3px;
+    margin-bottom: 5px;
 }
 .mob-fee-summary-header {
     display: flex;
@@ -1549,7 +1556,11 @@ body.mob-sheet-lock {
         @forelse($notifications as $notification)
             @php
                 $isUnread = (int) ($notification->message_seen ?? 0) === 0;
-                $content = trim(strip_tags((string) ($notification->content ?? '')));
+                $rawContent = (string) ($notification->content ?? '');
+                $cleanContent = trim(html_entity_decode(strip_tags($rawContent), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $cleanContent = preg_replace('/^[\s\r\n\xC2\xA0]+/u', '', $cleanContent);
+                $cleanContent = preg_replace('/[\s\r\n\xC2\xA0]+$/u', '', $cleanContent);
+                $content = $cleanContent;
                 $notificationType = strtolower((string) ($notification->type ?? ''));
                 $typeConfig = [
                     'notice' => ['icon' => 'fa-bullhorn', 'label' => 'Notice', 'tone' => 'amber', 'badge_class' => 'badge-soft-amber'],
@@ -1684,9 +1695,7 @@ body.mob-sheet-lock {
                         </div>
                     </div>
                 @else
-                    <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">
-                        {{ $content !== '' ? $content : 'No message content available.' }}
-                    </div>
+                    <div class="mob-notif-body {{ $isLong ? 'collapsed' : '' }}" id="notifBody-{{ $notification->id }}">{{ $content !== '' ? $content : 'No message content available.' }}</div>
                 @endif
 
                 {{-- Real-time Fee Receipt Download Pill OR Generic Attachment Pill --}}
