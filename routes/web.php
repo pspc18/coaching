@@ -577,6 +577,7 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 
 	Route::match(['get', 'post'], 'profile', 'ProfileController@profile');
 	Route::match(['get', 'post'], 'profile/edit/{id}', 'ProfileController@profileEdit');
+	Route::match(['get', 'post'], 'change_password', 'ProfileController@changePassword')->name('change_password');
 	Route::match(['get', 'post'], 'all_students_search', 'DashboardController@allStudentsSearch');
 	Route::match(['get', 'post'], 'get_modules', 'DashboardController@getModules');
 	Route::match(['get', 'post'], 'stu_status', 'DashboardController@stuStatus');

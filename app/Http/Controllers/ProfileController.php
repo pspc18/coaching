@@ -95,30 +95,96 @@ class ProfileController extends Controller
 
     public function changePassword(Request $request)
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
-        ], [
-            'password.different' => 'New password must be different from your current password.',
-        ]);
+        $roleId = (int) Session::get('role_id');
+        $userId = (int) Session::get('id');
 
-        $student = Admission::findOrFail(Session::get('id'));
-
-        if (!Hash::check($validated['current_password'], $student->password)) {
-            return response()->json([
-                'message' => 'The current password is incorrect.',
-                'errors' => ['current_password' => ['The current password is incorrect.']],
-            ], 422);
+        if ($request->isMethod('get')) {
+            $user = null;
+            if ($roleId === 3) {
+                $user = Admission::find($userId);
+            } else {
+                $user = User::find($userId);
+            }
+            return view('auth.changepassword', compact('user'));
         }
 
-        $student->password = Hash::make($validated['password']);
-        $student->confirm_password = $validated['password'];
-        $student->save();
+        // POST / AJAX Request
+        $input = $request->all();
+        if (!isset($input['old_password']) && isset($input['current_password'])) {
+            $input['old_password'] = $input['current_password'];
+        }
+        if (!isset($input['password_confirmation']) && isset($input['confirm_password'])) {
+            $input['password_confirmation'] = $input['confirm_password'];
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Password changed successfully.',
-        ]);
+        $rules = [
+            'old_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed', 'different:old_password'],
+        ];
+
+        $messages = [
+            'old_password.required' => 'Current password is required.',
+            'password.required' => 'New password is required.',
+            'password.min' => 'New password must be at least 6 characters.',
+            'password.confirmed' => 'New password and confirm password do not match.',
+            'password.different' => 'New password must be different from current password.',
+        ];
+
+        $validator = Validator::make($input, $rules, $messages);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $account = null;
+        if ($roleId === 3) {
+            $account = Admission::find($userId);
+        } else {
+            $account = User::find($userId);
+        }
+
+        if (!$account) {
+            $msg = 'User account not found.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 404);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        // Verify current password (supports Hash check and legacy fallback)
+        $currentPasswordMatches = Hash::check($input['old_password'], $account->password) ||
+                                 ($input['old_password'] === ($account->confirm_password ?? '')) ||
+                                 ($input['old_password'] === ($account->password ?? ''));
+
+        if (!$currentPasswordMatches) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => ['old_password' => ['Current password is incorrect. Please try again.']]
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['old_password' => 'Current password is incorrect.'])->withInput();
+        }
+
+        // Update password
+        $account->password = Hash::make($input['password']);
+        $account->confirm_password = $input['password'];
+        $account->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Password has been changed successfully!'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Password has been changed successfully!');
     }
     
     public function document_upload(Request $request, $id)
