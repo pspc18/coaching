@@ -1080,27 +1080,34 @@ select.excel-col-filter option {
     </section>
 </div>
 
-{{-- Confirmation Modal for Sending Fee Reminder --}}
+{{-- Confirmation Modal for Sending Fee Reminder (Student Promote Theme Style) --}}
 <div class="modal fade" id="confirmSendMessageModal" tabindex="-1" role="dialog" aria-labelledby="confirmSendMessageModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header d-flex align-items-center justify-content-between">
-                <h5 class="modal-title mb-0" id="confirmSendMessageModalLabel"><i class="fa fa-whatsapp mr-1"></i> Send Fee Reminder</h5>
-                <button type="button" class="close text-white modal-close-btn" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
+            <div class="modal-header d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px; border: none;">
+                <h5 class="modal-title mb-0" id="confirmSendMessageModalLabel" style="font-size: 13px; font-weight: 700;">
+                    <i class="fa fa-whatsapp mr-1 text-warning"></i> Send Fee Due Reminder
+                </h5>
+                <button type="button" class="close modal-close-btn" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="color: #fff; opacity: 1;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" style="font-size: 12.5px;">
-                <p class="mb-2" id="confirm-reminder-text">Are you sure you want to send a fee reminder to the selected students?</p>
-                <div class="p-2 rounded" style="background: #f8fafc; border: 1px solid #cbd5e1; font-size: 11.5px;">
-                    <div><i class="fa fa-check-circle text-success mr-1"></i> Sends WhatsApp reminder (if WhatsApp service is active)</div>
-                    <div class="mt-1"><i class="fa fa-bell text-primary mr-1"></i> Sends In-App Student Portal fee due notification</div>
+            <div class="modal-body p-0">
+                <div style="background: #f0f9ff; border-bottom: 1px solid #bae6fd; padding: 6px 12px; font-size: 11px; color: #0369a1; font-weight: 600;">
+                    <i class="fa fa-info-circle mr-1"></i> Automated fee due alert dispatch confirmation.
+                </div>
+                <div class="p-3" style="font-size: 12px;">
+                    <p class="mb-2 font-weight-bold text-dark" id="confirm-reminder-text">Are you sure you want to send a fee reminder to the selected students?</p>
+                    <div class="p-2 rounded" style="background: #f8fafc; border: 1px solid #cbd5e1; font-size: 11px;">
+                        <div><i class="fa fa-check-circle text-success mr-1"></i> Dispatches WhatsApp fee reminder with head-wise pending summary</div>
+                        <div class="mt-1"><i class="fa fa-bell text-primary mr-1"></i> Sends instant In-App Student Portal fee due notification</div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm modal-close-btn" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success btn-sm" id="confirmSendMessage">
-                    <i class="fa fa-paper-plane mr-1"></i> Send Now
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px;">
+                <button type="button" class="btn btn-xs btn-secondary px-3 modal-close-btn" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-xs btn-success font-weight-bold px-3" id="confirmSendMessage">
+                    <i class="fa fa-paper-plane mr-1"></i> Send Reminder Now
                 </button>
             </div>
         </div>

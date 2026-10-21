@@ -799,17 +799,122 @@ select.excel-col-filter option {
     gap: 8px;
 }
 
-/* Modal Styling */
-#statusModal .modal-header, #profileImgModal .modal-header {
-    background: #002C54;
+/* Arise Theme Modal Styling (Matching Student Promote Modal) */
+.arise-modal-content {
+    border-radius: 4px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,.3);
+    background: #ffffff;
+}
+.arise-modal-header {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
     padding: 10px 14px;
-    border-bottom: 1px solid rgba(255,255,255,.1);
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
-#statusModal .modal-title, #profileImgModal .modal-title {
+.arise-modal-title {
     font-size: 13px;
     font-weight: 700;
     color: #ffffff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.arise-modal-close {
+    color: #ffffff !important;
+    opacity: 0.9;
+    background: none;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+}
+.arise-modal-close:hover {
+    opacity: 1;
+}
+.arise-modal-banner {
+    background: #f0f9ff;
+    border-bottom: 1px solid #bae6fd;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.arise-modal-banner.banner-realised {
+    background: #ecfdf5;
+    border-bottom-color: #a7f3d0;
+    color: #047857;
+}
+.arise-modal-banner.banner-dishonoured {
+    background: #fef2f2;
+    border-bottom-color: #fecaca;
+    color: #b91c1c;
+}
+.arise-modal-banner.banner-pending {
+    background: #fffbeb;
+    border-bottom-color: #fde68a;
+    color: #b45309;
+}
+.arise-modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 0;
+}
+.arise-modal-table thead th {
+    background: #002C54;
+    color: #ffffff;
+    padding: 6px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    border-right: 1px solid rgba(255,255,255,.14);
+}
+.arise-modal-table tbody td {
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 7px 10px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+    font-weight: 600;
+    vertical-align: middle;
+}
+.arise-remark-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all .15s;
+}
+.arise-remark-chip:hover {
+    background: #e0f2fe;
+    color: #0284c7;
+    border-color: #7dd3fc;
+}
+.arise-modal-footer {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
 }
 </style>
 @endsection
@@ -1106,66 +1211,96 @@ select.excel-col-filter option {
     </section>
 </div>
 
-{{-- Slip / Image Preview Modal --}}
-<div id="profileImgModal" class="modal fade" role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header d-flex align-items-center justify-content-between">
-                <h5 class="modal-title mb-0"><i class="fa fa-picture-o mr-1"></i> Cheque / Payment Slip Preview</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+{{-- 6. Slip / Image Preview Modal (Student Promote Theme Style) --}}
+<div id="profileImgModal" class="modal fade" role="dialog" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content arise-modal-content">
+            <div class="modal-header arise-modal-header">
+                <h5 class="modal-title arise-modal-title">
+                    <i class="fa fa-picture-o text-warning"></i> Cheque / Payment Slip Preview
+                </h5>
+                <button type="button" class="arise-modal-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">&times;</button>
             </div>
-            <div class="modal-body text-center bg-light p-2">
-                <img id="profileImg" src="" style="max-width: 100%; max-height: 480px; object-fit: contain; border-radius: 2px;">
+            <div class="modal-body p-0">
+                <div class="arise-modal-banner">
+                    <i class="fa fa-info-circle"></i> Uploaded cheque / transaction document verification preview.
+                </div>
+                <div class="text-center p-3" style="background: #f1f5f9;">
+                    <img id="profileImg" src="" style="max-width: 100%; max-height: 440px; object-fit: contain; border-radius: 3px; border: 1px solid #cbd5e1; background: #fff; padding: 4px;">
+                </div>
+            </div>
+            <div class="modal-footer arise-modal-footer">
+                <button type="button" class="btn btn-xs btn-secondary px-3" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Change Cheque Status Confirmation Modal --}}
-<div class="modal fade" id="statusModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" style="background: #ffffff;">
-            <div class="modal-header d-flex align-items-center justify-content-between">
-                <h4 class="modal-title"><i class="fa fa-exchange mr-1"></i> Change Cheque Status Confirmation</h4>
-                <button type="button" class="close text-white modal-close-trigger" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+{{-- 7. Change Cheque Status Confirmation Modal (Student Promote Theme Style) --}}
+<div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content arise-modal-content">
+            <div class="modal-header arise-modal-header">
+                <h5 class="modal-title arise-modal-title">
+                    <i class="fa fa-exchange text-warning"></i> Confirm Cheque Status & Clearance Update
+                </h5>
+                <button type="button" class="arise-modal-close modal-close-trigger" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">&times;</button>
             </div>
 
-            <form id="chequeStatusForm" action="{{ url('fees_cheque') }}" method="post">
+            <form id="chequeStatusForm" action="{{ url('fees_cheque') }}" method="post" class="m-0">
                 @csrf
-                <div class="modal-body" style="font-size: 12px;">
-                    <input type="hidden" id="status_id" name="status_id">
-                    <input type="hidden" id="id" name="id">
+                <input type="hidden" id="status_id" name="status_id">
+                <input type="hidden" id="id" name="id">
 
-                    <div class="p-2 mb-3 rounded" style="background: #f1f5f9; border: 1px solid #cbd5e1;">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted">Receipt No:</span>
-                            <strong id="modal-invoice-no" style="color: #002C54;">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <span class="text-muted">Student:</span>
-                            <strong id="modal-student-name">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <span class="text-muted">Amount:</span>
-                            <strong class="text-success" id="modal-amount">₹0.00</strong>
-                        </div>
+                <div class="modal-body p-0">
+                    {{-- Dynamic Status Info Banner Strip --}}
+                    <div class="arise-modal-banner" id="status_message">
+                        <i class="fa fa-info-circle"></i> Verify cheque details below and confirm the clearance status update.
                     </div>
 
-                    <h6 class="font-weight-bold text-dark mb-2" id="status_message">Are you sure you want to update this cheque status?</h6>
+                    {{-- Arise Theme Summary Table inside Modal (Like Student Promote Modal) --}}
+                    <div class="table-responsive">
+                        <table class="arise-modal-table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt No.</th>
+                                    <th>Student Name</th>
+                                    <th class="text-center">New Status</th>
+                                    <th class="text-right">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong id="modal-invoice-no" style="color: #0284c7;">-</strong></td>
+                                    <td id="modal-student-name">-</td>
+                                    <td class="text-center" id="modal-status-badge">-</td>
+                                    <td class="text-right font-weight-bold text-success" id="modal-amount">₹0.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div class="form-group mb-0">
-                        <label for="remark" class="font-weight-bold text-secondary mb-1">Clearance / Bank Remark</label>
-                        <textarea id="remark" name="remark" class="form-control" rows="3" style="font-size: 12px;" placeholder="Enter bank clearance or dishonour remarks here..."></textarea>
+                    {{-- Remark Input & Quick Preset Chips --}}
+                    <div class="p-3" style="background: #ffffff;">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-1" style="gap: 4px;">
+                            <label for="remark" class="mb-0 font-weight-bold" style="font-size: 11px; color: #002C54; text-transform: uppercase; letter-spacing: .02em;">
+                                <i class="fa fa-commenting-o text-primary mr-1"></i> Bank / Clearance Remark
+                            </label>
+                            <div class="d-flex align-items-center flex-wrap" style="gap: 4px;">
+                                <button type="button" class="arise-remark-chip" data-preset="Cheque has been realised and credited to bank account.">Cleared</button>
+                                <button type="button" class="arise-remark-chip" data-preset="Cheque dishonoured due to insufficient funds.">Insufficient Funds</button>
+                                <button type="button" class="arise-remark-chip" data-preset="Cheque dishonoured due to signature mismatch.">Signature Mismatch</button>
+                                <button type="button" class="arise-remark-chip" data-preset="This cheque is pending bank realisation.">Pending</button>
+                            </div>
+                        </div>
+                        <textarea id="remark" name="remark" class="form-control" rows="2" style="font-size: 11.5px; border-radius: 2px; border-color: #cbd5e1; background: #f8fafc;" placeholder="Enter bank clearance or dishonour remarks here..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer py-2">
-                    <button type="button" class="btn btn-secondary btn-sm modal-close-trigger" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-status">
-                        <i class="fa fa-check mr-1"></i> Confirm & Update
+
+                <div class="modal-footer arise-modal-footer">
+                    <button type="button" class="btn btn-xs btn-secondary px-3 modal-close-trigger" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-xs btn-success font-weight-bold px-3" id="btn-submit-status">
+                        <i class="fa fa-check mr-1"></i> Save Status Changes
                     </button>
                 </div>
             </form>
@@ -1429,18 +1564,29 @@ $(document).ready(function() {
         $('#modal-student-name').text(studentName);
         $('#modal-amount').text('₹' + amount);
 
+        const bannerEl = $('#status_message');
+        bannerEl.removeClass('banner-realised banner-dishonoured banner-pending');
+
         if (status === '2') {
-            $('#status_message').html('<span class="text-danger"><i class="fa fa-exclamation-triangle mr-1"></i> Mark this cheque as <strong>Dishonoured (Bounced)</strong>?</span>');
+            bannerEl.addClass('banner-dishonoured').html('<i class="fa fa-exclamation-triangle"></i> <span>Marking this cheque as <strong>Dishonoured (Bounced)</strong> will reopen the student fee balance.</span>');
+            $('#modal-status-badge').html('<span class="cheque-status-badge badge-cheque-dishonoured"><i class="fa fa-times-circle mr-1"></i>Cheque Dishonoured</span>');
             $('#remark').val('This cheque has been dishonoured by the bank.');
         } else if (status === '0') {
-            $('#status_message').html('<span class="text-success"><i class="fa fa-check-circle mr-1"></i> Mark this cheque as <strong>Realised (Cleared)</strong>?</span>');
+            bannerEl.addClass('banner-realised').html('<i class="fa fa-check-circle"></i> <span>Marking this cheque as <strong>Realised (Cleared)</strong> confirms bank credit of the fee amount.</span>');
+            $('#modal-status-badge').html('<span class="cheque-status-badge badge-cheque-realised"><i class="fa fa-check-circle mr-1"></i>Cheque Realised</span>');
             $('#remark').val('Cheque has been realised.');
         } else {
-            $('#status_message').html('<span class="text-warning"><i class="fa fa-clock-o mr-1"></i> Mark this cheque as <strong>Pending Realisation</strong>?</span>');
+            bannerEl.addClass('banner-pending').html('<i class="fa fa-clock-o"></i> <span>Marking this cheque as <strong>Pending Realisation</strong> keeps it under bank clearance review.</span>');
+            $('#modal-status-badge').html('<span class="cheque-status-badge badge-cheque-pending"><i class="fa fa-clock-o mr-1"></i>Pending Realisation</span>');
             $('#remark').val('This cheque is pending realisation.');
         }
 
         $('#statusModal').modal('show');
+    });
+
+    // Quick preset remark chips inside modal
+    $(document).on('click', '.arise-remark-chip', function() {
+        $('#remark').val($(this).data('preset')).focus();
     });
 
     // Restore original select value if modal is closed without saving
@@ -1483,7 +1629,7 @@ $(document).ready(function() {
                 alert('An error occurred while updating cheque status.');
             },
             complete: function() {
-                btn.prop('disabled', false).html('<i class="fa fa-check mr-1"></i> Confirm & Update');
+                btn.prop('disabled', false).html('<i class="fa fa-check mr-1"></i> Save Status Changes');
             }
         });
     });
