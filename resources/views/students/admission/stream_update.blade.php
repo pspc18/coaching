@@ -1496,31 +1496,37 @@ select.excel-col-filter option {
 <script>
 const streamBaseUrl = @json(url('/'));
 
-// Modal Helpers (Supporting Bootstrap 4, 5, and jQuery)
+// Modal Helpers (Supporting Bootstrap 4 jQuery and Bootstrap 5)
 function openModal(selector) {
+    if (window.jQuery && typeof $.fn.modal === 'function') {
+        $(selector).modal('show');
+        return;
+    }
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         var modalEl = document.querySelector(selector);
         if (modalEl) {
-            var modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modalObj.show();
-            return;
+            if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            } else if (typeof bootstrap.Modal === 'function') {
+                new bootstrap.Modal(modalEl).show();
+            }
         }
-    }
-    if ($.fn.modal) {
-        $(selector).modal('show');
     }
 }
 
 function closeModal(selector) {
+    if (window.jQuery && typeof $.fn.modal === 'function') {
+        $(selector).modal('hide');
+        return;
+    }
     if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         var modalEl = document.querySelector(selector);
         if (modalEl) {
-            var modalObj = bootstrap.Modal.getInstance(modalEl);
-            if (modalObj) modalObj.hide();
+            if (typeof bootstrap.Modal.getInstance === 'function') {
+                var inst = bootstrap.Modal.getInstance(modalEl);
+                if (inst) inst.hide();
+            }
         }
-    }
-    if ($.fn.modal) {
-        $(selector).modal('hide');
     }
 }
 
@@ -1944,9 +1950,10 @@ $(document).ready(function() {
 
     $(document).on('click', '.delete-subject', function(e) {
         e.preventDefault();
-        var button = $(this);
-        var admissionId = button.data('admission-id');
-        var subjectId = button.data('subject-id');
+        e.stopPropagation();
+        var button = $(this).closest('.delete-subject');
+        var admissionId = button.attr('data-admission-id') || button.data('admission-id');
+        var subjectId = button.attr('data-subject-id') || button.data('subject-id');
         var chip = button.closest('.subject-chip');
         var subjectName = chip.find('span:first-child').text().trim();
         var $row = chip.closest('tr');
@@ -1966,6 +1973,12 @@ $(document).ready(function() {
         $('#removeModalSubjectName').text(subjectName);
 
         openModal('#confirmRemoveSubjectModal');
+    });
+
+    // Universal Modal Dismiss Handler
+    $(document).on('click', '[data-dismiss="modal"], [data-bs-dismiss="modal"]', function(e) {
+        e.preventDefault();
+        $(this).closest('.modal').modal('hide');
     });
 
     // Confirm button inside delete subject modal
