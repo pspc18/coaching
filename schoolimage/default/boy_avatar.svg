@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgBoy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="blazerBoy" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#002C54"/>
+      <stop offset="100%" stop-color="#001833"/>
+    </linearGradient>
+    <clipPath id="circleClipBoy">
+      <rect x="0" y="0" width="200" height="200" rx="8" ry="8"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#circleClipBoy)">
+    <!-- Soft Sky Background -->
+    <rect width="200" height="200" fill="url(#bgBoy)"/>
+    <circle cx="100" cy="78" r="58" fill="#ffffff" opacity="0.35"/>
+
+    <!-- Neck -->
+    <rect x="85" y="114" width="30" height="28" rx="8" fill="#f1c27d"/>
+    <path d="M85 124 Q100 134 115 124 L115 138 L85 138 Z" fill="#e0ac69" opacity="0.45"/>
+
+    <!-- Shirt & School Blazer -->
+    <path d="M34 200 C34 152 64 136 100 136 C136 136 166 152 166 200 Z" fill="url(#blazerBoy)"/>
+    <!-- White Shirt V-Neck -->
+    <polygon points="78,136 100,184 122,136" fill="#ffffff"/>
+    <!-- Shirt Collar -->
+    <polygon points="76,134 100,152 88,160 68,140" fill="#f8fafc"/>
+    <polygon points="124,134 100,152 112,160 132,140" fill="#f8fafc"/>
+    <!-- Red/Sky Striped School Tie -->
+    <polygon points="95,150 105,150 108,192 100,200 92,192" fill="#0284c7"/>
+    <polygon points="94,146 106,146 104,154 96,154" fill="#0369a1"/>
+    <!-- Blazer Lapels -->
+    <polygon points="76,136 62,164 82,196 100,184" fill="#0f3460"/>
+    <polygon points="124,136 138,164 118,196 100,184" fill="#0f3460"/>
+    <!-- School Pocket Crest -->
+    <rect x="124" y="168" width="16" height="18" rx="3" fill="#0284c7" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="132" cy="177" r="4" fill="#facc15"/>
+
+    <!-- Ears -->
+    <circle cx="57" cy="84" r="9" fill="#f1c27d"/>
+    <circle cx="143" cy="84" r="9" fill="#f1c27d"/>
+
+    <!-- Face -->
+    <rect x="61" y="42" width="78" height="80" rx="38" fill="#ffdbac"/>
+
+    <!-- Boy Neat Short Hair -->
+    <path d="M58 76 C56 44 76 28 102 28 C128 28 144 44 142 76 C140 60 130 50 114 48 C100 46 82 52 70 46 C64 52 60 62 58 76 Z" fill="#1e293b"/>
+    <path d="M68 42 C82 32 116 30 132 44 C118 38 92 40 68 42 Z" fill="#334155"/>
+
+    <!-- Eyebrows -->
+    <path d="M75 72 Q83 68 91 72" stroke="#1e293b" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M109 72 Q117 68 125 72" stroke="#1e293b" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+    <!-- Eyes -->
+    <circle cx="83" cy="82" r="4.8" fill="#0f172a"/>
+    <circle cx="117" cy="82" r="4.8" fill="#0f172a"/>
+    <circle cx="84.5" cy="80.5" r="1.5" fill="#ffffff"/>
+    <circle cx="118.5" cy="80.5" r="1.5" fill="#ffffff"/>
+
+    <!-- Soft Cheeks -->
+    <ellipse cx="73" cy="93" rx="6" ry="3.5" fill="#fda4af" opacity="0.45"/>
+    <ellipse cx="127" cy="93" rx="6" ry="3.5" fill="#fda4af" opacity="0.45"/>
+
+    <!-- Nose -->
+    <path d="M100 82 L98 92 L103 93" stroke="#d99b66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <!-- Friendly Smile -->
+    <path d="M88 102 Q100 111 112 102" stroke="#b45309" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
