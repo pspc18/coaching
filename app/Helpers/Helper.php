@@ -164,19 +164,109 @@ class Helper{
         $branchId = Session::get('branch_id');
         $sessionId = Session::get('session_id');
         $today = date('Y-m-d');
+        $roleId = (int) Session::get('role_id');
+        $userId = (int) Session::get('id');
+
+        // If logged-in user is a student (role 3), provide student-specific notices matching student-notices
+        if ($roleId === 3 && !empty($userId)) {
+            return self::getStudentNotices($userId, $branchId, $sessionId, 6);
+        }
+
         $cacheKey = 'notice_board_' . $branchId . '_' . $sessionId . '_' . $today;
 
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($branchId, $sessionId, $today) {
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function() use ($branchId, $sessionId, $today) {
             $query = \App\Models\ManagedNotice::where('status', 'approved')
-                ->whereDate('to_date', '>=', $today)
-                ->whereDate('from_date', '<=', $today);
+                ->whereDate('to_date', '>=', $today);
             if (!empty($branchId)) {
                 $query->where('branch_id', $branchId);
             }
             if (!empty($sessionId)) {
                 $query->where('session_id', $sessionId);
             }
-            return $query->orderBy('id', 'DESC')->get();
+            return $query->orderBy('from_date', 'DESC')->orderBy('id', 'DESC')->get();
+        });
+    }
+
+    public static function getStudentNotices($studentId = null, $branchId = null, $sessionId = null, $limit = 6)
+    {
+        $studentId = (int) ($studentId ?: Session::get('id'));
+        $branchId = (int) ($branchId ?: Session::get('branch_id'));
+        $sessionId = (int) ($sessionId ?: Session::get('session_id'));
+        $today = date('Y-m-d');
+
+        if (empty($studentId)) {
+            return collect();
+        }
+
+        $cacheKey = 'student_notices_' . $studentId . '_' . $branchId . '_' . $sessionId . '_' . $today . '_' . $limit;
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($studentId, $branchId, $sessionId, $today, $limit) {
+            $baseQuery = \App\Models\ManagedNotice::query()
+                ->select([
+                    'id',
+                    'title',
+                    'message',
+                    'attachment_path',
+                    'attachment_name',
+                    'attachment_size',
+                    'from_date',
+                    'to_date',
+                    'created_by',
+                    'published_at',
+                    'status',
+                ])
+                ->with(['creator:id,first_name,last_name'])
+                ->where('status', 'approved')
+                ->where('branch_id', $branchId)
+                ->where('session_id', $sessionId)
+                ->whereHas('recipients', function ($q) use ($studentId) {
+                    $q->where('recipient_type', 'student')
+                      ->where('recipient_id', $studentId);
+                });
+
+            // Prioritize Upcoming first, then Active, then Recent
+            return (clone $baseQuery)
+                ->orderByRaw("
+                    CASE 
+                        WHEN from_date > ? THEN 1
+                        WHEN from_date <= ? AND to_date >= ? THEN 2
+                        ELSE 3
+                    END ASC
+                ", [$today, $today, $today])
+                ->orderByDesc('from_date')
+                ->orderByDesc('id')
+                ->take($limit)
+                ->get();
+        });
+    }
+
+    public static function getStudentNoticeCounts($studentId = null, $branchId = null, $sessionId = null)
+    {
+        $studentId = (int) ($studentId ?: Session::get('id'));
+        $branchId = (int) ($branchId ?: Session::get('branch_id'));
+        $sessionId = (int) ($sessionId ?: Session::get('session_id'));
+        $today = date('Y-m-d');
+
+        if (empty($studentId)) {
+            return (object) ['total_count' => 0, 'active_count' => 0, 'upcoming_count' => 0, 'expired_count' => 0];
+        }
+
+        $cacheKey = 'student_notice_counts_' . $studentId . '_' . $branchId . '_' . $sessionId . '_' . $today;
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($studentId, $branchId, $sessionId, $today) {
+            return \App\Models\ManagedNotice::query()
+                ->where('status', 'approved')
+                ->where('branch_id', $branchId)
+                ->where('session_id', $sessionId)
+                ->whereHas('recipients', function ($q) use ($studentId) {
+                    $q->where('recipient_type', 'student')
+                      ->where('recipient_id', $studentId);
+                })
+                ->selectRaw('COUNT(*) as total_count')
+                ->selectRaw('SUM(CASE WHEN from_date <= ? AND to_date >= ? THEN 1 ELSE 0 END) as active_count', [$today, $today])
+                ->selectRaw('SUM(CASE WHEN from_date > ? THEN 1 ELSE 0 END) as upcoming_count', [$today])
+                ->selectRaw('SUM(CASE WHEN to_date < ? THEN 1 ELSE 0 END) as expired_count', [$today])
+                ->first() ?: (object) ['total_count' => 0, 'active_count' => 0, 'upcoming_count' => 0, 'expired_count' => 0];
         });
     }
 

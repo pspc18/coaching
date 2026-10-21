@@ -91,8 +91,13 @@
     $netPayable = (float) $feeSummary['netPayable'];
     $feePercent = (int) $feeSummary['paymentProgress'];
 
-    // 3. Notices & Circulars (Cached from Helper)
-    $notices = collect(Helper::noticeBoard() ?? [])->take(4);
+    // 3. Notices & Circulars (Personalized to student matching student-notices, with Upcoming & Active prioritization)
+    $todayDate = \Carbon\Carbon::today()->toDateString();
+    $studentNoticeCounts = Helper::getStudentNoticeCounts($studentId, $branchId, $sessionId);
+    $noticesTotalCount = (int) ($studentNoticeCounts->total_count ?? 0);
+    $noticesUpcomingCount = (int) ($studentNoticeCounts->upcoming_count ?? 0);
+    $noticesActiveCount = (int) ($studentNoticeCounts->active_count ?? 0);
+    $notices = Helper::getStudentNotices($studentId, $branchId, $sessionId, 5);
 
     // 4. Notifications / Alerts Count (From layout without re-querying DB)
     $alertCount = $unreadAlerts ?? ($notificationCount ?? 0);
@@ -869,7 +874,7 @@
         <i class="fa fa-inr mr-1"></i> Fees
     </button>
     <button type="button" class="native-seg-btn" data-target="feed-notices" onclick="switchNativeTab('feed-notices', this)">
-        <i class="fa fa-bullhorn mr-1"></i> Notices ({{ $notices->count() }})
+        <i class="fa fa-bullhorn mr-1"></i> Notices ({{ $noticesTotalCount }})
     </button>
 </div>
 
@@ -992,25 +997,72 @@
         <div class="sharp-card-header">
             <h3 class="sharp-card-title">
                 <i class="fa fa-bullhorn text-warning"></i> Latest Notices &amp; Circulars
+                @if($noticesUpcomingCount > 0)
+                    <span class="badge" style="background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-size:9.5px; padding:2px 6px; border-radius:3px; margin-left:4px; font-weight:800;">
+                        <i class="fa fa-clock-o mr-1"></i>{{ $noticesUpcomingCount }} Upcoming
+                    </span>
+                @elseif($noticesActiveCount > 0)
+                    <span class="badge" style="background:#ecfdf5; color:#15803d; border:1px solid #a7f3d0; font-size:9.5px; padding:2px 6px; border-radius:3px; margin-left:4px; font-weight:800;">
+                        <i class="fa fa-check-circle mr-1"></i>{{ $noticesActiveCount }} Active
+                    </span>
+                @endif
             </h3>
             <a href="{{ url('student-notices') }}" class="sharp-card-link">
-                All Notices <i class="fa fa-angle-right"></i>
+                All Notices ({{ $noticesTotalCount }}) <i class="fa fa-angle-right"></i>
             </a>
         </div>
         @forelse($notices as $notice)
             @php
                 $noticeTitle = $notice->title ?? $notice->name ?? 'Notice Announcement';
-                $noticeDate = !empty($notice->from_date) ? \Carbon\Carbon::parse($notice->from_date)->format('d M') : (!empty($notice->date) ? \Carbon\Carbon::parse($notice->date)->format('d M') : (!empty($notice->created_at) ? \Carbon\Carbon::parse($notice->created_at)->format('d M') : date('d M')));
-                $noticeDesc = strip_tags($notice->description ?? $notice->message ?? '');
+                $fromDate = !empty($notice->from_date) ? \Carbon\Carbon::parse($notice->from_date) : null;
+                $toDate = !empty($notice->to_date) ? \Carbon\Carbon::parse($notice->to_date) : null;
+                $isUpcoming = $fromDate && $fromDate->toDateString() > $todayDate;
+                $isActive = $fromDate && $toDate && $fromDate->toDateString() <= $todayDate && $toDate->toDateString() >= $todayDate;
+                $noticeDesc = trim(strip_tags($notice->description ?? $notice->message ?? ''));
+                $hasAttachment = !empty($notice->attachment_path);
+
+                if ($isUpcoming) {
+                    $badgeStyle = 'background:#fffbeb; color:#d97706; border:1px solid #fde68a;';
+                    $iconClass = 'fa-clock-o';
+                    $statusTag = 'Upcoming';
+                    $statusTagStyle = 'background:#fef3c7; color:#b45309; border:1px solid #fcd34d;';
+                    $noticeUrl = url('student-notices?filter=upcoming#noticeCard-'.$notice->id);
+                } elseif ($isActive) {
+                    $badgeStyle = 'background:#ecfdf5; color:#16a34a; border:1px solid #a7f3d0;';
+                    $iconClass = 'fa-bullhorn';
+                    $statusTag = 'Active';
+                    $statusTagStyle = 'background:#dcfce7; color:#15803d; border:1px solid #86efac;';
+                    $noticeUrl = url('student-notices?filter=active#noticeCard-'.$notice->id);
+                } else {
+                    $badgeStyle = 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;';
+                    $iconClass = 'fa-file-text-o';
+                    $statusTag = 'Notice';
+                    $statusTagStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+                    $noticeUrl = url('student-notices#noticeCard-'.$notice->id);
+                }
             @endphp
-            <a href="{{ url('student-notices') }}" class="native-list-item">
-                <div class="item-circle-badge" style="background:#fef3c7;color:#d97706;">
-                    <i class="fa fa-bell-o"></i>
+            <a href="{{ $noticeUrl }}" class="native-list-item" title="View Notice Details">
+                <div class="item-circle-badge" style="{{ $badgeStyle }}">
+                    <i class="fa {{ $iconClass }}"></i>
                 </div>
                 <div class="item-info-col">
-                    <div class="item-primary-txt">{{ $noticeTitle }}</div>
+                    <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                        <div class="item-primary-txt">{{ $noticeTitle }}</div>
+                        <span class="badge" style="{{ $statusTagStyle }} font-size:8.5px; padding:1.5px 5px; border-radius:3px; font-weight:800; white-space:nowrap; flex-shrink:0;">
+                            {{ $statusTag }}
+                        </span>
+                    </div>
                     <div class="item-secondary-txt">
-                        <span class="mr-2"><i class="fa fa-clock-o mr-1"></i>{{ $noticeDate }}</span>
+                        @if($isUpcoming && $fromDate)
+                            <span class="mr-2 text-warning font-weight-bold"><i class="fa fa-clock-o mr-1"></i>From {{ $fromDate->format('d M') }}</span>
+                        @elseif($isActive && $toDate)
+                            <span class="mr-2 text-success font-weight-bold"><i class="fa fa-calendar-check-o mr-1"></i>Till {{ $toDate->format('d M') }}</span>
+                        @elseif($fromDate)
+                            <span class="mr-2"><i class="fa fa-calendar-o mr-1"></i>{{ $fromDate->format('d M') }}</span>
+                        @endif
+                        @if($hasAttachment)
+                            <span class="mr-2 text-danger font-weight-bold"><i class="fa fa-file-pdf-o"></i> PDF</span>
+                        @endif
                         @if(!empty($noticeDesc))
                             &bull; {{ \Illuminate\Support\Str::limit($noticeDesc, 55) }}
                         @endif
@@ -1020,8 +1072,8 @@
             </a>
         @empty
             <div class="text-center py-3 text-muted" style="font-size: 11px;">
-                <i class="fa fa-info-circle fa-2x text-muted mb-1 d-block"></i>
-                No active announcements posted yet.
+                <i class="fa fa-bell-slash-o fa-2x text-muted mb-1 d-block" style="opacity:0.5;"></i>
+                No circular announcements found for your account yet.
             </div>
         @endforelse
     </div>
