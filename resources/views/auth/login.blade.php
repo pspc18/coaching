@@ -12,7 +12,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#001428">
+    <meta name="theme-color" content="#002C54">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Sign In | {{ $firmAcronym }}</title>
@@ -43,10 +43,10 @@
            ============================================================================== */
 
         :root {
-            --arise-primary: #001428;
-            --arise-primary-hover: #000c19;
-            --arise-secondary: #001428;
-            --arise-header-dark: #001428;
+            --arise-primary: #002C54;
+            --arise-primary-hover: #001f3d;
+            --arise-secondary: #0f3460;
+            --arise-header-dark: #002C54;
             --arise-accent: #2563eb;
             --arise-accent-hover: #1d4ed8;
             --arise-success: #059669;
@@ -108,13 +108,13 @@
            LEFT PANEL: Institutional ERP Brand Showcase (Strict Navy Theme)
            -------------------------------------------------------------------------- */
         .arise-showcase-column {
-            background: #001428 !important;
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
             color: #ffffff;
             padding: 24px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* School Logo & Title */
@@ -151,7 +151,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #001428 !important;
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
             color: #ffffff;
             font-size: 19px;
             font-weight: 800;
@@ -263,13 +263,13 @@
 
         /* Card Header (Standard #002342 Navy Bar) */
         .arise-card-header {
-            background: #001428 !important;
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
             color: #ffffff;
             padding: 8px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             min-height: 38px;
         }
         .arise-header-title {
@@ -488,16 +488,16 @@
             font-size: 12.5px;
             font-weight: 600;
             color: #ffffff;
-            background-color: var(--arise-primary);
-            border: 1px solid var(--arise-primary);
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+            border: 1px solid #002C54 !important;
             border-radius: var(--radius-erp) !important;
             cursor: pointer;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .btn-arise-primary:hover {
-            background-color: var(--arise-primary-hover);
-            border-color: var(--arise-primary-hover);
+            background: linear-gradient(135deg, #001f3d 0%, #0a2647 100%) !important;
+            border-color: #001f3d !important;
         }
         .btn-arise-primary:disabled {
             opacity: 0.65;
@@ -594,8 +594,8 @@
                 border-right: none !important;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
                 flex: 0 0 auto !important;
-                box-shadow: 0 2px 6px rgba(0, 20, 40, 0.25) !important;
-                background: #001428 !important;
+                box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25) !important;
+                background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
             }
             .showcase-brand-header {
                 margin-bottom: 0 !important;
@@ -651,6 +651,7 @@
             }
 
             .arise-card-header {
+                background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
                 padding: 7px 12px !important;
                 min-height: 35px !important;
             }
@@ -724,7 +725,7 @@
             background: #ffffff;
         }
         .modal.arise-theme-modal .modal-header {
-            background: #001428 !important;
+            background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
             color: #ffffff !important;
             padding: 8px 14px !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
