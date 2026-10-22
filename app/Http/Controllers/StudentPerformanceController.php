@@ -61,95 +61,264 @@ use Intervention\Image\Facades\Image;
 class StudentPerformanceController extends Controller
 {
     
-     public function studentParticularPerformance(Request $request,$id){
-      
-      $data = Admission::find($id);
+     public function studentParticularPerformance(Request $request, $id)
+     {
+         $data = Admission::find($id);
+         if (!$data) {
+             return redirect()->back()->with('error', 'Student not found.');
+         }
 
-      $attendance = $data ? Helper::getAttendancePerformance($data->id,$data->class_type_id) : 'N/A';
-      $examIds = $data ? array_values(array_filter(array_map('trim', Helper::getExamsForPerformance($data->class_type_id)))) : [];
-      $subjectIds = $data ? array_values(array_filter(array_map('trim', Helper::getPerformaceSubjects($data->id,$data->class_type_id)))) : [];
-      $otherIds = $data ? array_values(array_filter(array_map('trim', Helper::getPerformaceOtherSubjets($data->id,$data->class_type_id)))) : [];
+         $sessionId = Session::get('session_id') ?? $data->session_id ?? 5;
+         $classTypeId = $data->class_type_id;
+         $class = ClassType::find($classTypeId);
 
-      $subjectList = !empty($subjectIds)
-          ? Subject::whereIn('id', $subjectIds)->pluck('name', 'id')->all()
-          : [];
-      $otherList = !empty($otherIds)
-          ? Subject::whereIn('id', $otherIds)->pluck('name', 'id')->all()
-          : [];
+         // 1. Ultra-Fast Indexed Attendance Calculation
+         $attSummary = DB::table('student_attendance')
+             ->where('admission_id', $data->id)
+             ->select('attendance_status_id', DB::raw('count(*) as count'))
+             ->groupBy('attendance_status_id')
+             ->pluck('count', 'attendance_status_id')
+             ->all();
 
-      $examList = !empty($examIds)
-          ? Exam::whereNull('deleted_at')->whereIn('id', $examIds)->pluck('name', 'id')
-          : collect();
+         $presentDays = (int)($attSummary[1] ?? 0);
+         $absentDays  = (int)($attSummary[2] ?? 0);
+         $leaveDays   = (int)($attSummary[3] ?? 0);
+         $totalAttDays = $presentDays + $absentDays + $leaveDays;
+         $attendancePercent = $totalAttDays > 0 ? round(($presentDays / $totalAttDays) * 100, 1) : null;
+         $attendance = $attendancePercent !== null ? $attendancePercent . '%' : 'N/A';
 
-      $performanceMatrix = [];
-      $otherPerformanceMatrix = [];
+         // 2. Comprehensive Exam Discovery
+         $assignedExamIds = DB::table('assign_exams')
+             ->where('class_type_id', $classTypeId)
+             ->whereNull('deleted_at')
+             ->pluck('exam_id')
+             ->all();
 
-      if ($data && !empty($examIds)) {
-          $subjectMarks = FillMarks::where('session_id', Session::get('session_id'))
-              ->where('admission_id', $data->id)
-              ->where('class_type_id', $data->class_type_id)
-              ->whereIn('exam_id', $examIds)
-              ->whereIn('subject_id', $subjectIds ?: [0])
-              ->get(['exam_id', 'subject_id', 'student_marks']);
+         $filledExamIds = DB::table('fill_marks')
+             ->where('admission_id', $data->id)
+             ->pluck('exam_id')
+             ->all();
 
-          $subjectMaxMarks = FillMinMaxMarks::where('session_id', Session::get('session_id'))
-              ->where('class_type_id', $data->class_type_id)
-              ->whereIn('exam_id', $examIds)
-              ->whereIn('subject_id', $subjectIds ?: [0])
-              ->get(['exam_id', 'subject_id', 'exam_maximum_marks']);
+         $examIds = array_values(array_unique(array_filter(array_merge($assignedExamIds, $filledExamIds))));
 
-          $subjectMarksMap = [];
-          foreach ($subjectMarks as $mark) {
-              $subjectMarksMap[$mark->exam_id][$mark->subject_id] = $mark->student_marks;
-          }
-          $subjectMaxMap = [];
-          foreach ($subjectMaxMarks as $mark) {
-              $subjectMaxMap[$mark->exam_id][$mark->subject_id] = $mark->exam_maximum_marks;
-          }
+         // Fetch Exam models
+         $examList = !empty($examIds)
+             ? Exam::whereIn('id', $examIds)
+                 ->whereNull('deleted_at')
+                 ->orderBy('exam_date', 'asc')
+                 ->orderBy('id', 'asc')
+                 ->get()
+                 ->keyBy('id')
+             : collect();
 
-          foreach ($examIds as $examId) {
-              foreach ($subjectIds as $subjectId) {
-                  $studentMarks = $subjectMarksMap[$examId][$subjectId] ?? 0;
-                  $maxMarks = $subjectMaxMap[$examId][$subjectId] ?? 0;
-                  $percentage = $maxMarks > 0 ? round(($studentMarks / $maxMarks) * 100, 2) : null;
-                  $performanceMatrix[$examId][$subjectId] = [
-                      'student_marks' => $studentMarks,
-                      'max_marks' => $maxMarks,
-                      'percentage' => $percentage,
-                  ];
-              }
-          }
+         // 3. Comprehensive Subject Discovery
+         $streamSubjectIds = array_filter(array_map('trim', explode(',', $data->stream_subject ?? '')));
+         $filledSubjectIds = DB::table('fill_marks')
+             ->where('admission_id', $data->id)
+             ->pluck('subject_id')
+             ->all();
 
-          if (!empty($otherIds)) {
-              $otherMarks = collect();
+         $subjectIds = array_values(array_unique(array_filter(array_merge($streamSubjectIds, $filledSubjectIds))));
 
-              $otherMarksMap = [];
-              foreach ($otherMarks as $mark) {
-                  $otherMarksMap[$mark->term_id][$mark->subject_id] = $mark->student_marks;
-              }
+         if (empty($subjectIds) && $class && !empty($class->subject_id)) {
+             $subjectIds = array_values(array_filter(array_map('trim', explode(',', $class->subject_id))));
+         }
 
-              foreach ($examIds as $examId) {
-                  foreach ($otherIds as $otherId) {
-                      $otherPerformanceMatrix[$examId][$otherId] = [
-                          'student_marks' => $otherMarksMap[$examId][$otherId] ?? 0,
-                      ];
-                  }
-              }
-          }
-      }
+         $subjectList = !empty($subjectIds)
+             ? Subject::whereIn('id', $subjectIds)
+                 ->whereNull('deleted_at')
+                 ->get()
+                 ->keyBy('id')
+             : collect();
 
-      return view('students.academic_performance.student_particular_performance',[
-          'data' => $data,
-          'attendance' => $attendance,
-          'examIds' => $examIds,
-          'examList' => $examList,
-          'subjectIds' => $subjectIds,
-          'otherIds' => $otherIds,
-          'subjectList' => $subjectList,
-          'otherList' => $otherList,
-          'performanceMatrix' => $performanceMatrix,
-          'otherPerformanceMatrix' => $otherPerformanceMatrix,
-      ]);
+         // 4. Single-Query Batch Marks Retrieval
+         $fillMarks = DB::table('fill_marks')
+             ->where('admission_id', $data->id)
+             ->whereIn('exam_id', $examIds ?: [0])
+             ->get();
+
+         $minMaxMarks = DB::table('fill_min_max_marks')
+             ->where('class_type_id', $classTypeId)
+             ->whereIn('exam_id', $examIds ?: [0])
+             ->get();
+
+         $minMaxMap = [];
+         foreach ($minMaxMarks as $mm) {
+             $minMaxMap[$mm->exam_id][$mm->subject_id] = [
+                 'max' => (float)$mm->exam_maximum_marks,
+                 'min' => (float)$mm->exam_minimum_marks,
+             ];
+         }
+
+         // 5. Build Performance Matrix & Analytics
+         $performanceMatrix = [];
+         $examSummaries = [];
+         $subjectTotals = [];
+         $chartLabels = [];
+         $chartPercentages = [];
+         $totalObtainedAll = 0;
+         $totalMaxAll = 0;
+         $hasCompetitiveMarks = false;
+
+         // Map fill marks into lookup map
+         $fillMarksMap = [];
+         foreach ($fillMarks as $fm) {
+             $fillMarksMap[$fm->exam_id][$fm->subject_id] = $fm;
+             if ($fm->r_marks !== null || $fm->w_marks !== null || $fm->l_marks !== null) {
+                 $hasCompetitiveMarks = true;
+             }
+         }
+
+         foreach ($examList as $examId => $examObj) {
+             $examObtained = 0;
+             $examMax = 0;
+             $examSubjectAttempts = 0;
+
+             foreach ($subjectList as $subId => $subObj) {
+                 $markRecord = $fillMarksMap[$examId][$subId] ?? null;
+                 $studentMarks = $markRecord && $markRecord->student_marks !== null ? (float)$markRecord->student_marks : null;
+
+                 $maxFromRecord = $markRecord ? (float)($markRecord->exam_maximum_marks ?? 0) : 0;
+                 $maxFromConfig = (float)($minMaxMap[$examId][$subId]['max'] ?? 0);
+                 $maxMarks = $maxFromRecord > 0 ? $maxFromRecord : $maxFromConfig;
+
+                 $pct = ($studentMarks !== null && $maxMarks > 0) ? round(($studentMarks / $maxMarks) * 100, 1) : null;
+
+                 $performanceMatrix[$examId][$subId] = [
+                     'student_marks' => $studentMarks,
+                     'max_marks'     => $maxMarks,
+                     'percentage'    => $pct,
+                     'r_marks'       => $markRecord ? $markRecord->r_marks : null,
+                     'w_marks'       => $markRecord ? $markRecord->w_marks : null,
+                     'l_marks'       => $markRecord ? $markRecord->l_marks : null,
+                 ];
+
+                 if ($studentMarks !== null) {
+                     $examObtained += $studentMarks;
+                     $examMax += $maxMarks;
+                     $examSubjectAttempts++;
+
+                     if (!isset($subjectTotals[$subId])) {
+                         $subjectTotals[$subId] = [
+                             'name'     => $subObj->name,
+                             'obtained' => 0,
+                             'max'      => 0,
+                             'attempts' => 0,
+                             'highest'  => $studentMarks,
+                             'lowest'   => $studentMarks,
+                         ];
+                     }
+                     $subjectTotals[$subId]['obtained'] += $studentMarks;
+                     $subjectTotals[$subId]['max'] += $maxMarks;
+                     $subjectTotals[$subId]['attempts']++;
+                     if ($studentMarks > $subjectTotals[$subId]['highest']) {
+                         $subjectTotals[$subId]['highest'] = $studentMarks;
+                     }
+                     if ($studentMarks < $subjectTotals[$subId]['lowest']) {
+                         $subjectTotals[$subId]['lowest'] = $studentMarks;
+                     }
+                 }
+             }
+
+             $examPct = $examMax > 0 ? round(($examObtained / $examMax) * 100, 1) : null;
+             $examSummaries[$examId] = [
+                 'name'         => $examObj->name,
+                 'date'         => $examObj->exam_date ? date('d-m-Y', strtotime($examObj->exam_date)) : 'N/A',
+                 'obtained'     => $examObtained,
+                 'max'          => $examMax,
+                 'percentage'   => $examPct,
+                 'sub_attempts' => $examSubjectAttempts,
+             ];
+
+             if ($examPct !== null) {
+                 $chartLabels[] = Str::limit($examObj->name, 15);
+                 $chartPercentages[] = $examPct;
+                 $totalObtainedAll += $examObtained;
+                 $totalMaxAll += $examMax;
+             }
+         }
+
+         // Calculate subject averages & identify strongest/weakest subject
+         $bestSubject = null;
+         $weakSubject = null;
+         $maxSubPct = -1;
+         $minSubPct = 9999;
+
+         foreach ($subjectTotals as $sId => &$sData) {
+             $sData['percentage'] = $sData['max'] > 0 ? round(($sData['obtained'] / $sData['max']) * 100, 1) : null;
+             if ($sData['percentage'] !== null) {
+                 if ($sData['percentage'] > $maxSubPct) {
+                     $maxSubPct = $sData['percentage'];
+                     $bestSubject = $sData['name'] . ' (' . $sData['percentage'] . '%)';
+                 }
+                 if ($sData['percentage'] < $minSubPct) {
+                     $minSubPct = $sData['percentage'];
+                     $weakSubject = $sData['name'] . ' (' . $sData['percentage'] . '%)';
+                 }
+             }
+         }
+         unset($sData);
+
+         $overallPercentage = $totalMaxAll > 0 ? round(($totalObtainedAll / $totalMaxAll) * 100, 1) : null;
+
+         // Performance Tier / Rating
+         $performanceGrade = 'N/A';
+         $performanceBadgeClass = 'badge-secondary';
+         if ($overallPercentage !== null) {
+             if ($overallPercentage >= 85) {
+                 $performanceGrade = 'Outstanding (A+)';
+                 $performanceBadgeClass = 'badge-success';
+             } elseif ($overallPercentage >= 75) {
+                 $performanceGrade = 'Distinction (A)';
+                 $performanceBadgeClass = 'badge-success';
+             } elseif ($overallPercentage >= 60) {
+                 $performanceGrade = 'First Class (B)';
+                 $performanceBadgeClass = 'badge-primary';
+             } elseif ($overallPercentage >= 50) {
+                 $performanceGrade = 'Second Class (C)';
+                 $performanceBadgeClass = 'badge-warning';
+             } elseif ($overallPercentage >= 35) {
+                 $performanceGrade = 'Pass Class (D)';
+                 $performanceBadgeClass = 'badge-info';
+             } else {
+                 $performanceGrade = 'Needs Attention (E)';
+                 $performanceBadgeClass = 'badge-danger';
+             }
+         }
+
+         // Backward compatibility for existing legacy variables
+         $otherIds = [];
+         $otherList = [];
+         $otherPerformanceMatrix = [];
+
+         return view('students.academic_performance.student_particular_performance', [
+             'data'                  => $data,
+             'class'                 => $class,
+             'attendance'            => $attendance,
+             'presentDays'           => $presentDays,
+             'absentDays'            => $absentDays,
+             'totalAttDays'          => $totalAttDays,
+             'examIds'               => $examIds,
+             'examList'              => $examList,
+             'subjectIds'            => $subjectIds,
+             'otherIds'              => $otherIds,
+             'subjectList'           => $subjectList,
+             'otherList'             => $otherList,
+             'performanceMatrix'     => $performanceMatrix,
+             'otherPerformanceMatrix'=> $otherPerformanceMatrix,
+             'examSummaries'         => $examSummaries,
+             'subjectTotals'         => $subjectTotals,
+             'totalObtainedAll'      => $totalObtainedAll,
+             'totalMaxAll'           => $totalMaxAll,
+             'overallPercentage'     => $overallPercentage,
+             'performanceGrade'      => $performanceGrade,
+             'performanceBadgeClass' => $performanceBadgeClass,
+             'bestSubject'           => $bestSubject,
+             'weakSubject'           => $weakSubject,
+             'chartLabels'           => $chartLabels,
+             'chartPercentages'      => $chartPercentages,
+             'hasCompetitiveMarks'   => $hasCompetitiveMarks,
+         ]);
      }
      public function studentPerformance(Request $request){
          
