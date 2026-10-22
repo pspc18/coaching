@@ -2,6 +2,7 @@
 $setting = Helper::getSetting();
 $faviconUrl = Helper::getFaviconUrl();
 $logoUrl = Helper::getLogoUrl();
+$firmAcronym = Helper::getFirmAcronym();
 @endphp
 
 <!DOCTYPE html>
@@ -10,7 +11,7 @@ $logoUrl = Helper::getLogoUrl();
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-        <title>@hasSection('title')@yield('title') - @endif{{ $setting->name ?? 'Rusoft Education Point' }}</title>
+        <title>@hasSection('title')@yield('title') | {{ $firmAcronym }}@else{{ Helper::getPageTitle() }} | {{ $firmAcronym }}@endif</title>
         <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
         <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
         <link rel="shortcut icon" href="{{ $faviconUrl }}">
@@ -412,5 +413,70 @@ document.addEventListener("click", function(e) {
         </script>
     @include('initial.initialView')
     <script src="{{ asset('public/assets/school/js/instantpage.5.2.0.js') }}" type="module"></script>
+    <script>
+    (function() {
+        const firmAcronym = '{{ $firmAcronym }}';
+        function updatePageTitle() {
+            try {
+                let titleCandidate = '';
+
+                // 1. Breadcrumb active item
+                const breadcrumb = document.querySelector('.content-header .breadcrumb-item.active, ol.breadcrumb li.active, ol.breadcrumb li:last-child');
+                if (breadcrumb) {
+                    const text = breadcrumb.textContent.trim();
+                    if (text && text.length > 1 && text.toLowerCase() !== 'home') {
+                        titleCandidate = text;
+                    }
+                }
+
+                // 2. Primary Page Header (h1 / h2 inside content-header)
+                if (!titleCandidate) {
+                    const headerEl = document.querySelector('.content-header h1, .content-header h2, h1.m-0, h1.content-title');
+                    if (headerEl) {
+                        const clone = headerEl.cloneNode(true);
+                        clone.querySelectorAll('.badge, .btn, button, a, small, i').forEach(function(el) { el.remove(); });
+                        const text = clone.textContent.trim();
+                        if (text && text.length > 1) {
+                            titleCandidate = text;
+                        }
+                    }
+                }
+
+                // 3. Card Title (if no general header found)
+                if (!titleCandidate) {
+                    const cardTitle = document.querySelector('.card-header:not(.modal-header) .card-title');
+                    if (cardTitle) {
+                        const clone = cardTitle.cloneNode(true);
+                        clone.querySelectorAll('.badge, .btn, button, a, small, i').forEach(function(el) { el.remove(); });
+                        const text = clone.textContent.trim();
+                        if (text && text.length > 1 && text.toLowerCase() !== 'filters') {
+                            titleCandidate = text;
+                        }
+                    }
+                }
+
+                if (titleCandidate) {
+                    titleCandidate = titleCandidate.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                    const expectedEnd = ' | ' + firmAcronym;
+                    const newTitle = titleCandidate + expectedEnd;
+                    if (document.title !== newTitle) {
+                        document.title = newTitle;
+                    }
+                }
+            } catch (err) {
+                // ignore
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updatePageTitle);
+        } else {
+            updatePageTitle();
+        }
+        window.addEventListener('load', function() {
+            setTimeout(updatePageTitle, 200);
+        });
+    })();
+    </script>
 </body>
 </html>

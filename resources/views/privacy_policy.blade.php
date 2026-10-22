@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Privacy Policy | Arise Education Point</title>
+  <title>Privacy Policy | {{ App\Helpers\Helper::getFirmAcronym() }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Arise Theme -->

@@ -47,16 +47,17 @@
     $mobileLogoUrl = Helper::getLogoUrl();
     $faviconUrl = Helper::getFaviconUrl();
     $firmInitial = strtoupper(mb_substr(trim($setting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
+    $firmAcronym = Helper::getFirmAcronym();
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#001833">
+    <meta name="theme-color" content="#001428">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>@hasSection('title')@yield('title') - @endif{{ $setting->name ?? 'Rusoft Education Point' }}</title>
+    <title>@hasSection('title')@yield('title') | {{ $firmAcronym }}@else{{ Helper::getPageTitle() }} | {{ $firmAcronym }}@endif</title>
     <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
     <link rel="icon" type="image/png" href="{{ $faviconUrl }}">
     <link rel="shortcut icon" href="{{ $faviconUrl }}">
@@ -1461,5 +1462,68 @@ $(document).ready(function() {
 </div>
 
 @yield('scripts')
+<script>
+(function() {
+    const firmAcronym = '{{ $firmAcronym }}';
+    function updateMobilePageTitle() {
+        try {
+            let titleCandidate = '';
+
+            // 1. Mobile top title
+            const topTitle = document.querySelector('.mobile-top-title, .mobile-top-bar .title, .app-header-title');
+            if (topTitle) {
+                const text = topTitle.textContent.trim();
+                if (text && text.length > 1 && !text.toLowerCase().includes('rusoft') && !text.toLowerCase().includes('arise')) {
+                    titleCandidate = text;
+                }
+            }
+
+            // 2. Breadcrumb or active pill
+            if (!titleCandidate) {
+                const breadcrumb = document.querySelector('.breadcrumb-item.active, .mobile-page-heading');
+                if (breadcrumb) {
+                    const text = breadcrumb.textContent.trim();
+                    if (text && text.length > 1) {
+                        titleCandidate = text;
+                    }
+                }
+            }
+
+            // 3. Card Title / Section heading
+            if (!titleCandidate) {
+                const cardTitle = document.querySelector('.card-header:not(.modal-header) .card-title, .section-title, h1, h2');
+                if (cardTitle) {
+                    const clone = cardTitle.cloneNode(true);
+                    clone.querySelectorAll('.badge, .btn, button, a, small, i').forEach(function(el) { el.remove(); });
+                    const text = clone.textContent.trim();
+                    if (text && text.length > 1) {
+                        titleCandidate = text;
+                    }
+                }
+            }
+
+            if (titleCandidate) {
+                titleCandidate = titleCandidate.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                const expectedEnd = ' | ' + firmAcronym;
+                const newTitle = titleCandidate + expectedEnd;
+                if (document.title !== newTitle) {
+                    document.title = newTitle;
+                }
+            }
+        } catch (err) {
+            // ignore
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateMobilePageTitle);
+    } else {
+        updateMobilePageTitle();
+    }
+    window.addEventListener('load', function() {
+        setTimeout(updateMobilePageTitle, 200);
+    });
+})();
+</script>
 </body>
 </html>

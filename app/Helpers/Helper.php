@@ -383,6 +383,125 @@ class Helper{
         }
         return self::getLogoUrl();
     }
+
+    public static function getFirmAcronym($default = 'ACI')
+    {
+        $setting = self::getSetting();
+        $name = trim($setting->name ?? '');
+        if (empty($name)) {
+            return $default;
+        }
+
+        $cleanName = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $name);
+        $words = preg_split('/\s+/', trim($cleanName), -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($words)) {
+            return $default;
+        }
+
+        if (count($words) === 1) {
+            $word = $words[0];
+            return mb_strlen($word, 'UTF-8') <= 5 ? mb_strtoupper($word, 'UTF-8') : mb_strtoupper(mb_substr($word, 0, 3, 'UTF-8'));
+        }
+
+        $ignoreWords = ['of', 'and', 'the', 'for', 'in', 'on', 'at', 'to', 'a', 'an', '&'];
+        $acronym = '';
+        foreach ($words as $w) {
+            if (in_array(strtolower($w), $ignoreWords)) {
+                continue;
+            }
+            $acronym .= mb_strtoupper(mb_substr($w, 0, 1, 'UTF-8'));
+        }
+
+        if (empty($acronym)) {
+            foreach ($words as $w) {
+                $acronym .= mb_strtoupper(mb_substr($w, 0, 1, 'UTF-8'));
+            }
+        }
+
+        return !empty($acronym) ? $acronym : $default;
+    }
+
+    public static function getPageTitle($explicitTitle = null)
+    {
+        $explicitTitle = trim((string) $explicitTitle);
+        if (!empty($explicitTitle)) {
+            return $explicitTitle;
+        }
+
+        $request = request();
+        if (!$request) {
+            return 'Dashboard';
+        }
+
+        $path = trim($request->path(), '/');
+        if ($path === '' || $path === '/' || $path === 'dashboard' || $path === 'home') {
+            return 'Dashboard';
+        }
+
+        $routeMap = [
+            'login' => 'Sign In',
+            'change_password' => 'Change Password',
+            'stream_update' => 'Stream Update',
+            'studentParticularPerformance' => 'Student Performance',
+            'student_performance' => 'Student Performance',
+            'students/admission' => 'Student Admission',
+            'admissionView' => 'Student Details',
+            'students/enquiry' => 'Student Enquiry',
+            'enquiry' => 'Student Enquiry',
+            'fees/fees_collect' => 'Fees Collection',
+            'fees_collect' => 'Fees Collection',
+            'fees_history' => 'Fees History',
+            'fees_receipt' => 'Fees Receipt',
+            'offline_exam' => 'Offline Examination',
+            'exam' => 'Exams',
+            'attendance' => 'Attendance',
+            'student_attendance' => 'Student Attendance',
+            'staff_attendance' => 'Staff Attendance',
+            'download_center' => 'Download Center',
+            'student_download_center' => 'Download Center',
+            'homework' => 'Homework',
+            'notice' => 'Notices',
+            'notification' => 'Notifications',
+            'profile' => 'Profile',
+            'setting' => 'Settings',
+            'branch' => 'Branches',
+            'expense' => 'Expenses',
+            'users' => 'Users',
+            'staff' => 'Staff Management',
+            'classes' => 'Class Management',
+            'subject' => 'Subject Management',
+            'timetable' => 'Time Table',
+            'certificate' => 'Certificates',
+            'library' => 'Library Management',
+            'transport' => 'Transport Management',
+            'hostel' => 'Hostel Management',
+            'inventory' => 'Inventory Management',
+        ];
+
+        if (isset($routeMap[$path])) {
+            return $routeMap[$path];
+        }
+
+        $segments = explode('/', $path);
+        $semanticSegments = array_values(array_filter($segments, function($seg) {
+            return !is_numeric($seg) && !preg_match('/^[0-9a-fA-F-]{10,}$/', $seg);
+        }));
+
+        if (empty($semanticSegments)) {
+            return 'Dashboard';
+        }
+
+        $lastSegment = end($semanticSegments);
+        if (isset($routeMap[$lastSegment])) {
+            return $routeMap[$lastSegment];
+        }
+
+        $spaced = preg_replace('/(?<!^)([A-Z])/', ' $1', $lastSegment);
+        $spaced = str_replace(['_', '-'], ' ', $spaced);
+        $formatted = ucwords(trim($spaced));
+
+        return !empty($formatted) ? $formatted : 'Dashboard';
+    }
      
 
     public static function uploadImageUniversal($file, $folder, $oldImage = null, $fileName = null, $branchWise = false)
