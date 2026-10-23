@@ -5,10 +5,7 @@
         $sessionLabel = date('Y') . '-' . (date('Y') + 1);
     }
 
-    $getSetting = Helper::getSetting();
-    $schoolName = is_array($getSetting) ? ($getSetting['name'] ?? 'School') : ($getSetting->name ?? 'School');
-    $schoolLogo = is_array($getSetting) ? ($getSetting['left_logo'] ?? '') : ($getSetting->left_logo ?? '');
-    $logoUrl = !empty($schoolLogo) ? env('IMAGE_SHOW_PATH') . '/setting/left_logo/' . $schoolLogo : '';
+
 
     $totalStudents = (int) ($grandTotals['total'] ?? 0);
     $totalBoys = (int) ($grandTotals['boys'] ?? 0);
@@ -660,32 +657,7 @@
     background: rgba(254, 240, 138, 0.35) !important;
 }
 
-/* Print Stylesheet */
-@media print {
-    body { background: #ffffff !important; font-size: 9pt !important; }
-    .content-wrapper, .report-page-layout { padding: 0 !important; margin: 0 !important; background: #ffffff !important; }
-    .perf-hero, .kpi-strip, .dist-card, .filter-toolbar, .dash-card-header, .main-header, .main-sidebar, .sidebar { display: none !important; }
-    .matrix-card { border: none !important; box-shadow: none !important; }
-    .table-responsive-matrix { max-height: none !important; overflow: visible !important; }
-    .cat-matrix-table { min-width: 100% !important; border: 1px solid #000000 !important; }
-    .cat-matrix-table thead th, .cat-matrix-table tbody td, .cat-matrix-table tfoot td {
-        border: 1px solid #333333 !important;
-        position: static !important;
-        color: #000000 !important;
-        background: none !important;
-        padding: 3px 5px !important;
-    }
-    .print-only-header {
-        display: block !important;
-        margin-bottom: 12px;
-        text-align: center;
-        border-bottom: 2px solid #000000;
-        padding-bottom: 8px;
-    }
-}
-.print-only-header {
-    display: none;
-}
+
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
@@ -719,17 +691,7 @@
 <div class="content-wrapper report-page-layout">
     <div class="container-fluid p-0">
 
-        {{-- Print Only Header --}}
-        <div class="print-only-header">
-            @if(!empty($logoUrl))
-                <img src="{{ $logoUrl }}" style="height: 45px; max-width: 130px; margin-bottom: 4px;">
-            @endif
-            <h3 style="margin: 0; font-size: 16pt; font-weight: 800;">{{ $schoolName }}</h3>
-            <h5 style="margin: 3px 0; font-size: 12pt;">Category Wise Student Distribution Report</h5>
-            <p style="margin: 0; font-size: 9.5pt; color: #555555;">
-                Academic Session: <b>{{ $sessionLabel }}</b> &bull; Total Students: <b>{{ number_format($totalStudents) }}</b> &bull; Generated: <b>{{ date('d-m-Y H:i A') }}</b>
-            </p>
-        </div>
+
 
         {{-- 1. Signature Hero Header Banner --}}
         <div class="perf-hero">
@@ -766,9 +728,7 @@
                 <button type="button" class="dash-btn dash-btn-emerald" id="btnExportExcel" title="Download Excel (.CSV) Spreadsheet">
                     <i class="fa fa-file-excel-o"></i> <span>Export Excel</span>
                 </button>
-                <button type="button" class="dash-btn dash-btn-light" id="btnPrintReport" title="Print Landscape Matrix Sheet">
-                    <i class="fa fa-print text-primary"></i> <span>Print Report</span>
-                </button>
+
                 <a href="{{ url('studentsDashboard') }}" class="dash-btn dash-btn-outline" title="Back to Student Dashboard">
                     <i class="fa fa-arrow-left"></i> <span>Dashboard</span>
                 </a>
@@ -920,7 +880,7 @@
                 </span>
             </div>
 
-            <div class="table-responsive table-responsive-matrix" id="reportPrintArea">
+            <div class="table-responsive table-responsive-matrix">
                 <table class="cat-matrix-table" id="categoryMatrixTable">
                     <thead>
                         {{-- Row 1: Category Headings --}}
@@ -1227,13 +1187,7 @@
             return [year, month, day].join('-');
         }
 
-        // 5. Professional Print Layout Trigger
-        var btnPrint = document.getElementById('btnPrintReport');
-        if (btnPrint) {
-            btnPrint.addEventListener('click', function() {
-                window.print();
-            });
-        }
+
     }
 
     if (document.readyState === 'loading') {
