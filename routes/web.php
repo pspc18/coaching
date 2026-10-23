@@ -325,6 +325,9 @@ Route::match(['get', 'post'], 'send_message_terminal', 'Sms_ServiceController@se
 Route::match(['get', 'post'], 'send_message', 'Sms_ServiceController@sendMessage');
 Route::match(['get', 'post'], 'resend_message', 'Sms_ServiceController@resendMessage');
 
+Route::match(['get', 'post'], 'happy_birthday', 'BirthdayController@happy_birthday');
+Route::match(['get', 'post'], 'send_wishes', 'BirthdayController@send_wishes');
+
 
 
 
