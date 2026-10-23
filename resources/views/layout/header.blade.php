@@ -400,16 +400,30 @@ if (!empty($headerUserImageName)) {
   .quick-action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       padding: 4px 8px;
       font-size: 11px;
       font-weight: 600;
-      border-radius: 3px;
+      border-radius: 4px;
       text-decoration: none !important;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
       line-height: 1.2;
+      position: relative;
+  }
+  .quick-key-pill {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 3px;
+      padding: 0 4px;
+      font-size: 9px;
+      font-family: inherit;
+      line-height: 1.2;
+      color: #ffffff;
+      margin-left: 3px;
+      font-weight: 700;
   }
   .quick-action-btn.btn-collect-fees {
       background: #059669;
@@ -419,7 +433,13 @@ if (!empty($headerUserImageName)) {
   .quick-action-btn.btn-collect-fees:hover {
       background: #047857;
       border-color: #047857;
-      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.35);
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.4);
+  }
+  .quick-action-btn.btn-collect-fees.quick-btn-active {
+      background: #047857 !important;
+      outline: 2px solid #f59e0b !important;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5), 0 4px 10px rgba(5, 150, 105, 0.5) !important;
+      transform: scale(1.06);
   }
   .quick-action-btn.btn-view-profile {
       background: #002C54;
@@ -429,7 +449,27 @@ if (!empty($headerUserImageName)) {
   .quick-action-btn.btn-view-profile:hover {
       background: #001f3d;
       border-color: #001f3d;
-      box-shadow: 0 1px 3px rgba(0, 44, 84, 0.35);
+      box-shadow: 0 2px 6px rgba(0, 44, 84, 0.4);
+  }
+  .quick-action-btn.btn-view-profile.quick-btn-active {
+      background: #001f3d !important;
+      outline: 2px solid #f59e0b !important;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5), 0 4px 10px rgba(0, 44, 84, 0.5) !important;
+      transform: scale(1.06);
+  }
+  .tooltip.quick-search-tooltip {
+      z-index: 1060 !important;
+      font-size: 11px !important;
+      pointer-events: none !important;
+  }
+  .tooltip.quick-search-tooltip .tooltip-inner {
+      background: #001428 !important;
+      color: #ffffff !important;
+      border: 1px solid #334155;
+      padding: 5px 9px !important;
+      border-radius: 4px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
   }
   .quick-search-dropdown-footer {
       padding: 8px 12px;
@@ -657,7 +697,7 @@ if (!empty($headerUserImageName)) {
       <div class="header-quick-search-dropdown shadow-lg" id="headerSearchDropdown" style="display:none;">
         <div class="quick-search-dropdown-header d-flex align-items-center justify-content-between">
           <span class="dropdown-header-title"><i class="fa fa-users text-primary mr-1"></i> <span id="headerSearchCount">0 Students Found</span></span>
-          <span class="dropdown-header-hint"><kbd>↑</kbd> <kbd>↓</kbd> navigate &nbsp; <kbd>Esc</kbd> close</span>
+          <span class="dropdown-header-hint"><kbd>↑</kbd><kbd>↓</kbd> Select &nbsp;&bull;&nbsp; <kbd>→</kbd><kbd>←</kbd> Action &nbsp;&bull;&nbsp; <kbd>↵</kbd> Profile &nbsp;&bull;&nbsp; <kbd>⇧↵</kbd> Fees</span>
         </div>
         <div class="quick-search-results-list" id="headerSearchResultsList">
           <!-- Dynamically populated via AJAX -->
@@ -1415,7 +1455,9 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
 
         function closeDropdown() {
             dropdown.style.display = 'none';
+            hideAllTooltips();
             selectedIndex = -1;
+            selectedAction = null;
         }
 
         function showDropdown() {
@@ -1468,7 +1510,33 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
             });
         }
 
+        var selectedAction = null; // null = row (default), 'fees' = collect fees, 'profile' = profile
+
+        function hideAllTooltips() {
+            if (window.jQuery && typeof jQuery.fn.tooltip === 'function') {
+                try {
+                    $('[data-toggle="tooltip"]').tooltip('hide');
+                } catch(e) {}
+            }
+        }
+
+        function refreshTooltips() {
+            if (window.jQuery && typeof jQuery.fn.tooltip === 'function') {
+                try {
+                    $(resultsList).find('[data-toggle="tooltip"]').tooltip('dispose');
+                } catch(e) {}
+                $(resultsList).find('[data-toggle="tooltip"]').tooltip({
+                    boundary: 'window',
+                    container: 'body',
+                    trigger: 'hover',
+                    template: '<div class="tooltip quick-search-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+                    delay: { show: 60, hide: 40 }
+                });
+            }
+        }
+
         function renderResults(students, query) {
+            hideAllTooltips();
             if (countEl) {
                 countEl.textContent = students.length + (students.length === 1 ? ' Student Found' : ' Students Found');
             }
@@ -1503,11 +1571,11 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
                                 '</div>' +
                             '</div>' +
                             '<div class="quick-student-actions-col">' +
-                                '<a href="' + escapeHtml(s.collect_fees_url) + '" class="quick-action-btn btn-collect-fees" title="Directly Collect Fees for ' + escapeHtml(s.name) + '">' +
-                                    '<i class="fa fa-money"></i> <span>Collect Fees</span>' +
+                                '<a href="' + escapeHtml(s.collect_fees_url) + '" class="quick-action-btn btn-collect-fees" data-btn-type="fees" data-toggle="tooltip" data-placement="top" title="Collect Fees &bull; Quick: Shift + Enter or Alt + C">' +
+                                    '<i class="fa fa-money"></i> <span>Collect Fees</span> <kbd class="quick-key-pill" title="Press Shift + Enter">⇧↵</kbd>' +
                                 '</a>' +
-                                '<a href="' + escapeHtml(s.profile_url) + '" class="quick-action-btn btn-view-profile" title="View Full Student Profile">' +
-                                    '<i class="fa fa-user"></i> <span>Profile</span>' +
+                                '<a href="' + escapeHtml(s.profile_url) + '" class="quick-action-btn btn-view-profile" data-btn-type="profile" data-toggle="tooltip" data-placement="top" title="View Full Profile &bull; Quick: Enter or Alt + P">' +
+                                    '<i class="fa fa-user"></i> <span>Profile</span> <kbd class="quick-key-pill" title="Press Enter">↵</kbd>' +
                                 '</a>' +
                             '</div>' +
                         '</div>';
@@ -1517,9 +1585,12 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
             if (footerEl) footerEl.style.display = 'block';
             showDropdown();
             selectedIndex = -1;
+            selectedAction = null;
+            refreshTooltips();
         }
 
         function renderEmpty(query) {
+            hideAllTooltips();
             if (countEl) countEl.textContent = '0 Students Found';
             resultsList.innerHTML = '<div class="quick-search-empty-state">' +
                                         '<i class="fa fa-user-times"></i>' +
@@ -1529,9 +1600,11 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
             if (footerEl) footerEl.style.display = 'none';
             showDropdown();
             selectedIndex = -1;
+            selectedAction = null;
         }
 
         function renderError() {
+            hideAllTooltips();
             if (countEl) countEl.textContent = 'Error';
             resultsList.innerHTML = '<div class="quick-search-empty-state">' +
                                         '<i class="fa fa-exclamation-triangle text-danger"></i>' +
@@ -1541,6 +1614,7 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
             if (footerEl) footerEl.style.display = 'none';
             showDropdown();
             selectedIndex = -1;
+            selectedAction = null;
         }
 
         var debouncedSearch = debounce(function() {
@@ -1580,40 +1654,177 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
             var items = resultsList.querySelectorAll('.quick-student-item');
             if (items.length === 0) return;
 
+            // Direct keyboard hotkeys: Alt + C or Alt + F for Collect Fees
+            if (e.altKey && (e.key === 'c' || e.key === 'C' || e.key === 'f' || e.key === 'F')) {
+                e.preventDefault();
+                var targetIdx = selectedIndex >= 0 ? selectedIndex : 0;
+                var feesUrl = items[targetIdx].getAttribute('data-fees');
+                if (feesUrl) {
+                    hideAllTooltips();
+                    window.location.href = feesUrl;
+                }
+                return;
+            }
+
+            // Direct keyboard hotkey: Alt + P for Profile
+            if (e.altKey && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                var targetIdx = selectedIndex >= 0 ? selectedIndex : 0;
+                var profileUrl = items[targetIdx].getAttribute('data-profile');
+                if (profileUrl) {
+                    hideAllTooltips();
+                    window.location.href = profileUrl;
+                }
+                return;
+            }
+
+            // Arrow Down: Navigate to next student
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 selectedIndex = (selectedIndex + 1) % items.length;
+                selectedAction = null;
                 highlightItem(items);
-            } else if (e.key === 'ArrowUp') {
+            }
+            // Arrow Up: Navigate to previous student
+            else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                selectedAction = null;
                 highlightItem(items);
-            } else if (e.key === 'Enter') {
+            }
+            // Arrow Right: Toggle quick action button (Collect Fees -> Profile)
+            else if (e.key === 'ArrowRight') {
+                if (selectedIndex >= 0) {
+                    e.preventDefault();
+                    if (selectedAction === null) {
+                        selectedAction = 'fees';
+                    } else if (selectedAction === 'fees') {
+                        selectedAction = 'profile';
+                    } else if (selectedAction === 'profile') {
+                        selectedAction = 'fees';
+                    }
+                    highlightItem(items);
+                }
+            }
+            // Arrow Left: Toggle quick action button (Profile -> Collect Fees -> Row)
+            else if (e.key === 'ArrowLeft') {
+                if (selectedIndex >= 0) {
+                    e.preventDefault();
+                    if (selectedAction === 'profile') {
+                        selectedAction = 'fees';
+                    } else if (selectedAction === 'fees') {
+                        selectedAction = null;
+                    } else if (selectedAction === null) {
+                        selectedAction = 'profile';
+                    }
+                    highlightItem(items);
+                }
+            }
+            // Enter key: Open respective link
+            else if (e.key === 'Enter') {
                 if (selectedIndex >= 0 && selectedIndex < items.length) {
                     e.preventDefault();
-                    var profileUrl = items[selectedIndex].getAttribute('data-profile');
-                    if (profileUrl) window.location.href = profileUrl;
+                    var currentItem = items[selectedIndex];
+
+                    // Shift + Enter or Ctrl + Enter or explicitly selected fees button -> Collect Fees
+                    if (e.shiftKey || e.ctrlKey || selectedAction === 'fees') {
+                        var feesUrl = currentItem.getAttribute('data-fees');
+                        if (feesUrl) {
+                            hideAllTooltips();
+                            window.location.href = feesUrl;
+                        }
+                    } else {
+                        // Default row or profile button -> Profile
+                        var profileUrl = currentItem.getAttribute('data-profile');
+                        if (profileUrl) {
+                            hideAllTooltips();
+                            window.location.href = profileUrl;
+                        }
+                    }
                 }
-            } else if (e.key === 'Escape') {
+            }
+            // Escape key: Close dropdown
+            else if (e.key === 'Escape') {
                 closeDropdown();
             }
         });
 
         function highlightItem(items) {
             items.forEach(function(item, idx) {
+                var feesBtn = item.querySelector('.btn-collect-fees');
+                var profileBtn = item.querySelector('.btn-view-profile');
+
+                if (feesBtn) feesBtn.classList.remove('quick-btn-active');
+                if (profileBtn) profileBtn.classList.remove('quick-btn-active');
+
                 if (idx === selectedIndex) {
                     item.classList.add('selected');
                     item.scrollIntoView({ block: 'nearest' });
+
+                    if (selectedAction === 'fees' && feesBtn) {
+                        feesBtn.classList.add('quick-btn-active');
+                        if (window.jQuery && typeof jQuery.fn.tooltip === 'function') {
+                            try {
+                                $(feesBtn).tooltip('show');
+                                if (profileBtn) $(profileBtn).tooltip('hide');
+                            } catch(e) {}
+                        }
+                    } else if (selectedAction === 'profile' && profileBtn) {
+                        profileBtn.classList.add('quick-btn-active');
+                        if (window.jQuery && typeof jQuery.fn.tooltip === 'function') {
+                            try {
+                                $(profileBtn).tooltip('show');
+                                if (feesBtn) $(feesBtn).tooltip('hide');
+                            } catch(e) {}
+                        }
+                    } else {
+                        if (window.jQuery && typeof jQuery.fn.tooltip === 'function') {
+                            try {
+                                if (feesBtn) $(feesBtn).tooltip('hide');
+                                if (profileBtn) $(profileBtn).tooltip('hide');
+                            } catch(e) {}
+                        }
+                    }
                 } else {
                     item.classList.remove('selected');
                 }
             });
         }
 
+        // Hover row: highlight index
+        $(document).on('mouseenter', '.quick-student-item', function() {
+            var items = resultsList.querySelectorAll('.quick-student-item');
+            var idx = parseInt(this.getAttribute('data-index'), 10);
+            if (!isNaN(idx)) {
+                selectedIndex = idx;
+                selectedAction = null;
+                highlightItem(items);
+            }
+        });
+
+        // Hover button: highlight active button state
+        $(document).on('mouseenter', '.quick-student-item .btn-collect-fees', function() {
+            selectedAction = 'fees';
+            var items = resultsList.querySelectorAll('.quick-student-item');
+            highlightItem(items);
+        });
+
+        $(document).on('mouseenter', '.quick-student-item .btn-view-profile', function() {
+            selectedAction = 'profile';
+            var items = resultsList.querySelectorAll('.quick-student-item');
+            highlightItem(items);
+        });
+
+        $(document).on('click', '.quick-action-btn', function(e) {
+            e.stopPropagation();
+            hideAllTooltips();
+        });
+
         $(document).on('click', '.quick-student-item', function(e) {
             if ($(e.target).closest('.quick-action-btn').length > 0) {
                 return;
             }
+            hideAllTooltips();
             var profileUrl = $(this).data('profile');
             if (profileUrl) {
                 window.location.href = profileUrl;
