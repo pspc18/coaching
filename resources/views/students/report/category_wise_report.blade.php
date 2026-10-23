@@ -729,9 +729,7 @@
                     <i class="fa fa-file-excel-o"></i> <span>Export Excel</span>
                 </button>
 
-                <a href="{{ url('studentsDashboard') }}" class="dash-btn dash-btn-outline" title="Back to Student Dashboard">
-                    <i class="fa fa-arrow-left"></i> <span>Dashboard</span>
-                </a>
+
             </div>
         </div>
 
