@@ -2373,8 +2373,97 @@ class StudentsAdmissionController extends Controller
               return response()->json(['success'=>false,'message'=>'Invalid action']);    
                 
         }
-        
 
+        public function quickStudentSearch(\Illuminate\Http\Request $request)
+        {
+            $keyword = trim((string) ($request->keyword ?: ($request->q ?: $request->search ?: '')));
 
+            if (mb_strlen($keyword) < 2) {
+                return response()->json([
+                    'status' => 'success',
+                    'count' => 0,
+                    'data' => []
+                ]);
+            }
 
+            $branchId = Session::get('branch_id');
+            $sessionId = Session::get('session_id');
+
+            $query = Admission::with('ClassTypes')
+                ->whereNull('deleted_at');
+
+            if (!empty($branchId)) {
+                $query->where('branch_id', $branchId);
+            }
+
+            if (!empty($sessionId)) {
+                $query->orderByRaw("CASE WHEN session_id = ? THEN 0 ELSE 1 END", [$sessionId]);
+            }
+
+            $cleanKeyword = $keyword;
+            $cleanDigits = preg_replace('/\D/', '', $keyword);
+
+            $query->where(function ($q) use ($cleanKeyword, $cleanDigits) {
+                $q->where('admissionNo', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('first_name', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('last_name', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ['%' . $cleanKeyword . '%'])
+                  ->orWhere('father_name', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('mother_name', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('mobile', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('father_mobile', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('aadhaar', 'LIKE', '%' . $cleanKeyword . '%')
+                  ->orWhere('roll_no', 'LIKE', '%' . $cleanKeyword . '%');
+
+                if (!empty($cleanDigits) && strlen($cleanDigits) >= 4) {
+                    $q->orWhere('mobile', 'LIKE', '%' . $cleanDigits . '%')
+                      ->orWhere('father_mobile', 'LIKE', '%' . $cleanDigits . '%')
+                      ->orWhere('aadhaar', 'LIKE', '%' . $cleanDigits . '%');
+                }
+            });
+
+            $students = $query
+                ->orderBy('first_name', 'ASC')
+                ->orderBy('last_name', 'ASC')
+                ->limit(15)
+                ->get();
+
+            $imageBase = rtrim((string) env('IMAGE_SHOW_PATH'), '/');
+
+            $results = $students->map(function ($s) use ($imageBase) {
+                $fullName = trim(($s->first_name ?? '') . ' ' . ($s->last_name ?? ''));
+                if (empty($fullName)) {
+                    $fullName = 'Student #' . $s->id;
+                }
+
+                $firstLetter = mb_strtoupper(mb_substr($fullName, 0, 1, 'UTF-8')) ?: 'S';
+
+                $imageUrl = null;
+                if (!empty($s->image)) {
+                    $imageUrl = $imageBase . '/profile/' . rawurlencode($s->image);
+                }
+
+                return [
+                    'id' => $s->id,
+                    'admission_no' => $s->admissionNo ?: '-',
+                    'name' => $fullName,
+                    'first_letter' => $firstLetter,
+                    'father_name' => $s->father_name ?: '-',
+                    'mother_name' => $s->mother_name ?: '-',
+                    'mobile' => $s->mobile ?: ($s->father_mobile ?: '-'),
+                    'aadhaar' => $s->aadhaar ?: '-',
+                    'class_name' => $s->ClassTypes->name ?? '-',
+                    'roll_no' => $s->roll_no ?: '-',
+                    'image_url' => $imageUrl,
+                    'profile_url' => url('studentDetail/' . $s->id),
+                    'collect_fees_url' => url('feesCollectAdd?student_id=' . $s->id),
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'count' => $results->count(),
+                'data' => $results
+            ]);
+        }
     }

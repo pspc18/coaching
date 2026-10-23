@@ -152,6 +152,7 @@ Route::get('admissionStudentPrint/{id}', 'StudentsAdmissionController@admissionS
 Route::match(['get', 'post'], 'admissionEdit/{id}', 'StudentsAdmissionController@admissionEdit');
 Route::match(['get', 'post'], 'admissionDelete', 'StudentsAdmissionController@admissionDelete');
 Route::match(['get', 'post'], 'checkStudentData', 'StudentsAdmissionController@checkStudentData');
+Route::match(['get', 'post'], 'quickStudentSearch', 'StudentsAdmissionController@quickStudentSearch');
 
 Route::match(['get', 'post'], 'document_delete/{id}', 'ProfileController@document_delete');
 Route::match(['get', 'post'], 'stream_update', 'StudentsAdmissionController@streamUpdate');

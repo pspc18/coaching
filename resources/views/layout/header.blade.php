@@ -155,6 +155,332 @@ if (!empty($headerUserImageName)) {
       border: 1px solid #001f3d;
       box-shadow: 0 2px 4px rgba(0, 44, 84, 0.2);
   }
+
+  /* ==========================================================================
+     Header Quick Student Live Search (Desktop View)
+     ========================================================================== */
+  .header-quick-search-wrapper {
+      flex: 1 1 auto;
+      max-width: 480px;
+      min-width: 260px;
+      margin: 0 16px;
+      position: relative;
+      z-index: 1040;
+  }
+  .header-quick-search-box {
+      width: 100%;
+      position: relative;
+  }
+  .quick-search-input-group {
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      height: 34px;
+      padding: 0 10px 0 12px;
+  }
+  .quick-search-input-group:focus-within {
+      background: #ffffff;
+      border-color: #002C54;
+      box-shadow: 0 0 0 3px rgba(0, 44, 84, 0.12);
+  }
+  .quick-search-icon {
+      color: #64748b;
+      font-size: 13px;
+      margin-right: 6px;
+      flex-shrink: 0;
+  }
+  .quick-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 12.5px;
+      color: #0f172a;
+      padding: 4px 6px;
+      min-width: 0;
+  }
+  .quick-search-input::placeholder {
+      font-size: 11.5px;
+      color: #94a3b8;
+  }
+  .quick-search-spinner {
+      color: #002C54;
+      font-size: 13px;
+      margin-left: 6px;
+      flex-shrink: 0;
+  }
+  .quick-search-clear {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      line-height: 1;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 0 4px;
+      margin-left: 4px;
+      outline: none;
+      transition: color 0.15s ease;
+  }
+  .quick-search-clear:hover {
+      color: #dc2626;
+  }
+  .quick-search-shortcut {
+      margin-left: 6px;
+      flex-shrink: 0;
+      user-select: none;
+  }
+  .quick-search-shortcut kbd {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: inherit;
+      padding: 1px 5px;
+      color: #475569;
+  }
+  .header-quick-search-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 580px;
+      max-width: 90vw;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-shadow: 0 18px 40px -6px rgba(0, 20, 40, 0.25), 0 4px 12px rgba(0, 0, 0, 0.08);
+      z-index: 9999;
+      overflow: hidden;
+  }
+  .quick-search-dropdown-header {
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+  }
+  .quick-search-dropdown-header kbd {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 2px;
+      padding: 0 4px;
+      font-size: 9.5px;
+      color: #64748b;
+  }
+  .quick-search-results-list {
+      max-height: 380px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+  }
+  .quick-student-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s ease;
+      text-decoration: none !important;
+      color: inherit;
+      position: relative;
+  }
+  .quick-student-item:last-child {
+      border-bottom: none;
+  }
+  .quick-student-item:hover,
+  .quick-student-item.selected {
+      background: #f0f7ff;
+  }
+  .quick-student-item.selected::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #002C54;
+  }
+  .quick-student-avatar-col {
+      flex-shrink: 0;
+  }
+  .quick-student-avatar-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #cbd5e1;
+  }
+  .quick-student-avatar-initial {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #001f3d;
+      user-select: none;
+  }
+  .quick-student-info-col {
+      flex: 1;
+      min-width: 0;
+  }
+  .quick-student-top-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 3px;
+  }
+  .quick-student-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+  }
+  .quick-badge-class {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      border-radius: 3px;
+      white-space: nowrap;
+  }
+  .quick-badge-adm {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      white-space: nowrap;
+  }
+  .quick-student-meta-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: #64748b;
+  }
+  .quick-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+  }
+  .quick-meta-pill b {
+      color: #1e293b;
+      font-weight: 600;
+  }
+  .quick-student-actions-col {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+  }
+  .quick-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 3px;
+      text-decoration: none !important;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      line-height: 1.2;
+  }
+  .quick-action-btn.btn-collect-fees {
+      background: #059669;
+      color: #ffffff !important;
+      border: 1px solid #059669;
+  }
+  .quick-action-btn.btn-collect-fees:hover {
+      background: #047857;
+      border-color: #047857;
+      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.35);
+  }
+  .quick-action-btn.btn-view-profile {
+      background: #002C54;
+      color: #ffffff !important;
+      border: 1px solid #002C54;
+  }
+  .quick-action-btn.btn-view-profile:hover {
+      background: #001f3d;
+      border-color: #001f3d;
+      box-shadow: 0 1px 3px rgba(0, 44, 84, 0.35);
+  }
+  .quick-search-dropdown-footer {
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+  }
+  .btn-view-all-results {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #0284c7;
+      text-decoration: none !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+  }
+  .btn-view-all-results:hover {
+      color: #0369a1;
+      text-decoration: underline !important;
+  }
+  .quick-search-empty-state {
+      padding: 24px 16px;
+      text-align: center;
+      color: #64748b;
+  }
+  .quick-search-empty-state i {
+      font-size: 26px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: block;
+  }
+  .quick-search-empty-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 4px;
+  }
+  .quick-search-empty-desc {
+      font-size: 11.5px;
+      color: #64748b;
+  }
+  .quick-search-loading-state {
+      padding: 20px 16px;
+      text-align: center;
+      color: #002C54;
+      font-size: 12px;
+      font-weight: 600;
+  }
+  .quick-search-loading-state i {
+      margin-right: 6px;
+  }
 </style>
 
 <!--<div class="marquee">-->
@@ -315,6 +641,35 @@ if (!empty($headerUserImageName)) {
       </div>
     </li>
 </ul>
+
+  <!-- Desktop Quick Live Student Search Bar -->
+  <div class="header-quick-search-wrapper d-none d-md-flex">
+    <div class="header-quick-search-box">
+      <div class="quick-search-input-group">
+        <span class="quick-search-icon"><i class="fa fa-search"></i></span>
+        <input type="text" id="headerStudentSearchInput" class="quick-search-input" placeholder="Search student by Name, Father, Mobile, Adm No, Aadhar..." autocomplete="off" spellcheck="false">
+        <span class="quick-search-spinner" id="headerSearchSpinner" style="display:none;"><i class="fa fa-circle-o-notch fa-spin"></i></span>
+        <button type="button" class="quick-search-clear" id="headerSearchClear" style="display:none;" title="Clear search">&times;</button>
+        <span class="quick-search-shortcut" title="Press Ctrl + K to search"><kbd>Ctrl+K</kbd></span>
+      </div>
+
+      <!-- Auto-suggestion dropdown popup -->
+      <div class="header-quick-search-dropdown shadow-lg" id="headerSearchDropdown" style="display:none;">
+        <div class="quick-search-dropdown-header d-flex align-items-center justify-content-between">
+          <span class="dropdown-header-title"><i class="fa fa-users text-primary mr-1"></i> <span id="headerSearchCount">0 Students Found</span></span>
+          <span class="dropdown-header-hint"><kbd>↑</kbd> <kbd>↓</kbd> navigate &nbsp; <kbd>Esc</kbd> close</span>
+        </div>
+        <div class="quick-search-results-list" id="headerSearchResultsList">
+          <!-- Dynamically populated via AJAX -->
+        </div>
+        <div class="quick-search-dropdown-footer" id="headerSearchFooter" style="display:none;">
+          <a href="{{ url('admissionView') }}" id="headerSearchAllLink" class="btn-view-all-results">
+            <span>View all matching records in Student Admission List</span> <i class="fa fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto flex_centerd_profile">
@@ -1018,3 +1373,276 @@ const modal = "{{Session::get('modal_name')}}" || 'User';
         box-shadow: 0 20px 45px -8px rgba(0, 44, 84, 0.35) !important;
     }
 </style>
+
+<script>
+(function() {
+    function initQuickSearch() {
+        var searchInput = document.getElementById('headerStudentSearchInput');
+        var dropdown = document.getElementById('headerSearchDropdown');
+        var resultsList = document.getElementById('headerSearchResultsList');
+        var countEl = document.getElementById('headerSearchCount');
+        var spinner = document.getElementById('headerSearchSpinner');
+        var clearBtn = document.getElementById('headerSearchClear');
+        var footerEl = document.getElementById('headerSearchFooter');
+        var allLink = document.getElementById('headerSearchAllLink');
+
+        if (!searchInput || !dropdown || !resultsList) return;
+
+        var debounceTimer = null;
+        var currentRequest = null;
+        var selectedIndex = -1;
+
+        function debounce(callback, wait) {
+            return function() {
+                var context = this;
+                var args = arguments;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    callback.apply(context, args);
+                }, wait);
+            };
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function closeDropdown() {
+            dropdown.style.display = 'none';
+            selectedIndex = -1;
+        }
+
+        function showDropdown() {
+            dropdown.style.display = 'block';
+        }
+
+        function performSearch(query) {
+            query = query.trim();
+            if (query.length < 2) {
+                closeDropdown();
+                if (spinner) spinner.style.display = 'none';
+                return;
+            }
+
+            if (spinner) spinner.style.display = 'inline-block';
+            if (clearBtn) clearBtn.style.display = 'inline-block';
+
+            if (currentRequest && currentRequest.abort) {
+                currentRequest.abort();
+            }
+
+            var searchUrl = "{{ url('quickStudentSearch') }}?keyword=" + encodeURIComponent(query);
+            if (allLink) {
+                allLink.href = "{{ url('admissionView') }}?name=" + encodeURIComponent(query);
+            }
+
+            currentRequest = $.ajax({
+                url: searchUrl,
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    if (spinner) spinner.style.display = 'none';
+                    if (!res || res.status !== 'success' || !res.data) {
+                        renderEmpty(query);
+                        return;
+                    }
+
+                    var students = res.data;
+                    if (students.length === 0) {
+                        renderEmpty(query);
+                    } else {
+                        renderResults(students, query);
+                    }
+                },
+                error: function(xhr, status) {
+                    if (status === 'abort') return;
+                    if (spinner) spinner.style.display = 'none';
+                    renderError();
+                }
+            });
+        }
+
+        function renderResults(students, query) {
+            if (countEl) {
+                countEl.textContent = students.length + (students.length === 1 ? ' Student Found' : ' Students Found');
+            }
+
+            var html = '';
+            students.forEach(function(s, idx) {
+                var avatarHtml = '';
+                if (s.image_url) {
+                    avatarHtml = '<img src="' + escapeHtml(s.image_url) + '" class="quick-student-avatar-img" onerror="this.style.display=\'none\'; if(this.nextElementSibling){this.nextElementSibling.style.display=\'flex\';}">' +
+                                 '<div class="quick-student-avatar-initial" style="display:none;">' + escapeHtml(s.first_letter) + '</div>';
+                } else {
+                    avatarHtml = '<div class="quick-student-avatar-initial">' + escapeHtml(s.first_letter) + '</div>';
+                }
+
+                var aadhaarHtml = '';
+                if (s.aadhaar && s.aadhaar !== '-' && s.aadhaar !== '0') {
+                    aadhaarHtml = '<span class="quick-meta-pill" title="Aadhaar Number"><i class="fa fa-id-card text-muted"></i> <span>Aadhar:</span> <b>' + escapeHtml(s.aadhaar) + '</b></span>';
+                }
+
+                html += '<div class="quick-student-item" data-index="' + idx + '" data-profile="' + escapeHtml(s.profile_url) + '" data-fees="' + escapeHtml(s.collect_fees_url) + '">' +
+                            '<div class="quick-student-avatar-col">' + avatarHtml + '</div>' +
+                            '<div class="quick-student-info-col">' +
+                                '<div class="quick-student-top-line">' +
+                                    '<span class="quick-student-name" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</span>' +
+                                    '<span class="quick-badge-class"><i class="fa fa-book"></i> ' + escapeHtml(s.class_name) + '</span>' +
+                                    '<span class="quick-badge-adm"><i class="fa fa-id-badge"></i> Adm: #' + escapeHtml(s.admission_no) + '</span>' +
+                                '</div>' +
+                                '<div class="quick-student-meta-line">' +
+                                    '<span class="quick-meta-pill" title="Father Name"><i class="fa fa-user-circle text-muted"></i> <span>S/O:</span> <b>' + escapeHtml(s.father_name) + '</b></span>' +
+                                    '<span class="quick-meta-pill" title="Mobile"><i class="fa fa-phone text-muted"></i> <b>' + escapeHtml(s.mobile) + '</b></span>' +
+                                    aadhaarHtml +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="quick-student-actions-col">' +
+                                '<a href="' + escapeHtml(s.collect_fees_url) + '" class="quick-action-btn btn-collect-fees" title="Directly Collect Fees for ' + escapeHtml(s.name) + '">' +
+                                    '<i class="fa fa-money"></i> <span>Collect Fees</span>' +
+                                '</a>' +
+                                '<a href="' + escapeHtml(s.profile_url) + '" class="quick-action-btn btn-view-profile" title="View Full Student Profile">' +
+                                    '<i class="fa fa-user"></i> <span>Profile</span>' +
+                                '</a>' +
+                            '</div>' +
+                        '</div>';
+            });
+
+            resultsList.innerHTML = html;
+            if (footerEl) footerEl.style.display = 'block';
+            showDropdown();
+            selectedIndex = -1;
+        }
+
+        function renderEmpty(query) {
+            if (countEl) countEl.textContent = '0 Students Found';
+            resultsList.innerHTML = '<div class="quick-search-empty-state">' +
+                                        '<i class="fa fa-user-times"></i>' +
+                                        '<div class="quick-search-empty-title">No students found matching "' + escapeHtml(query) + '"</div>' +
+                                        '<div class="quick-search-empty-desc">Try searching by mobile number, admission number, father name, or aadhar.</div>' +
+                                    '</div>';
+            if (footerEl) footerEl.style.display = 'none';
+            showDropdown();
+            selectedIndex = -1;
+        }
+
+        function renderError() {
+            if (countEl) countEl.textContent = 'Error';
+            resultsList.innerHTML = '<div class="quick-search-empty-state">' +
+                                        '<i class="fa fa-exclamation-triangle text-danger"></i>' +
+                                        '<div class="quick-search-empty-title">Search could not be completed</div>' +
+                                        '<div class="quick-search-empty-desc">Please try again in a moment.</div>' +
+                                    '</div>';
+            if (footerEl) footerEl.style.display = 'none';
+            showDropdown();
+            selectedIndex = -1;
+        }
+
+        var debouncedSearch = debounce(function() {
+            performSearch(searchInput.value);
+        }, 250);
+
+        searchInput.addEventListener('input', function() {
+            var val = this.value;
+            if (val.trim().length > 0) {
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+            } else {
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
+            debouncedSearch();
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2 && resultsList.children.length > 0) {
+                showDropdown();
+            }
+        });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                searchInput.value = '';
+                clearBtn.style.display = 'none';
+                if (spinner) spinner.style.display = 'none';
+                closeDropdown();
+                searchInput.focus();
+            });
+        }
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (dropdown.style.display === 'none') return;
+
+            var items = resultsList.querySelectorAll('.quick-student-item');
+            if (items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                highlightItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                highlightItem(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0 && selectedIndex < items.length) {
+                    e.preventDefault();
+                    var profileUrl = items[selectedIndex].getAttribute('data-profile');
+                    if (profileUrl) window.location.href = profileUrl;
+                }
+            } else if (e.key === 'Escape') {
+                closeDropdown();
+            }
+        });
+
+        function highlightItem(items) {
+            items.forEach(function(item, idx) {
+                if (idx === selectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        $(document).on('click', '.quick-student-item', function(e) {
+            if ($(e.target).closest('.quick-action-btn').length > 0) {
+                return;
+            }
+            var profileUrl = $(this).data('profile');
+            if (profileUrl) {
+                window.location.href = profileUrl;
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.header-quick-search-box')) {
+                closeDropdown();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initQuickSearch);
+    } else {
+        initQuickSearch();
+    }
+})();
+</script>
