@@ -15,7 +15,6 @@ use App\Models\ClassType;
 use App\Models\Subject;
 use App\Models\Sessions;
 use App\Models\Master\Branch;
-use App\Models\BillCounter;
 use App\Models\SmsSetting;
 use App\Models\BloodGroup;
 use App\Models\DatatableFields;
@@ -212,11 +211,28 @@ class StudentsAdmissionController extends Controller
 
             public function admissionAdd(Request $request){
 
-                $BillCounter = BillCounter::where('session_id', Session::get('session_id'))
-                    ->where('branch_id', Session::get('branch_id'))
-                    ->where('type', 'StudentAdmission')
-                    ->first();
-                $BillCounterNo = (int) ($BillCounter->counter ?? 0) + 1;
+                $sessionId = Session::get('session_id');
+                $branchId = Session::get('branch_id');
+
+                // Derive the next admission number dynamically from the latest admission record
+                $latestAdmissionNo = Admission::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->whereNull('deleted_at')
+                    ->whereRaw("admissionNo REGEXP '^[0-9]+$'")
+                    ->orderByDesc('id')
+                    ->value('admissionNo');
+
+                $nextAdmissionNo = $latestAdmissionNo ? ((int) $latestAdmissionNo + 1) : 1;
+
+                while (Admission::where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->where('admissionNo', (string) $nextAdmissionNo)
+                    ->whereNull('deleted_at')
+                    ->exists()) {
+                    $nextAdmissionNo++;
+                }
+
+                $BillCounterNo = $nextAdmissionNo;
 
                 if (!$request->isMethod('post')) {
                     return Helper::view('students.admission.add', ['BillCounter' => $BillCounterNo]);
@@ -293,12 +309,7 @@ class StudentsAdmissionController extends Controller
                 ];
 
                 try {
-                    $addadmission = DB::transaction(function () use ($request, $BillCounter, $fieldMap, $student_image, $father_image, $mother_image) {
-
-                        if ($BillCounter) {
-                            $BillCounter->counter = (int) ($BillCounter->counter ?? 0) + 1;
-                            $BillCounter->save();
-                        }
+                    $addadmission = DB::transaction(function () use ($request, $BillCounterNo, $fieldMap, $student_image, $father_image, $mother_image) {
 
                         $addadmission = new Admission();
                         $addadmission->user_id = Session::get('id');
@@ -311,17 +322,22 @@ class StudentsAdmissionController extends Controller
                         foreach ($fieldMap as $input => $column) {
                             $addadmission->{$column} = $request->input($input);
                         }
+                        if (empty($addadmission->admissionNo)) {
+                            $addadmission->admissionNo = $BillCounterNo;
+                        }
                         if (!empty($request->stream_subject)) {
                             $addadmission->stream_subject = implode(',', $request->stream_subject);
                         }
+
+                        $assignedAdmissionNo = $addadmission->admissionNo;
 
                         $addadmission->image = $student_image;
                         $addadmission->father_img = $father_image;
                         $addadmission->mother_img = $mother_image;
 
-                        $addadmission->password = Hash::make($request->admissionNo);
-                        $addadmission->confirm_password = $request->admissionNo;
-                        $addadmission->userName = $request->admissionNo;
+                        $addadmission->password = Hash::make($assignedAdmissionNo);
+                        $addadmission->confirm_password = $assignedAdmissionNo;
+                        $addadmission->userName = $assignedAdmissionNo;
                         $addadmission->status = (($request->newStudentRegistration ?? '') == 'newStudentRegistration') ? 'newStudentRegistration' : 1;
                         // temporary unique value, save ke baad 'AI' + id set hota hai
                         $addadmission->attendance_unique_id = 'TMP' . uniqid();
