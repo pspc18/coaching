@@ -1699,18 +1699,51 @@ class StudentsAdmissionController extends Controller
 
             public function category_wise_report(Request $request){
                 $classType = Helper::classType();
-                $categories = ['GENERAL', 'OBC', 'ST', 'SC', 'BC', 'SBC'];
-                $rows = Admission::query()
-                    ->selectRaw('class_type_id, category, gender_id, COUNT(*) as total')
-                    ->where('session_id', Session::get('session_id'))
-                    ->where('branch_id', Session::get('branch_id'))
+                $baseCategories = ['GENERAL', 'OBC', 'SC', 'ST', 'BC', 'SBC'];
+
+                $branchId = Session::get('branch_id');
+                $sessionId = Session::get('session_id');
+
+                $query = Admission::query()
+                    ->selectRaw("
+                        class_type_id,
+                        CASE 
+                            WHEN UPPER(TRIM(category)) IN ('GEN', 'GENERAL') THEN 'GENERAL'
+                            WHEN UPPER(TRIM(category)) IN ('OBC') THEN 'OBC'
+                            WHEN UPPER(TRIM(category)) IN ('SC') THEN 'SC'
+                            WHEN UPPER(TRIM(category)) IN ('ST') THEN 'ST'
+                            WHEN UPPER(TRIM(category)) IN ('BC') THEN 'BC'
+                            WHEN UPPER(TRIM(category)) IN ('SBC') THEN 'SBC'
+                            ELSE 'OTHER'
+                        END as norm_category,
+                        gender_id,
+                        COUNT(*) as total
+                    ")
                     ->whereNull('deleted_at')
-                    ->where('status', 1)
-                    ->groupBy('class_type_id', 'category', 'gender_id')
-                    ->get();
+                    ->where('status', 1);
+
+                if (!empty($sessionId)) {
+                    $query->where('session_id', $sessionId);
+                }
+                if (!empty($branchId)) {
+                    $query->where('branch_id', $branchId);
+                }
+
+                $rows = $query->groupBy('class_type_id', 'norm_category', 'gender_id')->get();
+
+                $hasOther = false;
                 $categoryIndex = [];
                 foreach ($rows as $row) {
-                    $categoryIndex[(int) $row->class_type_id][$row->category][(int) $row->gender_id] = (int) $row->total;
+                    $cat = $row->norm_category;
+                    if ($cat === 'OTHER' && (int)$row->total > 0) {
+                        $hasOther = true;
+                    }
+                    $categoryIndex[(int) $row->class_type_id][$cat][(int) $row->gender_id] = (int) $row->total;
+                }
+
+                $categories = $baseCategories;
+                if ($hasOther) {
+                    $categories[] = 'OTHER';
                 }
 
                 $classTotals = [];
