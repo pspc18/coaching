@@ -470,30 +470,43 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .dash-card-header {
-    background: #002342;
-    color: #ffffff;
-    padding: 5px 10px;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
-.matrix-header-title {
-    font-size: 11.5px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 0;
+.matrix-header-title,
+.dash-card-header h3,
+.dash-card-header .matrix-header-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    color: #ffffff !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.2px;
+}
+.matrix-header-title i {
+    color: #fbbf24 !important;
+    font-size: 12.5px;
+}
+.matrix-header-title span {
+    color: #ffffff !important;
 }
 .matrix-header-count {
     font-size: 10px;
     background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 1px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    padding: 2px 8px;
     border-radius: 2px;
-    color: #ffffff;
+    color: #ffffff !important;
     font-weight: 700;
+    letter-spacing: 0.2px;
 }
 
 .table-responsive-matrix {
@@ -578,7 +591,7 @@
 .cat-matrix-table thead tr:first-child th.col-sticky-sno,
 .cat-matrix-table thead tr:first-child th.col-sticky-class {
     z-index: 15 !important;
-    background: #002342 !important;
+    background: #002C54 !important;
     color: #ffffff !important;
 }
 
@@ -630,7 +643,7 @@
     position: sticky;
     bottom: 0;
     z-index: 9;
-    background: #002342 !important;
+    background: #002C54 !important;
     color: #ffffff !important;
     font-weight: 800;
     padding: 6px 6px;
@@ -870,9 +883,10 @@
         {{-- 5. Main Matrix Card & Sticky Table --}}
         <div class="matrix-card">
             <div class="dash-card-header">
-                <h3 class="matrix-header-title">
-                    <i class="fa fa-cubes text-warning mr-1"></i> Class-Wise Category Enrollment Matrix
-                </h3>
+                <div class="matrix-header-title">
+                    <i class="fa fa-cubes text-warning mr-1"></i>
+                    <span>Class-Wise Category Enrollment Matrix</span>
+                </div>
                 <span class="matrix-header-count">
                     {{ $sessionLabel }} &bull; {{ number_format($totalStudents) }} Students Enrolled
                 </span>
