@@ -73,8 +73,8 @@
 .dash-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 5px 12px;
     border-radius: 2px;
     font-size: 11px;
     font-weight: 700;
@@ -82,7 +82,7 @@
     transition: all .15s ease;
     cursor: pointer;
     border: 1px solid transparent;
-    height: 29px;
+    height: 30px;
     line-height: 1;
 }
 .dash-btn-light {
@@ -136,7 +136,7 @@
     font-weight: 700 !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 8px !important;
     margin: 0 !important;
     color: #ffffff !important;
     line-height: 1.2 !important;
@@ -195,7 +195,7 @@ textarea.theme-form-control {
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .mode-nav-tab {
-    padding: 6px 14px;
+    padding: 7px 16px;
     font-size: 11.5px;
     font-weight: 700;
     color: #475569;
@@ -207,7 +207,7 @@ textarea.theme-form-control {
     transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 .mode-nav-tab:hover {
     background: #e2e8f0;
@@ -349,6 +349,27 @@ textarea.theme-form-control {
     border-left-color: #94a3b8;
     background: #f8fafc;
 }
+
+/* 9. Universal Icon Spacing Standards */
+.fa {
+    line-height: inherit;
+}
+.perf-hero .fa:not(:last-child),
+.theme-card-header .fa:not(:last-child),
+.card-title .fa:not(:last-child),
+.modal-title .fa:not(:last-child),
+.ribbon-title .fa:not(:last-child),
+.dash-btn .fa:not(:last-child),
+.mode-nav-tab .fa:not(:last-child),
+.alert .fa:not(:last-child) {
+    margin-right: 6px;
+}
+.badge .fa {
+    margin-right: 3px;
+}
+.fa-external-link {
+    margin-left: 4px;
+}
 </style>
 
 <div class="content-wrapper">
@@ -358,10 +379,10 @@ textarea.theme-form-control {
         <div class="perf-hero">
             <div class="perf-hero-text">
                 <span class="perf-kicker">
-                    <i class="fa fa-graduation-cap"></i> Examination &amp; Question Bank System
+                    <i class="fa fa-graduation-cap mr-1"></i> Examination &amp; Question Bank System
                 </span>
                 <h1 class="perf-title">
-                    <i class="fa fa-plus-circle"></i> Create &amp; AI Ingestion Engine
+                    <i class="fa fa-plus-circle mr-2"></i> Create &amp; AI Ingestion Engine
                 </h1>
                 <p class="perf-subtitle">
                     <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
@@ -370,12 +391,12 @@ textarea.theme-form-control {
             </div>
             <div class="perf-hero-actions">
                 <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" title="View all questions in Question Bank">
-                    <i class="fa fa-list"></i> Question Bank
+                    <i class="fa fa-list mr-1"></i> Question Bank
                 </a>
                 <button type="button" class="dash-btn {{ $hasAiKey ? 'dash-btn-light' : 'dash-btn-emerald' }}" data-toggle="modal" data-target="#aiSettingsModal" title="Configure Google Gemini API Key">
                     <i class="fa fa-magic mr-1"></i> AI Settings
                     @if($hasAiKey)
-                        <span class="badge badge-success ml-1" style="font-size: 9px;"><i class="fa fa-check"></i> Connected</span>
+                        <span class="badge badge-success ml-1" style="font-size: 9px;"><i class="fa fa-check mr-1"></i> Connected</span>
                     @else
                         <span class="badge badge-warning ml-1" style="font-size: 9px;">Configure Key</span>
                     @endif
@@ -401,7 +422,7 @@ textarea.theme-form-control {
         <div class="theme-card mb-2">
             <div class="theme-card-header">
                 <h3 class="card-title">
-                    <i class="fa fa-sliders text-warning"></i> Target Academic Context (Class &amp; Subject)
+                    <i class="fa fa-sliders text-warning mr-2"></i> Target Academic Context (Class &amp; Subject)
                 </h3>
                 <span class="text-white small" style="font-size: 10px; opacity: 0.9;">
                     <i class="fa fa-info-circle mr-1"></i> Used for Manual, Image Scanner, and Bulk PDF Import
@@ -460,15 +481,15 @@ textarea.theme-form-control {
         {{-- 3. Ingestion Mode Switcher Tabs --}}
         <div class="mode-nav-tabs">
             <button type="button" class="mode-nav-tab active" data-target-tab="tab-manual">
-                <i class="fa fa-keyboard-o"></i> 1. Manual Builder
+                <i class="fa fa-keyboard-o mr-2"></i> 1. Manual Builder
                 <span class="tab-badge">Math &amp; LaTeX</span>
             </button>
             <button type="button" class="mode-nav-tab" data-target-tab="tab-image">
-                <i class="fa fa-camera"></i> 2. AI Single Image Scanner
+                <i class="fa fa-camera mr-2"></i> 2. AI Single Image Scanner
                 <span class="tab-badge">Photo / Paste</span>
             </button>
             <button type="button" class="mode-nav-tab" data-target-tab="tab-pdf">
-                <i class="fa fa-file-pdf-o"></i> 3. AI Bulk PDF / Paper Parser
+                <i class="fa fa-file-pdf-o mr-2"></i> 3. AI Bulk PDF / Paper Parser
                 <span class="tab-badge">Multi-Q</span>
             </button>
         </div>
@@ -490,7 +511,7 @@ textarea.theme-form-control {
                         <div class="theme-card">
                             <div class="theme-card-header">
                                 <h3 class="card-title">
-                                    <i class="fa fa-pencil text-warning"></i> Question Statement &amp; Answers
+                                    <i class="fa fa-pencil text-warning mr-2"></i> Question Statement &amp; Answers
                                 </h3>
                                 <span class="badge badge-light" style="font-size: 10.5px; color: #002C54; font-weight: 700;">
                                     Format: LaTeX Math Supported ($...$)
@@ -534,7 +555,7 @@ textarea.theme-form-control {
                                 <div id="manual-options-container">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
-                                            <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
+                                            <i class="fa fa-list-ul mr-2"></i> Multiple Choice Options &amp; Correct Answer:
                                         </label>
                                         <span class="text-muted small" style="font-size: 10px;">Select radio button for the correct option</span>
                                     </div>
@@ -550,7 +571,7 @@ textarea.theme-form-control {
                                                             <strong style="font-size: 11px;">Option {{ $letter }}</strong>
                                                         </div>
                                                         <label class="correct-radio-label text-success">
-                                                            <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
+                                                            <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
                                                             <span>Mark Correct</span>
                                                         </label>
                                                     </div>
@@ -575,7 +596,7 @@ textarea.theme-form-control {
                         {{-- Meta Card --}}
                         <div class="theme-card">
                             <div class="theme-card-header">
-                                <h3 class="card-title"><i class="fa fa-cog text-warning"></i> Question Meta &amp; Diagram</h3>
+                                <h3 class="card-title"><i class="fa fa-cog text-warning mr-2"></i> Question Meta &amp; Diagram</h3>
                             </div>
                             <div class="theme-card-body">
                                 {{-- Diagram / Figure Image Upload --}}
@@ -604,7 +625,7 @@ textarea.theme-form-control {
                                 <div class="border rounded p-2 bg-light mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <strong class="text-primary small" style="font-size: 11px;">
-                                            <i class="fa fa-eye mr-1"></i> Live Render Preview:
+                                            <i class="fa fa-eye mr-2"></i> Live Render Preview:
                                         </strong>
                                         <span id="manual-preview-correct-badge" class="badge badge-success" style="font-size: 9.5px;">Correct: A</span>
                                     </div>
@@ -616,13 +637,13 @@ textarea.theme-form-control {
                                 {{-- Action Buttons --}}
                                 <div class="d-flex flex-column gap-2 mt-3">
                                     <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:34px;">
-                                        <i class="fa fa-save"></i> Save Question to Bank
+                                        <i class="fa fa-save mr-1"></i> Save Question to Bank
                                     </button>
                                     <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:34px;">
-                                        <i class="fa fa-plus-circle"></i> Save &amp; Add Another
+                                        <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
                                     </button>
                                     <button type="reset" class="dash-btn dash-btn-outline" style="justify-content:center; color:#334155 !important; border-color:#cbd5e1; height:30px;">
-                                        <i class="fa fa-undo"></i> Reset
+                                        <i class="fa fa-undo mr-1"></i> Reset
                                     </button>
                                 </div>
                             </div>
@@ -642,10 +663,10 @@ textarea.theme-form-control {
                     <div class="theme-card">
                         <div class="theme-card-header">
                             <h3 class="card-title">
-                                <i class="fa fa-camera text-warning"></i> Upload or Paste Question Image
+                                <i class="fa fa-camera text-warning mr-2"></i> Upload or Paste Question Image
                             </h3>
                             <span class="badge badge-light" style="color: #002C54; font-size: 10px;">
-                                <i class="fa fa-clipboard"></i> Ctrl+V Paste Supported
+                                <i class="fa fa-clipboard mr-1"></i> Ctrl+V Paste Supported
                             </span>
                         </div>
                         <div class="theme-card-body">
@@ -666,10 +687,10 @@ textarea.theme-form-control {
                                 <img id="ai-preview-img" src="" alt="Question Image" class="img-fluid rounded border" style="max-height: 250px;">
                                 <div class="mt-2 d-flex justify-content-center gap-2">
                                     <button type="button" id="btn-ai-extract-image" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff;">
-                                        <i class="fa fa-magic"></i> Extract with AI Agent
+                                        <i class="fa fa-magic mr-1"></i> Extract with AI Agent
                                     </button>
                                     <button type="button" id="btn-clear-ai-image" class="dash-btn dash-btn-outline" style="color:#dc2626 !important; border-color:#cbd5e1;">
-                                        <i class="fa fa-trash"></i> Clear
+                                        <i class="fa fa-trash mr-1"></i> Clear
                                     </button>
                                 </div>
                             </div>
@@ -696,7 +717,7 @@ textarea.theme-form-control {
                     <div class="theme-card">
                         <div class="theme-card-header">
                             <h3 class="card-title">
-                                <i class="fa fa-check-circle-o text-warning"></i> AI-Extracted Question Review &amp; Edit
+                                <i class="fa fa-check-circle-o text-warning mr-2"></i> AI-Extracted Question Review &amp; Edit
                             </h3>
                             <span id="ai-single-model-badge" class="badge badge-light d-none" style="color:#002C54; font-size: 10px;">
                                 Gemini AI Parsed
@@ -729,7 +750,7 @@ textarea.theme-form-control {
                                                         <strong style="font-size: 11px;">Option {{ $letter }}</strong>
                                                     </div>
                                                     <label class="correct-radio-label text-success">
-                                                        <input type="radio" name="ai_single_correct" value="{{ $optIndex }}" class="ai-correct-radio">
+                                                        <input type="radio" name="ai_single_correct" value="{{ $optIndex }}" class="ai-correct-radio mr-1">
                                                         <span>Correct</span>
                                                     </label>
                                                 </div>
@@ -768,7 +789,7 @@ textarea.theme-form-control {
                                         <i class="fa fa-info-circle mr-1"></i> Saving will add this question under the currently selected Class &amp; Subject.
                                     </span>
                                     <button type="button" id="btn-save-ai-single" class="dash-btn dash-btn-emerald" style="height: 32px; padding: 0 16px;">
-                                        <i class="fa fa-check"></i> Approve &amp; Save Question
+                                        <i class="fa fa-check mr-1"></i> Approve &amp; Save Question
                                     </button>
                                 </div>
                             </form>
@@ -786,7 +807,7 @@ textarea.theme-form-control {
             <div class="theme-card">
                 <div class="theme-card-header">
                     <h3 class="card-title">
-                        <i class="fa fa-file-pdf-o text-warning"></i> Upload PDF Question Paper for AI Bulk Extraction
+                        <i class="fa fa-file-pdf-o text-warning mr-2"></i> Upload PDF Question Paper for AI Bulk Extraction
                     </h3>
                     <span class="badge badge-light" style="color: #002C54; font-size: 10px;">
                         Extracts All Questions in Seconds
@@ -813,7 +834,7 @@ textarea.theme-form-control {
 
                         <div class="col-md-3 text-right">
                             <button type="button" id="btn-start-pdf-extract" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; height:34px; width:100%; justify-content:center;">
-                                <i class="fa fa-magic"></i> Extract Questions via AI
+                                <i class="fa fa-magic mr-1"></i> Extract Questions via AI
                             </button>
                         </div>
                     </div>
@@ -838,7 +859,7 @@ textarea.theme-form-control {
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" id="btn-bulk-import-save" class="dash-btn dash-btn-emerald" style="height: 32px; padding: 0 16px;">
-                            <i class="fa fa-database"></i> Import Selected Questions to Bank
+                            <i class="fa fa-database mr-1"></i> Import Selected Questions to Bank
                         </button>
                     </div>
                 </div>
@@ -852,7 +873,7 @@ textarea.theme-form-control {
                         <i class="fa fa-info-circle mr-1"></i> All selected questions above will be saved with the active Target Class and Subject.
                     </span>
                     <button type="button" id="btn-bulk-import-save-bottom" class="dash-btn dash-btn-emerald" style="height: 32px; padding: 0 16px;">
-                        <i class="fa fa-database"></i> Import Selected Questions to Bank
+                        <i class="fa fa-database mr-1"></i> Import Selected Questions to Bank
                     </button>
                 </div>
             </div>
@@ -869,7 +890,7 @@ textarea.theme-form-control {
         <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54;">
             <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 16px;">
                 <h5 class="modal-title font-weight-bold" id="aiSettingsModalTitle" style="font-size: 13.5px;">
-                    <i class="fa fa-magic mr-1 text-warning"></i> Google Gemini AI Agent Settings
+                    <i class="fa fa-magic mr-2 text-warning"></i> Google Gemini AI Agent Settings
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -891,7 +912,7 @@ textarea.theme-form-control {
                         </div>
                     </div>
                     <div class="theme-hint mt-1">
-                        Don't have a key? Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary font-weight-bold">Google AI Studio <i class="fa fa-external-link"></i></a>
+                        Don't have a key? Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary font-weight-bold">Google AI Studio <i class="fa fa-external-link ml-1"></i></a>
                     </div>
                 </div>
 
@@ -1315,13 +1336,13 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 alert('Failed to save question: ' + (data.message || ''));
                 this.disabled = false;
-                this.innerHTML = '<i class="fa fa-check"></i> Approve & Save Question';
+                this.innerHTML = '<i class="fa fa-check mr-1"></i> Approve & Save Question';
             }
         })
         .catch(err => {
             alert('Error: ' + err.message);
             this.disabled = false;
-            this.innerHTML = '<i class="fa fa-check"></i> Approve & Save Question';
+            this.innerHTML = '<i class="fa fa-check mr-1"></i> Approve & Save Question';
         });
     });
 
@@ -1555,14 +1576,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = '{{ url("view/question") }}';
             } else {
                 alert('Import failed: ' + (data.message || ''));
-                if (btn1) { btn1.disabled = false; btn1.innerHTML = '<i class="fa fa-database"></i> Import Selected Questions to Bank'; }
-                if (btn2) { btn2.disabled = false; btn2.innerHTML = '<i class="fa fa-database"></i> Import Selected Questions to Bank'; }
+                if (btn1) { btn1.disabled = false; btn1.innerHTML = '<i class="fa fa-database mr-1"></i> Import Selected Questions to Bank'; }
+                if (btn2) { btn2.disabled = false; btn2.innerHTML = '<i class="fa fa-database mr-1"></i> Import Selected Questions to Bank'; }
             }
         })
         .catch(err => {
             alert('Error: ' + err.message);
-            if (btn1) { btn1.disabled = false; btn1.innerHTML = '<i class="fa fa-database"></i> Import Selected Questions to Bank'; }
-            if (btn2) { btn2.disabled = false; btn2.innerHTML = '<i class="fa fa-database"></i> Import Selected Questions to Bank'; }
+            if (btn1) { btn1.disabled = false; btn1.innerHTML = '<i class="fa fa-database mr-1"></i> Import Selected Questions to Bank'; }
+            if (btn2) { btn2.disabled = false; btn2.innerHTML = '<i class="fa fa-database mr-1"></i> Import Selected Questions to Bank'; }
         });
     };
 
