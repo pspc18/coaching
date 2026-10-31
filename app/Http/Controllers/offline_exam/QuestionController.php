@@ -113,8 +113,6 @@ class QuestionController extends Controller
             $add->correct_ans = $request->correct_ans;
             $add->explanation = $request->explanation;
             $add->difficulty_level = $request->difficulty_level ?: 'Medium';
-            $add->marks = $request->filled('marks') ? (float)$request->marks : 1.00;
-            $add->negative_marks = $request->filled('negative_marks') ? (float)$request->negative_marks : 0.00;
             $add->image = $imagePath;
             $add->ai_extracted = (bool)$request->input('ai_extracted', false);
             $add->save();
@@ -269,8 +267,6 @@ class QuestionController extends Controller
                 $add->correct_ans = isset($q['correct_ans']) ? (string)$q['correct_ans'] : null;
                 $add->explanation = $q['explanation'] ?? null;
                 $add->difficulty_level = $q['difficulty_level'] ?? 'Medium';
-                $add->marks = isset($q['marks']) ? (float)$q['marks'] : 1.00;
-                $add->negative_marks = isset($q['negative_marks']) ? (float)$q['negative_marks'] : 0.00;
                 $add->image = $q['image'] ?? null;
                 $add->source_file = $q['source_file'] ?? null;
                 $add->ai_extracted = true;
@@ -375,8 +371,6 @@ class QuestionController extends Controller
             $data->correct_ans = $request->correct_ans;
             $data->explanation = $request->explanation;
             $data->difficulty_level = $request->difficulty_level ?: 'Medium';
-            $data->marks = $request->filled('marks') ? (float)$request->marks : 1.00;
-            $data->negative_marks = $request->filled('negative_marks') ? (float)$request->negative_marks : 0.00;
             $data->save();
 
             return redirect('view/question')->with('message', 'Question updated successfully.');

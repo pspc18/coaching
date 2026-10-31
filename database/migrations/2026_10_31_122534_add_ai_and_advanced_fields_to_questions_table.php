@@ -23,14 +23,8 @@ class AddAiAndAdvancedFieldsToQuestionsTable extends Migration
             if (!Schema::hasColumn('questions', 'difficulty_level')) {
                 $table->string('difficulty_level', 50)->nullable()->default('Medium')->after('explanation');
             }
-            if (!Schema::hasColumn('questions', 'marks')) {
-                $table->decimal('marks', 6, 2)->default(1.00)->after('difficulty_level');
-            }
-            if (!Schema::hasColumn('questions', 'negative_marks')) {
-                $table->decimal('negative_marks', 6, 2)->default(0.00)->after('marks');
-            }
             if (!Schema::hasColumn('questions', 'source_file')) {
-                $table->string('source_file')->nullable()->after('negative_marks');
+                $table->string('source_file')->nullable()->after('difficulty_level');
             }
             if (!Schema::hasColumn('questions', 'ai_extracted')) {
                 $table->boolean('ai_extracted')->default(false)->after('source_file');
@@ -46,7 +40,7 @@ class AddAiAndAdvancedFieldsToQuestionsTable extends Migration
     public function down()
     {
         Schema::table('questions', function (Blueprint $table) {
-            $cols = ['image', 'explanation', 'difficulty_level', 'marks', 'negative_marks', 'source_file', 'ai_extracted'];
+            $cols = ['image', 'explanation', 'difficulty_level', 'source_file', 'ai_extracted'];
             foreach ($cols as $col) {
                 if (Schema::hasColumn('questions', $col)) {
                     $table->dropColumn($col);

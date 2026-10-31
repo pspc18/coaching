@@ -397,7 +397,7 @@ textarea.theme-form-control {
             </div>
         @endif
 
-        {{-- 2. Global Target Context Card (Class, Subject, Type, Marks) --}}
+        {{-- 2. Global Target Context Card (Class, Subject, Type) --}}
         <div class="theme-card mb-2">
             <div class="theme-card-header">
                 <h3 class="card-title">
@@ -410,7 +410,7 @@ textarea.theme-form-control {
             <div class="theme-card-body py-2">
                 <div class="row">
                     {{-- Target Class --}}
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="theme-form-group mb-1">
                             <label for="global_class_type_id">Target Class <span class="text-danger">*</span></label>
                             <select id="global_class_type_id" class="theme-form-control select2" required>
@@ -427,7 +427,7 @@ textarea.theme-form-control {
                     </div>
 
                     {{-- Target Subject (Dynamically filtered by Class) --}}
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="theme-form-group mb-1">
                             <label for="global_subject_id">Subject <span class="text-danger">*</span></label>
                             <select id="global_subject_id" class="theme-form-control select2" required>
@@ -444,28 +444,13 @@ textarea.theme-form-control {
                     </div>
 
                     {{-- Question Type --}}
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <div class="theme-form-group mb-1">
                             <label for="global_question_type_id">Question Format <span class="text-danger">*</span></label>
                             <select id="global_question_type_id" class="theme-form-control">
                                 <option value="1" {{ old('question_type_id', '1') == '1' ? 'selected' : '' }}>Objective (MCQ - 4 Options)</option>
                                 <option value="2" {{ old('question_type_id') == '2' ? 'selected' : '' }}>Descriptive / Subjective</option>
                             </select>
-                        </div>
-                    </div>
-
-                    {{-- Marks & Negative Marks --}}
-                    <div class="col-md-2">
-                        <div class="theme-form-group mb-1">
-                            <label for="global_marks">Correct Marks</label>
-                            <input type="number" id="global_marks" class="theme-form-control" value="1.00" step="0.25" min="0" max="999">
-                        </div>
-                    </div>
-
-                    <div class="col-md-2">
-                        <div class="theme-form-group mb-1">
-                            <label for="global_negative_marks">Negative Marks</label>
-                            <input type="number" id="global_negative_marks" class="theme-form-control" value="0.00" step="0.25" min="-999" max="0">
                         </div>
                     </div>
                 </div>
@@ -497,8 +482,6 @@ textarea.theme-form-control {
                 <input type="hidden" name="class_type_id" id="manual_class_type_id">
                 <input type="hidden" name="subject_id" id="manual_subject_id">
                 <input type="hidden" name="question_type_id" id="manual_question_type_id" value="1">
-                <input type="hidden" name="marks" id="manual_marks" value="1.00">
-                <input type="hidden" name="negative_marks" id="manual_negative_marks" value="0.00">
                 <input type="hidden" name="submit_action" id="manual_submit_action" value="save">
 
                 <div class="row">
@@ -940,8 +923,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const globalClassSelect = document.getElementById('global_class_type_id');
     const globalSubjectSelect = document.getElementById('global_subject_id');
     const globalTypeSelect = document.getElementById('global_question_type_id');
-    const globalMarks = document.getElementById('global_marks');
-    const globalNegativeMarks = document.getElementById('global_negative_marks');
 
     // Filter subjects dynamically when class changes
     globalClassSelect?.addEventListener('change', function () {
@@ -969,14 +950,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const mClass = document.getElementById('manual_class_type_id');
         const mSubj = document.getElementById('manual_subject_id');
         const mType = document.getElementById('manual_question_type_id');
-        const mMarks = document.getElementById('manual_marks');
-        const mNeg = document.getElementById('manual_negative_marks');
 
         if (mClass) mClass.value = globalClassSelect?.value || '';
         if (mSubj) mSubj.value = globalSubjectSelect?.value || '';
         if (mType) mType.value = globalTypeSelect?.value || '1';
-        if (mMarks) mMarks.value = globalMarks?.value || '1.00';
-        if (mNeg) mNeg.value = globalNegativeMarks?.value || '0.00';
     };
 
     // Toggle options display if Descriptive is chosen
@@ -1306,8 +1283,6 @@ document.addEventListener('DOMContentLoaded', function () {
             class_type_id: globalClassSelect.value,
             subject_id: globalSubjectSelect.value,
             question_type_id: globalTypeSelect.value,
-            marks: globalMarks.value,
-            negative_marks: globalNegativeMarks.value,
             name: qName,
             ans1: document.getElementById('ai_single_ans1').value,
             ans2: document.getElementById('ai_single_ans2').value,
@@ -1545,8 +1520,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     ans3: a3,
                     ans4: a4,
                     correct_ans: correctRadio ? correctRadio.value : '0',
-                    marks: globalMarks.value,
-                    negative_marks: globalNegativeMarks.value,
                     difficulty_level: 'Medium'
                 });
             }
