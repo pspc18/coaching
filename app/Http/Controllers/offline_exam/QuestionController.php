@@ -147,6 +147,8 @@ class QuestionController extends Controller
      */
     public function aiExtractSingle(Request $request)
     {
+        @set_time_limit(120);
+        @ini_set('max_execution_time', 120);
         try {
             $input = null;
             $customKey = $request->input('api_key');
@@ -191,6 +193,8 @@ class QuestionController extends Controller
      */
     public function aiExtractPdf(Request $request)
     {
+        @set_time_limit(180);
+        @ini_set('max_execution_time', 180);
         try {
             $request->validate([
                 'pdf_file' => 'required|file|mimes:pdf|max:20480', // up to 20MB

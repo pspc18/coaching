@@ -206,6 +206,7 @@ class AiQuestionExtractorService
                     ],
                     'generationConfig' => [
                         'temperature' => 0.1,
+                        'maxOutputTokens' => 8192,
                         'response_mime_type' => 'application/json'
                     ]
                 ]);
@@ -548,6 +549,7 @@ EOT;
                     ],
                     'generationConfig' => [
                         'temperature' => 0.1,
+                        'maxOutputTokens' => 8192,
                         'response_mime_type' => 'application/json'
                     ]
                 ]);
@@ -688,12 +690,13 @@ EOT;
 
         $cleaned = trim($cleaned);
 
+        // 1. First attempt: standard decode
         $decoded = json_decode($cleaned, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             return $decoded;
         }
 
-        // Try extracting first valid JSON { ... } or [ ... ]
+        // 2. Try extracting first valid JSON { ... } or [ ... ]
         if (preg_match('/(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])/s', $cleaned, $matches)) {
             $subDecoded = json_decode($matches[0], true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($subDecoded)) {
@@ -701,7 +704,66 @@ EOT;
             }
         }
 
-        Log::error("Failed to parse Gemini JSON: " . substr($rawText, 0, 500));
+        // 3. Fix unescaped LaTeX backslashes (\left, \frac, \right, \ge, \le, \sqrt, etc.)
+        $sanitized = preg_replace_callback('/(\\\\+)(.)/s', function ($matches) {
+            $slashes = $matches[1];
+            $char = $matches[2];
+            // If even number of backslashes (already escaped), keep as is
+            if (strlen($slashes) % 2 === 0) {
+                return $slashes . $char;
+            }
+            // Odd number of backslashes
+            if ($char === '"') {
+                return $slashes . $char; // preserve valid JSON quote escape \"
+            }
+            // For LaTeX commands or other single backslashes in JSON strings, escape the backslash
+            return $slashes . '\\' . $char;
+        }, $cleaned);
+
+        $decoded = json_decode($sanitized, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        // 4. Repair unclosed strings and brackets if AI token limit truncated JSON mid-output
+        $inString = false;
+        $escaped = false;
+        $stack = [];
+        $len = strlen($sanitized);
+        for ($i = 0; $i < $len; $i++) {
+            $c = $sanitized[$i];
+            if ($c === '\\') {
+                $escaped = !$escaped;
+                continue;
+            }
+            if ($c === '"' && !$escaped) {
+                $inString = !$inString;
+            } elseif (!$inString) {
+                if ($c === '{') {
+                    $stack[] = '}';
+                } elseif ($c === '[') {
+                    $stack[] = ']';
+                } elseif ($c === '}' || $c === ']') {
+                    array_pop($stack);
+                }
+            }
+            $escaped = false;
+        }
+
+        $repaired = $sanitized;
+        if ($inString) {
+            $repaired .= '"';
+        }
+        while (!empty($stack)) {
+            $repaired .= array_pop($stack);
+        }
+
+        $decoded = json_decode($repaired, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        Log::error("Failed to parse Gemini JSON: " . substr($rawText, 0, 500) . " | Error: " . json_last_error_msg());
         return null;
     }
 }

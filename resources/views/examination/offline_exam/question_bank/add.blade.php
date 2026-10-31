@@ -1431,7 +1431,15 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'X-CSRF-TOKEN': csrfToken },
             body: formData
         })
-        .then(res => res.json())
+        .then(async res => {
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                const cleanError = text.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().substring(0, 200);
+                throw new Error(`Server returned HTTP ${res.status}: ${cleanError || 'Invalid non-JSON response'}`);
+            }
+        })
         .then(data => {
             extractBtn.disabled = false;
             statusEl.classList.add('d-none');
@@ -1646,7 +1654,15 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'X-CSRF-TOKEN': csrfToken },
             body: formData
         })
-        .then(res => res.json())
+        .then(async res => {
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                const cleanError = text.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().substring(0, 200);
+                throw new Error(`Server returned HTTP ${res.status}: ${cleanError || 'Invalid non-JSON response'}`);
+            }
+        })
         .then(data => {
             btn.disabled = false;
             statusEl.classList.add('d-none');
