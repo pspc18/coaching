@@ -1483,13 +1483,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const badge = document.getElementById('ai-single-model-badge');
         if (badge) {
-            if (fromCache) {
-                badge.className = 'badge badge-success';
-                badge.innerHTML = '<i class="fa fa-bolt mr-1"></i> Cached (Zero API Tokens Used)';
-            } else {
-                badge.className = 'badge badge-light';
-                badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'Gemini AI Parsed');
-            }
+            badge.className = 'badge badge-light';
+            badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'Gemini AI Parsed');
             badge.classList.remove('d-none');
         }
 
@@ -1688,13 +1683,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const counterText = document.getElementById('bulk-select-counter');
 
         workspace.classList.remove('d-none');
-        if (fromCache) {
-            totalBadge.className = 'badge badge-success py-1 px-2';
-            totalBadge.innerHTML = `<i class="fa fa-bolt mr-1"></i> ${questions.length} Questions (Cached - 0 API Cost)`;
-        } else {
-            totalBadge.className = 'badge badge-primary py-1 px-2';
-            totalBadge.textContent = `${questions.length} Questions Detected`;
-        }
+        totalBadge.className = 'badge badge-primary py-1 px-2';
+        totalBadge.innerHTML = `<i class="fa fa-magic mr-1"></i> ${questions.length} Questions Extracted`;
         counterText.textContent = `Select All Questions (${questions.length} Selected)`;
 
         let html = '';

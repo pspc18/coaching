@@ -259,23 +259,6 @@ class AiQuestionExtractorService
             return $imagePayload;
         }
 
-        // 1. Content-Hash Cache (Zero API Token & Zero Call on Identical or Re-analyzed Images)
-        $imageHash = md5($imagePayload['data']['inline_data']['data']);
-        $cacheKey = 'ai_img_extract_' . $imageHash . '_' . md5($extraInstructions);
-
-        if (Cache::has($cacheKey)) {
-            $cached = Cache::get($cacheKey);
-            if (is_array($cached) && !empty($cached['data'])) {
-                return [
-                    'success' => true,
-                    'model_used' => $cached['model_used'] ?? 'Cache (0 Token)',
-                    'data' => $cached['data'],
-                    'from_cache' => true,
-                    'message' => 'Question loaded instantly from cache without consuming API tokens.'
-                ];
-            }
-        }
-
         $prompt = <<<EOT
 You are an expert Academic Examination Parser AI for school & competitive exams (NEET, JEE, CBSE, State Boards, Banking, SSC).
 Analyze this question image carefully.
@@ -325,13 +308,6 @@ Do NOT wrap the output in markdown code fences like ```json ```. Return pure JSO
 EOT;
 
         $result = $this->callGeminiMultimodal([$imagePayload['data']], $prompt, $key);
-        if ($result['success'] && !empty($result['data'])) {
-            Cache::put($cacheKey, [
-                'model_used' => $result['model_used'] ?? $this->primaryModel,
-                'data' => $result['data']
-            ], now()->addDays(30)); // 30-day cache for zero redundant API usage
-        }
-
         return $result;
     }
 
@@ -353,23 +329,6 @@ EOT;
                 'success' => false,
                 'message' => 'Uploaded PDF file could not be found on server.'
             ];
-        }
-
-        // 1. Check Content-Hash Cache for PDF (Zero API Token & Zero Call on Identical or Re-uploaded Papers)
-        $pdfHash = md5_file($pdfPath);
-        $cacheKey = 'ai_pdf_extract_v4_' . $pdfHash . '_' . md5($extraInstructions);
-
-        if (Cache::has($cacheKey)) {
-            $cached = Cache::get($cacheKey);
-            if (is_array($cached) && !empty($cached['data'])) {
-                return [
-                    'success' => true,
-                    'model_used' => $cached['model_used'] ?? 'Cache (0 Token)',
-                    'data' => $cached['data'],
-                    'from_cache' => true,
-                    'message' => 'Questions loaded instantly from local cache without consuming API tokens.'
-                ];
-            }
         }
 
         $ext = strtolower(pathinfo($pdfPath, PATHINFO_EXTENSION));
@@ -525,11 +484,6 @@ EOT;
                 }
             }
             unset($q);
-
-            Cache::put($cacheKey, [
-                'model_used' => $result['model_used'] ?? $this->primaryModel,
-                'data' => $result['data']
-            ], now()->addDays(30)); // 30-day cache for zero redundant API usage
         }
 
         return $result;
