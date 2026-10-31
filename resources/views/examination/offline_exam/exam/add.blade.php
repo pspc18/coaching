@@ -176,22 +176,109 @@
     height: 29px;
     padding: 4px 8px;
     font-size: 11.5px;
-    border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    color: #0f172a;
-    background-color: #ffffff;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
     width: 100%;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
 .theme-form-control:focus {
-    border-color: #002C54;
+    border-color: #002C54 !important;
     outline: 0;
-    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.15);
+    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.15) !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+.theme-form-control[readonly],
+.theme-form-control:disabled {
+    background-color: #f1f5f9 !important;
+    color: #002C54 !important;
+    cursor: not-allowed;
+    border-color: #cbd5e1 !important;
+}
+textarea.theme-form-control {
+    height: auto !important;
 }
 .theme-hint {
     font-size: 10px;
     color: #64748b;
     margin-top: 2px;
+}
+
+/* CBT Mode Switcher Box */
+.cbt-mode-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: 3px solid #002C54 !important;
+    border-radius: 2px !important;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 2px rgba(0, 44, 84, 0.04);
+}
+.cbt-mode-card .cbt-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #002C54 !important;
+    margin: 0;
+    line-height: 1.3;
+}
+.cbt-mode-card .cbt-desc {
+    font-size: 10px;
+    color: #64748b !important;
+    display: block;
+    margin-top: 1px;
+}
+.custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: #002C54 !important;
+    border-color: #002C54 !important;
+}
+
+/* Math Quick Insert Ribbon */
+.math-ribbon-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+}
+.math-ribbon-card .ribbon-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #002C54 !important;
+}
+.math-symbol-btn {
+    padding: 2px 7px;
+    font-size: 10.5px;
+    font-weight: 700;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+.math-symbol-btn:hover {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+
+/* Live Question Preview Box */
+.preview-box-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 2px !important;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+}
+.preview-box-card .preview-header-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #002C54 !important;
 }
 
 /* Quick Question Chips */
@@ -460,7 +547,7 @@
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
                                         <label for="exam-code">Exam Code</label>
-                                        <input type="text" id="exam-code" name="code" class="theme-form-control bg-light font-weight-bold text-primary" value="{{ $previewCode }}" readonly>
+                                        <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly>
                                         <div class="theme-hint"><i class="fa fa-lock"></i> Auto-generated scanner code</div>
                                     </div>
                                 </div>
@@ -517,16 +604,16 @@
                             </div>
 
                             {{-- Online CBT Switch --}}
-                            <div class="p-2 border rounded bg-light d-flex align-items-center justify-content-between mb-2">
+                            <div class="cbt-mode-card">
                                 <div>
-                                    <strong class="d-block" style="font-size: 11.5px; color: #002C54;">
-                                        <i class="fa fa-laptop mr-1"></i> Convert Exam to Online CBT Mode
-                                    </strong>
-                                    <span class="small text-muted" style="font-size: 10px;">Enable rich-text & Math/LaTeX formula editor</span>
+                                    <div class="cbt-title">
+                                        <i class="fa fa-laptop mr-1 text-primary"></i> Convert Exam to Online CBT Mode
+                                    </div>
+                                    <span class="cbt-desc">Enable rich-text &amp; Math/LaTeX formula editor</span>
                                 </div>
                                 <div class="custom-control custom-switch">
                                     <input type="checkbox" class="custom-control-input" id="exam-online-toggle" name="is_online" value="1" {{ $onlineEnabled ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="exam-online-toggle"></label>
+                                    <label class="custom-control-label" for="exam-online-toggle" style="cursor: pointer;"></label>
                                 </div>
                             </div>
                             <input type="hidden" id="exam-online-questions-json" name="online_questions_json" value="{{ $onlineQuestionsJson }}">
@@ -666,29 +753,29 @@
                     </div>
                     <div class="theme-card-body">
                         {{-- Math Quick Insert Ribbon --}}
-                        <div class="p-2 mb-2 border rounded bg-light">
+                        <div class="math-ribbon-card">
                             <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                <span class="small font-weight-bold text-primary">
-                                    <i class="fa fa-calculator mr-1"></i> Quick Math &amp; Science Symbols:
+                                <span class="ribbon-title">
+                                    <i class="fa fa-calculator mr-1 text-primary"></i> Quick Math &amp; Science Symbols:
                                 </span>
                                 <span class="text-muted small font-italic" style="font-size: 10px;">LaTeX Supported: $x^2$, \sqrt{x}, \frac{a}{b}</span>
                             </div>
                             <div class="d-flex flex-wrap gap-1" id="math-quick-insert-ribbon">
-                                <button type="button" data-insert-math="\frac{a}{b}" class="btn btn-xs btn-outline-secondary font-weight-bold" title="Fraction">½ \frac{a}{b}</button>
-                                <button type="button" data-insert-math="\sqrt{x}" class="btn btn-xs btn-outline-secondary font-weight-bold" title="Square Root">√x \sqrt{x}</button>
-                                <button type="button" data-insert-math="x^{2}" class="btn btn-xs btn-outline-secondary font-weight-bold" title="Power">x²</button>
-                                <button type="button" data-insert-math="x_{1}" class="btn btn-xs btn-outline-secondary font-weight-bold" title="Subscript">x₁</button>
-                                <button type="button" data-insert-math="\pm" class="btn btn-xs btn-outline-secondary font-weight-bold" title="Plus Minus">±</button>
-                                <button type="button" data-insert-math="\times" class="btn btn-xs btn-outline-secondary font-weight-bold">×</button>
-                                <button type="button" data-insert-math="\div" class="btn btn-xs btn-outline-secondary font-weight-bold">÷</button>
-                                <button type="button" data-insert-math="\pi" class="btn btn-xs btn-outline-secondary font-weight-bold">π</button>
-                                <button type="button" data-insert-math="\theta" class="btn btn-xs btn-outline-secondary font-weight-bold">θ</button>
-                                <button type="button" data-insert-math="\Delta" class="btn btn-xs btn-outline-secondary font-weight-bold">Δ</button>
-                                <button type="button" data-insert-math="\infty" class="btn btn-xs btn-outline-secondary font-weight-bold">∞</button>
-                                <button type="button" data-insert-math="\le" class="btn btn-xs btn-outline-secondary font-weight-bold">≤</button>
-                                <button type="button" data-insert-math="\ge" class="btn btn-xs btn-outline-secondary font-weight-bold">≥</button>
-                                <button type="button" data-insert-math="\ne" class="btn btn-xs btn-outline-secondary font-weight-bold">≠</button>
-                                <button type="button" data-insert-math="\rightarrow" class="btn btn-xs btn-outline-secondary font-weight-bold">→</button>
+                                <button type="button" data-insert-math="\frac{a}{b}" class="math-symbol-btn" title="Fraction">½ \frac{a}{b}</button>
+                                <button type="button" data-insert-math="\sqrt{x}" class="math-symbol-btn" title="Square Root">√x \sqrt{x}</button>
+                                <button type="button" data-insert-math="x^{2}" class="math-symbol-btn" title="Power">x²</button>
+                                <button type="button" data-insert-math="x_{1}" class="math-symbol-btn" title="Subscript">x₁</button>
+                                <button type="button" data-insert-math="\pm" class="math-symbol-btn" title="Plus Minus">±</button>
+                                <button type="button" data-insert-math="\times" class="math-symbol-btn">×</button>
+                                <button type="button" data-insert-math="\div" class="math-symbol-btn">÷</button>
+                                <button type="button" data-insert-math="\pi" class="math-symbol-btn">π</button>
+                                <button type="button" data-insert-math="\theta" class="math-symbol-btn">θ</button>
+                                <button type="button" data-insert-math="\Delta" class="math-symbol-btn">Δ</button>
+                                <button type="button" data-insert-math="\infty" class="math-symbol-btn">∞</button>
+                                <button type="button" data-insert-math="\le" class="math-symbol-btn">≤</button>
+                                <button type="button" data-insert-math="\ge" class="math-symbol-btn">≥</button>
+                                <button type="button" data-insert-math="\ne" class="math-symbol-btn">≠</button>
+                                <button type="button" data-insert-math="\rightarrow" class="math-symbol-btn">→</button>
                             </div>
                         </div>
 
@@ -712,20 +799,20 @@
                         </div>
 
                         {{-- Real-Time Math & Question Preview --}}
-                        <div class="p-2 border rounded bg-light mb-3">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <strong class="small text-primary"><i class="fa fa-desktop mr-1"></i> Student View Preview:</strong>
+                        <div class="preview-box-card">
+                            <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                <span class="preview-header-title"><i class="fa fa-desktop mr-1 text-primary"></i> Student View Preview:</span>
                                 <span class="badge badge-success d-none" id="preview-correct-badge">Correct: Option A</span>
                             </div>
-                            <div id="live-question-preview-content">
-                                <div id="preview-question-text" class="p-2 bg-white border rounded mb-2 font-weight-bold" style="font-size: 12px; min-height: 30px;">
+                            <div id="live-question-preview-content" class="mt-2">
+                                <div id="preview-question-text" class="p-2 bg-white border rounded mb-2 font-weight-bold" style="font-size: 12px; min-height: 30px; border-color: #cbd5e1 !important; color: #0f172a;">
                                     <em>Question statement preview will appear here...</em>
                                 </div>
                                 <div class="row" style="font-size: 11.5px;">
-                                    <div class="col-6 mb-1"><div id="preview-option-a" class="p-1 border rounded bg-white"><strong>(A)</strong> <span class="opt-text text-muted">Empty</span></div></div>
-                                    <div class="col-6 mb-1"><div id="preview-option-b" class="p-1 border rounded bg-white"><strong>(B)</strong> <span class="opt-text text-muted">Empty</span></div></div>
-                                    <div class="col-6 mb-1"><div id="preview-option-c" class="p-1 border rounded bg-white"><strong>(C)</strong> <span class="opt-text text-muted">Empty</span></div></div>
-                                    <div class="col-6 mb-1"><div id="preview-option-d" class="p-1 border rounded bg-white"><strong>(D)</strong> <span class="opt-text text-muted">Empty</span></div></div>
+                                    <div class="col-6 mb-1"><div id="preview-option-a" class="p-1 border rounded bg-white" style="border-color: #cbd5e1 !important; color: #0f172a;"><strong>(A)</strong> <span class="opt-text text-muted">Empty</span></div></div>
+                                    <div class="col-6 mb-1"><div id="preview-option-b" class="p-1 border rounded bg-white" style="border-color: #cbd5e1 !important; color: #0f172a;"><strong>(B)</strong> <span class="opt-text text-muted">Empty</span></div></div>
+                                    <div class="col-6 mb-1"><div id="preview-option-c" class="p-1 border rounded bg-white" style="border-color: #cbd5e1 !important; color: #0f172a;"><strong>(C)</strong> <span class="opt-text text-muted">Empty</span></div></div>
+                                    <div class="col-6 mb-1"><div id="preview-option-d" class="p-1 border rounded bg-white" style="border-color: #cbd5e1 !important; color: #0f172a;"><strong>(D)</strong> <span class="opt-text text-muted">Empty</span></div></div>
                                 </div>
                             </div>
                         </div>
