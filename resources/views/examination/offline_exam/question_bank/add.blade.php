@@ -1194,6 +1194,71 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    /**
+     * Formats rich exam content for preview (converts HTML/markdown/newlines to clean normal view).
+     */
+    function formatRichExamContent(raw) {
+        if (raw === null || raw === undefined) return '';
+        let text = String(raw).trim();
+        if (!text) return '';
+
+        // 1. Unescape safe HTML tags if they were escaped as &lt;br&gt;, &lt;b&gt;, etc.
+        text = text.replace(/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6])(?:\s+[^&>]*)?)&gt;/gi, '<$1>');
+
+        // 2. Unescape quotes in tag attributes if escaped
+        text = text.replace(/<(table|div|span|p|tr|td|th)([^>]*)&quot;([^>]*)>/gi, '<$1$2"$3>');
+
+        // 3. Temporarily protect math blocks ($...$, $$...$$, \(...\), \[...\]) before transforms
+        const mathBlocks = [];
+        text = text.replace(/(\$\$[\s\S]*?\$\$|\$[^\$\n\r]+?\$|\\\(.*?\\\)|\\[[\s\S]*?\\])/g, function(match) {
+            mathBlocks.push(match);
+            return `###MATH_BLOCK_${mathBlocks.length - 1}###`;
+        });
+
+        // 4. Convert markdown bold **bold** to <strong>bold</strong>
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // 5. Convert markdown italic *italic* to <em>italic</em>
+        text = text.replace(/(^|[^\*])\*([^\*\s][^\*]*?)\*(?!\*)/g, '$1<em>$2</em>');
+
+        // 6. Normalize existing <br> tags
+        text = text.replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>');
+
+        // 7. Convert plain newlines (\n) to <br> (skip if preceded by block level tag)
+        text = text.replace(/([^>])\r?\n/g, '$1<br>');
+        text = text.replace(/\n/g, '<br>');
+
+        // 8. Restore protected math blocks
+        text = text.replace(/###MATH_BLOCK_(\d+)###/g, function(_, idx) {
+            return mathBlocks[parseInt(idx, 10)] || '';
+        });
+
+        return text;
+    }
+
+    /**
+     * Cleans values for textarea input by converting HTML <br> tags into clean editable newlines \n.
+     */
+    function cleanTextareaValue(raw) {
+        if (raw === null || raw === undefined) return '';
+        let str = String(raw);
+        str = str.replace(/<br\s*\/?>/gi, '\n');
+        str = str.replace(/&lt;br\s*\/?&gt;/gi, '\n');
+        return str;
+    }
+
+    /**
+     * Prepares textarea input for persistent DB storage by converting newlines to <br>.
+     */
+    function prepareForDbSave(raw) {
+        if (raw === null || raw === undefined) return raw;
+        let str = String(raw).trim();
+        if (!str) return str;
+        str = str.replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>');
+        str = str.replace(/([^>])\r?\n/g, '$1<br>');
+        return str.trim();
+    }
+
     function updateManualLivePreview() {
         const previewEl = document.getElementById('manual-live-preview');
         const qText = document.getElementById('manual_question_name')?.value?.trim();
@@ -1220,19 +1285,21 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        let html = `<div class="font-weight-bold mb-2">${escapeHtml(qText || 'Question statement...')}</div>`;
+        let html = `<div class="font-weight-bold mb-2">${formatRichExamContent(qText || 'Question statement...')}</div>`;
         if (globalTypeSelect?.value === '1') {
             html += `<div class="row">
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 0 ? 'bg-success text-white' : 'bg-white'}"><strong>(A)</strong> ${escapeHtml(a1 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 1 ? 'bg-success text-white' : 'bg-white'}"><strong>(B)</strong> ${escapeHtml(a2 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 2 ? 'bg-success text-white' : 'bg-white'}"><strong>(C)</strong> ${escapeHtml(a3 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 3 ? 'bg-success text-white' : 'bg-white'}"><strong>(D)</strong> ${escapeHtml(a4 || '—')}</div></div>
+                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 0 ? 'bg-success text-white' : 'bg-white'}"><strong>(A)</strong> ${formatRichExamContent(a1 || '—')}</div></div>
+                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 1 ? 'bg-success text-white' : 'bg-white'}"><strong>(B)</strong> ${formatRichExamContent(a2 || '—')}</div></div>
+                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 2 ? 'bg-success text-white' : 'bg-white'}"><strong>(C)</strong> ${formatRichExamContent(a3 || '—')}</div></div>
+                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 3 ? 'bg-success text-white' : 'bg-white'}"><strong>(D)</strong> ${formatRichExamContent(a4 || '—')}</div></div>
             </div>`;
         }
 
         if (previewEl) {
             previewEl.innerHTML = html;
             renderKaTeXIn(previewEl);
+        }
+    }
         }
     }
 
@@ -1462,12 +1529,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('form-ai-single-save');
         form.classList.remove('d-none');
 
-        document.getElementById('ai_single_q_name').value = q.name || '';
-        document.getElementById('ai_single_ans1').value = q.ans1 || '';
-        document.getElementById('ai_single_ans2').value = q.ans2 || '';
-        document.getElementById('ai_single_ans3').value = q.ans3 || '';
-        document.getElementById('ai_single_ans4').value = q.ans4 || '';
-        document.getElementById('ai_single_explanation').value = q.explanation || '';
+        document.getElementById('ai_single_q_name').value = cleanTextareaValue(q.name || '');
+        document.getElementById('ai_single_ans1').value = cleanTextareaValue(q.ans1 || '');
+        document.getElementById('ai_single_ans2').value = cleanTextareaValue(q.ans2 || '');
+        document.getElementById('ai_single_ans3').value = cleanTextareaValue(q.ans3 || '');
+        document.getElementById('ai_single_ans4').value = cleanTextareaValue(q.ans4 || '');
+        document.getElementById('ai_single_explanation').value = cleanTextareaValue(q.explanation || '');
         document.getElementById('ai_single_difficulty').value = q.difficulty_level || 'Medium';
         document.getElementById('ai_single_topic').value = q.topic || '';
         document.getElementById('ai_single_image_path').value = q.image_path || '';
@@ -1504,7 +1571,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const letter = ['A','B','C','D'][parseInt(correctVal, 10)] || 'A';
 
         const qName = document.getElementById('ai-single-preview-name');
-        if (qName) qName.innerHTML = nameVal.trim() ? nameVal : '<em>Question statement empty...</em>';
+        if (qName) qName.innerHTML = nameVal.trim() ? formatRichExamContent(nameVal) : '<em>Question statement empty...</em>';
 
         const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4 };
         ['A','B','C','D'].forEach((l, oIdx) => {
@@ -1512,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (optEl) {
                 const isCorr = (String(oIdx) === String(correctVal));
                 optEl.className = `preview-opt-item ${isCorr ? 'preview-correct-opt' : ''}`;
-                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? escapeHtml(optMap[l]) : '—'}</span>`;
+                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? formatRichExamContent(optMap[l]) : '—'}</span>`;
             }
         });
 
@@ -1522,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const expEl = document.getElementById('ai-single-preview-exp');
         if (expEl) {
             if (expVal.trim()) {
-                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${escapeHtml(expVal)}</span>`;
+                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${formatRichExamContent(expVal)}</span>`;
                 expEl.classList.remove('d-none');
             } else {
                 expEl.classList.add('d-none');
@@ -1722,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         {{-- 1. Direction Statement Text --}}
                         ${q.direction ? `
                         <div class="direction-statement-text mb-3 text-dark font-weight-bold" style="font-size: 12.5px; line-height: 1.6;">
-                            ${escapeHtml(q.direction)}
+                            ${formatRichExamContent(q.direction)}
                         </div>` : ''}
 
                         {{-- 2. Common Diagram / Graph Image (Before Table, following original paper sequence) --}}
@@ -1795,7 +1862,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </label>
                                     <span class="text-muted small font-italic" style="font-size: 9.5px;">Auto-updates preview on right</span>
                                 </div>
-                                <textarea class="theme-form-control bulk-field-name live-sync-input" data-index="${idx}" rows="3" placeholder="Question statement or formula...">${escapeHtml(q.name || '')}</textarea>
+                                <textarea class="theme-form-control bulk-field-name live-sync-input" data-index="${idx}" rows="3" placeholder="Question statement or formula...">${escapeHtml(cleanTextareaValue(q.name || ''))}</textarea>
                             </div>
 
                             {{-- Diagram / Graph Attachment Box (Only for standalone questions, not repeated in Direction sub-questions) --}}
@@ -1854,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                         <span>Correct</span>
                                                     </label>
                                                 </div>
-                                                <textarea class="theme-form-control bulk-field-${optKey} live-sync-input" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
+                                                <textarea class="theme-form-control bulk-field-${optKey} live-sync-input" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(cleanTextareaValue(q[optKey] || ''))}</textarea>
                                             </div>
                                         </div>`;
                                     }).join('');
@@ -1866,7 +1933,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">
                                     <i class="fa fa-lightbulb-o text-warning mr-1"></i> Explanation / Solution
                                 </label>
-                                <textarea class="theme-form-control bulk-field-explanation live-sync-input" data-index="${idx}" rows="2" placeholder="Explanation or solution notes...">${escapeHtml(q.explanation || '')}</textarea>
+                                <textarea class="theme-form-control bulk-field-explanation live-sync-input" data-index="${idx}" rows="2" placeholder="Explanation or solution notes...">${escapeHtml(cleanTextareaValue(q.explanation || ''))}</textarea>
                             </div>
                         </div>
 
@@ -1886,12 +1953,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${q.direction ? `
                                 <div class="preview-direction-snippet mb-2 p-2 rounded" style="background: #f1f5f9; border-left: 3px solid #0284c7; font-size: 11px; line-height: 1.4;">
                                     <strong class="text-primary d-block mb-1"><i class="fa fa-info-circle mr-1"></i> Direction / Context:</strong>
-                                    <div class="text-muted" style="max-height: 60px; overflow-y: auto;">${escapeHtml(q.direction)}</div>
+                                    <div class="text-muted" style="max-height: 60px; overflow-y: auto;">${formatRichExamContent(q.direction)}</div>
                                 </div>` : ''}
 
                                 {{-- Rendered Question Statement with KaTeX --}}
                                 <div class="preview-q-name" id="preview-q-name-${idx}">
-                                    <strong>Q${subQNo}.</strong> ${q.name ? escapeHtml(q.name) : '<em>Question statement empty...</em>'}
+                                    <strong>Q${subQNo}.</strong> ${q.name ? formatRichExamContent(q.name) : '<em>Question statement empty...</em>'}
                                 </div>
 
                                 {{-- Rendered Diagram Image (Only for standalone questions, not repeated in Direction sub-questions) --}}
@@ -1916,7 +1983,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             return `
                                             <div class="col-6 mb-2">
                                                 <div class="preview-opt-item ${isCorrect ? 'preview-correct-opt' : ''}" id="preview-opt-${idx}-${letter}">
-                                                    <strong>(${letter})</strong> <span class="preview-opt-text">${q[optKey] ? escapeHtml(q[optKey]) : '—'}</span>
+                                                    <strong>(${letter})</strong> <span class="preview-opt-text">${q[optKey] ? formatRichExamContent(q[optKey]) : '—'}</span>
                                                 </div>
                                             </div>`;
                                         }).join('');
@@ -1926,7 +1993,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 {{-- Rendered Explanation / Solution --}}
                                 <div class="preview-q-exp mt-2 p-2 border rounded bg-white small text-muted ${q.explanation ? '' : 'd-none'}" id="preview-q-exp-${idx}">
                                     <strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong>
-                                    <span class="preview-exp-text">${escapeHtml(q.explanation || '')}</span>
+                                    <span class="preview-exp-text">${formatRichExamContent(q.explanation || '')}</span>
                                 </div>
                             </div>
                         </div>
@@ -1937,11 +2004,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         container.innerHTML = html;
         
-        // Initial KaTeX render on all preview cards
+        // Initial KaTeX render on all preview cards and direction banners
         questions.forEach((_, idx) => {
             const previewCard = document.getElementById(`preview-exam-card-${idx}`);
             if (previewCard) renderKaTeXIn(previewCard);
         });
+        document.querySelectorAll('.direction-banner-card').forEach(el => renderKaTeXIn(el));
 
         // Bind Live Input Syncing (typing in left textarea updates right preview live)
         container.querySelectorAll('.live-sync-input').forEach(input => {
@@ -2062,7 +2130,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 1. Question Statement
         const qNameEl = document.getElementById(`preview-q-name-${idx}`);
         if (qNameEl) {
-            qNameEl.innerHTML = nameVal.trim() ? `<strong>Q${qNum}.</strong> ${nameVal}` : `<em>Question Q${qNum} statement empty...</em>`;
+            qNameEl.innerHTML = nameVal.trim() ? `<strong>Q${qNum}.</strong> ${formatRichExamContent(nameVal)}` : `<em>Question Q${qNum} statement empty...</em>`;
         }
 
         // 2. Diagram Image (Only show in card preview if question is NOT part of a Direction Set)
@@ -2088,7 +2156,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (optEl) {
                 const isCorr = (String(oIdx) === String(correctVal));
                 optEl.className = `preview-opt-item ${isCorr ? 'preview-correct-opt' : ''}`;
-                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? optMap[l] : '—'}</span>`;
+                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? formatRichExamContent(optMap[l]) : '—'}</span>`;
             }
         });
 
@@ -2100,7 +2168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const expEl = document.getElementById(`preview-q-exp-${idx}`);
         if (expEl) {
             if (expVal.trim()) {
-                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${expVal}</span>`;
+                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${formatRichExamContent(expVal)}</span>`;
                 expEl.classList.remove('d-none');
             } else {
                 expEl.classList.add('d-none');
@@ -2294,19 +2362,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (name) {
                 preparedQuestions.push({
-                    name: name,
+                    name: prepareForDbSave(name),
                     question_type_id: globalTypeSelect ? globalTypeSelect.value : 1,
-                    ans1: a1 || null,
-                    ans2: a2 || null,
-                    ans3: a3 || null,
-                    ans4: a4 || null,
-                    ans5: a5 || null,
+                    ans1: a1 ? prepareForDbSave(a1) : null,
+                    ans2: a2 ? prepareForDbSave(a2) : null,
+                    ans3: a3 ? prepareForDbSave(a3) : null,
+                    ans4: a4 ? prepareForDbSave(a4) : null,
+                    ans5: a5 ? prepareForDbSave(a5) : null,
                     group_id: groupId || null,
-                    direction: direction || null,
+                    direction: direction ? prepareForDbSave(direction) : null,
                     direction_table: directionTable || null,
                     sub_question_no: subNo || null,
                     correct_ans: correctRadio ? correctRadio.value : '0',
-                    explanation: explanation || null,
+                    explanation: explanation ? prepareForDbSave(explanation) : null,
                     difficulty_level: difficulty,
                     image: imagePath || null
                 });

@@ -99,7 +99,7 @@
             		<div class="col-md-12">
             			<div class="form-group">
             				<label  style="color:red;">{{ __('examination.Question') }}*</label>
-            				<textarea class="form-control @error('name') is-invalid @enderror" id="name" name="name">{{ $data['name'] ?? '' }}</textarea>
+            				<textarea class="form-control @error('name') is-invalid @enderror" id="name" name="name">{{ str_replace(['<br>', '<br/>', '<br />', '&lt;br&gt;'], "\n", $data['name'] ?? '') }}</textarea>
                              @error('name')
             					<span class="invalid-feedback" role="alert">
             						<strong>{{ $message }}</strong>

@@ -262,13 +262,28 @@ class QuestionController extends Controller
                     continue;
                 }
 
+                $qName = trim($q['name']);
+                if (strpos($qName, '<table') === false && strpos($qName, '<br') === false && strpos($qName, "\n") !== false) {
+                    $qName = nl2br($qName);
+                }
+
+                $direction = isset($q['direction']) ? trim($q['direction']) : null;
+                if (!empty($direction) && strpos($direction, '<br') === false && strpos($direction, "\n") !== false) {
+                    $direction = nl2br($direction);
+                }
+
+                $explanation = isset($q['explanation']) ? trim($q['explanation']) : null;
+                if (!empty($explanation) && strpos($explanation, '<br') === false && strpos($explanation, "\n") !== false) {
+                    $explanation = nl2br($explanation);
+                }
+
                 $add = new Question;
                 $add->user_id = $userId;
                 $add->session_id = $sessionId;
                 $add->branch_id = $branchId;
                 $add->class_type_id = $classTypeId;
                 $add->subject_id = $subjectId;
-                $add->name = $q['name'];
+                $add->name = $qName;
                 $add->question_type_id = isset($q['question_type_id']) ? (int)$q['question_type_id'] : 1;
                 $add->ans1 = $q['ans1'] ?? null;
                 $add->ans2 = $q['ans2'] ?? null;
@@ -276,11 +291,11 @@ class QuestionController extends Controller
                 $add->ans4 = $q['ans4'] ?? null;
                 $add->ans5 = $q['ans5'] ?? null;
                 $add->group_id = $q['group_id'] ?? null;
-                $add->direction = $q['direction'] ?? null;
+                $add->direction = $direction;
                 $add->direction_table = $q['direction_table'] ?? null;
                 $add->sub_question_no = $q['sub_question_no'] ?? null;
                 $add->correct_ans = isset($q['correct_ans']) ? (string)$q['correct_ans'] : null;
-                $add->explanation = $q['explanation'] ?? null;
+                $add->explanation = $explanation;
                 $add->difficulty_level = $q['difficulty_level'] ?? 'Medium';
                 $add->image = $q['image'] ?? null;
                 $add->source_file = $q['source_file'] ?? null;

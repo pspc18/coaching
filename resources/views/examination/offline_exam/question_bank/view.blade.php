@@ -285,6 +285,14 @@ function renderKaTeXInModal(container) {
     });
 }
 
+function formatViewHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6])(?:\s+[^&>]*)?)&gt;/gi, '<$1>')
+        .replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>')
+        .replace(/([^>])\r?\n/g, '$1<br>');
+}
+
 $('.questionDetail').click(function() {
     $('#myModal').modal('toggle');
     
@@ -303,16 +311,16 @@ $('.questionDetail').click(function() {
     var image = $(this).data('image') || '';
     var explanation = $(this).data('explanation') || '';
 
-    $('#question').html(question);
+    $('#question').html(formatViewHtml(question));
     $('#subject_id1').html(subject_id1 || class_type_id);
-    $('#ans1').html(answer1);
-    $('#ans2').html(answer2);
-    $('#ans3').html(answer3);
-    $('#ans4').html(answer4);
+    $('#ans1').html(formatViewHtml(answer1));
+    $('#ans2').html(formatViewHtml(answer2));
+    $('#ans3').html(formatViewHtml(answer3));
+    $('#ans4').html(formatViewHtml(answer4));
 
     // Option E
     if (answer5) {
-        $('#ans5').html(answer5);
+        $('#ans5').html(formatViewHtml(answer5));
         $('#option5').removeClass('d-none');
     } else {
         $('#option5').addClass('d-none');
@@ -320,7 +328,7 @@ $('.questionDetail').click(function() {
 
     // Direction box
     if (direction || directionTable) {
-        $('#modal_direction_text').html(direction);
+        $('#modal_direction_text').html(formatViewHtml(direction));
         $('#modal_group_badge').text(groupId ? '(' + groupId + ')' : '');
         if (directionTable) {
             $('#modal_direction_table').html(directionTable).removeClass('d-none');
@@ -342,7 +350,7 @@ $('.questionDetail').click(function() {
 
     // Explanation
     if (explanation) {
-        $('#modal_explanation_text').html(explanation);
+        $('#modal_explanation_text').html(formatViewHtml(explanation));
         $('#modal_explanation_box').removeClass('d-none');
     } else {
         $('#modal_explanation_box').addClass('d-none');
