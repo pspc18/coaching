@@ -506,9 +506,6 @@ textarea.theme-form-control {
                         </a>
                     @endforeach
                 </div>
-                <button type="button" id="btn-print-omr-hero" class="dash-btn dash-btn-light {{ $onlineEnabled ? 'd-none' : '' }}" title="Print this OMR sheet">
-                    <i class="fa fa-print"></i> Print OMR
-                </button>
             </div>
         </div>
 
