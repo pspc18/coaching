@@ -1191,12 +1191,58 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function handleImageFile(file) {
-        loadedImageBlob = file;
+        // Automatically optimize/compress image client-side to save API token cost & bandwidth
+        compressImageFile(file, 1600, 0.85, function (compressedBlob, dataUrl) {
+            loadedImageBlob = compressedBlob;
+            loadedImageBase64 = dataUrl;
+            previewImg.src = dataUrl;
+            previewCard.classList.remove('d-none');
+        });
+    }
+
+    // Client-side image compression to save Gemini API token and bandwidth costs
+    function compressImageFile(file, maxDimension, quality, callback) {
+        if (!file || !file.type.match(/image.*/)) {
+            callback(file, null);
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = function (e) {
-            loadedImageBase64 = e.target.result;
-            previewImg.src = loadedImageBase64;
-            previewCard.classList.remove('d-none');
+            const dataUrl = e.target.result;
+            const img = new Image();
+            img.onload = function () {
+                let width = img.width;
+                let height = img.height;
+
+                // If already small, skip compression
+                if (width <= maxDimension && height <= maxDimension && file.size < 400000) {
+                    callback(file, dataUrl);
+                    return;
+                }
+
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = Math.round((height * maxDimension) / width);
+                        width = maxDimension;
+                    } else {
+                        width = Math.round((width * maxDimension) / height);
+                        height = maxDimension;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                canvas.toBlob(function (blob) {
+                    callback(blob || file, compressedDataUrl);
+                }, 'image/jpeg', quality);
+            };
+            img.src = dataUrl;
         };
         reader.readAsDataURL(file);
     }
@@ -1244,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', function () {
             statusEl.classList.add('d-none');
 
             if (data.success && data.data) {
-                populateAiSingleForm(data.data);
+                populateAiSingleForm(data.data, data.from_cache, data.model_used);
             } else {
                 alert('AI Extraction Failed: ' + (data.message || 'Unknown error'));
             }
@@ -1256,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function populateAiSingleForm(q) {
+    function populateAiSingleForm(q, fromCache = false, modelUsed = '') {
         document.getElementById('ai-single-empty-placeholder').classList.add('d-none');
         const form = document.getElementById('form-ai-single-save');
         form.classList.remove('d-none');
@@ -1276,7 +1322,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const targetRadio = document.querySelector(`input[name="ai_single_correct"][value="${correctVal}"]`);
         if (targetRadio) targetRadio.checked = true;
 
-        document.getElementById('ai-single-model-badge').classList.remove('d-none');
+        const badge = document.getElementById('ai-single-model-badge');
+        if (badge) {
+            if (fromCache) {
+                badge.className = 'badge badge-success';
+                badge.innerHTML = '<i class="fa fa-bolt mr-1"></i> Cached (Zero API Tokens Used)';
+            } else {
+                badge.className = 'badge badge-light';
+                badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'Gemini AI Parsed');
+            }
+            badge.classList.remove('d-none');
+        }
         form.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1385,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (data.success && data.data && Array.isArray(data.data.questions)) {
                 extractedQuestionsList = data.data.questions;
-                renderBulkQuestions(extractedQuestionsList);
+                renderBulkQuestions(extractedQuestionsList, data.from_cache, data.model_used);
             } else {
                 alert('Bulk Extraction Failed: ' + (data.message || 'No questions could be extracted from document.'));
             }
@@ -1397,14 +1453,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function renderBulkQuestions(questions) {
+    function renderBulkQuestions(questions, fromCache = false, modelUsed = '') {
         const workspace = document.getElementById('bulk-questions-workspace');
         const container = document.getElementById('bulk-questions-list');
         const totalBadge = document.getElementById('bulk-total-count');
         const counterText = document.getElementById('bulk-select-counter');
 
         workspace.classList.remove('d-none');
-        totalBadge.textContent = `${questions.length} Questions Detected`;
+        if (fromCache) {
+            totalBadge.className = 'badge badge-success py-1 px-2';
+            totalBadge.innerHTML = `<i class="fa fa-bolt mr-1"></i> ${questions.length} Questions (Cached - 0 API Cost)`;
+        } else {
+            totalBadge.className = 'badge badge-primary py-1 px-2';
+            totalBadge.textContent = `${questions.length} Questions Detected`;
+        }
         counterText.textContent = `Select All Questions (${questions.length} Selected)`;
 
         let html = '';

@@ -145,7 +145,7 @@ class AiQuestionExtractorService
     }
 
     /**
-     * Test if a Gemini API key is valid and find working models
+     * Test if a Gemini API key is valid and find working models (Cached to save API requests)
      */
     public function testConnection(?string $apiKey = null): array
     {
@@ -154,6 +154,18 @@ class AiQuestionExtractorService
             return [
                 'success' => false,
                 'message' => 'No Google Gemini API key provided. Please enter an API key.'
+            ];
+        }
+
+        // Cache successful key validation for 24 hours to prevent wasteful repeated testing
+        $testCacheKey = 'gemini_key_tested_' . md5($key);
+        if (Cache::has($testCacheKey)) {
+            $savedModel = Cache::get('gemini_active_working_model', $this->primaryModel);
+            return [
+                'success' => true,
+                'model_used' => $savedModel,
+                'message' => "Google Gemini API key is verified and connected! (Model: {$savedModel})",
+                'from_cache' => true
             ];
         }
 
@@ -199,6 +211,9 @@ class AiQuestionExtractorService
                 ]);
 
                 if ($genResponse->successful()) {
+                    Cache::put($testCacheKey, true, now()->addHours(24));
+                    Cache::forever('gemini_active_working_model', $model);
+
                     return [
                         'success' => true,
                         'model_used' => $model,
@@ -215,6 +230,9 @@ class AiQuestionExtractorService
 
         // If listModels returned models successfully, the key itself is valid
         $firstAvailable = $modelsToTry[0] ?? 'gemini';
+        Cache::put($testCacheKey, true, now()->addHours(24));
+        Cache::forever('gemini_active_working_model', $firstAvailable);
+
         return [
             'success' => true,
             'model_used' => $firstAvailable,
@@ -238,6 +256,23 @@ class AiQuestionExtractorService
         $imagePayload = $this->prepareImagePayload($imageInput);
         if (!$imagePayload['success']) {
             return $imagePayload;
+        }
+
+        // 1. Content-Hash Cache (Zero API Token & Zero Call on Identical or Re-analyzed Images)
+        $imageHash = md5($imagePayload['data']['inline_data']['data']);
+        $cacheKey = 'ai_img_extract_' . $imageHash . '_' . md5($extraInstructions);
+
+        if (Cache::has($cacheKey)) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && !empty($cached['data'])) {
+                return [
+                    'success' => true,
+                    'model_used' => $cached['model_used'] ?? 'Cache (0 Token)',
+                    'data' => $cached['data'],
+                    'from_cache' => true,
+                    'message' => 'Question loaded instantly from cache without consuming API tokens.'
+                ];
+            }
         }
 
         $prompt = <<<EOT
@@ -278,7 +313,15 @@ Return a STRICT, RAW JSON object matching this schema:
 Do NOT wrap the output in markdown code fences like ```json ```. Return pure JSON only.
 EOT;
 
-        return $this->callGeminiMultimodal([$imagePayload['data']], $prompt, $key);
+        $result = $this->callGeminiMultimodal([$imagePayload['data']], $prompt, $key);
+        if ($result['success'] && !empty($result['data'])) {
+            Cache::put($cacheKey, [
+                'model_used' => $result['model_used'] ?? $this->primaryModel,
+                'data' => $result['data']
+            ], now()->addDays(30)); // 30-day cache for zero redundant API usage
+        }
+
+        return $result;
     }
 
     /**
@@ -299,6 +342,23 @@ EOT;
                 'success' => false,
                 'message' => 'Uploaded PDF file could not be found on server.'
             ];
+        }
+
+        // 1. Check Content-Hash Cache for PDF (Zero API Token & Zero Call on Identical or Re-uploaded Papers)
+        $pdfHash = md5_file($pdfPath);
+        $cacheKey = 'ai_pdf_extract_' . $pdfHash . '_' . md5($extraInstructions);
+
+        if (Cache::has($cacheKey)) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && !empty($cached['data'])) {
+                return [
+                    'success' => true,
+                    'model_used' => $cached['model_used'] ?? 'Cache (0 Token)',
+                    'data' => $cached['data'],
+                    'from_cache' => true,
+                    'message' => 'Questions loaded instantly from local cache without consuming API tokens.'
+                ];
+            }
         }
 
         $pdfBytes = file_get_contents($pdfPath);
@@ -356,7 +416,15 @@ Return a STRICT, RAW JSON object matching this schema:
 Do NOT wrap the output in markdown code fences. Return pure JSON only.
 EOT;
 
-        return $this->callGeminiMultimodal([$pdfPayload], $prompt, $key, true);
+        $result = $this->callGeminiMultimodal([$pdfPayload], $prompt, $key, true);
+        if ($result['success'] && !empty($result['data'])) {
+            Cache::put($cacheKey, [
+                'model_used' => $result['model_used'] ?? $this->primaryModel,
+                'data' => $result['data']
+            ], now()->addDays(30)); // 30-day cache for zero redundant API usage
+        }
+
+        return $result;
     }
 
     /**
@@ -364,7 +432,11 @@ EOT;
      */
     protected function callGeminiMultimodal(array $mediaParts, string $promptText, string $apiKey, bool $isBulk = false): array
     {
+        $activeModel = Cache::get('gemini_active_working_model');
         $modelsToTry = $this->getPrioritizedModels($apiKey);
+        if (!empty($activeModel) && in_array($activeModel, $modelsToTry)) {
+            $modelsToTry = array_values(array_unique(array_merge([$activeModel], $modelsToTry)));
+        }
         $lastError = 'Unknown error';
 
         foreach ($modelsToTry as $model) {
@@ -403,6 +475,7 @@ EOT;
 
                     $parsedData = $this->cleanAndParseJson($candidateText);
                     if ($parsedData !== null) {
+                        Cache::forever('gemini_active_working_model', $model);
                         return [
                             'success' => true,
                             'model_used' => $model,
@@ -461,6 +534,39 @@ EOT;
                 'success' => false,
                 'message' => 'Invalid or empty image data received.'
             ];
+        }
+
+        // Optimize high-resolution images to drastically save Gemini API token and bandwidth costs
+        if (extension_loaded('gd') && strlen($base64) > 400000) {
+            $decodedBytes = @base64_decode($base64);
+            if ($decodedBytes) {
+                $img = @imagecreatefromstring($decodedBytes);
+                if ($img !== false) {
+                    $width = imagesx($img);
+                    $height = imagesy($img);
+                    $maxDim = 1600;
+
+                    if ($width > $maxDim || $height > $maxDim) {
+                        $scale = min($maxDim / $width, $maxDim / $height);
+                        $newWidth = (int)($width * $scale);
+                        $newHeight = (int)($height * $scale);
+                        $resized = imagecreatetruecolor($newWidth, $newHeight);
+                        imagecopyresampled($resized, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                        imagedestroy($img);
+                        $img = $resized;
+                    }
+
+                    ob_start();
+                    imagejpeg($img, null, 85);
+                    $optimizedBytes = ob_get_clean();
+                    imagedestroy($img);
+
+                    if ($optimizedBytes && strlen($optimizedBytes) < strlen($decodedBytes)) {
+                        $base64 = base64_encode($optimizedBytes);
+                        $mime = 'image/jpeg';
+                    }
+                }
+            }
         }
 
         return [
