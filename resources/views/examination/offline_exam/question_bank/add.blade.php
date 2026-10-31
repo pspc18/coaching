@@ -839,6 +839,18 @@ textarea.theme-form-control {
                         </div>
                     </div>
 
+                    {{-- Optional AI Prompt for PDF --}}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="theme-form-group mb-2">
+                                <label for="pdf_extra_prompt" class="small text-muted mb-1 font-weight-normal">
+                                    <i class="fa fa-info-circle mr-1"></i> Optional instructions for AI (e.g. "Extract Hindi questions only", "Focus on Section B (Quantitative Aptitude)", "Questions 1 to 20 only"):
+                                </label>
+                                <input type="text" id="pdf_extra_prompt" class="theme-form-control" placeholder="e.g. Extract Hindi questions, ignore Section A, include solutions...">
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Progress / Status alert --}}
                     <div id="pdf-extract-status" class="alert alert-info py-2 px-3 small d-none mt-2" style="font-size: 11.5px; border-radius: 2px;">
                         <span class="ai-pulse-spinner mr-2"></span>
@@ -1426,8 +1438,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('pdf_file', fileInput.files[0]);
 
-        const range = document.getElementById('pdf_page_range')?.value;
-        if (range) formData.append('extra_instructions', `Extract questions from pages: ${range}`);
+        const range = document.getElementById('pdf_page_range')?.value.trim();
+        const extraPrompt = document.getElementById('pdf_extra_prompt')?.value.trim();
+        const instructions = [];
+        if (range) instructions.push(`Extract questions from pages: ${range}`);
+        if (extraPrompt) instructions.push(extraPrompt);
+        if (instructions.length > 0) {
+            formData.append('extra_instructions', instructions.join('. '));
+        }
 
         fetch('{{ url("question/ai-extract-pdf") }}', {
             method: 'POST',
