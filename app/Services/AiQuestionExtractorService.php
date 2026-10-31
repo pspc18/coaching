@@ -334,12 +334,25 @@ EOT;
         $ext = strtolower(pathinfo($pdfPath, PATHINFO_EXTENSION));
         $extractedDiagrams = [];
 
+        $pdfToProcess = $pdfPath;
+        $focusedInfo = null;
+
         if ($ext === 'pdf') {
-            $pdfBytes = file_get_contents($pdfPath);
+            // Intelligent Target Page Focus: If specific question numbers or direction range are requested,
+            // slice the PDF to those exact pages for maximum AI vision clarity and complete token budget!
+            if (!empty($extraInstructions)) {
+                $focusRes = $this->focusPdfPages($pdfPath, $extraInstructions);
+                if (!empty($focusRes['focused']) && !empty($focusRes['focused_pdf']) && file_exists($focusRes['focused_pdf'])) {
+                    $pdfToProcess = $focusRes['focused_pdf'];
+                    $focusedInfo = $focusRes;
+                }
+            }
+
+            $pdfBytes = file_get_contents($pdfToProcess);
             if (empty($pdfBytes)) {
                 return [
                     'success' => false,
-                    'message' => 'Uploaded PDF file is empty.'
+                    'message' => 'Uploaded PDF file could not be read.'
                 ];
             }
             $base64Pdf = base64_encode($pdfBytes);
@@ -349,7 +362,8 @@ EOT;
                     'data' => $base64Pdf
                 ]
             ];
-            $extractedDiagrams = $this->extractDiagramsFromPdf($pdfPath);
+            // Extract diagrams from target PDF
+            $extractedDiagrams = $this->extractDiagramsFromPdf($pdfToProcess);
         } else {
             // Document is an image (PNG, JPG, WEBP)
             $imgPayload = $this->prepareImagePayload($pdfPath);
@@ -367,6 +381,7 @@ EOT;
             @copy($pdfPath, $destDir . '/' . $filename);
             $extractedDiagrams = [
                 [
+                    'id' => 'diag_img_1',
                     'page' => 1,
                     'type' => 'image',
                     'image_path' => 'uploads/questions/' . $filename
@@ -388,37 +403,49 @@ EOT;
                 $diagramsCatalogPrompt .= "- ID: \"{$diagId}\" | Page: {$dPage} | Type: {$dType} | Associated Directions: {$dirs} | Applicable Questions: {$qCovered}{$hint}\n";
             }
             $diagramsCatalogPrompt .= "\nDIAGRAM MAPPING RULES:\n";
-            $diagramsCatalogPrompt .= "1. For every question or direction set, you MUST specify \"page_number\" (the exact 1-based PDF page number where it appears).\n";
-            $diagramsCatalogPrompt .= "2. If a question or direction group references or belongs to one of the diagrams above, set \"diagram_id\" to its exact ID (e.g. \"diag_p12_2\" or \"diag_p15_v0\"). Set to null if no diagram belongs to it.\n";
-            $diagramsCatalogPrompt .= "3. DO NOT map a diagram from a different direction set (for example, Direction 86-90 must NEVER receive the diagram from Direction 108-110).\n\n";
+            $diagramsCatalogPrompt .= "1. For every question or direction set, specify \"page_number\" (the exact 1-based page number where it appears).\n";
+            $diagramsCatalogPrompt .= "2. If a question or direction group references or belongs to one of the diagrams above, set \"diagram_id\" to its exact ID (e.g. \"{$extractedDiagrams[0]['id']}\"). Set to null if no diagram belongs to it.\n";
+            $diagramsCatalogPrompt .= "3. DO NOT map a diagram from a different direction set.\n\n";
         }
 
         $prompt = <<<EOT
 You are an expert Academic Question Paper & Exam Parser AI for competitive exams (Bank PO/Clerk, SSC, UPSC, NEET, JEE, State PSC).
-Scan this entire examination document with extreme precision and extract EVERY question present in it.
+Scan this examination document with extreme precision and extract EVERY question present in it.
 
 {$diagramsCatalogPrompt}
-CRITICAL RULES FOR DIRECTION SETS / COMPREHENSION PASSAGES:
-1. DETECT DIRECTION SETS & PASSAGES:
-   - When questions belong to a Direction block, Data Interpretation, Caselet, or Reading Comprehension (e.g. "Direction (108-110): ...", "निर्देश (86-90): ..."):
-     * "group_id": Set a consistent slug/id for this set, e.g. "dir_108_110" or "dir_86_90".
-     * "direction": Extract the complete introductory text/instructions/passage in Hindi or English exactly as printed.
-     * "direction_table": If the direction contains a data table (e.g. columns for city, values, percentages, categories), convert it into clean, structured HTML:
-       <table class="table table-bordered table-sm text-center"><thead><tr><th>Col1</th>...</tr></thead><tbody><tr><td>Val1</td>...</tr></tbody></table>
-     * Extract EVERY sub-question in that set (e.g. Q108, Q109, Q110 or Q86, Q87, Q88, Q89, Q90). Do NOT stop after the first question.
-     * In each sub-question:
-       - "page_number": Exact 1-based page number where this question appears.
-       - "name": Clean statement of the specific sub-question (do NOT repeat the entire direction text inside "name").
-       - "sub_question_no": Question number e.g. "86", "87", "108", "109", "110".
-       - "group_id", "direction", and "direction_table" MUST be set on ALL sub-questions in that group.
-       - "has_diagram": true if the direction contains a graph, chart, or diagram.
-       - "diagram_id": Exact ID from the catalog above if applicable, otherwise null.
+COMPREHENSIVE MULTI-PATTERN PARSING INTELLIGENCE:
+Questions in competitive exams vary widely in structure. You MUST identify and extract every component into its designated field:
+
+1. DIRECTION SETS / COMPREHENSION PASSAGES / DATA INTERPRETATION (DI):
+   When questions belong to a Direction block, Data Interpretation, Caselet, or Passage (e.g. "Direction (86-90): ...", "Direction (108-110): ..."):
+   * "group_id": A consistent unique slug, e.g. "dir_86_90" or "dir_108_110".
+   * "direction": Extract ONLY the introductory paragraph / narrative statement.
+     CRITICAL: NEVER put raw data tables or "नोट / Note" constraint blocks inside "direction"!
+   * "direction_table": If the set contains ANY data table, matrix, or tabular values (e.g. quarterly projects, city data, percentages):
+     - You MUST convert it into a COMPLETE, FULL HTML table with all headers and every single row:
+       <table class="table table-bordered table-sm text-center"><thead><tr><th>Col1</th><th>Col2</th></tr></thead><tbody><tr><td>Val1</td><td>Val2</td></tr></tbody></table>
+     - NEVER leave <tbody> empty. All rows MUST be present with their exact numbers/percentages.
+     - If the set does NOT have a table, set to null.
+   * "direction_notes": If there are notes, conditions, mathematical equations, or variable rules given below the table or graph (e.g. "नोट: पाई (x° + y°)... x° = 21.6°... अंतर 108 है"):
+     - Extract them as clean, well-formatted HTML with standard LaTeX math:
+       <div class="alert alert-warning-light border mt-2 py-2 px-3 small font-weight-normal text-dark" style="background:#fffbeb; border-left: 3px solid #f59e0b !important;"><strong class="text-dark"><i class="fa fa-info-circle text-warning mr-1"></i> नोट:</strong> ...</div>
+     - If there are no notes, set to null.
+   * "has_diagram": true if the direction contains a graph, chart, pie chart, or illustration.
+   * "diagram_id": Exact ID from the catalog above if applicable, otherwise null.
+   * EXTRACT EVERY SUB-QUESTION: E.g., for Direction (86-90), extract ALL 5 sub-questions: Q86, Q87, Q88, Q89, and Q90. Never omit any sub-question!
+   * In each sub-question:
+     - "sub_question_no": Question number e.g. "86", "87", "88", "89", "90".
+     - "name": Clean statement of the specific sub-question. Do NOT repeat the entire direction passage inside "name".
+     - "group_id", "direction", "direction_table", "direction_notes" MUST be set on all sub-questions in that group.
+
 2. STANDALONE QUESTIONS:
-   - For standalone questions (no direction), leave "group_id", "direction", "direction_table", "diagram_id" as null.
+   - For standalone questions without a direction passage, leave "group_id", "direction", "direction_table", "direction_notes" as null.
+   - If a standalone question contains a data table, embed the complete HTML <table> directly inside "name".
+   - If it has its own diagram/figure, set "has_diagram": true and "diagram_id" if matched.
 
 3. MATHEMATICAL & SCIENTIFIC FORMULAS:
    - Format ALL equations, fractions, square roots, powers, symbols strictly in standard LaTeX notation (\$...\$ for inline, \$\$...\$\$ for block).
-   - E.g. \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$, \$\\ge\$, \$\\le\$, \$\\frac{a}{b}\$, \$\\sqrt{x}\$.
+   - E.g. \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$, \$x^\\circ = 21.6^\\circ\$, \$\\ge\$, \$\\le\$, \$\\frac{a}{b}\$, \$\\sqrt{x}\$.
 
 4. OPTIONS (A TO E):
    - Extract all options without "(a)", "(1)", "(A)" prefixes.
@@ -434,27 +461,28 @@ CRITICAL RULES FOR DIRECTION SETS / COMPREHENSION PASSAGES:
 
 Return a STRICT, RAW JSON object matching this schema:
 {
-  "total_extracted": 3,
+  "total_extracted": 5,
   "questions": [
     {
       "q_number": 86,
       "sub_question_no": "86",
       "page_number": 12,
       "group_id": "dir_86_90",
-      "direction": "Direction (86-90): ...",
-      "direction_table": "<table class='table table-bordered table-sm'>...</table>",
-      "name": "Q1 में संचालित कुल परियोजनाओं की संख्या...",
+      "direction": "Direction (86-90): नीचे दिया गया ग्राफ़ 4 तिमाहियों Q1, Q2, Q3 और Q4 में संचालित परियोजनाओं (निजी + सार्वजनिक) की कुल संख्या का डिग्री वितरण दर्शाता है। तालिका संबंधित वर्षों में संचालित परियोजनाओं की तुलना में संचालित निजी परियोजनाओं का प्रतिशत दर्शाती है।",
+      "direction_table": "<table class='table table-bordered table-sm text-center'><thead><tr><th>तिमाही</th><th>कुल संचालित परियोजनाओं की तुलना में निजी परियोजनाओं का प्रतिशत</th></tr></thead><tbody><tr><td>Q1</td><td>3a%</td></tr><tr><td>Q2</td><td>35%</td></tr><tr><td>Q3</td><td>50%</td></tr><tr><td>Q4</td><td>a%</td></tr></tbody></table>",
+      "direction_notes": "<div class='alert alert-warning-light border mt-2 py-2 px-3 small font-weight-normal text-dark' style='background:#fffbeb; border-left: 3px solid #f59e0b !important;'><strong class='text-dark'><i class='fa fa-info-circle text-warning mr-1'></i> नोट:</strong> पाई (\$x^\\circ + y^\\circ\$) के पाई का केंद्रीय कोण का माप 360^\\circ के बराबर नहीं है।<br>\$x^\\circ = 21.6^\\circ\$ का मान \$y^\\circ\$ से अधिक है।<br>Q2 में संचालित निजी और सार्वजनिक परियोजनाओं के बीच का अंतर 108 है।</div>",
+      "name": "यदि Q1 और Q3 में सार्वजनिक परियोजना संचालन का औसत 150 है, तो Q1 द्वारा निजी परियोजना संचालन, Q2 द्वारा कुल परियोजना संचालन का कितना प्रतिशत है?",
       "question_type_id": 1,
       "has_diagram": true,
       "diagram_id": "diag_p12_2",
-      "diagram_hint": "Pie chart of degree distribution of projects",
-      "ans1": "30",
+      "diagram_hint": "Pie chart showing degree distribution of projects across quarters",
+      "ans1": "120",
       "ans2": "50",
-      "ans3": "60",
-      "ans4": "70",
-      "ans5": "100",
-      "correct_ans": "1",
-      "correct_option_letter": "B",
+      "ans3": "100",
+      "ans4": "60",
+      "ans5": "70",
+      "correct_ans": "0",
+      "correct_option_letter": "A",
       "explanation": "Step-by-step mathematical derivation...",
       "difficulty_level": "Medium"
     }
@@ -465,6 +493,12 @@ Do NOT wrap the output in markdown code fences. Return pure JSON only.
 EOT;
 
         $result = $this->callGeminiMultimodal([$mediaPayload], $prompt, $key, true);
+
+        // Clean up temporary sliced PDF if one was created for focused zoom
+        if (!empty($focusedInfo['focused_pdf']) && file_exists($focusedInfo['focused_pdf']) && $focusedInfo['focused_pdf'] !== $pdfPath) {
+            @unlink($focusedInfo['focused_pdf']);
+        }
+
         if ($result['success'] && !empty($result['data']['questions'])) {
             // Index extracted diagrams by id
             $diagramsById = [];
@@ -478,6 +512,10 @@ EOT;
             $groupDiagramMap = [];
 
             foreach ($result['data']['questions'] as &$q) {
+                // Run post-processing sanitizer to clean table, direction text, and notes
+                $this->sanitizeDirectionAndTable($q);
+                $this->sanitizeQuestionName($q);
+
                 $groupId = $q['group_id'] ?? null;
                 $hasDiagramFlag = !empty($q['has_diagram']);
                 $qText = ($q['name'] ?? '') . ' ' . ($q['direction'] ?? '') . ' ' . ($q['explanation'] ?? '');
@@ -571,6 +609,173 @@ EOT;
         }
 
         return $result;
+    }
+
+    /**
+     * Intelligently focus and slice PDF to the target question/direction pages.
+     */
+    public function focusPdfPages(string $pdfPath, string $extraInstructions): array
+    {
+        try {
+            $scriptPath = base_path('app/Scripts/focus_pdf_pages.py');
+            $outputDir = storage_path('app/temp_ai');
+            if (!file_exists($outputDir)) {
+                mkdir($outputDir, 0755, true);
+            }
+
+            if (!file_exists($scriptPath) || empty(trim($extraInstructions))) {
+                return ['focused' => false, 'pages' => [], 'focused_pdf' => $pdfPath];
+            }
+
+            $cmd = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($pdfPath) . " " . escapeshellarg($extraInstructions) . " " . escapeshellarg($outputDir);
+            $output = [];
+            $code = 0;
+            exec($cmd, $output, $code);
+
+            if ($code === 0 && !empty($output)) {
+                $raw = implode('', $output);
+                $data = json_decode($raw, true);
+                if (is_array($data) && !empty($data['focused']) && file_exists($data['focused_pdf'])) {
+                    return $data;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("Focus PDF pages warning: " . $e->getMessage());
+        }
+
+        return ['focused' => false, 'pages' => [], 'focused_pdf' => $pdfPath];
+    }
+
+    /**
+     * Clean and sanitize direction text, table HTML, and note blocks.
+     */
+    protected function sanitizeDirectionAndTable(array &$q): void
+    {
+        $direction = trim($q['direction'] ?? '');
+        $tableHtml = trim($q['direction_table'] ?? '');
+        $notesHtml = trim($q['direction_notes'] ?? '');
+
+        if (empty($direction) && empty($tableHtml)) {
+            return;
+        }
+
+        // 1. Separate Note / Conditions block if found in direction text
+        if (empty($notesHtml) && preg_match('/(?:नोट|Note|Important Note)[\s:]+(.+)$/isu', $direction, $nm)) {
+            $noteBody = trim($nm[1]);
+            $noteLabel = strpos($nm[0], 'Note') !== false ? 'Note' : 'नोट';
+
+            // Format math symbols in notes
+            $formattedBody = preg_replace('/(\w+)0\s*=\s*([0-9\.]+)°/', '$$1^\circ = $2^\circ$', $noteBody);
+            $formattedBody = str_replace(
+                ['x°', 'y°', '360°', 'x0', 'y0'],
+                ['$x^\circ$', '$y^\circ$', '$360^\circ$', '$x^\circ$', '$y^\circ$'],
+                $formattedBody
+            );
+
+            $notesHtml = '<div class="alert alert-warning-light border mt-2 py-2 px-3 small font-weight-normal text-dark" style="background:#fffbeb; border-left: 3px solid #f59e0b !important;"><strong class="text-dark"><i class="fa fa-info-circle text-warning mr-1"></i> ' . $noteLabel . ':</strong> ' . nl2br($formattedBody) . '</div>';
+
+            // Remove the note block from direction text
+            $direction = trim(str_replace($nm[0], '', $direction));
+        }
+
+        // 2. Table Rescuer: If tableHtml is empty or has empty tbody, rescue from direction text
+        $hasEmptyTbody = (strpos($tableHtml, '<tbody></tbody>') !== false || strpos($tableHtml, '<tbody> </tbody>') !== false);
+        if (empty($tableHtml) || $hasEmptyTbody) {
+            $lines = explode("\n", $direction);
+            $tableLines = [];
+            foreach ($lines as $line) {
+                $tLine = trim($line);
+                if (strpos($tLine, '|') !== false) {
+                    $tableLines[] = $tLine;
+                }
+            }
+
+            if (count($tableLines) >= 2) {
+                $headerCols = array_map('trim', explode('|', array_shift($tableLines)));
+                $thHtml = '';
+                foreach ($headerCols as $col) {
+                    if (!empty($col)) {
+                        $thHtml .= "<th>{$col}</th>";
+                    }
+                }
+                $trHtml = '';
+                foreach ($tableLines as $row) {
+                    $cols = array_map('trim', explode('|', $row));
+                    $tdHtml = '';
+                    foreach ($cols as $c) {
+                        $tdHtml .= "<td>{$c}</td>";
+                    }
+                    $trHtml .= "<tr>{$tdHtml}</tr>";
+                }
+                $tableHtml = "<table class='table table-bordered table-sm text-center'><thead><tr>{$thHtml}</tr></thead><tbody>{$trHtml}</tbody></table>";
+            }
+        }
+
+        // 3. Remove raw table pipe-delimited text from direction text
+        if (!empty($tableHtml)) {
+            $lines = explode("\n", $direction);
+            $cleanLines = [];
+            foreach ($lines as $line) {
+                $tLine = trim($line);
+                if (strpos($tLine, '|') !== false || preg_match('/^(Q\d|\d+|A|B|C|D)\s*\|/i', $tLine)) {
+                    continue;
+                }
+                if (!empty($tLine)) {
+                    $cleanLines[] = $tLine;
+                }
+            }
+            $direction = trim(implode("\n", $cleanLines));
+        }
+
+        // 4. Combine table and notes into direction_table
+        if (!empty($notesHtml)) {
+            $tableHtml = trim($tableHtml . "\n" . $notesHtml);
+        }
+
+        $q['direction'] = $direction;
+        $q['direction_table'] = $tableHtml ?: null;
+    }
+
+    /**
+     * Clean and format tables inside standalone question statements.
+     */
+    protected function sanitizeQuestionName(array &$q): void
+    {
+        $name = trim($q['name'] ?? '');
+        if (empty($name) || strpos($name, '<table') !== false) {
+            return;
+        }
+
+        if (substr_count($name, '|') >= 4) {
+            $lines = explode("\n", $name);
+            $tableLines = [];
+            $textLines = [];
+            foreach ($lines as $line) {
+                $tLine = trim($line);
+                if (strpos($tLine, '|') !== false) {
+                    $tableLines[] = $tLine;
+                } else {
+                    $textLines[] = $line;
+                }
+            }
+
+            if (count($tableLines) >= 2) {
+                $headerCols = array_map('trim', explode('|', array_shift($tableLines)));
+                $thHtml = '';
+                foreach ($headerCols as $col) {
+                    if (!empty($col)) $thHtml .= "<th>{$col}</th>";
+                }
+                $trHtml = '';
+                foreach ($tableLines as $row) {
+                    $cols = array_map('trim', explode('|', $row));
+                    $tdHtml = '';
+                    foreach ($cols as $c) $tdHtml .= "<td>{$c}</td>";
+                    $trHtml .= "<tr>{$tdHtml}</tr>";
+                }
+                $tbl = "<table class='table table-bordered table-sm text-center my-2'><thead><tr>{$thHtml}</tr></thead><tbody>{$trHtml}</tbody></table>";
+                $q['name'] = trim(implode("\n", $textLines) . "\n" . $tbl);
+            }
+        }
     }
 
     /**
