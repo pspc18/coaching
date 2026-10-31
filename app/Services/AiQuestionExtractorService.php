@@ -13,9 +13,9 @@ class AiQuestionExtractorService
     /**
      * Primary and fallback Gemini models
      */
-    protected $primaryModel = 'gemini-1.5-flash';
-    protected $fallbackModel = 'gemini-2.0-flash';
-    protected $proModel = 'gemini-1.5-pro';
+    protected $primaryModel = 'gemini-flash-lite-latest';
+    protected $fallbackModel = 'gemini-3.5-flash-lite';
+    protected $proModel = 'gemini-3.8-flash';
 
     /**
      * Get active Google Gemini API Key
@@ -88,18 +88,19 @@ class AiQuestionExtractorService
 
         // Fallback candidate list if ListModels is restricted
         return [
+            'gemini-flash-lite-latest',
+            'gemini-3.5-flash-lite',
+            'gemini-3.8-flash',
+            'gemini-3.7-flash',
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-flash-latest',
+            'gemini-3.1-flash-lite',
+            'gemini-3-flash-preview',
             'gemini-2.5-flash',
             'gemini-2.0-flash',
-            'gemini-2.0-flash-exp',
             'gemini-1.5-flash-latest',
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-002',
-            'gemini-1.5-flash-001',
-            'gemini-1.5-flash-8b',
-            'gemini-2.5-pro',
-            'gemini-1.5-pro-latest',
-            'gemini-1.5-pro',
-            'gemini-pro'
+            'gemini-1.5-flash'
         ];
     }
 
@@ -110,20 +111,21 @@ class AiQuestionExtractorService
     {
         $available = $this->getAvailableModels($apiKey);
 
-        // Sorting preference: fast flash models first, then pro models
+        // Sorting preference: verified stable lightweight models first
         $preferences = [
+            'gemini-flash-lite-latest',
+            'gemini-3.5-flash-lite',
+            'gemini-3.8-flash',
+            'gemini-3.7-flash',
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-flash-latest',
+            'gemini-3.1-flash-lite',
+            'gemini-3-flash-preview',
             'gemini-2.5-flash',
             'gemini-2.0-flash',
-            'gemini-2.0-flash-exp',
             'gemini-1.5-flash-latest',
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-002',
-            'gemini-1.5-flash-001',
-            'gemini-1.5-flash-8b',
-            'gemini-2.5-pro',
-            'gemini-1.5-pro-latest',
-            'gemini-1.5-pro',
-            'gemini-pro'
+            'gemini-1.5-flash'
         ];
 
         $sorted = [];
