@@ -268,11 +268,11 @@ textarea.theme-form-control {
     border-radius: 2px;
     padding: 8px;
     margin-bottom: 8px;
-    transition: border-color .15s ease, box-shadow .15s ease;
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
 .option-input-card.correct-selected {
-    border-color: #059669;
-    background: #f0fdf4;
+    border-color: #059669 !important;
+    background: #f0fdf4 !important;
     box-shadow: 0 0 0 1px #059669;
 }
 .option-label-pill {
@@ -295,6 +295,17 @@ textarea.theme-form-control {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    background: transparent !important;
+    color: #059669 !important;
+}
+.correct-radio-label input[type="radio"],
+.bulk-field-correct {
+    margin: 0 !important;
+    cursor: pointer;
+    accent-color: #059669;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
 }
 
 /* 7. Dropzone / Upload area for AI */
@@ -331,22 +342,23 @@ textarea.theme-form-control {
     to { transform: rotate(360deg); }
 }
 
-/* 8. AI Extracted Question List / Table in Bulk Mode */
+/* 8. AI Extracted Question List / Table in Bulk Mode (2 Cards Per Row) */
 .bulk-q-item {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-left: 3px solid #002C54;
+    border-top: 3px solid #002C54;
     border-radius: 2px;
-    padding: 10px;
-    margin-bottom: 8px;
-    transition: all 0.12s ease;
+    padding: 12px;
+    margin-bottom: 0;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .bulk-q-item:hover {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 .bulk-q-item.excluded {
     opacity: 0.55;
-    border-left-color: #94a3b8;
+    border-top-color: #94a3b8;
     background: #f8fafc;
 }
 
@@ -869,8 +881,8 @@ textarea.theme-form-control {
                     </div>
                 </div>
 
-                {{-- Question List Container --}}
-                <div id="bulk-questions-list"></div>
+                {{-- Question List Container (2 Questions Per Row) --}}
+                <div class="row" id="bulk-questions-list"></div>
 
                 {{-- Bottom Bulk Action Sticky Bar --}}
                 <div class="p-2 bg-white border rounded d-flex align-items-center justify-content-between mt-2">
@@ -1322,10 +1334,14 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('ai_single_topic').value = q.topic || '';
         document.getElementById('ai_single_image_path').value = q.image_path || '';
 
-        // Select correct radio
+        // Select correct radio and highlight card
         const correctVal = String(q.correct_ans ?? '0');
         const targetRadio = document.querySelector(`input[name="ai_single_correct"][value="${correctVal}"]`);
         if (targetRadio) targetRadio.checked = true;
+        ['1','2','3','4'].forEach((num, idx) => {
+            const card = document.getElementById(`ai-opt-card-${num}`);
+            if (card) card.classList.toggle('correct-selected', String(idx) === correctVal);
+        });
 
         const badge = document.getElementById('ai-single-model-badge');
         if (badge) {
@@ -1340,6 +1356,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         form.scrollIntoView({ behavior: 'smooth' });
     }
+
+    // Dynamic highlight on manual radio click in AI Single Question tab
+    document.querySelectorAll('.ai-correct-radio').forEach(r => {
+        r.addEventListener('change', function () {
+            const val = this.value;
+            ['1','2','3','4'].forEach((num, idx) => {
+                const card = document.getElementById(`ai-opt-card-${num}`);
+                if (card) card.classList.toggle('correct-selected', String(idx) === val);
+            });
+        });
+    });
 
     // Save AI-Extracted Single Question
     document.getElementById('btn-save-ai-single')?.addEventListener('click', function () {
@@ -1480,61 +1507,96 @@ document.addEventListener('DOMContentLoaded', function () {
         questions.forEach((q, idx) => {
             const qNum = idx + 1;
             const correctOpt = String(q.correct_ans ?? '0');
+            const diff = q.difficulty_level || 'Medium';
 
             html += `
-            <div class="bulk-q-item" id="bulk-card-${idx}">
-                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                    <label class="mb-0 font-weight-bold text-primary" style="font-size: 12px; cursor: pointer;">
-                        <input type="checkbox" class="bulk-q-checkbox mr-1" data-index="${idx}" checked>
-                        Question #${qNum}
-                    </label>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge badge-light border" style="font-size: 10px;">Difficulty: ${q.difficulty_level || 'Medium'}</span>
-                        <button type="button" class="btn btn-xs btn-outline-danger btn-bulk-remove" data-index="${idx}" title="Remove question">
-                            <i class="fa fa-times"></i>
-                        </button>
+            <div class="col-lg-6 col-12 mb-3 d-flex flex-column" id="bulk-card-col-${idx}">
+                <div class="bulk-q-item h-100 d-flex flex-column justify-content-between" id="bulk-card-${idx}">
+                    <div>
+                        {{-- Question Header --}}
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                            <label class="mb-0 font-weight-bold" style="font-size: 12px; cursor: pointer; color: #002C54;">
+                                <input type="checkbox" class="bulk-q-checkbox mr-1" data-index="${idx}" checked>
+                                Question #${qNum}
+                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="small text-muted mr-1" style="font-size: 10px;">Difficulty:</span>
+                                    <select class="theme-form-control bulk-field-difficulty" data-index="${idx}" style="height: 22px; padding: 0 4px; font-size: 10.5px; width: auto;">
+                                        <option value="Easy" ${diff === 'Easy' ? 'selected' : ''}>Easy</option>
+                                        <option value="Medium" ${diff === 'Medium' ? 'selected' : ''}>Medium</option>
+                                        <option value="Hard" ${diff === 'Hard' ? 'selected' : ''}>Hard</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-xs btn-outline-danger btn-bulk-remove" data-index="${idx}" title="Remove question" style="padding: 1px 6px; font-size: 11px;">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Question Statement --}}
+                        <div class="theme-form-group mb-2">
+                            <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">Question Statement <span class="text-danger">*</span></label>
+                            <textarea class="theme-form-control bulk-field-name" data-index="${idx}" rows="2" placeholder="Question statement">${escapeHtml(q.name || '')}</textarea>
+                        </div>
+
+                        {{-- 4 Objective Options (Single Image Scanner Style) --}}
+                        <div class="row">
+                            ${['1','2','3','4'].map((num, oIdx) => {
+                                const optKey = 'ans' + num;
+                                const letter = ['A','B','C','D'][oIdx];
+                                const isCorrect = (correctOpt === String(oIdx));
+                                return `
+                                <div class="col-sm-6 mb-2">
+                                    <div class="option-input-card ${isCorrect ? 'correct-selected' : ''}" id="bulk-opt-card-${idx}-${num}">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex align-items-center gap-1">
+                                                <span class="option-label-pill">${letter}</span>
+                                                <strong style="font-size: 11px; color: #334155;">Option ${letter}</strong>
+                                            </div>
+                                            <label class="correct-radio-label text-success">
+                                                <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" data-num="${num}" ${isCorrect ? 'checked' : ''}>
+                                                <span>Correct</span>
+                                            </label>
+                                        </div>
+                                        <textarea class="theme-form-control bulk-field-${optKey}" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    {{-- Explanation / Solution Notes --}}
+                    <div class="theme-form-group mb-0 mt-1 pt-2 border-top">
+                        <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">
+                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Explanation / Solution
+                        </label>
+                        <textarea class="theme-form-control bulk-field-explanation" data-index="${idx}" rows="2" placeholder="Explanation or solution notes...">${escapeHtml(q.explanation || '')}</textarea>
                     </div>
                 </div>
-
-                <div class="theme-form-group mb-2">
-                    <textarea class="theme-form-control bulk-field-name" data-index="${idx}" rows="2" placeholder="Question statement">${escapeHtml(q.name || '')}</textarea>
-                </div>
-
-                <div class="row">
-                    ${['1','2','3','4'].map((num, oIdx) => {
-                        const optKey = 'ans' + num;
-                        const letter = ['A','B','C','D'][oIdx];
-                        const isCorrect = (correctOpt === String(oIdx));
-                        return `
-                        <div class="col-md-6 mb-1">
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-light font-weight-bold" style="font-size: 10.5px;">
-                                        <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" ${isCorrect ? 'checked' : ''}>
-                                        ${letter}
-                                    </span>
-                                </div>
-                                <input type="text" class="form-control form-control-sm bulk-field-${optKey}" data-index="${idx}" value="${escapeHtml(q[optKey] || '')}" placeholder="Option ${letter}">
-                            </div>
-                        </div>`;
-                    }).join('')}
-                </div>
-
-                ${q.explanation ? `
-                <div class="mt-1 text-muted small" style="font-size: 10px;">
-                    <strong>Explanation:</strong> ${escapeHtml(q.explanation)}
-                </div>` : ''}
             </div>`;
         });
 
         container.innerHTML = html;
         renderKaTeXIn(container);
 
+        // Bind radio change to update .correct-selected on option cards
+        container.querySelectorAll('.bulk-field-correct').forEach(r => {
+            r.addEventListener('change', function () {
+                const qIdx = this.dataset.index;
+                const optNum = this.dataset.num;
+                ['1','2','3','4'].forEach(n => {
+                    const optCard = document.getElementById(`bulk-opt-card-${qIdx}-${n}`);
+                    if (optCard) optCard.classList.toggle('correct-selected', n === optNum);
+                });
+            });
+        });
+
         // Bind bulk checkboxes
         container.querySelectorAll('.bulk-q-checkbox').forEach(cb => {
             cb.addEventListener('change', function () {
                 const itemCard = document.getElementById(`bulk-card-${this.dataset.index}`);
-                itemCard.classList.toggle('excluded', !this.checked);
+                if (itemCard) itemCard.classList.toggle('excluded', !this.checked);
                 updateBulkCounter();
             });
         });
@@ -1543,7 +1605,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container.querySelectorAll('.btn-bulk-remove').forEach(btn => {
             btn.addEventListener('click', function () {
                 const idx = parseInt(this.dataset.index, 10);
-                document.getElementById(`bulk-card-${idx}`)?.remove();
+                document.getElementById(`bulk-card-col-${idx}`)?.remove();
                 delete extractedQuestionsList[idx];
                 updateBulkCounter();
             });
@@ -1600,17 +1662,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const a3 = card.querySelector('.bulk-field-ans3')?.value?.trim();
             const a4 = card.querySelector('.bulk-field-ans4')?.value?.trim();
             const correctRadio = card.querySelector('.bulk-field-correct:checked');
+            const explanation = card.querySelector('.bulk-field-explanation')?.value?.trim();
+            const difficulty = card.querySelector('.bulk-field-difficulty')?.value || 'Medium';
 
             if (name) {
                 preparedQuestions.push({
                     name: name,
-                    question_type_id: globalTypeSelect.value,
+                    question_type_id: globalTypeSelect ? globalTypeSelect.value : 1,
                     ans1: a1,
                     ans2: a2,
                     ans3: a3,
                     ans4: a4,
                     correct_ans: correctRadio ? correctRadio.value : '0',
-                    difficulty_level: 'Medium'
+                    explanation: explanation || null,
+                    difficulty_level: difficulty
                 });
             }
         });
