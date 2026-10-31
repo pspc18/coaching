@@ -1759,29 +1759,33 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </div>
                             </div>
 
-                            {{-- 4 Objective Options --}}
+                            {{-- 4 or 5 Objective Options --}}
                             <div class="row">
-                                ${['1','2','3','4'].map((num, oIdx) => {
-                                    const optKey = 'ans' + num;
-                                    const letter = ['A','B','C','D'][oIdx];
-                                    const isCorrect = (correctOpt === String(oIdx));
-                                    return `
-                                    <div class="col-sm-6 mb-2">
-                                        <div class="option-input-card ${isCorrect ? 'correct-selected' : ''}" id="bulk-opt-card-${idx}-${num}">
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <span class="option-label-pill">${letter}</span>
-                                                    <strong style="font-size: 11px; color: #334155;">Option ${letter}</strong>
+                                ${(() => {
+                                    const optNums = ['1','2','3','4'];
+                                    if (q.ans5 || correctOpt === '4' || q.correct_option_letter === 'E') optNums.push('5');
+                                    return optNums.map((num, oIdx) => {
+                                        const optKey = 'ans' + num;
+                                        const letter = ['A','B','C','D','E'][oIdx];
+                                        const isCorrect = (correctOpt === String(oIdx));
+                                        return `
+                                        <div class="col-sm-6 mb-2">
+                                            <div class="option-input-card ${isCorrect ? 'correct-selected' : ''}" id="bulk-opt-card-${idx}-${num}">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <span class="option-label-pill">${letter}</span>
+                                                        <strong style="font-size: 11px; color: #334155;">Option ${letter}</strong>
+                                                    </div>
+                                                    <label class="correct-radio-label text-success">
+                                                        <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" data-num="${num}" ${isCorrect ? 'checked' : ''}>
+                                                        <span>Correct</span>
+                                                    </label>
                                                 </div>
-                                                <label class="correct-radio-label text-success">
-                                                    <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" data-num="${num}" ${isCorrect ? 'checked' : ''}>
-                                                    <span>Correct</span>
-                                                </label>
+                                                <textarea class="theme-form-control bulk-field-${optKey} live-sync-input" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
                                             </div>
-                                            <textarea class="theme-form-control bulk-field-${optKey} live-sync-input" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
-                                        </div>
-                                    </div>`;
-                                }).join('')}
+                                        </div>`;
+                                    }).join('');
+                                })()}
                             </div>
 
                             {{-- Explanation / Solution --}}
@@ -1815,19 +1819,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">
                                 </div>
 
-                                {{-- Rendered Options A, B, C, D --}}
+                                {{-- Rendered Options A, B, C, D, E --}}
                                 <div class="row preview-q-options">
-                                    ${['1','2','3','4'].map((num, oIdx) => {
-                                        const optKey = 'ans' + num;
-                                        const letter = ['A','B','C','D'][oIdx];
-                                        const isCorrect = (correctOpt === String(oIdx));
-                                        return `
-                                        <div class="col-6 mb-2">
-                                            <div class="preview-opt-item ${isCorrect ? 'preview-correct-opt' : ''}" id="preview-opt-${idx}-${letter}">
-                                                <strong>(${letter})</strong> <span class="preview-opt-text">${q[optKey] ? escapeHtml(q[optKey]) : '—'}</span>
-                                            </div>
-                                        </div>`;
-                                    }).join('')}
+                                    ${(() => {
+                                        const optNums = ['1','2','3','4'];
+                                        if (q.ans5 || correctOpt === '4' || q.correct_option_letter === 'E') optNums.push('5');
+                                        return optNums.map((num, oIdx) => {
+                                            const optKey = 'ans' + num;
+                                            const letter = ['A','B','C','D','E'][oIdx];
+                                            const isCorrect = (correctOpt === String(oIdx));
+                                            return `
+                                            <div class="col-6 mb-2">
+                                                <div class="preview-opt-item ${isCorrect ? 'preview-correct-opt' : ''}" id="preview-opt-${idx}-${letter}">
+                                                    <strong>(${letter})</strong> <span class="preview-opt-text">${q[optKey] ? escapeHtml(q[optKey]) : '—'}</span>
+                                                </div>
+                                            </div>`;
+                                        }).join('');
+                                    })()}
                                 </div>
 
                                 {{-- Rendered Explanation / Solution --}}
@@ -1863,7 +1871,7 @@ document.addEventListener('DOMContentLoaded', function () {
             r.addEventListener('change', function () {
                 const qIdx = this.dataset.index;
                 const optNum = this.dataset.num;
-                ['1','2','3','4'].forEach(n => {
+                ['1','2','3','4','5'].forEach(n => {
                     const optCard = document.getElementById(`bulk-opt-card-${qIdx}-${n}`);
                     if (optCard) optCard.classList.toggle('correct-selected', n === optNum);
                 });
@@ -1959,10 +1967,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const a2 = card.querySelector('.bulk-field-ans2')?.value || '';
         const a3 = card.querySelector('.bulk-field-ans3')?.value || '';
         const a4 = card.querySelector('.bulk-field-ans4')?.value || '';
+        const a5 = card.querySelector('.bulk-field-ans5')?.value || '';
         const expVal = card.querySelector('.bulk-field-explanation')?.value || '';
         const correctRadio = card.querySelector('.bulk-field-correct:checked');
         const correctVal = correctRadio ? correctRadio.value : '0';
-        const letter = ['A','B','C','D'][parseInt(correctVal, 10)] || 'A';
+        const letter = ['A','B','C','D','E'][parseInt(correctVal, 10)] || 'A';
         const imgPath = card.querySelector('.bulk-field-image')?.value || '';
 
         // 1. Question Statement
@@ -1984,9 +1993,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // 3. Options A, B, C, D
-        const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4 };
-        ['A','B','C','D'].forEach((l, oIdx) => {
+        // 3. Options A, B, C, D, E
+        const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4, 'E': a5 };
+        const letters = ['A','B','C','D'];
+        if (a5 || correctVal === '4') letters.push('E');
+        letters.forEach((l, oIdx) => {
             const optEl = document.getElementById(`preview-opt-${idx}-${l}`);
             if (optEl) {
                 const isCorr = (String(oIdx) === String(correctVal));

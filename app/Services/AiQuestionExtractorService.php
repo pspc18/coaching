@@ -346,7 +346,7 @@ EOT;
 
         // 1. Check Content-Hash Cache for PDF (Zero API Token & Zero Call on Identical or Re-uploaded Papers)
         $pdfHash = md5_file($pdfPath);
-        $cacheKey = 'ai_pdf_extract_' . $pdfHash . '_' . md5($extraInstructions);
+        $cacheKey = 'ai_pdf_extract_v3_' . $pdfHash . '_' . md5($extraInstructions);
 
         if (Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
@@ -378,36 +378,62 @@ EOT;
         ];
 
         $prompt = <<<EOT
-You are an expert Academic Question Paper Extractor AI.
-Scan this entire examination document and extract EVERY single question present in it.
+You are an expert Academic Question Paper & Exam Parser AI.
+Scan this entire examination document with extreme care and extract EVERY single question present in it.
 
-TASK FOR EACH QUESTION:
-1. Extract question statement with complete mathematical / scientific expressions formatted in LaTeX (\$...\$).
-2. Identify type: 1 for MCQ / Objective (has options), 2 for Descriptive.
-3. For MCQ questions, extract 4 options (A, B, C, D) without the "A)", "(1)", etc. prefixes.
-4. Detect the correct answer if provided in the paper or deduce it:
-   - correct_ans: "0" for Option A, "1" for Option B, "2" for Option C, "3" for Option D.
-   - correct_option_letter: "A", "B", "C", or "D".
-5. Provide a brief 1-2 sentence solution / explanation.
-6. Suggest difficulty: "Easy", "Medium", or "Hard".
+CRITICAL RULES:
+1. COMPLETE EXTRACTION (NO SKIPPING):
+   - You MUST extract EVERY SINGLE question on the page. Do NOT stop after the first question.
+   - Extract standalone questions (e.g. Q85).
+   - If there is a Direction set, Case Study, or Data Interpretation block (e.g. "Direction (86-90): ..."):
+     * Extract EVERY question in that set (e.g. Q86, Q87, Q88, Q89, Q90).
+     * If the individual sub-questions (Q86-Q90) follow in the document, extract EACH ONE separately, prepending the common Direction statement, table info, and context to the question statement.
+     * If this page only shows the "Direction (86-90): [Data / Graph / Pie Chart / Table]" block without separate sub-questions, extract this Direction block itself as a comprehensive question so that the teacher/student gets the entire data, graph context, and chart!
+     * NEVER omit, skip, or ignore any Direction block, passage, graph, or question!
+
+2. MATHEMATICAL & SCIENTIFIC FORMULAS:
+   - Format ALL math/scientific equations, fractions, square roots, powers, symbols strictly in standard LaTeX (\$...\$ for inline, \$\$...\$\$ for display).
+   - E.g. \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$ and \$y^2 - 4^2 + 2^2y = -2y\$.
+   - Symbols: \$\\ge\$, \$\\le\$, \$\\ne\$, \$\\pm\$, \$\\sqrt{x}\$, \$\\frac{a}{b}\$, \$\\theta\$.
+
+3. OPTIONS & ANSWER KEY:
+   - For MCQ questions, extract all options without "(a)", "(1)" prefixes.
+   - For 4-option questions: ans1, ans2, ans3, ans4.
+   - If there is a 5th option (Option E, common in Indian exams: "यदि x = y या..."): extract ans5 if present.
+   - Deduce or detect correct_ans: "0" for Option A, "1" for Option B, "2" for Option C, "3" for Option D, "4" for Option E.
+   - Detect correct_option_letter: "A", "B", "C", "D", or "E".
+
+4. DIAGRAMS & CHARTS:
+   - If a question or Direction block has or refers to a diagram, graph, pie chart, curve, figure, or data table:
+     set "has_diagram": true
+     set "diagram_hint": "Pie chart showing degree distribution Q1-Q4" (short description)
+     set "page_number": 1 (page number where the diagram or question appears)
+
+5. SOLUTION & DIFFICULTY:
+   - Provide a brief 1-2 sentence solution / explanation with LaTeX math.
+   - Difficulty: "Easy", "Medium", or "Hard".
 
 {$extraInstructions}
 
 Return a STRICT, RAW JSON object matching this schema:
 {
-  "total_extracted": 10,
+  "total_extracted": 2,
   "questions": [
     {
-      "q_number": 1,
-      "name": "Question 1 text with \$LaTeX\$",
+      "q_number": 85,
+      "page_number": 1,
+      "name": "I: \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$\\nII: \$y^2 - 4^2 + 2^2y = -2y\$",
       "question_type_id": 1,
-      "ans1": "Option A text",
-      "ans2": "Option B text",
-      "ans3": "Option C text",
-      "ans4": "Option D text",
+      "has_diagram": false,
+      "diagram_hint": "",
+      "ans1": "यदि \$x > y\$",
+      "ans2": "यदि \$x \\ge y\$",
+      "ans3": "यदि \$x < y\$",
+      "ans4": "यदि \$x \\le y\$",
+      "ans5": "यदि \$x = y\$ या कोई संबंध नहीं",
       "correct_ans": "0",
       "correct_option_letter": "A",
-      "explanation": "Solution explanation",
+      "explanation": "Solving equation I yields \$x = 3/2, 5\$ and equation II yields \$y = -8, 2\$.",
       "difficulty_level": "Medium"
     }
   ]
@@ -417,7 +443,37 @@ Do NOT wrap the output in markdown code fences. Return pure JSON only.
 EOT;
 
         $result = $this->callGeminiMultimodal([$pdfPayload], $prompt, $key, true);
-        if ($result['success'] && !empty($result['data'])) {
+        if ($result['success'] && !empty($result['data']['questions'])) {
+            // Automatically extract diagrams from PDF and match them with diagram questions
+            $extractedDiagrams = $this->extractDiagramsFromPdf($pdfPath);
+            
+            foreach ($result['data']['questions'] as &$q) {
+                $page = isset($q['page_number']) ? (int)$q['page_number'] : 1;
+                $hasDiagramFlag = !empty($q['has_diagram']);
+                $qText = ($q['name'] ?? '') . ' ' . ($q['explanation'] ?? '');
+                
+                $isDiagramQuestion = $hasDiagramFlag 
+                    || preg_match('/(ग्राफ़|graph|diagram|figure|pie chart|चित्र|तालिका|table|chart|direction|निर्देश)/iu', $qText);
+
+                if ($isDiagramQuestion && !empty($extractedDiagrams)) {
+                    $matchedDiag = null;
+                    foreach ($extractedDiagrams as $diag) {
+                        if ($diag['page'] === $page) {
+                            $matchedDiag = $diag;
+                            break;
+                        }
+                    }
+                    if (!$matchedDiag && !empty($extractedDiagrams[0])) {
+                        $matchedDiag = $extractedDiagrams[0];
+                    }
+
+                    if ($matchedDiag && empty($q['image'])) {
+                        $q['image'] = $matchedDiag['image_path'];
+                    }
+                }
+            }
+            unset($q);
+
             Cache::put($cacheKey, [
                 'model_used' => $result['model_used'] ?? $this->primaryModel,
                 'data' => $result['data']
@@ -425,6 +481,38 @@ EOT;
         }
 
         return $result;
+    }
+
+    /**
+     * Automatically extract diagrams and graphs from a PDF using Python PyMuPDF
+     */
+    public function extractDiagramsFromPdf(string $pdfPath): array
+    {
+        try {
+            $scriptPath = base_path('app/Scripts/extract_pdf_diagrams.py');
+            $outputDir = public_path('uploads/questions');
+            if (!file_exists($outputDir)) {
+                mkdir($outputDir, 0755, true);
+            }
+
+            if (!file_exists($scriptPath)) {
+                return [];
+            }
+
+            $cmd = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($pdfPath) . " " . escapeshellarg($outputDir);
+            $output = [];
+            $code = 0;
+            exec($cmd, $output, $code);
+
+            if ($code === 0 && !empty($output)) {
+                $raw = implode('', $output);
+                $data = json_decode($raw, true);
+                return is_array($data) ? $data : [];
+            }
+        } catch (\Exception $e) {
+            Log::warning("PDF diagram extraction warning: " . $e->getMessage());
+        }
+        return [];
     }
 
     /**
