@@ -1729,20 +1729,23 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="badge badge-light border text-muted" style="font-size: 10.5px;">${groupQuestions.length} Sub-Questions in this Set</span>
                         </div>
 
+                        {{-- 1. Direction Statement Text --}}
                         ${q.direction ? `
-                        <div class="direction-statement-text mb-2 text-dark font-weight-bold" style="font-size: 12.5px; line-height: 1.6;">
+                        <div class="direction-statement-text mb-3 text-dark font-weight-bold" style="font-size: 12.5px; line-height: 1.6;">
                             ${escapeHtml(q.direction)}
                         </div>` : ''}
 
-                        ${q.direction_table ? `
-                        <div class="direction-table-wrapper mb-2 table-responsive bg-white p-2 rounded border">
-                            ${q.direction_table}
+                        {{-- 2. Common Diagram / Graph Image (Before Table, following original paper sequence) --}}
+                        ${dirImg ? `
+                        <div class="direction-diagram-box text-center my-3 bg-white p-2 rounded border shadow-sm">
+                            <span class="d-block small text-muted mb-2 font-weight-bold"><i class="fa fa-bar-chart mr-1 text-primary"></i> Direction Graph / Diagram:</span>
+                            <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border p-1" style="max-height: 280px;">
                         </div>` : ''}
 
-                        ${dirImg ? `
-                        <div class="direction-diagram-box text-center my-2">
-                            <span class="d-block small text-muted mb-1 font-weight-bold"><i class="fa fa-bar-chart mr-1"></i> Common Diagram / Graph for this Direction:</span>
-                            <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border bg-white p-1" style="max-height: 240px;">
+                        {{-- 3. Data Table (After Graph) --}}
+                        ${q.direction_table ? `
+                        <div class="direction-table-wrapper mb-2 table-responsive bg-white p-2 rounded border shadow-sm">
+                            ${q.direction_table}
                         </div>` : ''}
                     </div>
                 </div>`;
@@ -1805,7 +1808,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <textarea class="theme-form-control bulk-field-name live-sync-input" data-index="${idx}" rows="3" placeholder="Question statement or formula...">${escapeHtml(q.name || '')}</textarea>
                             </div>
 
-                            {{-- Diagram / Graph Attachment Box --}}
+                            {{-- Diagram / Graph Attachment Box (Only for standalone questions, not repeated in Direction sub-questions) --}}
+                            ${isGrouped ? `
+                            <input type="hidden" class="bulk-field-image" id="bulk-field-image-${idx}" data-index="${idx}" value="${escapeHtml(imgPath)}">
+                            <div class="mb-2 p-1 px-2 rounded" style="background: #f8fafc; border: 1px dashed #cbd5e1; font-size: 10px; color: #64748b;">
+                                <i class="fa fa-sitemap mr-1 text-info"></i> Diagram linked to <strong>Direction Set</strong> above.
+                            </div>
+                            ` : `
                             <div class="diagram-attach-box mb-2" id="bulk-diagram-box-${idx}" data-index="${idx}">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span class="small font-weight-bold" style="font-size: 10.5px; color: #002C54;">
@@ -1829,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </div>
                                 </div>
                             </div>
+                            `}
 
                             {{-- 4 or 5 Objective Options --}}
                             <div class="row">
@@ -1894,10 +1904,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <strong>Q${subQNo}.</strong> ${q.name ? escapeHtml(q.name) : '<em>Question statement empty...</em>'}
                                 </div>
 
-                                {{-- Rendered Diagram Image (if attached) --}}
+                                {{-- Rendered Diagram Image (Only for standalone questions, not repeated in Direction sub-questions) --}}
+                                ${!isGrouped ? `
                                 <div class="preview-q-diagram text-center mb-2 ${imgPath ? '' : 'd-none'}" id="preview-q-diagram-${idx}">
                                     <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">
-                                </div>
+                                </div>` : `
+                                <div id="preview-q-diagram-${idx}" class="d-none"></div>
+                                `}
 
                                 {{-- Rendered Options A, B, C, D, E --}}
                                 <div class="row preview-q-options">
@@ -2062,10 +2075,11 @@ document.addEventListener('DOMContentLoaded', function () {
             qNameEl.innerHTML = nameVal.trim() ? `<strong>Q${qNum}.</strong> ${nameVal}` : `<em>Question Q${qNum} statement empty...</em>`;
         }
 
-        // 2. Diagram Image
+        // 2. Diagram Image (Only show in card preview if question is NOT part of a Direction Set)
+        const isGroupedCard = Boolean(card.querySelector('.bulk-field-group-id')?.value);
         const diagEl = document.getElementById(`preview-q-diagram-${idx}`);
         if (diagEl) {
-            if (imgPath) {
+            if (imgPath && !isGroupedCard) {
                 const fullUrl = imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath;
                 diagEl.innerHTML = `<img src="${fullUrl}" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">`;
                 diagEl.classList.remove('d-none');

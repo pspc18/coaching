@@ -357,7 +357,7 @@ EOT;
 
         // 1. Check Content-Hash Cache for PDF (Zero API Token & Zero Call on Identical or Re-uploaded Papers)
         $pdfHash = md5_file($pdfPath);
-        $cacheKey = 'ai_pdf_extract_v3_' . $pdfHash . '_' . md5($extraInstructions);
+        $cacheKey = 'ai_pdf_extract_v4_' . $pdfHash . '_' . md5($extraInstructions);
 
         if (Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
@@ -501,14 +501,18 @@ EOT;
                         $q['image'] = $groupDiagramMap[$groupId];
                     } else {
                         $matchedDiag = null;
-                        foreach ($extractedDiagrams as $diag) {
-                            if ($diag['page'] === $page) {
-                                $matchedDiag = $diag;
-                                break;
-                            }
+                        // 1. Try to match diagram on the same page
+                        $pageDiags = array_values(array_filter($extractedDiagrams, fn($d) => $d['page'] === $page));
+                        if (!empty($pageDiags)) {
+                            // If question mentions graph/chart, prefer vector chart if available
+                            $vectorDiags = array_values(array_filter($pageDiags, fn($d) => ($d['type'] ?? '') === 'vector'));
+                            $matchedDiag = !empty($vectorDiags) ? $vectorDiags[0] : $pageDiags[0];
                         }
-                        if (!$matchedDiag && !empty($extractedDiagrams[0])) {
-                            $matchedDiag = $extractedDiagrams[0];
+
+                        // 2. Fallback: look for vector chart in document or first available diagram
+                        if (!$matchedDiag) {
+                            $vectorDiags = array_values(array_filter($extractedDiagrams, fn($d) => ($d['type'] ?? '') === 'vector'));
+                            $matchedDiag = !empty($vectorDiags) ? $vectorDiags[0] : ($extractedDiagrams[0] ?? null);
                         }
 
                         if ($matchedDiag) {
