@@ -24,7 +24,7 @@
                     @csrf
                     <div class="row m-2">
 
-                       <!--<div class="col-md-3">
+                        <div class="col-md-3">
             			<div class="form-group">
             				<label style="color:red;">Class*:</label>
             				<select class="form-control @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" value="{{old('class_type_id')}}">
@@ -59,7 +59,7 @@
             					</span>
             				@enderror
             		    </div>
-            		 </div>-->         
+            		 </div>
                         <div class="col-md-3">
             			<div class="form-group">
             				<label style="color:red;">{{ __('examination.Subject') }}*:</label>

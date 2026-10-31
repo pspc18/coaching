@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Question extends Model
 {
-        use SoftDeletes;
-	protected $table = "questions"; //table name
+    use SoftDeletes;
+    protected $table = "questions"; //table name
+    protected $guarded = [];
 
     public function Subject(){
         return $this->belongsTo('App\Models\Subject','subject_id');

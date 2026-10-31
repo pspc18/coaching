@@ -26,6 +26,19 @@
 
                         <div class="col-md-2">
                     		<div class="form-group">
+                    			<label>Class</label>
+                    			<select class="select2 form-control" id="class_type_id" name="class_type_id">
+                    			    <option value="">{{ __('common.Select') }}</option>
+                                    @if(!empty($classType)) 
+                                        @foreach($classType as $type)
+                                            <option value="{{ $type->id }}" {{ ($type->id == ($search['class_type_id'] ?? '')) ? 'selected' : '' }}>{{ $type->name ?? '' }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                    	    </div>
+                    	</div>
+                        <div class="col-md-2">
+                    		<div class="form-group">
                     			<label>{{ __('examination.Subject') }}</label>
                     			<select class="select2 form-control" id="subject_id" name="subject_id">
                     			<option value="">{{ __('common.Select') }}</option>
@@ -66,6 +79,7 @@
 								<thead>
 									<tr role="row">
 										<th>{{ __('examination.Q. Id') }}</th>
+										<th>Class</th>
 										<th>{{ __('common.Subject') }}</th>
 										<th>{{ __('examination.Question Type') }} </th>
 										<th>{{ __('examination.Question') }}</th>
@@ -79,6 +93,7 @@
 								@foreach ($data as $item)
 									<tr>
 										<td>{{ $i++ }}</td>
+										<td><span class="badge badge-info" style="font-size: 11px;">{{ $item['class_name'] ?? '—' }}</span></td>
 										<td>{{ $item['subject_name'] ?? ''}}</td>
 										<td>
 										    @if($item['question_type_id'] == 1)

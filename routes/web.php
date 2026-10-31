@@ -651,6 +651,10 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::match(['get', 'post'], 'add/question', 'offline_exam\QuestionController@addQuestion');
 	Route::match(['get', 'post'], 'edit/question/{id}', 'offline_exam\QuestionController@editQuestion');
 	Route::match(['get', 'post'], 'delete/question', 'offline_exam\QuestionController@deleteQuestion');
+	Route::post('question/ai-extract-single', 'offline_exam\QuestionController@aiExtractSingle');
+	Route::post('question/ai-extract-pdf', 'offline_exam\QuestionController@aiExtractPdf');
+	Route::post('question/bulk-store', 'offline_exam\QuestionController@bulkStore');
+	Route::post('question/save-ai-key', 'offline_exam\QuestionController@saveAiKey');
 
 	
 	
