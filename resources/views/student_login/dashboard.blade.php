@@ -1268,6 +1268,7 @@
                 $noticeTitle = $notice->title ?? $notice->name ?? 'Notice Announcement';
                 $fromDate = !empty($notice->from_date) ? \Carbon\Carbon::parse($notice->from_date) : null;
                 $toDate = !empty($notice->to_date) ? \Carbon\Carbon::parse($notice->to_date) : null;
+                $todayDate = $todayDate ?? \Carbon\Carbon::today()->toDateString();
                 $isUpcoming = $fromDate && $fromDate->toDateString() > $todayDate;
                 $isActive = $fromDate && $toDate && $fromDate->toDateString() <= $todayDate && $toDate->toDateString() >= $todayDate;
                 $noticeDesc = trim(strip_tags($notice->description ?? $notice->message ?? ''));

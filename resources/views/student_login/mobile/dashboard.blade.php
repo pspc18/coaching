@@ -92,6 +92,7 @@
     $feePercent = (int) $feeSummary['paymentProgress'];
 
     // 3. Notices & Circulars (Personalized to student matching student-notices, with Upcoming & Active prioritization)
+    $todayDate = \Carbon\Carbon::today()->toDateString();
     $studentNoticeCounts = Helper::getStudentNoticeCounts($studentId, $branchId, $sessionId);
     $noticesTotalCount = (int) ($studentNoticeCounts->total_count ?? 0);
     $noticesUpcomingCount = (int) ($studentNoticeCounts->upcoming_count ?? 0);
@@ -1266,6 +1267,7 @@
                 $noticeTitle = $notice->title ?? $notice->name ?? 'Notice Announcement';
                 $fromDate = !empty($notice->from_date) ? \Carbon\Carbon::parse($notice->from_date) : null;
                 $toDate = !empty($notice->to_date) ? \Carbon\Carbon::parse($notice->to_date) : null;
+                $todayDate = $todayDate ?? \Carbon\Carbon::today()->toDateString();
                 $isUpcoming = $fromDate && $fromDate->toDateString() > $todayDate;
                 $isActive = $fromDate && $toDate && $fromDate->toDateString() <= $todayDate && $toDate->toDateString() >= $todayDate;
                 $noticeDesc = trim(strip_tags($notice->description ?? $notice->message ?? ''));
@@ -1554,35 +1556,6 @@ document.addEventListener('keydown', function(e) {
         </div>
     </div>
 </div>
-    }
-    
-    if (btnElement) {
-        btnElement.classList.add('active');
-    } else {
-        var matchBtn = document.querySelector('.native-seg-btn[data-target="' + targetId + '"]');
-        if (matchBtn) matchBtn.classList.add('active');
-    }
-
-    var allViews = document.querySelectorAll('.native-feed-view');
-
-    if (targetId === 'feed-all') {
-        for (var j = 0; j < allViews.length; j++) {
-            allViews[j].style.display = 'block';
-            allViews[j].classList.add('active-feed');
-        }
-    } else {
-        for (var k = 0; k < allViews.length; k++) {
-            allViews[k].style.display = 'none';
-            allViews[k].classList.remove('active-feed');
-        }
-        var activeView = document.getElementById(targetId);
-        if (activeView) {
-            activeView.style.display = 'block';
-            activeView.classList.add('active-feed');
-        }
-    }
-}
-</script>
 
 @include('student_login.payment.modal')
 @endsection
