@@ -815,7 +815,7 @@ textarea.theme-form-control {
                 </div>
                 <div class="theme-card-body">
                     <div class="row align-items-center">
-                        <div class="col-md-6">
+                        <div class="col-md-8 col-lg-9">
                             <div class="theme-form-group mb-2">
                                 <label for="pdf_upload_input">Select PDF File <span class="text-danger">*</span> (Up to 20MB)</label>
                                 <input type="file" id="pdf_upload_input" accept="application/pdf,.pdf" class="theme-form-control" style="height: 34px; padding: 4px;">
@@ -825,14 +825,7 @@ textarea.theme-form-control {
                             </div>
                         </div>
 
-                        <div class="col-md-3">
-                            <div class="theme-form-group mb-2">
-                                <label for="pdf_page_range">Page Range <span class="text-muted font-weight-normal">(Optional)</span></label>
-                                <input type="text" id="pdf_page_range" class="theme-form-control" placeholder="All pages or e.g. 1-4">
-                            </div>
-                        </div>
-
-                        <div class="col-md-3 text-right">
+                        <div class="col-md-4 col-lg-3 text-right">
                             <button type="button" id="btn-start-pdf-extract" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; height:34px; width:100%; justify-content:center;">
                                 <i class="fa fa-magic mr-1"></i> Extract Questions via AI
                             </button>
@@ -844,9 +837,9 @@ textarea.theme-form-control {
                         <div class="col-12">
                             <div class="theme-form-group mb-2">
                                 <label for="pdf_extra_prompt" class="small text-muted mb-1 font-weight-normal">
-                                    <i class="fa fa-info-circle mr-1"></i> Optional instructions for AI (e.g. "Extract Hindi questions only", "Focus on Section B (Quantitative Aptitude)", "Questions 1 to 20 only"):
+                                    <i class="fa fa-info-circle mr-1"></i> Optional instructions for AI (e.g. "Extract pages 1 to 3 only", "Hindi questions only", "Focus on Section B"):
                                 </label>
-                                <input type="text" id="pdf_extra_prompt" class="theme-form-control" placeholder="e.g. Extract Hindi questions, ignore Section A, include solutions...">
+                                <input type="text" id="pdf_extra_prompt" class="theme-form-control" placeholder="e.g. Extract pages 1 to 4, Hindi questions only, ignore Section A, include solutions...">
                             </div>
                         </div>
                     </div>
@@ -1438,13 +1431,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('pdf_file', fileInput.files[0]);
 
-        const range = document.getElementById('pdf_page_range')?.value.trim();
         const extraPrompt = document.getElementById('pdf_extra_prompt')?.value.trim();
-        const instructions = [];
-        if (range) instructions.push(`Extract questions from pages: ${range}`);
-        if (extraPrompt) instructions.push(extraPrompt);
-        if (instructions.length > 0) {
-            formData.append('extra_instructions', instructions.join('. '));
+        if (extraPrompt) {
+            formData.append('extra_instructions', extraPrompt);
         }
 
         fetch('{{ url("question/ai-extract-pdf") }}', {
