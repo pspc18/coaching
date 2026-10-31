@@ -333,6 +333,63 @@ class QuestionController extends Controller
     }
 
     /**
+     * Upload Diagram / Graph Image via AJAX
+     */
+    public function uploadDiagram(Request $request)
+    {
+        try {
+            $destPath = public_path('uploads/questions');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0755, true);
+            }
+
+            // Case 1: Standard file upload
+            if ($request->hasFile('diagram_file')) {
+                $file = $request->file('diagram_file');
+                $filename = 'diagram_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                $file->move($destPath, $filename);
+                return response()->json([
+                    'success' => true,
+                    'file_path' => 'uploads/questions/' . $filename,
+                    'url' => asset('uploads/questions/' . $filename)
+                ]);
+            }
+
+            // Case 2: Base64 clipboard paste (data:image/...)
+            if ($request->has('diagram_base64')) {
+                $base64 = $request->input('diagram_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $base64 = substr($base64, strpos($base64, ',') + 1);
+                    $type = strtolower($type[1]);
+                    if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp'])) {
+                        $type = 'png';
+                    }
+                    $base64 = base64_decode($base64);
+                    if ($base64 !== false) {
+                        $filename = 'diagram_' . time() . '_' . Str::random(8) . '.' . $type;
+                        file_put_contents($destPath . '/' . $filename, $base64);
+                        return response()->json([
+                            'success' => true,
+                            'file_path' => 'uploads/questions/' . $filename,
+                            'url' => asset('uploads/questions/' . $filename)
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid image provided.'
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Edit Question
      */
     public function editQuestion(Request $request, $id)

@@ -342,14 +342,14 @@ textarea.theme-form-control {
     to { transform: rotate(360deg); }
 }
 
-/* 8. AI Extracted Question List / Table in Bulk Mode (2 Cards Per Row) */
+/* 8. AI Extracted Question List / Table in Bulk Mode (Split Studio Layout) */
 .bulk-q-item {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-top: 3px solid #002C54;
     border-radius: 2px;
-    padding: 12px;
-    margin-bottom: 0;
+    padding: 12px 14px;
+    margin-bottom: 14px;
     transition: all 0.15s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -360,6 +360,53 @@ textarea.theme-form-control {
     opacity: 0.55;
     border-top-color: #94a3b8;
     background: #f8fafc;
+}
+
+/* Exam Paper Real-Time Preview Card */
+.preview-exam-card {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    border-radius: 2px;
+    padding: 10px 12px;
+    height: 100%;
+}
+.preview-q-name {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #0f172a;
+    min-height: 38px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+}
+.preview-opt-item {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    background: #ffffff;
+    min-height: 32px;
+    font-size: 11px;
+    line-height: 1.4;
+    transition: all .15s ease;
+}
+.preview-opt-item.preview-correct-opt {
+    border-color: #059669;
+    background: #059669;
+    color: #ffffff;
+    font-weight: 700;
+}
+.diagram-attach-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 2px;
+    padding: 6px 8px;
+    transition: all .15s ease;
+}
+.diagram-attach-box:hover, .diagram-attach-box.drag-over {
+    border-color: #002C54;
+    background: #f1f5f9;
 }
 
 /* 9. Universal Icon Spacing Standards */
@@ -796,6 +843,27 @@ textarea.theme-form-control {
                                     </div>
                                 </div>
 
+                                {{-- Tab 2 Real-Time Exam Paper Preview --}}
+                                <div class="preview-exam-card mt-3 mb-2" id="ai-single-preview-card">
+                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                        <span class="font-weight-bold text-dark" style="font-size: 11px;">
+                                            <i class="fa fa-desktop text-primary mr-1"></i> Student View (Exam Paper Preview):
+                                        </span>
+                                        <span class="badge badge-success" id="ai-single-preview-badge">Correct: Option A</span>
+                                    </div>
+                                    <div class="preview-q-name" id="ai-single-preview-name">Question statement preview...</div>
+                                    <div class="row">
+                                        @foreach(['A','B','C','D'] as $l)
+                                            <div class="col-6 mb-1">
+                                                <div class="preview-opt-item" id="ai-single-preview-opt-{{ $l }}">
+                                                    <strong>({{ $l }})</strong> <span class="preview-opt-text">—</span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="preview-q-exp mt-1 p-2 border rounded bg-white small text-muted d-none" id="ai-single-preview-exp"></div>
+                                </div>
+
                                 <div class="pt-2 border-top d-flex align-items-center justify-content-between">
                                     <span class="text-muted small" style="font-size: 10.5px;">
                                         <i class="fa fa-info-circle mr-1"></i> Saving will add this question under the currently selected Class &amp; Subject.
@@ -948,10 +1016,72 @@ textarea.theme-form-control {
     </div>
 </div>
 
+{{-- =========================================================================
+     MODAL: RICH CKEDITOR FOR QUESTION STATEMENT & OPTIONS
+     ========================================================================= --}}
+<div class="modal fade" id="modal-rich-ckeditor" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 16px;">
+                <h5 class="modal-title font-weight-bold" style="font-size: 13px;">
+                    <i class="fa fa-pencil-square-o mr-2 text-warning"></i> Rich CKEditor — Question Details &amp; Formulas
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3">
+                <input type="hidden" id="modal-ck-q-index" value="">
+                <div class="theme-form-group mb-3">
+                    <label class="font-weight-bold mb-1" style="font-size: 11.5px; color: #002C54;">
+                        Question Statement (WYSIWYG Rich Editor):
+                    </label>
+                    <textarea id="modal-ckeditor-question-textarea" class="form-control"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="font-weight-bold mb-1 small">Option A:</label>
+                        <input type="text" id="modal-ck-opt-a" class="theme-form-control">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="font-weight-bold mb-1 small">Option B:</label>
+                        <input type="text" id="modal-ck-opt-b" class="theme-form-control">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="font-weight-bold mb-1 small">Option C:</label>
+                        <input type="text" id="modal-ck-opt-c" class="theme-form-control">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="font-weight-bold mb-1 small">Option D:</label>
+                        <input type="text" id="modal-ck-opt-d" class="theme-form-control">
+                    </div>
+                </div>
+                <div class="theme-form-group mt-2">
+                    <label class="font-weight-bold mb-1 small">Explanation / Solution:</label>
+                    <textarea id="modal-ck-explanation" class="theme-form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer p-2 bg-light d-flex justify-content-between">
+                <span class="text-muted small" style="font-size: 10.5px;">
+                    <i class="fa fa-info-circle mr-1"></i> Changes will immediately sync to the question card and live preview.
+                </span>
+                <div>
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                    <button type="button" id="btn-save-ckeditor-modal" class="dash-btn dash-btn-emerald" style="height: 30px;">
+                        <i class="fa fa-check mr-1"></i> Apply Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- KaTeX & Auto-Render CDN for Dynamic Math Formula Rendering --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+{{-- CKEditor 4 for Rich WYSIWYG Question & Formula Editing --}}
+<script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1354,10 +1484,53 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             badge.classList.remove('d-none');
         }
+
+        updateAiSingleLivePreview();
         form.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Dynamic highlight on manual radio click in AI Single Question tab
+    function updateAiSingleLivePreview() {
+        const nameVal = document.getElementById('ai_single_q_name')?.value || '';
+        const a1 = document.getElementById('ai_single_ans1')?.value || '';
+        const a2 = document.getElementById('ai_single_ans2')?.value || '';
+        const a3 = document.getElementById('ai_single_ans3')?.value || '';
+        const a4 = document.getElementById('ai_single_ans4')?.value || '';
+        const expVal = document.getElementById('ai_single_explanation')?.value || '';
+        const radio = document.querySelector('input[name="ai_single_correct"]:checked');
+        const correctVal = radio ? radio.value : '0';
+        const letter = ['A','B','C','D'][parseInt(correctVal, 10)] || 'A';
+
+        const qName = document.getElementById('ai-single-preview-name');
+        if (qName) qName.innerHTML = nameVal.trim() ? nameVal : '<em>Question statement empty...</em>';
+
+        const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4 };
+        ['A','B','C','D'].forEach((l, oIdx) => {
+            const optEl = document.getElementById(`ai-single-preview-opt-${l}`);
+            if (optEl) {
+                const isCorr = (String(oIdx) === String(correctVal));
+                optEl.className = `preview-opt-item ${isCorr ? 'preview-correct-opt' : ''}`;
+                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? escapeHtml(optMap[l]) : '—'}</span>`;
+            }
+        });
+
+        const badge = document.getElementById('ai-single-preview-badge');
+        if (badge) badge.textContent = `Correct: Option ${letter}`;
+
+        const expEl = document.getElementById('ai-single-preview-exp');
+        if (expEl) {
+            if (expVal.trim()) {
+                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${escapeHtml(expVal)}</span>`;
+                expEl.classList.remove('d-none');
+            } else {
+                expEl.classList.add('d-none');
+            }
+        }
+
+        const box = document.getElementById('ai-single-preview-card');
+        if (box) renderKaTeXIn(box);
+    }
+
+    // Dynamic highlight & preview sync on manual radio click in AI Single Question tab
     document.querySelectorAll('.ai-correct-radio').forEach(r => {
         r.addEventListener('change', function () {
             const val = this.value;
@@ -1365,7 +1538,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const card = document.getElementById(`ai-opt-card-${num}`);
                 if (card) card.classList.toggle('correct-selected', String(idx) === val);
             });
+            updateAiSingleLivePreview();
         });
+    });
+
+    document.querySelectorAll('#form-ai-single-save textarea').forEach(el => {
+        el.addEventListener('input', updateAiSingleLivePreview);
     });
 
     // Save AI-Extracted Single Question
@@ -1508,79 +1686,179 @@ document.addEventListener('DOMContentLoaded', function () {
             const qNum = idx + 1;
             const correctOpt = String(q.correct_ans ?? '0');
             const diff = q.difficulty_level || 'Medium';
+            const correctLetter = ['A','B','C','D'][parseInt(correctOpt, 10)] || 'A';
+            const imgPath = q.image || '';
 
             html += `
-            <div class="col-lg-6 col-12 mb-3 d-flex flex-column" id="bulk-card-col-${idx}">
-                <div class="bulk-q-item h-100 d-flex flex-column justify-content-between" id="bulk-card-${idx}">
-                    <div>
-                        {{-- Question Header --}}
-                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                            <label class="mb-0 font-weight-bold" style="font-size: 12px; cursor: pointer; color: #002C54;">
+            <div class="col-12 mb-3" id="bulk-card-col-${idx}">
+                <div class="bulk-q-item" id="bulk-card-${idx}">
+                    {{-- Header --}}
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="mb-0 font-weight-bold" style="font-size: 13px; cursor: pointer; color: #002C54;">
                                 <input type="checkbox" class="bulk-q-checkbox mr-1" data-index="${idx}" checked>
                                 Question #${qNum}
                             </label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="d-flex align-items-center">
-                                    <span class="small text-muted mr-1" style="font-size: 10px;">Difficulty:</span>
-                                    <select class="theme-form-control bulk-field-difficulty" data-index="${idx}" style="height: 22px; padding: 0 4px; font-size: 10.5px; width: auto;">
-                                        <option value="Easy" ${diff === 'Easy' ? 'selected' : ''}>Easy</option>
-                                        <option value="Medium" ${diff === 'Medium' ? 'selected' : ''}>Medium</option>
-                                        <option value="Hard" ${diff === 'Hard' ? 'selected' : ''}>Hard</option>
-                                    </select>
-                                </div>
-                                <button type="button" class="btn btn-xs btn-outline-danger btn-bulk-remove" data-index="${idx}" title="Remove question" style="padding: 1px 6px; font-size: 11px;">
-                                    <i class="fa fa-times"></i>
-                                </button>
+                            <span class="badge badge-light border" style="font-size: 10px;">Item Q${qNum}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center">
+                                <span class="small text-muted mr-1" style="font-size: 10.5px;">Difficulty:</span>
+                                <select class="theme-form-control bulk-field-difficulty" data-index="${idx}" style="height: 24px; padding: 0 6px; font-size: 11px; width: auto;">
+                                    <option value="Easy" ${diff === 'Easy' ? 'selected' : ''}>Easy</option>
+                                    <option value="Medium" ${diff === 'Medium' ? 'selected' : ''}>Medium</option>
+                                    <option value="Hard" ${diff === 'Hard' ? 'selected' : ''}>Hard</option>
+                                </select>
                             </div>
-                        </div>
-
-                        {{-- Question Statement --}}
-                        <div class="theme-form-group mb-2">
-                            <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">Question Statement <span class="text-danger">*</span></label>
-                            <textarea class="theme-form-control bulk-field-name" data-index="${idx}" rows="2" placeholder="Question statement">${escapeHtml(q.name || '')}</textarea>
-                        </div>
-
-                        {{-- 4 Objective Options (Single Image Scanner Style) --}}
-                        <div class="row">
-                            ${['1','2','3','4'].map((num, oIdx) => {
-                                const optKey = 'ans' + num;
-                                const letter = ['A','B','C','D'][oIdx];
-                                const isCorrect = (correctOpt === String(oIdx));
-                                return `
-                                <div class="col-sm-6 mb-2">
-                                    <div class="option-input-card ${isCorrect ? 'correct-selected' : ''}" id="bulk-opt-card-${idx}-${num}">
-                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <div class="d-flex align-items-center gap-1">
-                                                <span class="option-label-pill">${letter}</span>
-                                                <strong style="font-size: 11px; color: #334155;">Option ${letter}</strong>
-                                            </div>
-                                            <label class="correct-radio-label text-success">
-                                                <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" data-num="${num}" ${isCorrect ? 'checked' : ''}>
-                                                <span>Correct</span>
-                                            </label>
-                                        </div>
-                                        <textarea class="theme-form-control bulk-field-${optKey}" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
-                                    </div>
-                                </div>`;
-                            }).join('')}
+                            <button type="button" class="btn btn-xs btn-outline-primary btn-open-ckeditor" data-index="${idx}" title="Open WYSIWYG CKEditor Modal" style="height: 24px; padding: 0 8px; font-size: 11px;">
+                                <i class="fa fa-pencil-square-o mr-1"></i> Rich CKEditor
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-danger btn-bulk-remove" data-index="${idx}" title="Remove question" style="height: 24px; padding: 0 8px; font-size: 11px;">
+                                <i class="fa fa-times"></i>
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Explanation / Solution Notes --}}
-                    <div class="theme-form-group mb-0 mt-1 pt-2 border-top">
-                        <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">
-                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Explanation / Solution
-                        </label>
-                        <textarea class="theme-form-control bulk-field-explanation" data-index="${idx}" rows="2" placeholder="Explanation or solution notes...">${escapeHtml(q.explanation || '')}</textarea>
+                    {{-- Split Body: Left Editor, Right Live Exam Paper Preview --}}
+                    <div class="row">
+                        {{-- Left Column: Interactive Editor --}}
+                        <div class="col-lg-6 col-12 border-right pr-lg-3">
+                            {{-- Question Statement --}}
+                            <div class="theme-form-group mb-2">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label class="small text-muted font-weight-bold mb-0" style="font-size: 10.5px;">
+                                        <i class="fa fa-edit mr-1"></i> Question Statement (LaTeX Supported) <span class="text-danger">*</span>
+                                    </label>
+                                    <span class="text-muted small font-italic" style="font-size: 9.5px;">Auto-updates preview on right</span>
+                                </div>
+                                <textarea class="theme-form-control bulk-field-name live-sync-input" data-index="${idx}" rows="3" placeholder="Question statement or formula...">${escapeHtml(q.name || '')}</textarea>
+                            </div>
+
+                            {{-- Diagram / Graph Attachment Box --}}
+                            <div class="diagram-attach-box mb-2" id="bulk-diagram-box-${idx}" data-index="${idx}">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="small font-weight-bold" style="font-size: 10.5px; color: #002C54;">
+                                        <i class="fa fa-picture-o text-warning mr-1"></i> Diagram / Graph Image (Optional):
+                                    </span>
+                                    <div>
+                                        <input type="file" class="d-none bulk-diagram-file-input" id="diagram-input-${idx}" data-index="${idx}" accept="image/*">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary btn-upload-diagram" data-index="${idx}" style="font-size: 10px; padding: 2px 7px;">
+                                            <i class="fa fa-upload mr-1"></i> Upload / Paste (Ctrl+V)
+                                        </button>
+                                    </div>
+                                </div>
+                                <input type="hidden" class="bulk-field-image" id="bulk-field-image-${idx}" data-index="${idx}" value="${escapeHtml(imgPath)}">
+                                
+                                <div class="diagram-preview-thumb mt-1 ${imgPath ? '' : 'd-none'}" id="bulk-diagram-thumb-${idx}">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Diagram" class="img-thumbnail" style="max-height: 60px;">
+                                        <button type="button" class="btn btn-xs btn-link text-danger btn-remove-diagram p-0" data-index="${idx}" style="font-size: 10.5px;">
+                                            <i class="fa fa-trash mr-1"></i> Remove Image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- 4 Objective Options --}}
+                            <div class="row">
+                                ${['1','2','3','4'].map((num, oIdx) => {
+                                    const optKey = 'ans' + num;
+                                    const letter = ['A','B','C','D'][oIdx];
+                                    const isCorrect = (correctOpt === String(oIdx));
+                                    return `
+                                    <div class="col-sm-6 mb-2">
+                                        <div class="option-input-card ${isCorrect ? 'correct-selected' : ''}" id="bulk-opt-card-${idx}-${num}">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <span class="option-label-pill">${letter}</span>
+                                                    <strong style="font-size: 11px; color: #334155;">Option ${letter}</strong>
+                                                </div>
+                                                <label class="correct-radio-label text-success">
+                                                    <input type="radio" name="bulk_correct_${idx}" value="${oIdx}" class="bulk-field-correct mr-1" data-index="${idx}" data-num="${num}" ${isCorrect ? 'checked' : ''}>
+                                                    <span>Correct</span>
+                                                </label>
+                                            </div>
+                                            <textarea class="theme-form-control bulk-field-${optKey} live-sync-input" data-index="${idx}" rows="2" placeholder="Option ${letter}">${escapeHtml(q[optKey] || '')}</textarea>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+
+                            {{-- Explanation / Solution --}}
+                            <div class="theme-form-group mb-0 mt-1 pt-1 border-top">
+                                <label class="small text-muted mb-1 font-weight-bold" style="font-size: 10.5px;">
+                                    <i class="fa fa-lightbulb-o text-warning mr-1"></i> Explanation / Solution
+                                </label>
+                                <textarea class="theme-form-control bulk-field-explanation live-sync-input" data-index="${idx}" rows="2" placeholder="Explanation or solution notes...">${escapeHtml(q.explanation || '')}</textarea>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Live Exam / Student View Preview --}}
+                        <div class="col-lg-6 col-12 pl-lg-3 mt-3 mt-lg-0">
+                            <div class="preview-exam-card" id="preview-exam-card-${idx}">
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                    <span class="font-weight-bold text-dark" style="font-size: 11.5px;">
+                                        <i class="fa fa-desktop text-primary mr-1"></i> Student View (Exam Paper Preview)
+                                    </span>
+                                    <span class="badge badge-success preview-badge-correct" id="preview-badge-${idx}" style="font-size: 10.5px;">
+                                        Correct: Option ${correctLetter}
+                                    </span>
+                                </div>
+
+                                {{-- Rendered Question Statement with KaTeX --}}
+                                <div class="preview-q-name" id="preview-q-name-${idx}">
+                                    <strong>Q${qNum}.</strong> ${q.name ? escapeHtml(q.name) : '<em>Question statement empty...</em>'}
+                                </div>
+
+                                {{-- Rendered Diagram Image (if attached) --}}
+                                <div class="preview-q-diagram text-center mb-2 ${imgPath ? '' : 'd-none'}" id="preview-q-diagram-${idx}">
+                                    <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">
+                                </div>
+
+                                {{-- Rendered Options A, B, C, D --}}
+                                <div class="row preview-q-options">
+                                    ${['1','2','3','4'].map((num, oIdx) => {
+                                        const optKey = 'ans' + num;
+                                        const letter = ['A','B','C','D'][oIdx];
+                                        const isCorrect = (correctOpt === String(oIdx));
+                                        return `
+                                        <div class="col-6 mb-2">
+                                            <div class="preview-opt-item ${isCorrect ? 'preview-correct-opt' : ''}" id="preview-opt-${idx}-${letter}">
+                                                <strong>(${letter})</strong> <span class="preview-opt-text">${q[optKey] ? escapeHtml(q[optKey]) : '—'}</span>
+                                            </div>
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+
+                                {{-- Rendered Explanation / Solution --}}
+                                <div class="preview-q-exp mt-2 p-2 border rounded bg-white small text-muted ${q.explanation ? '' : 'd-none'}" id="preview-q-exp-${idx}">
+                                    <strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong>
+                                    <span class="preview-exp-text">${escapeHtml(q.explanation || '')}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>`;
         });
 
         container.innerHTML = html;
-        renderKaTeXIn(container);
+        
+        // Initial KaTeX render on all preview cards
+        questions.forEach((_, idx) => {
+            const previewCard = document.getElementById(`preview-exam-card-${idx}`);
+            if (previewCard) renderKaTeXIn(previewCard);
+        });
 
-        // Bind radio change to update .correct-selected on option cards
+        // Bind Live Input Syncing (typing in left textarea updates right preview live)
+        container.querySelectorAll('.live-sync-input').forEach(input => {
+            input.addEventListener('input', function () {
+                const idx = this.dataset.index;
+                updateBulkCardPreview(idx);
+            });
+        });
+
+        // Bind radio change to update .correct-selected on option cards AND right preview
         container.querySelectorAll('.bulk-field-correct').forEach(r => {
             r.addEventListener('change', function () {
                 const qIdx = this.dataset.index;
@@ -1589,6 +1867,62 @@ document.addEventListener('DOMContentLoaded', function () {
                     const optCard = document.getElementById(`bulk-opt-card-${qIdx}-${n}`);
                     if (optCard) optCard.classList.toggle('correct-selected', n === optNum);
                 });
+                updateBulkCardPreview(qIdx);
+            });
+        });
+
+        // Bind Diagram File Upload Trigger Button
+        container.querySelectorAll('.btn-upload-diagram').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const idx = this.dataset.index;
+                document.getElementById(`diagram-input-${idx}`)?.click();
+            });
+        });
+
+        // Bind Diagram File Change
+        container.querySelectorAll('.bulk-diagram-file-input').forEach(input => {
+            input.addEventListener('change', function () {
+                const idx = this.dataset.index;
+                if (this.files && this.files[0]) {
+                    uploadDiagramFile(this.files[0], idx);
+                }
+            });
+        });
+
+        // Bind Diagram Remove Button
+        container.querySelectorAll('.btn-remove-diagram').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const idx = this.dataset.index;
+                const imgField = document.getElementById(`bulk-field-image-${idx}`);
+                if (imgField) imgField.value = '';
+                document.getElementById(`bulk-diagram-thumb-${idx}`)?.classList.add('d-none');
+                updateBulkCardPreview(idx);
+            });
+        });
+
+        // Bind Ctrl+V Paste inside diagram box
+        container.querySelectorAll('.diagram-attach-box').forEach(box => {
+            box.addEventListener('paste', function (e) {
+                const idx = this.dataset.index;
+                const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+                if (!items) return;
+
+                for (let item of items) {
+                    if (item.type.indexOf('image') !== -1) {
+                        e.preventDefault();
+                        const blob = item.getAsFile();
+                        uploadDiagramFile(blob, idx);
+                        break;
+                    }
+                }
+            });
+        });
+
+        // Bind CKEditor Modal Open Button
+        container.querySelectorAll('.btn-open-ckeditor').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const idx = this.dataset.index;
+                openCKEditorForQuestion(idx);
             });
         });
 
@@ -1613,6 +1947,196 @@ document.addEventListener('DOMContentLoaded', function () {
 
         workspace.scrollIntoView({ behavior: 'smooth' });
     }
+
+    // Function to update the Right-Side Live Exam Preview for question [idx]
+    function updateBulkCardPreview(idx) {
+        const card = document.getElementById(`bulk-card-${idx}`);
+        if (!card) return;
+
+        const qNum = parseInt(idx, 10) + 1;
+        const nameVal = card.querySelector('.bulk-field-name')?.value || '';
+        const a1 = card.querySelector('.bulk-field-ans1')?.value || '';
+        const a2 = card.querySelector('.bulk-field-ans2')?.value || '';
+        const a3 = card.querySelector('.bulk-field-ans3')?.value || '';
+        const a4 = card.querySelector('.bulk-field-ans4')?.value || '';
+        const expVal = card.querySelector('.bulk-field-explanation')?.value || '';
+        const correctRadio = card.querySelector('.bulk-field-correct:checked');
+        const correctVal = correctRadio ? correctRadio.value : '0';
+        const letter = ['A','B','C','D'][parseInt(correctVal, 10)] || 'A';
+        const imgPath = card.querySelector('.bulk-field-image')?.value || '';
+
+        // 1. Question Statement
+        const qNameEl = document.getElementById(`preview-q-name-${idx}`);
+        if (qNameEl) {
+            qNameEl.innerHTML = nameVal.trim() ? `<strong>Q${qNum}.</strong> ${nameVal}` : `<em>Question Q${qNum} statement empty...</em>`;
+        }
+
+        // 2. Diagram Image
+        const diagEl = document.getElementById(`preview-q-diagram-${idx}`);
+        if (diagEl) {
+            if (imgPath) {
+                const fullUrl = imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath;
+                diagEl.innerHTML = `<img src="${fullUrl}" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">`;
+                diagEl.classList.remove('d-none');
+            } else {
+                diagEl.innerHTML = '';
+                diagEl.classList.add('d-none');
+            }
+        }
+
+        // 3. Options A, B, C, D
+        const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4 };
+        ['A','B','C','D'].forEach((l, oIdx) => {
+            const optEl = document.getElementById(`preview-opt-${idx}-${l}`);
+            if (optEl) {
+                const isCorr = (String(oIdx) === String(correctVal));
+                optEl.className = `preview-opt-item ${isCorr ? 'preview-correct-opt' : ''}`;
+                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? optMap[l] : '—'}</span>`;
+            }
+        });
+
+        // 4. Correct Badge
+        const badge = document.getElementById(`preview-badge-${idx}`);
+        if (badge) badge.textContent = `Correct: Option ${letter}`;
+
+        // 5. Solution
+        const expEl = document.getElementById(`preview-q-exp-${idx}`);
+        if (expEl) {
+            if (expVal.trim()) {
+                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${expVal}</span>`;
+                expEl.classList.remove('d-none');
+            } else {
+                expEl.classList.add('d-none');
+            }
+        }
+
+        // 6. Re-run KaTeX formatting on this preview card
+        const previewCard = document.getElementById(`preview-exam-card-${idx}`);
+        if (previewCard) {
+            renderKaTeXIn(previewCard);
+        }
+    }
+
+    // Function to upload diagram file via AJAX to /question/upload-diagram
+    function uploadDiagramFile(file, idx) {
+        const formData = new FormData();
+        formData.append('diagram_file', file);
+
+        const thumbBox = document.getElementById(`bulk-diagram-thumb-${idx}`);
+        const imgField = document.getElementById(`bulk-field-image-${idx}`);
+
+        fetch('{{ url("question/upload-diagram") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.file_path) {
+                if (imgField) imgField.value = data.file_path;
+                if (thumbBox) {
+                    thumbBox.classList.remove('d-none');
+                    const img = thumbBox.querySelector('img');
+                    if (img) img.src = data.url;
+                }
+                updateBulkCardPreview(idx);
+            } else {
+                alert('Diagram upload failed: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            alert('Upload error: ' + err.message);
+        });
+    }
+
+    // =========================================================================
+    // CKEDITOR ON-DEMAND MODAL INITIALIZATION & SYNC
+    // =========================================================================
+    let ckModalEditor = null;
+    function initCKEditorModal() {
+        if (window.CKEDITOR && !ckModalEditor && document.getElementById('modal-ckeditor-question-textarea')) {
+            try {
+                ckModalEditor = CKEDITOR.replace('modal-ckeditor-question-textarea', {
+                    height: 150,
+                    removePlugins: 'elementspath,resize',
+                    toolbar: [
+                        { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
+                        { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Blockquote' ] },
+                        { name: 'insert', items: [ 'Table', 'HorizontalRule', 'SpecialChar' ] },
+                        { name: 'styles', items: [ 'Format', 'FontSize' ] },
+                        { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+                        { name: 'tools', items: [ 'Maximize', 'Source' ] }
+                    ]
+                });
+            } catch (e) {
+                console.warn('CKEditor init error:', e);
+            }
+        }
+    }
+
+    function openCKEditorForQuestion(idx) {
+        initCKEditorModal();
+        const card = document.getElementById(`bulk-card-${idx}`);
+        if (!card) return;
+
+        const nameVal = card.querySelector('.bulk-field-name')?.value || '';
+        const a1 = card.querySelector('.bulk-field-ans1')?.value || '';
+        const a2 = card.querySelector('.bulk-field-ans2')?.value || '';
+        const a3 = card.querySelector('.bulk-field-ans3')?.value || '';
+        const a4 = card.querySelector('.bulk-field-ans4')?.value || '';
+        const expVal = card.querySelector('.bulk-field-explanation')?.value || '';
+
+        document.getElementById('modal-ck-q-index').value = idx;
+        document.getElementById('modal-ck-opt-a').value = a1;
+        document.getElementById('modal-ck-opt-b').value = a2;
+        document.getElementById('modal-ck-opt-c').value = a3;
+        document.getElementById('modal-ck-opt-d').value = a4;
+        document.getElementById('modal-ck-explanation').value = expVal;
+
+        if (ckModalEditor) {
+            ckModalEditor.setData(nameVal);
+        } else {
+            const ta = document.getElementById('modal-ckeditor-question-textarea');
+            if (ta) ta.value = nameVal;
+        }
+
+        $('#modal-rich-ckeditor').modal('show');
+    }
+
+    document.getElementById('btn-save-ckeditor-modal')?.addEventListener('click', function () {
+        const idx = document.getElementById('modal-ck-q-index').value;
+        const card = document.getElementById(`bulk-card-${idx}`);
+        if (!card) return;
+
+        let content = '';
+        if (ckModalEditor) {
+            content = ckModalEditor.getData();
+        } else {
+            content = document.getElementById('modal-ckeditor-question-textarea')?.value || '';
+        }
+
+        const a1 = document.getElementById('modal-ck-opt-a')?.value || '';
+        const a2 = document.getElementById('modal-ck-opt-b')?.value || '';
+        const a3 = document.getElementById('modal-ck-opt-c')?.value || '';
+        const a4 = document.getElementById('modal-ck-opt-d')?.value || '';
+        const exp = document.getElementById('modal-ck-explanation')?.value || '';
+
+        const fieldName = card.querySelector('.bulk-field-name');
+        if (fieldName) fieldName.value = content;
+        const fieldAns1 = card.querySelector('.bulk-field-ans1');
+        if (fieldAns1) fieldAns1.value = a1;
+        const fieldAns2 = card.querySelector('.bulk-field-ans2');
+        if (fieldAns2) fieldAns2.value = a2;
+        const fieldAns3 = card.querySelector('.bulk-field-ans3');
+        if (fieldAns3) fieldAns3.value = a3;
+        const fieldAns4 = card.querySelector('.bulk-field-ans4');
+        if (fieldAns4) fieldAns4.value = a4;
+        const fieldExp = card.querySelector('.bulk-field-explanation');
+        if (fieldExp) fieldExp.value = exp;
+
+        updateBulkCardPreview(idx);
+        $('#modal-rich-ckeditor').modal('hide');
+    });
 
     function updateBulkCounter() {
         const checked = document.querySelectorAll('.bulk-q-checkbox:checked').length;
@@ -1664,6 +2188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const correctRadio = card.querySelector('.bulk-field-correct:checked');
             const explanation = card.querySelector('.bulk-field-explanation')?.value?.trim();
             const difficulty = card.querySelector('.bulk-field-difficulty')?.value || 'Medium';
+            const imagePath = card.querySelector('.bulk-field-image')?.value?.trim();
 
             if (name) {
                 preparedQuestions.push({
@@ -1675,7 +2200,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     ans4: a4,
                     correct_ans: correctRadio ? correctRadio.value : '0',
                     explanation: explanation || null,
-                    difficulty_level: difficulty
+                    difficulty_level: difficulty,
+                    image: imagePath || null
                 });
             }
         });
