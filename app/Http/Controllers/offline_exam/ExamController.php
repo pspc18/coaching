@@ -570,55 +570,137 @@ class ExamController extends Controller
         }
     }
     
-    public function addExam(Request $request){
-        if($request->isMethod('post')){
-            $request->validate([
+    public function addExam(Request $request)
+    {
+        $sessionId = Session::get('session_id');
+        $branchId = Session::get('branch_id');
+        $setting = Helper::getSetting();
+        $instituteName = $setting->name ?? 'Arise ERP Institute';
+
+        if ($request->isMethod('post')) {
+            $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'class_type_id' => 'required|integer',
+                'code' => 'nullable|string|max:100',
+                'exam_date' => 'nullable|date',
+                'number_of_questions' => 'required|integer|min:1|max:100',
+                'is_online' => 'nullable|boolean',
+                'marks_per_correct' => 'nullable|numeric',
+                'marks_per_incorrect' => 'nullable|numeric',
+                'answer_key' => 'nullable|array',
+                'online_questions' => 'nullable|array',
+                'online_questions_json' => 'nullable|string',
+                'question_paper' => 'nullable|file|mimes:pdf|max:10240',
+                'description' => 'nullable|string|max:255',
+                'exam_term_id' => 'nullable|integer',
             ]);
 
-             DB::beginTransaction();
-             try {
-                 $add = new Exam;
-                 $add->user_id = Session::get('id');
-                 $add->session_id = Session::get('session_id');
-                $add->branch_id = Session::get('branch_id');
+            $code = !empty($validated['code']) ? trim($validated['code']) : ($request->input('code') ?: null);
+            if (!$code) {
+                do {
+                    $code = 'EXAM-' . strtoupper(Str::random(6));
+                } while (Exam::where('code', $code)->orWhere('exam_code', $code)->exists());
+            }
+
+            $paperPath = null;
+            if ($request->hasFile('question_paper')) {
+                $paperUploadDir = public_path('uploads/question_papers');
+                if (!file_exists($paperUploadDir)) {
+                    @mkdir($paperUploadDir, 0777, true);
+                }
+                $paperFile = $request->file('question_paper');
+                $paperFileName = 'qp_' . time() . '_' . Str::slug(pathinfo($paperFile->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $paperFile->getClientOriginalExtension();
+                $paperFile->move($paperUploadDir, $paperFileName);
+                $paperPath = 'uploads/question_papers/' . $paperFileName;
+            }
+
+            $onlineQuestions = $validated['online_questions'] ?? [];
+            if (empty($onlineQuestions) && $request->filled('online_questions_json')) {
+                $decoded = json_decode($request->input('online_questions_json'), true);
+                if (is_array($decoded)) {
+                    $onlineQuestions = $decoded;
+                }
+            }
+
+            $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
+            $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : 1.0;
+            $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : 0.0;
+            $maxMarks = $numQuestions * $marksPerCorrect;
+            $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : date('Y-m-d');
+
+            DB::beginTransaction();
+            try {
+                $add = new Exam;
+                $add->user_id = Session::get('id') ?: 1;
+                $add->session_id = $sessionId;
+                $add->branch_id = $branchId;
                 $add->name = trim($request->name);
+                $add->code = $code;
+                $add->exam_code = $code;
                 $add->class_type_id = $request->class_type_id;
                 $add->exam_term_id = $request->exam_term_id;
+                $add->exam_date = $examDate;
+                $add->number_of_questions = $numQuestions;
+                $add->is_online = (bool) ($request->is_online ?? false);
+                $add->marks_per_correct = $marksPerCorrect;
+                $add->marks_per_incorrect = $marksPerIncorrect;
+                $add->exam_maximum_marks = $maxMarks;
+                $add->answer_key = $request->answer_key ?? [];
+                $add->online_questions = $onlineQuestions;
+                if ($paperPath) {
+                    $add->question_paper_path = $paperPath;
+                }
+                $add->result_status = 'not_scheduled';
                 $add->description = $request->description;
-                 $add->save();
+                $add->save();
 
-                 $assignment = AssignExam::withTrashed()
-                     ->where('exam_id', $add->id)
-                     ->where('class_type_id', $request->class_type_id)
-                     ->where('session_id', Session::get('session_id'))
-                     ->where('branch_id', Session::get('branch_id'))
-                     ->first();
+                $assignment = AssignExam::withTrashed()
+                    ->where('exam_id', $add->id)
+                    ->where('class_type_id', $request->class_type_id)
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->first();
 
-                 if (!$assignment) {
-                     $assignment = new AssignExam;
-                 }
+                if (!$assignment) {
+                    $assignment = new AssignExam;
+                }
 
-                 $assignment->exam_id = $add->id;
-                 $assignment->class_type_id = $request->class_type_id;
-                 $assignment->session_id = Session::get('session_id');
-                 $assignment->branch_id = Session::get('branch_id');
-                 $assignment->user_id = Session::get('id');
-                 $assignment->deleted_at = null;
-                 $assignment->save();
+                $assignment->exam_id = $add->id;
+                $assignment->class_type_id = $request->class_type_id;
+                $assignment->session_id = $sessionId;
+                $assignment->branch_id = $branchId;
+                $assignment->user_id = Session::get('id') ?: 1;
+                $assignment->deleted_at = null;
+                $assignment->save();
 
-                 DB::commit();
+                DB::commit();
 
-                 return Redirect::to('fill_marks?class_type_id='.$request->class_type_id.'&exam_id='.$add->id)
-                     ->with('message', 'Exam created and assigned to the class. You can now fill marks.');
-             } catch (\Exception $e) {
-                 DB::rollBack();
-                 return Redirect::back()->withInput()->with('error', 'Exam could not be created. '.$e->getMessage());
-             }
+                if ($request->input('action_type') === 'fill_marks') {
+                    return Redirect::to('fill_marks?class_type_id=' . $request->class_type_id . '&exam_id=' . $add->id)
+                        ->with('message', 'Exam "' . $add->name . '" created successfully. You can now fill marks.');
+                }
+
+                if ($request->input('action_type') === 'print_omr') {
+                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print=1')
+                        ->with('message', 'Exam created successfully! Printable OMR is loaded below.');
+                }
+
+                return Redirect::to('view/exam')
+                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') & OMR Sheet created successfully.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return Redirect::back()->withInput()->with('error', 'Exam could not be created: ' . $e->getMessage());
+            }
         }
 
-        return view('examination.offline_exam.exam.add');
+        $examCode = 'EXAM-' . strtoupper(Str::random(6));
+        $classType = Helper::ClassType();
+        $savedExam = null;
+        if ($request->filled('exam_id')) {
+            $savedExam = Exam::where('branch_id', $branchId)->find($request->exam_id);
+        }
+
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam'));
     } 
     
      public function editExam(Request $request, $id){
