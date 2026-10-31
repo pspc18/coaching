@@ -1300,8 +1300,6 @@ document.addEventListener('DOMContentLoaded', function () {
             renderKaTeXIn(previewEl);
         }
     }
-        }
-    }
 
     document.querySelectorAll('.manual-correct-radio').forEach(r => {
         r.addEventListener('change', updateManualLivePreview);
