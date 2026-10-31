@@ -897,10 +897,10 @@ textarea.theme-form-control {
                     <div class="row align-items-center">
                         <div class="col-md-8 col-lg-9">
                             <div class="theme-form-group mb-2">
-                                <label for="pdf_upload_input">Select PDF File <span class="text-danger">*</span> (Up to 20MB)</label>
-                                <input type="file" id="pdf_upload_input" accept="application/pdf,.pdf" class="theme-form-control" style="height: 34px; padding: 4px;">
+                                <label for="pdf_upload_input">Select PDF Question Paper or Paper Image / Screenshot <span class="text-danger">*</span> (Up to 20MB)</label>
+                                <input type="file" id="pdf_upload_input" accept="application/pdf,.pdf,image/*" class="theme-form-control" style="height: 34px; padding: 4px;">
                                 <div class="theme-hint">
-                                    Works with previous year question papers, sample tests, assignment sheets, and model question papers.
+                                    Works with PDF exam papers, assignment sheets, or clear screenshots/photos of multiple questions.
                                 </div>
                             </div>
                         </div>
@@ -1698,16 +1698,67 @@ document.addEventListener('DOMContentLoaded', function () {
         counterText.textContent = `Select All Questions (${questions.length} Selected)`;
 
         let html = '';
+        let lastGroupId = null;
+
         questions.forEach((q, idx) => {
             const qNum = idx + 1;
             const correctOpt = String(q.correct_ans ?? '0');
             const diff = q.difficulty_level || 'Medium';
-            const correctLetter = ['A','B','C','D'][parseInt(correctOpt, 10)] || 'A';
+            const correctLetter = ['A','B','C','D','E'][parseInt(correctOpt, 10)] || 'A';
             const imgPath = q.image || '';
+            const isGrouped = Boolean(q.group_id);
+            const subQNo = q.sub_question_no || qNum;
+
+            // Render Direction Group Header once per unique group_id
+            if (isGrouped && q.group_id !== lastGroupId) {
+                lastGroupId = q.group_id;
+                const groupQuestions = questions.filter(x => x.group_id === q.group_id);
+                const qRange = q.direction ? (q.direction.match(/(?:Direction|निर्देश)\s*[\(\[]?(\d+\s*[-–to]+\s*\d+)[\)\]]?/i)?.[1] || `${groupQuestions.length} Questions`) : `${groupQuestions.length} Questions`;
+                const dirImg = q.image || '';
+
+                html += `
+                <div class="col-12 mb-3">
+                    <div class="direction-banner-card p-3 border rounded shadow-sm" style="background: linear-gradient(180deg, #f0f7ff 0%, #e6f0fa 100%); border-left: 5px solid #0284c7 !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-info flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-primary px-2 py-1 font-weight-bold" style="font-size: 11px; background-color: #0284c7;">
+                                    <i class="fa fa-sitemap mr-1"></i> DIRECTION SET: ${escapeHtml(qRange)}
+                                </span>
+                                <span class="text-dark font-weight-bold" style="font-size: 12px;">Comprehension / Data Interpretation Set</span>
+                            </div>
+                            <span class="badge badge-light border text-muted" style="font-size: 10.5px;">${groupQuestions.length} Sub-Questions in this Set</span>
+                        </div>
+
+                        ${q.direction ? `
+                        <div class="direction-statement-text mb-2 text-dark font-weight-bold" style="font-size: 12.5px; line-height: 1.6;">
+                            ${escapeHtml(q.direction)}
+                        </div>` : ''}
+
+                        ${q.direction_table ? `
+                        <div class="direction-table-wrapper mb-2 table-responsive bg-white p-2 rounded border">
+                            ${q.direction_table}
+                        </div>` : ''}
+
+                        ${dirImg ? `
+                        <div class="direction-diagram-box text-center my-2">
+                            <span class="d-block small text-muted mb-1 font-weight-bold"><i class="fa fa-bar-chart mr-1"></i> Common Diagram / Graph for this Direction:</span>
+                            <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border bg-white p-1" style="max-height: 240px;">
+                        </div>` : ''}
+                    </div>
+                </div>`;
+            } else if (!isGrouped) {
+                lastGroupId = null;
+            }
 
             html += `
             <div class="col-12 mb-3" id="bulk-card-col-${idx}">
-                <div class="bulk-q-item" id="bulk-card-${idx}">
+                <div class="bulk-q-item ${isGrouped ? 'border-info' : ''}" id="bulk-card-${idx}">
+                    {{-- Hidden Group Fields --}}
+                    <input type="hidden" class="bulk-field-group-id" data-index="${idx}" value="${escapeHtml(q.group_id || '')}">
+                    <input type="hidden" class="bulk-field-direction" data-index="${idx}" value="${escapeHtml(q.direction || '')}">
+                    <input type="hidden" class="bulk-field-direction-table" data-index="${idx}" value="${escapeHtml(q.direction_table || '')}">
+                    <input type="hidden" class="bulk-field-sub-no" data-index="${idx}" value="${escapeHtml(String(subQNo))}">
+
                     {{-- Header --}}
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom flex-wrap gap-2">
                         <div class="d-flex align-items-center gap-2">
@@ -1715,7 +1766,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <input type="checkbox" class="bulk-q-checkbox mr-1" data-index="${idx}" checked>
                                 Question #${qNum}
                             </label>
-                            <span class="badge badge-light border" style="font-size: 10px;">Item Q${qNum}</span>
+                            ${isGrouped ? `
+                            <span class="badge badge-info text-white" style="font-size: 10px; background-color: #0284c7;">
+                                <i class="fa fa-link mr-1"></i> Sub-Q #${escapeHtml(String(subQNo))} (Direction Set)
+                            </span>` : `
+                            <span class="badge badge-light border" style="font-size: 10px;">Item Q${qNum}</span>`}
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center">
@@ -1759,7 +1814,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <div>
                                         <input type="file" class="d-none bulk-diagram-file-input" id="diagram-input-${idx}" data-index="${idx}" accept="image/*">
                                         <button type="button" class="btn btn-xs btn-outline-secondary btn-upload-diagram" data-index="${idx}" style="font-size: 10px; padding: 2px 7px;">
-                                            <i class="fa fa-upload mr-1"></i> Upload / Paste (Ctrl+V)
+                                             <i class="fa fa-upload mr-1"></i> Upload / Paste (Ctrl+V)
                                         </button>
                                     </div>
                                 </div>
@@ -1779,7 +1834,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="row">
                                 ${(() => {
                                     const optNums = ['1','2','3','4'];
-                                    if (q.ans5 || correctOpt === '4' || q.correct_option_letter === 'E') optNums.push('5');
+                                    if (q.ans5 !== undefined || correctOpt === '4' || q.correct_option_letter === 'E' || isGrouped) {
+                                        optNums.push('5');
+                                    }
                                     return optNums.map((num, oIdx) => {
                                         const optKey = 'ans' + num;
                                         const letter = ['A','B','C','D','E'][oIdx];
@@ -1825,9 +1882,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </span>
                                 </div>
 
+                                {{-- Direction Context Snippet (if belongs to Direction Set) --}}
+                                ${q.direction ? `
+                                <div class="preview-direction-snippet mb-2 p-2 rounded" style="background: #f1f5f9; border-left: 3px solid #0284c7; font-size: 11px; line-height: 1.4;">
+                                    <strong class="text-primary d-block mb-1"><i class="fa fa-info-circle mr-1"></i> Direction / Context:</strong>
+                                    <div class="text-muted" style="max-height: 60px; overflow-y: auto;">${escapeHtml(q.direction)}</div>
+                                </div>` : ''}
+
                                 {{-- Rendered Question Statement with KaTeX --}}
                                 <div class="preview-q-name" id="preview-q-name-${idx}">
-                                    <strong>Q${qNum}.</strong> ${q.name ? escapeHtml(q.name) : '<em>Question statement empty...</em>'}
+                                    <strong>Q${subQNo}.</strong> ${q.name ? escapeHtml(q.name) : '<em>Question statement empty...</em>'}
                                 </div>
 
                                 {{-- Rendered Diagram Image (if attached) --}}
@@ -1839,7 +1903,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="row preview-q-options">
                                     ${(() => {
                                         const optNums = ['1','2','3','4'];
-                                        if (q.ans5 || correctOpt === '4' || q.correct_option_letter === 'E') optNums.push('5');
+                                        if (q.ans5 !== undefined || correctOpt === '4' || q.correct_option_letter === 'E' || isGrouped) {
+                                            optNums.push('5');
+                                        }
                                         return optNums.map((num, oIdx) => {
                                             const optKey = 'ans' + num;
                                             const letter = ['A','B','C','D','E'][oIdx];
@@ -2212,19 +2278,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const a2 = card.querySelector('.bulk-field-ans2')?.value?.trim();
             const a3 = card.querySelector('.bulk-field-ans3')?.value?.trim();
             const a4 = card.querySelector('.bulk-field-ans4')?.value?.trim();
+            const a5 = card.querySelector('.bulk-field-ans5')?.value?.trim();
             const correctRadio = card.querySelector('.bulk-field-correct:checked');
             const explanation = card.querySelector('.bulk-field-explanation')?.value?.trim();
             const difficulty = card.querySelector('.bulk-field-difficulty')?.value || 'Medium';
             const imagePath = card.querySelector('.bulk-field-image')?.value?.trim();
+            const groupId = card.querySelector('.bulk-field-group-id')?.value?.trim();
+            const direction = card.querySelector('.bulk-field-direction')?.value?.trim();
+            const directionTable = card.querySelector('.bulk-field-direction-table')?.value?.trim();
+            const subNo = card.querySelector('.bulk-field-sub-no')?.value?.trim();
 
             if (name) {
                 preparedQuestions.push({
                     name: name,
                     question_type_id: globalTypeSelect ? globalTypeSelect.value : 1,
-                    ans1: a1,
-                    ans2: a2,
-                    ans3: a3,
-                    ans4: a4,
+                    ans1: a1 || null,
+                    ans2: a2 || null,
+                    ans3: a3 || null,
+                    ans4: a4 || null,
+                    ans5: a5 || null,
+                    group_id: groupId || null,
+                    direction: direction || null,
+                    direction_table: directionTable || null,
+                    sub_question_no: subNo || null,
                     correct_ans: correctRadio ? correctRadio.value : '0',
                     explanation: explanation || null,
                     difficulty_level: difficulty,

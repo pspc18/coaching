@@ -110,6 +110,11 @@ class QuestionController extends Controller
             $add->ans2 = $request->ans2;
             $add->ans3 = $request->ans3;
             $add->ans4 = $request->ans4;
+            $add->ans5 = $request->ans5;
+            $add->group_id = $request->group_id;
+            $add->direction = $request->direction;
+            $add->direction_table = $request->direction_table;
+            $add->sub_question_no = $request->sub_question_no;
             $add->correct_ans = $request->correct_ans;
             $add->explanation = $request->explanation;
             $add->difficulty_level = $request->difficulty_level ?: 'Medium';
@@ -197,14 +202,15 @@ class QuestionController extends Controller
         @ini_set('max_execution_time', 180);
         try {
             $request->validate([
-                'pdf_file' => 'required|file|mimes:pdf|max:20480', // up to 20MB
+                'pdf_file' => 'required|file|mimes:pdf,png,jpg,jpeg,webp|max:20480', // up to 20MB (PDF or exam image paper)
             ]);
 
             $customKey = $request->input('api_key');
             $extraPrompt = $request->input('extra_instructions', '');
             $file = $request->file('pdf_file');
 
-            $tempName = 'temp_exam_' . time() . '_' . Str::random(8) . '.pdf';
+            $origExt = strtolower($file->getClientOriginalExtension() ?: 'pdf');
+            $tempName = 'temp_exam_' . time() . '_' . Str::random(8) . '.' . $origExt;
             $destPath = storage_path('app/temp_ai');
             if (!file_exists($destPath)) {
                 mkdir($destPath, 0755, true);
@@ -268,6 +274,11 @@ class QuestionController extends Controller
                 $add->ans2 = $q['ans2'] ?? null;
                 $add->ans3 = $q['ans3'] ?? null;
                 $add->ans4 = $q['ans4'] ?? null;
+                $add->ans5 = $q['ans5'] ?? null;
+                $add->group_id = $q['group_id'] ?? null;
+                $add->direction = $q['direction'] ?? null;
+                $add->direction_table = $q['direction_table'] ?? null;
+                $add->sub_question_no = $q['sub_question_no'] ?? null;
                 $add->correct_ans = isset($q['correct_ans']) ? (string)$q['correct_ans'] : null;
                 $add->explanation = $q['explanation'] ?? null;
                 $add->difficulty_level = $q['difficulty_level'] ?? 'Medium';

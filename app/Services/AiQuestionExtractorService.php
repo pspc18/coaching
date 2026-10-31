@@ -277,33 +277,43 @@ class AiQuestionExtractorService
         }
 
         $prompt = <<<EOT
-You are an expert Academic Examination Parser AI for school & competitive exams (NEET, JEE, CBSE, State Boards).
+You are an expert Academic Examination Parser AI for school & competitive exams (NEET, JEE, CBSE, State Boards, Banking, SSC).
 Analyze this question image carefully.
 
 TASK:
 1. Extract the full question statement. If the question contains math formulas, equations, fractions, square roots, subscripts, superscripts, or Greek symbols, format them in standard LaTeX notation enclosed in dollar signs ($...$).
    Example: \$x^2 + y^2 = 25\$, \$\\frac{a}{b}\$, \$\\sqrt{2x + 1}\$, \$\\alpha, \\beta, \\theta\$.
-2. Identify the Question Type:
+2. If there is a Direction set (e.g. "Direction (108-110): ..."):
+   - "direction": Full introductory instructions / passage.
+   - "direction_table": If there is a table, convert to clean HTML (<table>...</table>).
+   - "group_id": e.g. "dir_108_110".
+   - "sub_question_no": e.g. "108".
+3. Identify the Question Type:
    - 1 = Multiple Choice (Objective / MCQ with options)
    - 2 = Descriptive / Long answer (no options)
-3. For Multiple Choice Questions, extract all 4 options (A, B, C, D). Strip prefix letters like "(A)", "A.", "1." from the option text. Retain any LaTeX math formulas inside options.
-4. Detect or solve for the Correct Answer.
-   - correct_ans: "0" for Option A, "1" for Option B, "2" for Option C, "3" for Option D, or null if cannot be determined.
-   - correct_option_letter: "A", "B", "C", or "D".
-5. Provide a concise, clear step-by-step Explanation / Solution.
-6. Suggest a difficulty level: "Easy", "Medium", or "Hard".
-7. Suggest a topic or concept title.
+4. For Multiple Choice Questions, extract all options (ans1, ans2, ans3, ans4, and ans5 for Option E if present). Strip prefix letters like "(A)", "A.", "1." from the option text. Retain any LaTeX math formulas inside options.
+5. Detect or solve for the Correct Answer:
+   - correct_ans: "0" for Option A, "1" for Option B, "2" for Option C, "3" for Option D, "4" for Option E.
+   - correct_option_letter: "A", "B", "C", "D", or "E".
+6. Provide a concise, clear step-by-step Explanation / Solution.
+7. Suggest a difficulty level: "Easy", "Medium", or "Hard".
+8. Suggest a topic or concept title.
 
 {$extraInstructions}
 
 Return a STRICT, RAW JSON object matching this schema:
 {
   "name": "Full question statement with LaTeX math",
+  "direction": "Optional direction / passage text if part of a set",
+  "direction_table": "<table class='table table-bordered table-sm'>...</table>",
+  "group_id": "dir_108_110",
+  "sub_question_no": "108",
   "question_type_id": 1,
   "ans1": "Option A text",
   "ans2": "Option B text",
   "ans3": "Option C text",
   "ans4": "Option D text",
+  "ans5": "Option E text (if present)",
   "correct_ans": "0",
   "correct_option_letter": "A",
   "explanation": "Step-by-step solution / hint",
@@ -362,79 +372,107 @@ EOT;
             }
         }
 
-        $pdfBytes = file_get_contents($pdfPath);
-        if (empty($pdfBytes)) {
-            return [
-                'success' => false,
-                'message' => 'Uploaded PDF file is empty.'
+        $ext = strtolower(pathinfo($pdfPath, PATHINFO_EXTENSION));
+        $extractedDiagrams = [];
+
+        if ($ext === 'pdf') {
+            $pdfBytes = file_get_contents($pdfPath);
+            if (empty($pdfBytes)) {
+                return [
+                    'success' => false,
+                    'message' => 'Uploaded PDF file is empty.'
+                ];
+            }
+            $base64Pdf = base64_encode($pdfBytes);
+            $mediaPayload = [
+                'inline_data' => [
+                    'mime_type' => 'application/pdf',
+                    'data' => $base64Pdf
+                ]
+            ];
+            $extractedDiagrams = $this->extractDiagramsFromPdf($pdfPath);
+        } else {
+            // Document is an image (PNG, JPG, WEBP)
+            $imgPayload = $this->prepareImagePayload($pdfPath);
+            if (!$imgPayload['success']) {
+                return $imgPayload;
+            }
+            $mediaPayload = $imgPayload['data'];
+
+            // Store a copy in public uploads for diagram attachment
+            $filename = 'paper_img_' . time() . '_' . Str::random(6) . '.' . ($ext ?: 'jpg');
+            $destDir = public_path('uploads/questions');
+            if (!file_exists($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+            @copy($pdfPath, $destDir . '/' . $filename);
+            $extractedDiagrams = [
+                [
+                    'page' => 1,
+                    'type' => 'image',
+                    'image_path' => 'uploads/questions/' . $filename
+                ]
             ];
         }
 
-        $base64Pdf = base64_encode($pdfBytes);
-        $pdfPayload = [
-            'inline_data' => [
-                'mime_type' => 'application/pdf',
-                'data' => $base64Pdf
-            ]
-        ];
-
         $prompt = <<<EOT
-You are an expert Academic Question Paper & Exam Parser AI.
-Scan this entire examination document with extreme care and extract EVERY single question present in it.
+You are an expert Academic Question Paper & Exam Parser AI for competitive exams (Bank PO/Clerk, SSC, UPSC, NEET, JEE, State PSC).
+Scan this entire examination document with extreme precision and extract EVERY question present in it.
 
-CRITICAL RULES:
-1. COMPLETE EXTRACTION (NO SKIPPING):
-   - You MUST extract EVERY SINGLE question on the page. Do NOT stop after the first question.
-   - Extract standalone questions (e.g. Q85).
-   - If there is a Direction set, Case Study, or Data Interpretation block (e.g. "Direction (86-90): ..."):
-     * Extract EVERY question in that set (e.g. Q86, Q87, Q88, Q89, Q90).
-     * If the individual sub-questions (Q86-Q90) follow in the document, extract EACH ONE separately, prepending the common Direction statement, table info, and context to the question statement.
-     * If this page only shows the "Direction (86-90): [Data / Graph / Pie Chart / Table]" block without separate sub-questions, extract this Direction block itself as a comprehensive question so that the teacher/student gets the entire data, graph context, and chart!
-     * NEVER omit, skip, or ignore any Direction block, passage, graph, or question!
+CRITICAL RULES FOR DIRECTION SETS / COMPREHENSION PASSAGES:
+1. DETECT DIRECTION SETS & PASSAGES:
+   - When questions belong to a Direction block, Data Interpretation, Caselet, or Reading Comprehension (e.g. "Direction (108-110): ...", "निर्देश (86-90): ..."):
+     * "group_id": Set a consistent slug/id for this set, e.g. "dir_108_110" or "dir_86_90".
+     * "direction": Extract the complete introductory text/instructions/passage in Hindi or English exactly as printed.
+     * "direction_table": If the direction contains a data table (e.g. columns for city, values, percentages, categories), convert it into clean, structured HTML:
+       <table class="table table-bordered table-sm text-center"><thead><tr><th>Col1</th>...</tr></thead><tbody><tr><td>Val1</td>...</tr></tbody></table>
+     * Extract EVERY sub-question in that set (e.g. Q108, Q109, Q110). Do NOT stop after the first question.
+     * In each sub-question:
+       - "name": Clean statement of the specific sub-question (do NOT repeat the entire direction text inside "name").
+       - "sub_question_no": Question number e.g. "108", "109", "110".
+       - "group_id", "direction", and "direction_table" MUST be set on ALL sub-questions in that group.
+       - "has_diagram": true if the direction contains a graph, chart, or diagram.
+2. STANDALONE QUESTIONS:
+   - For standalone questions (no direction), leave "group_id", "direction", "direction_table" as null.
 
-2. MATHEMATICAL & SCIENTIFIC FORMULAS:
-   - Format ALL math/scientific equations, fractions, square roots, powers, symbols strictly in standard LaTeX (\$...\$ for inline, \$\$...\$\$ for display).
-   - E.g. \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$ and \$y^2 - 4^2 + 2^2y = -2y\$.
-   - Symbols: \$\\ge\$, \$\\le\$, \$\\ne\$, \$\\pm\$, \$\\sqrt{x}\$, \$\\frac{a}{b}\$, \$\\theta\$.
+3. MATHEMATICAL & SCIENTIFIC FORMULAS:
+   - Format ALL equations, fractions, square roots, powers, symbols strictly in standard LaTeX notation (\$...\$ for inline, \$\$...\$\$ for block).
+   - E.g. \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$, \$\\ge\$, \$\\le\$, \$\\frac{a}{b}\$, \$\\sqrt{x}\$.
 
-3. OPTIONS & ANSWER KEY:
-   - For MCQ questions, extract all options without "(a)", "(1)" prefixes.
-   - For 4-option questions: ans1, ans2, ans3, ans4.
-   - If there is a 5th option (Option E, common in Indian exams: "यदि x = y या..."): extract ans5 if present.
-   - Deduce or detect correct_ans: "0" for Option A, "1" for Option B, "2" for Option C, "3" for Option D, "4" for Option E.
-   - Detect correct_option_letter: "A", "B", "C", "D", or "E".
+4. OPTIONS (A TO E):
+   - Extract all options without "(a)", "(1)", "(A)" prefixes.
+   - Support up to 5 options: ans1 (A), ans2 (B), ans3 (C), ans4 (D), and ans5 (E) if present.
+   - correct_ans: "0" for A, "1" for B, "2" for C, "3" for D, "4" for E.
+   - correct_option_letter: "A", "B", "C", "D", or "E".
 
-4. DIAGRAMS & CHARTS:
-   - If a question or Direction block has or refers to a diagram, graph, pie chart, curve, figure, or data table:
-     set "has_diagram": true
-     set "diagram_hint": "Pie chart showing degree distribution Q1-Q4" (short description)
-     set "page_number": 1 (page number where the diagram or question appears)
-
-5. SOLUTION & DIFFICULTY:
-   - Provide a brief 1-2 sentence solution / explanation with LaTeX math.
+5. DETAILED STEP-BY-STEP EXPLANATION:
+   - Provide an accurate step-by-step mathematical explanation / derivation for the answer.
    - Difficulty: "Easy", "Medium", or "Hard".
 
 {$extraInstructions}
 
 Return a STRICT, RAW JSON object matching this schema:
 {
-  "total_extracted": 2,
+  "total_extracted": 3,
   "questions": [
     {
-      "q_number": 85,
-      "page_number": 1,
-      "name": "I: \$x\\left(2x + \\frac{15}{x}\\right) - 11x = 2x\$\\nII: \$y^2 - 4^2 + 2^2y = -2y\$",
+      "q_number": 108,
+      "sub_question_no": "108",
+      "group_id": "dir_108_110",
+      "direction": "Direction (108-110): ...",
+      "direction_table": "<table class='table table-bordered table-sm'>...</table>",
+      "name": "C में मादक पेय पदार्थों का सेवन करने वाले पुरुषों...",
       "question_type_id": 1,
-      "has_diagram": false,
-      "diagram_hint": "",
-      "ans1": "यदि \$x > y\$",
-      "ans2": "यदि \$x \\ge y\$",
-      "ans3": "यदि \$x < y\$",
-      "ans4": "यदि \$x \\le y\$",
-      "ans5": "यदि \$x = y\$ या कोई संबंध नहीं",
-      "correct_ans": "0",
-      "correct_option_letter": "A",
-      "explanation": "Solving equation I yields \$x = 3/2, 5\$ and equation II yields \$y = -8, 2\$.",
+      "has_diagram": true,
+      "diagram_hint": "Bar graph and line graph",
+      "ans1": "30",
+      "ans2": "50",
+      "ans3": "60",
+      "ans4": "70",
+      "ans5": "100",
+      "correct_ans": "1",
+      "correct_option_letter": "B",
+      "explanation": "Step-by-step mathematical derivation...",
       "difficulty_level": "Medium"
     }
   ]
@@ -443,33 +481,42 @@ Return a STRICT, RAW JSON object matching this schema:
 Do NOT wrap the output in markdown code fences. Return pure JSON only.
 EOT;
 
-        $result = $this->callGeminiMultimodal([$pdfPayload], $prompt, $key, true);
+        $result = $this->callGeminiMultimodal([$mediaPayload], $prompt, $key, true);
         if ($result['success'] && !empty($result['data']['questions'])) {
-            // Automatically extract diagrams from PDF and match them with diagram questions
-            $extractedDiagrams = $this->extractDiagramsFromPdf($pdfPath);
-            
+            // Automatically match extracted diagrams with questions
+            $groupDiagramMap = [];
+
             foreach ($result['data']['questions'] as &$q) {
                 $page = isset($q['page_number']) ? (int)$q['page_number'] : 1;
                 $hasDiagramFlag = !empty($q['has_diagram']);
-                $qText = ($q['name'] ?? '') . ' ' . ($q['explanation'] ?? '');
+                $groupId = $q['group_id'] ?? null;
+                $qText = ($q['name'] ?? '') . ' ' . ($q['direction'] ?? '') . ' ' . ($q['explanation'] ?? '');
                 
                 $isDiagramQuestion = $hasDiagramFlag 
-                    || preg_match('/(ग्राफ़|graph|diagram|figure|pie chart|चित्र|तालिका|table|chart|direction|निर्देश)/iu', $qText);
+                    || preg_match('/(ग्राफ़|graph|diagram|figure|pie chart|चित्र|तालिका|chart|direction|निर्देश|bar graph|line graph)/iu', $qText);
 
                 if ($isDiagramQuestion && !empty($extractedDiagrams)) {
-                    $matchedDiag = null;
-                    foreach ($extractedDiagrams as $diag) {
-                        if ($diag['page'] === $page) {
-                            $matchedDiag = $diag;
-                            break;
+                    // Check if group already has an assigned diagram
+                    if ($groupId && isset($groupDiagramMap[$groupId])) {
+                        $q['image'] = $groupDiagramMap[$groupId];
+                    } else {
+                        $matchedDiag = null;
+                        foreach ($extractedDiagrams as $diag) {
+                            if ($diag['page'] === $page) {
+                                $matchedDiag = $diag;
+                                break;
+                            }
                         }
-                    }
-                    if (!$matchedDiag && !empty($extractedDiagrams[0])) {
-                        $matchedDiag = $extractedDiagrams[0];
-                    }
+                        if (!$matchedDiag && !empty($extractedDiagrams[0])) {
+                            $matchedDiag = $extractedDiagrams[0];
+                        }
 
-                    if ($matchedDiag && empty($q['image'])) {
-                        $q['image'] = $matchedDiag['image_path'];
+                        if ($matchedDiag) {
+                            $q['image'] = $matchedDiag['image_path'];
+                            if ($groupId) {
+                                $groupDiagramMap[$groupId] = $matchedDiag['image_path'];
+                            }
+                        }
                     }
                 }
             }
