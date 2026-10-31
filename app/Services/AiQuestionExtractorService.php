@@ -374,10 +374,30 @@ EOT;
             ];
         }
 
+        $diagramsCatalogPrompt = "";
+        if (!empty($extractedDiagrams)) {
+            $diagramsCatalogPrompt = "DOCUMENT EXTRACTED DIAGRAMS CATALOG:\n";
+            $diagramsCatalogPrompt .= "The document was pre-scanned and the following diagrams were detected and extracted:\n";
+            foreach ($extractedDiagrams as $d) {
+                $diagId = $d['id'] ?? ('diag_p' . ($d['page'] ?? 1));
+                $dPage = $d['page'] ?? 1;
+                $dType = $d['type'] ?? 'diagram';
+                $dirs = !empty($d['directions']) ? implode(', ', array_column($d['directions'], 'label')) : 'None';
+                $qCovered = !empty($d['question_numbers']) ? implode(', ', array_slice($d['question_numbers'], 0, 10)) : 'None';
+                $hint = !empty($d['context_hint']) ? (' | Context: ' . mb_substr($d['context_hint'], 0, 80)) : '';
+                $diagramsCatalogPrompt .= "- ID: \"{$diagId}\" | Page: {$dPage} | Type: {$dType} | Associated Directions: {$dirs} | Applicable Questions: {$qCovered}{$hint}\n";
+            }
+            $diagramsCatalogPrompt .= "\nDIAGRAM MAPPING RULES:\n";
+            $diagramsCatalogPrompt .= "1. For every question or direction set, you MUST specify \"page_number\" (the exact 1-based PDF page number where it appears).\n";
+            $diagramsCatalogPrompt .= "2. If a question or direction group references or belongs to one of the diagrams above, set \"diagram_id\" to its exact ID (e.g. \"diag_p12_2\" or \"diag_p15_v0\"). Set to null if no diagram belongs to it.\n";
+            $diagramsCatalogPrompt .= "3. DO NOT map a diagram from a different direction set (for example, Direction 86-90 must NEVER receive the diagram from Direction 108-110).\n\n";
+        }
+
         $prompt = <<<EOT
 You are an expert Academic Question Paper & Exam Parser AI for competitive exams (Bank PO/Clerk, SSC, UPSC, NEET, JEE, State PSC).
 Scan this entire examination document with extreme precision and extract EVERY question present in it.
 
+{$diagramsCatalogPrompt}
 CRITICAL RULES FOR DIRECTION SETS / COMPREHENSION PASSAGES:
 1. DETECT DIRECTION SETS & PASSAGES:
    - When questions belong to a Direction block, Data Interpretation, Caselet, or Reading Comprehension (e.g. "Direction (108-110): ...", "निर्देश (86-90): ..."):
@@ -385,14 +405,16 @@ CRITICAL RULES FOR DIRECTION SETS / COMPREHENSION PASSAGES:
      * "direction": Extract the complete introductory text/instructions/passage in Hindi or English exactly as printed.
      * "direction_table": If the direction contains a data table (e.g. columns for city, values, percentages, categories), convert it into clean, structured HTML:
        <table class="table table-bordered table-sm text-center"><thead><tr><th>Col1</th>...</tr></thead><tbody><tr><td>Val1</td>...</tr></tbody></table>
-     * Extract EVERY sub-question in that set (e.g. Q108, Q109, Q110). Do NOT stop after the first question.
+     * Extract EVERY sub-question in that set (e.g. Q108, Q109, Q110 or Q86, Q87, Q88, Q89, Q90). Do NOT stop after the first question.
      * In each sub-question:
+       - "page_number": Exact 1-based page number where this question appears.
        - "name": Clean statement of the specific sub-question (do NOT repeat the entire direction text inside "name").
-       - "sub_question_no": Question number e.g. "108", "109", "110".
+       - "sub_question_no": Question number e.g. "86", "87", "108", "109", "110".
        - "group_id", "direction", and "direction_table" MUST be set on ALL sub-questions in that group.
        - "has_diagram": true if the direction contains a graph, chart, or diagram.
+       - "diagram_id": Exact ID from the catalog above if applicable, otherwise null.
 2. STANDALONE QUESTIONS:
-   - For standalone questions (no direction), leave "group_id", "direction", "direction_table" as null.
+   - For standalone questions (no direction), leave "group_id", "direction", "direction_table", "diagram_id" as null.
 
 3. MATHEMATICAL & SCIENTIFIC FORMULAS:
    - Format ALL equations, fractions, square roots, powers, symbols strictly in standard LaTeX notation (\$...\$ for inline, \$\$...\$\$ for block).
@@ -415,15 +437,17 @@ Return a STRICT, RAW JSON object matching this schema:
   "total_extracted": 3,
   "questions": [
     {
-      "q_number": 108,
-      "sub_question_no": "108",
-      "group_id": "dir_108_110",
-      "direction": "Direction (108-110): ...",
+      "q_number": 86,
+      "sub_question_no": "86",
+      "page_number": 12,
+      "group_id": "dir_86_90",
+      "direction": "Direction (86-90): ...",
       "direction_table": "<table class='table table-bordered table-sm'>...</table>",
-      "name": "C में मादक पेय पदार्थों का सेवन करने वाले पुरुषों...",
+      "name": "Q1 में संचालित कुल परियोजनाओं की संख्या...",
       "question_type_id": 1,
       "has_diagram": true,
-      "diagram_hint": "Bar graph and line graph",
+      "diagram_id": "diag_p12_2",
+      "diagram_hint": "Pie chart of degree distribution of projects",
       "ans1": "30",
       "ans2": "50",
       "ans3": "60",
@@ -442,44 +466,104 @@ EOT;
 
         $result = $this->callGeminiMultimodal([$mediaPayload], $prompt, $key, true);
         if ($result['success'] && !empty($result['data']['questions'])) {
-            // Automatically match extracted diagrams with questions
+            // Index extracted diagrams by id
+            $diagramsById = [];
+            foreach ($extractedDiagrams as $d) {
+                if (!empty($d['id'])) {
+                    $diagramsById[$d['id']] = $d;
+                }
+            }
+
+            // Track diagrams already assigned to groups
             $groupDiagramMap = [];
 
             foreach ($result['data']['questions'] as &$q) {
-                $page = isset($q['page_number']) ? (int)$q['page_number'] : 1;
-                $hasDiagramFlag = !empty($q['has_diagram']);
                 $groupId = $q['group_id'] ?? null;
+                $hasDiagramFlag = !empty($q['has_diagram']);
                 $qText = ($q['name'] ?? '') . ' ' . ($q['direction'] ?? '') . ' ' . ($q['explanation'] ?? '');
                 
                 $isDiagramQuestion = $hasDiagramFlag 
-                    || preg_match('/(ग्राफ़|graph|diagram|figure|pie chart|चित्र|तालिका|chart|direction|निर्देश|bar graph|line graph)/iu', $qText);
+                    || !empty($q['diagram_id'])
+                    || preg_match('/(ग्राफ़|graph|diagram|figure|pie chart|चित्र|तालिका|chart|bar graph|line graph)/iu', $qText);
 
                 if ($isDiagramQuestion && !empty($extractedDiagrams)) {
                     // Check if group already has an assigned diagram
                     if ($groupId && isset($groupDiagramMap[$groupId])) {
                         $q['image'] = $groupDiagramMap[$groupId];
-                    } else {
-                        $matchedDiag = null;
-                        // 1. Try to match diagram on the same page
-                        $pageDiags = array_values(array_filter($extractedDiagrams, fn($d) => $d['page'] === $page));
-                        if (!empty($pageDiags)) {
-                            // If question mentions graph/chart, prefer vector chart if available
-                            $vectorDiags = array_values(array_filter($pageDiags, fn($d) => ($d['type'] ?? '') === 'vector'));
-                            $matchedDiag = !empty($vectorDiags) ? $vectorDiags[0] : $pageDiags[0];
+                        continue;
+                    }
+
+                    $matchedDiag = null;
+
+                    // Priority 1: Direct diagram_id returned by Gemini
+                    if (!empty($q['diagram_id']) && isset($diagramsById[$q['diagram_id']])) {
+                        $matchedDiag = $diagramsById[$q['diagram_id']];
+                    }
+
+                    // Priority 2: Match by Direction range or Question Number
+                    if (!$matchedDiag) {
+                        $qNum = null;
+                        if (!empty($q['sub_question_no']) && is_numeric($q['sub_question_no'])) {
+                            $qNum = (int)$q['sub_question_no'];
+                        } elseif (!empty($q['q_number']) && is_numeric($q['q_number'])) {
+                            $qNum = (int)$q['q_number'];
                         }
 
-                        // 2. Fallback: look for vector chart in document or first available diagram
-                        if (!$matchedDiag) {
-                            $vectorDiags = array_values(array_filter($extractedDiagrams, fn($d) => ($d['type'] ?? '') === 'vector'));
-                            $matchedDiag = !empty($vectorDiags) ? $vectorDiags[0] : ($extractedDiagrams[0] ?? null);
+                        // Extract direction numbers e.g. "86-90" or "dir_86_90"
+                        $dirStart = null;
+                        $dirEnd = null;
+                        if (!empty($q['direction']) && preg_match('/(?:Direction|Directions|निर्देश)\s*[\(:\s]*(\d+)\s*[-–to]+\s*(\d+)/iu', $q['direction'], $dm)) {
+                            $dirStart = (int)$dm[1];
+                            $dirEnd = (int)$dm[2];
+                        } elseif (!empty($groupId) && preg_match('/(\d+)[_-](\d+)/', $groupId, $gm)) {
+                            $dirStart = (int)$gm[1];
+                            $dirEnd = (int)$gm[2];
                         }
 
-                        if ($matchedDiag) {
-                            $q['image'] = $matchedDiag['image_path'];
-                            if ($groupId) {
-                                $groupDiagramMap[$groupId] = $matchedDiag['image_path'];
+                        foreach ($extractedDiagrams as $d) {
+                            // Check matching direction range
+                            if (!empty($d['directions'])) {
+                                foreach ($d['directions'] as $dd) {
+                                    if ($dirStart !== null && $dirEnd !== null) {
+                                        if ($dd['start'] === $dirStart && $dd['end'] === $dirEnd) {
+                                            $matchedDiag = $d;
+                                            break 2;
+                                        }
+                                    }
+                                    if ($qNum !== null && $qNum >= $dd['start'] && $qNum <= $dd['end']) {
+                                        $matchedDiag = $d;
+                                        break 2;
+                                    }
+                                }
+                            }
+
+                            // Check question_numbers list
+                            if ($qNum !== null && !empty($d['question_numbers']) && in_array($qNum, $d['question_numbers'], true)) {
+                                $matchedDiag = $d;
+                                break;
                             }
                         }
+                    }
+
+                    // Priority 3: Match by exact page number
+                    if (!$matchedDiag && !empty($q['page_number'])) {
+                        $qPage = (int)$q['page_number'];
+                        $pageDiags = array_values(array_filter($extractedDiagrams, fn($d) => (int)$d['page'] === $qPage));
+                        if (!empty($pageDiags)) {
+                            $matchedDiag = $pageDiags[0];
+                        }
+                    }
+
+                    // Assign matched diagram
+                    if ($matchedDiag) {
+                        $q['image'] = $matchedDiag['image_path'];
+                        if ($groupId) {
+                            $groupDiagramMap[$groupId] = $matchedDiag['image_path'];
+                        }
+                    } else {
+                        // CRITICAL: If no diagram matches by ID, Direction Range, or Page Number,
+                        // NEVER grab an arbitrary diagram from an unrelated page!
+                        $q['image'] = null;
                     }
                 }
             }
