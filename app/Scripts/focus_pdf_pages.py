@@ -39,43 +39,52 @@ def find_focused_pages(pdf_path, query, output_dir):
     else:
         return {"focused": False, "pages": [], "focused_pdf": pdf_path}
 
-    matched_0indexed = set()
+    q_pages_0idx = set()
+    sol_pages_0idx = set()
+    dir_pattern = re.compile(rf'(?:Direction|Directions|निर्देश)\s*[\(:\s]*{q_start}\s*[-–to]+\s*{q_end}', re.IGNORECASE)
 
     for i in range(total_pages):
         page = doc[i]
         txt = page.get_text()
 
-        # Check for direction e.g. Direction (86-90)
-        has_dir = False
-        if q_start != q_end:
-            for pat in [f'{q_start}-{q_end}', f'{q_start} - {q_end}', f'{q_start} to {q_end}', f'({q_start}-{q_end})']:
-                if pat in txt:
-                    has_dir = True
-                    break
-
-        # Check if actual question statement appears on this page (e.g. Q108., Q109., 108.)
+        has_dir = bool(dir_pattern.search(txt))
         has_q = any(
-            re.search(rf'(?:Q\.?|प्रश्न\s*|\b){qn}[\.\s\):]', txt, re.IGNORECASE)
+            bool(re.search(rf'(?:Q\.?|प्रश्न\s*)\s*{qn}[\.\s\):]', txt, re.IGNORECASE))
             for qn in range(q_start, q_end + 1)
         )
-
-        # A page is only a pure answer-key page if it has 'Ans.(' AND DOES NOT have the question statement with options (a), (b), (c)
         has_options = bool(re.search(r'\(a\)\s+.*\n\s*\(b\)', txt))
-        is_pure_answer_key = ('Ans.(' in txt or 'S' + str(q_start) + '. Ans.' in txt) and not has_options
 
-        if (has_dir or has_q) and not is_pure_answer_key:
-            matched_0indexed.add(i)
+        # Avoid pure solution page without options for question paper section
+        is_pure_sol = ('Ans.(' in txt or 'Solutions' in txt) and not has_options
 
-    if not matched_0indexed:
+        if (has_dir or has_q) and not is_pure_sol:
+            q_pages_0idx.add(i)
+
+        # Look for corresponding solution/explanation page
+        has_sol = bool(re.search(rf'(?:Sol\.?|S)\s*[\(\[]?{q_start}', txt, re.IGNORECASE)) or any(
+            f'S{qn}. Ans.' in txt or f'S{qn}.' in txt for qn in range(q_start, q_end + 1)
+        )
+        # Solutions are typically in the second half of the book (page index >= 15)
+        if has_sol and i >= min(15, total_pages // 2):
+            sol_pages_0idx.add(i)
+
+    if not q_pages_0idx:
         return {"focused": False, "pages": [], "focused_pdf": pdf_path}
 
-    sorted_pages = sorted(list(matched_0indexed))
+    # Combine question pages and corresponding solution pages (cap solutions to 2 pages max)
+    combined_0idx = sorted(list(q_pages_0idx)) + sorted(list(sol_pages_0idx))[:2]
+    # Remove duplicates preserving order
+    final_0idx = []
+    for p in combined_0idx:
+        if p not in final_0idx:
+            final_0idx.append(p)
+
     os.makedirs(output_dir, exist_ok=True)
     out_filename = f"focus_{os.path.basename(pdf_path).replace('.pdf', '')}_{q_start}_{q_end}.pdf"
     out_path = os.path.join(output_dir, out_filename)
 
     new_doc = pymupdf.open()
-    for p in sorted_pages:
+    for p in final_0idx:
         new_doc.insert_pdf(doc, from_page=p, to_page=p)
     new_doc.save(out_path)
     new_doc.close()
@@ -83,7 +92,9 @@ def find_focused_pages(pdf_path, query, output_dir):
 
     return {
         "focused": True,
-        "pages": [p + 1 for p in sorted_pages],
+        "question_pages": [p + 1 for p in sorted(list(q_pages_0idx))],
+        "solution_pages": [p + 1 for p in sorted(list(sol_pages_0idx))[:2]],
+        "pages": [p + 1 for p in final_0idx],
         "focused_pdf": out_path
     }
 

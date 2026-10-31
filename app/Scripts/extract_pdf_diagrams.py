@@ -85,15 +85,26 @@ def extract_diagrams(pdf_path, output_dir):
     extracted = []
     ts = int(time.time())
 
-    # Step 1: Detect template / repeating images (e.g. Adda247 header logo, Google Play ad, watermark)
+    # Step 1: Detect template / repeating images by dimensions and xrefs
+    dim_counts = {}
     xref_page_counts = {}
     for page in doc:
+        seen_dims_on_page = set()
+        seen_xrefs_on_page = set()
         for img in page.get_images():
             xref = img[0]
-            xref_page_counts[xref] = xref_page_counts.get(xref, 0) + 1
+            dim = (img[2], img[3])
+            if dim not in seen_dims_on_page:
+                dim_counts[dim] = dim_counts.get(dim, 0) + 1
+                seen_dims_on_page.add(dim)
+            if xref not in seen_xrefs_on_page:
+                xref_page_counts[xref] = xref_page_counts.get(xref, 0) + 1
+                seen_xrefs_on_page.add(xref)
 
-    # Any image repeating on more than 2 pages is a template logo/ad/watermark, NOT a question diagram
-    repeating_xrefs = {xref for xref, count in xref_page_counts.items() if count > 2}
+    # Any image repeating on >= 2 pages in short/sliced PDFs (or >= 3 in large PDFs) is a template logo/ad/watermark
+    threshold = 2 if len(doc) <= 10 else 3
+    repeating_dims = {dim for dim, count in dim_counts.items() if count >= threshold}
+    repeating_xrefs = {xref for xref, count in xref_page_counts.items() if count >= threshold}
 
     # Step 2: Extract real question diagrams and vector charts
     for pno in range(len(doc)):
@@ -106,7 +117,8 @@ def extract_diagrams(pdf_path, output_dir):
             imgs = page.get_images(full=True)
             for idx, img_info in enumerate(imgs):
                 xref = img_info[0]
-                if xref in repeating_xrefs:
+                dim = (img_info[2], img_info[3])
+                if xref in repeating_xrefs or dim in repeating_dims:
                     continue
 
                 rects = page.get_image_rects(xref)
