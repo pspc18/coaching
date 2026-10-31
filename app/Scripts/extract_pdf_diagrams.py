@@ -5,6 +5,15 @@ import json
 import time
 
 try:
+    from clean_watermark import clean_watermark
+except ImportError:
+    try:
+        sys.path.append(os.path.dirname(__file__))
+        from clean_watermark import clean_watermark
+    except Exception:
+        clean_watermark = None
+
+try:
     import pymupdf
 except ImportError:
     try:
@@ -145,10 +154,26 @@ def extract_diagrams(pdf_path, output_dir):
                 diag_id = f"diag_p{page_num}_{idx}"
                 dirs, covered_qs, snippet = get_diagram_context(page, r)
 
+                # Check and clean watermark if present
+                clean_res = None
+                has_wm = False
+                cleaned_rel_path = None
+                if clean_watermark:
+                    try:
+                        clean_res = clean_watermark(dest_file)
+                        if clean_res.get('success') and clean_res.get('has_watermark'):
+                            has_wm = True
+                            clean_filename = os.path.basename(clean_res['output_path'])
+                            cleaned_rel_path = 'uploads/questions/' + clean_filename
+                    except Exception:
+                        pass
+
                 extracted.append({
                     'id': diag_id,
                     'page': page_num,
-                    'image_path': 'uploads/questions/' + filename,
+                    'image_path': cleaned_rel_path if has_wm else ('uploads/questions/' + filename),
+                    'original_image_path': 'uploads/questions/' + filename,
+                    'has_watermark': has_wm,
                     'filename': filename,
                     'width': base_img.get('width', int(r.width)),
                     'height': base_img.get('height', int(r.height)),
@@ -201,10 +226,26 @@ def extract_diagrams(pdf_path, output_dir):
                     diag_id = f"diag_p{page_num}_v{c_idx}"
                     dirs, covered_qs, snippet = get_diagram_context(page, crop_rect)
 
+                    # Check and clean watermark if present
+                    clean_res = None
+                    has_wm = False
+                    cleaned_rel_path = None
+                    if clean_watermark:
+                        try:
+                            clean_res = clean_watermark(dest_file)
+                            if clean_res.get('success') and clean_res.get('has_watermark'):
+                                has_wm = True
+                                clean_filename = os.path.basename(clean_res['output_path'])
+                                cleaned_rel_path = 'uploads/questions/' + clean_filename
+                        except Exception:
+                            pass
+
                     extracted.append({
                         'id': diag_id,
                         'page': page_num,
-                        'image_path': 'uploads/questions/' + filename,
+                        'image_path': cleaned_rel_path if has_wm else ('uploads/questions/' + filename),
+                        'original_image_path': 'uploads/questions/' + filename,
+                        'has_watermark': has_wm,
                         'filename': filename,
                         'width': pix.width,
                         'height': pix.height,

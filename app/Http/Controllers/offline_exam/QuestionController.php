@@ -181,7 +181,21 @@ class QuestionController extends Controller
                     mkdir($destPath, 0755, true);
                 }
                 $file->move($destPath, $filename);
+                $fullPath = $destPath . '/' . $filename;
                 $result['data']['image_path'] = 'uploads/questions/' . $filename;
+                $result['data']['original_image_path'] = 'uploads/questions/' . $filename;
+
+                // Automatic watermark review & clean
+                try {
+                    $cleanRes = $this->aiService->cleanWatermarkImage($fullPath);
+                    if (!empty($cleanRes['success']) && !empty($cleanRes['has_watermark'])) {
+                        $result['data']['image_path'] = $cleanRes['image_path'];
+                        $result['data']['has_watermark'] = true;
+                        $result['data']['watermark_cleaned'] = true;
+                    }
+                } catch (\Exception $ex) {
+                    // non-fatal
+                }
             }
 
             return response()->json($result);
@@ -416,6 +430,54 @@ class QuestionController extends Controller
                 'success' => false,
                 'message' => 'Upload failed: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Clean Watermark from an Image (AJAX)
+     */
+    public function cleanWatermark(Request $request)
+    {
+        try {
+            $imagePath = $request->input('image_path');
+            if (empty($imagePath)) {
+                return response()->json(['success' => false, 'message' => 'No image path provided.'], 422);
+            }
+
+            $fullPath = public_path($imagePath);
+            if (!file_exists($fullPath)) {
+                return response()->json(['success' => false, 'message' => 'Image file not found on server.'], 404);
+            }
+
+            $res = $this->aiService->cleanWatermarkImage($fullPath);
+            return response()->json($res);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Recreate Chart Image with AI vector graphics (AJAX)
+     */
+    public function recreateChart(Request $request)
+    {
+        @set_time_limit(120);
+        try {
+            $imagePath = $request->input('image_path');
+            if (empty($imagePath)) {
+                return response()->json(['success' => false, 'message' => 'No image path provided.'], 422);
+            }
+
+            $fullPath = public_path($imagePath);
+            if (!file_exists($fullPath)) {
+                return response()->json(['success' => false, 'message' => 'Image file not found on server.'], 404);
+            }
+
+            $customKey = $request->input('api_key');
+            $res = $this->aiService->recreateChartFromImage($fullPath, $customKey);
+            return response()->json($res);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 

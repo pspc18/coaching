@@ -656,6 +656,8 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::post('question/bulk-store', 'offline_exam\QuestionController@bulkStore');
 	Route::post('question/save-ai-key', 'offline_exam\QuestionController@saveAiKey');
 	Route::post('question/upload-diagram', 'offline_exam\QuestionController@uploadDiagram');
+	Route::post('question/clean-watermark', 'offline_exam\QuestionController@cleanWatermark');
+	Route::post('question/recreate-chart', 'offline_exam\QuestionController@recreateChart');
 
 	
 	

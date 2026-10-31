@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Exception;
 
 class AiQuestionExtractorService
@@ -1059,5 +1060,153 @@ EOT;
 
         Log::error("Failed to parse Gemini JSON: " . substr($rawText, 0, 500) . " | Error: " . json_last_error_msg());
         return null;
+    }
+
+    /**
+     * AI Chart Reproduction: Analyze chart image, extract numerical data, and recreate clean HD chart.
+     */
+    public function recreateChartFromImage(string $imageFullPath, ?string $customApiKey = null): array
+    {
+        $key = $this->getApiKey($customApiKey);
+        if (empty($key)) {
+            return [
+                'success' => false,
+                'message' => 'No working Gemini API Key found.'
+            ];
+        }
+
+        if (!file_exists($imageFullPath)) {
+            return [
+                'success' => false,
+                'message' => 'Image file not found: ' . $imageFullPath
+            ];
+        }
+
+        $ext = strtolower(pathinfo($imageFullPath, PATHINFO_EXTENSION) ?: 'png');
+        $mime = ($ext === 'jpg' || $ext === 'jpeg') ? 'image/jpeg' : 'image/png';
+        $bytes = file_get_contents($imageFullPath);
+        $mediaPart = [
+            'inline_data' => [
+                'mime_type' => $mime,
+                'data' => base64_encode($bytes)
+            ]
+        ];
+
+        $prompt = <<<EOT
+You are an expert data visualization and chart reproduction AI.
+Analyze this exam question chart image carefully. It may have a watermark, logo, or institute branding, but ignore the watermark completely.
+Extract the underlying chart's exact numerical values, labels, and structure with 100% precision.
+
+Return a STRICT JSON object matching this schema:
+{
+  "is_chart": true,
+  "chart_type": "grouped_bar",
+  "title": null,
+  "x_label": null,
+  "y_label": "प्रवेश की संख्या",
+  "categories": ["2012", "2013", "2014", "2015", "2016"],
+  "series": [
+    {
+      "name": "विद्यालय A",
+      "values": [170, 60, 140, 200, 70]
+    },
+    {
+      "name": "विद्यालय B",
+      "values": [240, 210, 160, 240, 150]
+    }
+  ]
+}
+
+- Supported chart_type: "grouped_bar", "bar", "line", "pie"
+- If the image is a table or generic non-statistical diagram, return: {"is_chart": false}
+EOT;
+
+        $res = $this->callGeminiMultimodal([$mediaPart], $prompt, $key, false);
+        if (!$res['success'] || empty($res['data'])) {
+            return $this->cleanWatermarkImage($imageFullPath);
+        }
+
+        $spec = $res['data'];
+        if (empty($spec['is_chart']) || empty($spec['categories'])) {
+            return $this->cleanWatermarkImage($imageFullPath);
+        }
+
+        // Render chart using Python Matplotlib script
+        $tempDir = storage_path('app/temp_ai');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $specFile = $tempDir . '/chart_spec_' . time() . '_' . Str::random(6) . '.json';
+        file_put_contents($specFile, json_encode($spec, JSON_UNESCAPED_UNICODE));
+
+        $outDir = public_path('uploads/questions');
+        if (!file_exists($outDir)) {
+            mkdir($outDir, 0755, true);
+        }
+        $outFilename = 'recreated_chart_' . time() . '_' . Str::random(6) . '.png';
+        $outFullPath = $outDir . '/' . $outFilename;
+
+        $scriptPath = base_path('app/Scripts/recreate_chart.py');
+        $cmd = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($specFile) . " " . escapeshellarg($outFullPath);
+        $output = [];
+        $code = 0;
+        exec($cmd, $output, $code);
+
+        @unlink($specFile);
+
+        if (file_exists($outFullPath) && filesize($outFullPath) > 1000) {
+            return [
+                'success' => true,
+                'is_recreated' => true,
+                'image_path' => 'uploads/questions/' . $outFilename,
+                'url' => asset('uploads/questions/' . $outFilename),
+                'chart_data' => $spec,
+                'message' => 'Chart recreated with 100% clean HD vector graphics!'
+            ];
+        }
+
+        // If Python script failed, fallback to clean watermark
+        return $this->cleanWatermarkImage($imageFullPath);
+    }
+
+    /**
+     * Clean watermark from an image file using clean_watermark.py
+     */
+    public function cleanWatermarkImage(string $imageFullPath): array
+    {
+        if (!file_exists($imageFullPath)) {
+            return ['success' => false, 'message' => 'Image not found'];
+        }
+
+        $cleanScript = base_path('app/Scripts/clean_watermark.py');
+        $destPath = public_path('uploads/questions');
+        if (!file_exists($destPath)) {
+            mkdir($destPath, 0755, true);
+        }
+        $ext = strtolower(pathinfo($imageFullPath, PATHINFO_EXTENSION) ?: 'png');
+        $outFilename = 'cleaned_' . time() . '_' . Str::random(6) . '.' . $ext;
+        $outFullPath = $destPath . '/' . $outFilename;
+
+        $cmd = "python " . escapeshellarg($cleanScript) . " " . escapeshellarg($imageFullPath) . " " . escapeshellarg($outFullPath);
+        $output = [];
+        $code = 0;
+        exec($cmd, $output, $code);
+
+        $res = json_decode(implode('', $output), true);
+        if (!empty($res['success']) && file_exists($outFullPath)) {
+            return [
+                'success' => true,
+                'is_cleaned' => true,
+                'has_watermark' => $res['has_watermark'] ?? false,
+                'image_path' => 'uploads/questions/' . $outFilename,
+                'url' => asset('uploads/questions/' . $outFilename),
+                'message' => 'Watermark removed successfully!'
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Watermark removal failed: ' . ($res['error'] ?? 'Unknown error')
+        ];
     }
 }

@@ -798,6 +798,34 @@ textarea.theme-form-control {
                                     <textarea id="ai_single_q_name" rows="3" class="theme-form-control" required></textarea>
                                 </div>
 
+                                {{-- Attached Diagram / Chart Box with Watermark Remover & Recreator --}}
+                                <div class="theme-form-group mb-2 d-none" id="ai-single-diagram-box">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="small text-muted font-weight-bold mb-0" style="font-size: 10.5px;">
+                                            <i class="fa fa-picture-o text-warning mr-1"></i> Attached Diagram / Chart:
+                                        </label>
+                                        <span id="ai-single-wm-badge" class="badge badge-warning-light border small d-none" style="background:#fffbeb; color:#b45309; font-size:9.5px;">
+                                            <i class="fa fa-shield mr-1"></i> Watermark Detected
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 p-2 rounded border bg-light flex-wrap">
+                                        <img id="ai-single-diagram-img" src="" alt="Diagram" class="img-thumbnail" style="max-height: 70px;">
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <button type="button" class="btn btn-xs btn-outline-success" id="btn-ai-single-clean-wm" style="font-size: 10.5px; padding: 2px 8px;">
+                                                    <i class="fa fa-magic mr-1"></i> Clean Watermark
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary" id="btn-ai-single-recreate-chart" style="font-size: 10.5px; padding: 2px 8px;">
+                                                    <i class="fa fa-bar-chart mr-1"></i> Recreate Chart (AI)
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-link text-danger p-0 ml-1" id="btn-ai-single-remove-img" style="font-size: 10.5px;">
+                                                    <i class="fa fa-trash mr-1"></i> Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
                                     @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
                                         @php $optIndex = (string)($num - 1); @endphp
@@ -852,6 +880,9 @@ textarea.theme-form-control {
                                         <span class="badge badge-success" id="ai-single-preview-badge">Correct: Option A</span>
                                     </div>
                                     <div class="preview-q-name" id="ai-single-preview-name">Question statement preview...</div>
+                                    <div class="text-center mb-2 d-none" id="ai-single-preview-diagram-box">
+                                        <img id="ai-single-preview-diagram" src="" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">
+                                    </div>
                                     <div class="row">
                                         @foreach(['A','B','C','D'] as $l)
                                             <div class="col-6 mb-1">
@@ -1537,6 +1568,23 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('ai_single_topic').value = q.topic || '';
         document.getElementById('ai_single_image_path').value = q.image_path || '';
 
+        // Diagram / Watermark Controls for AI Single Question
+        const singleDiagBox = document.getElementById('ai-single-diagram-box');
+        const singleDiagImg = document.getElementById('ai-single-diagram-img');
+        const singleWmBadge = document.getElementById('ai-single-wm-badge');
+        if (q.image_path && singleDiagBox && singleDiagImg) {
+            const fullUrl = q.image_path.startsWith('http') ? q.image_path : '{{ asset("") }}' + q.image_path;
+            singleDiagImg.src = fullUrl;
+            singleDiagBox.classList.remove('d-none');
+            if (q.has_watermark && singleWmBadge) {
+                singleWmBadge.classList.remove('d-none');
+            } else if (singleWmBadge) {
+                singleWmBadge.classList.add('d-none');
+            }
+        } else if (singleDiagBox) {
+            singleDiagBox.classList.add('d-none');
+        }
+
         // Select correct radio and highlight card
         const correctVal = String(q.correct_ans ?? '0');
         const targetRadio = document.querySelector(`input[name="ai_single_correct"][value="${correctVal}"]`);
@@ -1594,9 +1642,56 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Render Diagram Image in Preview
+        const imgPath = document.getElementById('ai_single_image_path')?.value || '';
+        const previewDiagBox = document.getElementById('ai-single-preview-diagram-box');
+        const previewDiagImg = document.getElementById('ai-single-preview-diagram');
+        if (previewDiagBox && previewDiagImg) {
+            if (imgPath) {
+                previewDiagImg.src = imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath;
+                previewDiagBox.classList.remove('d-none');
+            } else {
+                previewDiagBox.classList.add('d-none');
+            }
+        }
+
         const box = document.getElementById('ai-single-preview-card');
         if (box) renderKaTeXIn(box);
     }
+
+    // AI Single Question Watermark & Recreate Controls
+    document.getElementById('btn-ai-single-remove-img')?.addEventListener('click', function () {
+        const pathInput = document.getElementById('ai_single_image_path');
+        if (pathInput) pathInput.value = '';
+        document.getElementById('ai-single-diagram-box')?.classList.add('d-none');
+        updateAiSingleLivePreview();
+    });
+
+    document.getElementById('btn-ai-single-clean-wm')?.addEventListener('click', function () {
+        const pathInput = document.getElementById('ai_single_image_path');
+        const imgPath = pathInput ? pathInput.value : '';
+        if (!imgPath) return;
+        handleCleanWatermark(this, imgPath, function (newPath) {
+            if (pathInput) pathInput.value = newPath;
+            const imgEl = document.getElementById('ai-single-diagram-img');
+            if (imgEl) imgEl.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
+            document.getElementById('ai-single-wm-badge')?.classList.add('d-none');
+            updateAiSingleLivePreview();
+        });
+    });
+
+    document.getElementById('btn-ai-single-recreate-chart')?.addEventListener('click', function () {
+        const pathInput = document.getElementById('ai_single_image_path');
+        const imgPath = pathInput ? pathInput.value : '';
+        if (!imgPath) return;
+        handleRecreateChart(this, imgPath, function (newPath) {
+            if (pathInput) pathInput.value = newPath;
+            const imgEl = document.getElementById('ai-single-diagram-img');
+            if (imgEl) imgEl.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
+            document.getElementById('ai-single-wm-badge')?.classList.add('d-none');
+            updateAiSingleLivePreview();
+        });
+    });
 
     // Dynamic highlight & preview sync on manual radio click in AI Single Question tab
     document.querySelectorAll('.ai-correct-radio').forEach(r => {
@@ -1794,7 +1889,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${dirImg ? `
                         <div class="direction-diagram-box text-center my-3 bg-white p-2 rounded border shadow-sm">
                             <span class="d-block small text-muted mb-2 font-weight-bold"><i class="fa fa-bar-chart mr-1 text-primary"></i> Direction Graph / Diagram:</span>
-                            <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border p-1" style="max-height: 280px;">
+                            <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border p-1" id="dir-diagram-img-${idx}" style="max-height: 280px;">
+                            <div class="mt-2 d-flex justify-content-center align-items-center gap-2 flex-wrap">
+                                ${q.has_watermark ? `<span class="badge badge-warning-light border small" style="background:#fffbeb; color:#b45309; font-size:10px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
+                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#dir-diagram-img-${idx}" data-img-path="${escapeHtml(dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
+                                    <i class="fa fa-magic mr-1"></i> Clean Watermark
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-primary btn-recreate-chart" data-target-img="#dir-diagram-img-${idx}" data-img-path="${escapeHtml(dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
+                                    <i class="fa fa-bar-chart mr-1"></i> Recreate Clean Chart (AI)
+                                </button>
+                            </div>
                         </div>` : ''}
 
                         {{-- 3. Data Table (After Graph) --}}
@@ -1885,11 +1989,22 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <input type="hidden" class="bulk-field-image" id="bulk-field-image-${idx}" data-index="${idx}" value="${escapeHtml(imgPath)}">
                                 
                                 <div class="diagram-preview-thumb mt-1 ${imgPath ? '' : 'd-none'}" id="bulk-diagram-thumb-${idx}">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Diagram" class="img-thumbnail" style="max-height: 60px;">
-                                        <button type="button" class="btn btn-xs btn-link text-danger btn-remove-diagram p-0" data-index="${idx}" style="font-size: 10.5px;">
-                                            <i class="fa fa-trash mr-1"></i> Remove Image
-                                        </button>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Diagram" class="img-thumbnail" id="bulk-diagram-img-${idx}" style="max-height: 60px;">
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-img-path="${escapeHtml(imgPath)}" style="font-size: 10px; padding: 1px 6px;">
+                                                    <i class="fa fa-magic mr-1"></i> Clean Watermark
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary btn-recreate-chart" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-img-path="${escapeHtml(imgPath)}" style="font-size: 10px; padding: 1px 6px;">
+                                                    <i class="fa fa-bar-chart mr-1"></i> Recreate Chart (AI)
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-link text-danger btn-remove-diagram p-0 ml-1" data-index="${idx}" style="font-size: 10px;">
+                                                    <i class="fa fa-trash mr-1"></i> Remove
+                                                </button>
+                                            </div>
+                                            ${q.has_watermark ? `<span class="badge badge-warning-light small" style="background:#fffbeb; color:#b45309; font-size:9px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2104,6 +2219,72 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
+        // Bind Watermark Clean Button in Bulk / Direction cards
+        container.querySelectorAll('.btn-clean-diagram').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetImgSel = this.dataset.targetImg;
+                const fieldId = this.dataset.fieldId;
+                const idx = this.dataset.index;
+                const imgPath = this.dataset.imgPath;
+                const buttonEl = this;
+
+                handleCleanWatermark(buttonEl, imgPath, function (newPath) {
+                    if (targetImgSel) {
+                        const targetImg = document.querySelector(targetImgSel);
+                        if (targetImg) targetImg.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
+                    }
+                    if (fieldId) {
+                        const field = document.getElementById(fieldId);
+                        if (field) field.value = newPath;
+                    }
+                    buttonEl.dataset.imgPath = newPath;
+                    const siblingRecreate = buttonEl.parentElement?.querySelector('.btn-recreate-chart');
+                    if (siblingRecreate) siblingRecreate.dataset.imgPath = newPath;
+
+                    // Remove watermark badge in this block if present
+                    const parentCard = buttonEl.closest('.direction-diagram-box, .diagram-preview-thumb');
+                    parentCard?.querySelector('.badge-warning-light')?.remove();
+
+                    if (idx !== undefined) {
+                        updateBulkCardPreview(idx);
+                    }
+                });
+            });
+        });
+
+        // Bind Recreate Chart Button in Bulk / Direction cards
+        container.querySelectorAll('.btn-recreate-chart').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetImgSel = this.dataset.targetImg;
+                const fieldId = this.dataset.fieldId;
+                const idx = this.dataset.index;
+                const imgPath = this.dataset.imgPath;
+                const buttonEl = this;
+
+                handleRecreateChart(buttonEl, imgPath, function (newPath) {
+                    if (targetImgSel) {
+                        const targetImg = document.querySelector(targetImgSel);
+                        if (targetImg) targetImg.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
+                    }
+                    if (fieldId) {
+                        const field = document.getElementById(fieldId);
+                        if (field) field.value = newPath;
+                    }
+                    buttonEl.dataset.imgPath = newPath;
+                    const siblingClean = buttonEl.parentElement?.querySelector('.btn-clean-diagram');
+                    if (siblingClean) siblingClean.dataset.imgPath = newPath;
+
+                    // Remove watermark badge in this block if present
+                    const parentCard = buttonEl.closest('.direction-diagram-box, .diagram-preview-thumb');
+                    parentCard?.querySelector('.badge-warning-light')?.remove();
+
+                    if (idx !== undefined) {
+                        updateBulkCardPreview(idx);
+                    }
+                });
+            });
+        });
+
         workspace.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -2209,6 +2390,100 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => {
             alert('Upload error: ' + err.message);
+        });
+    }
+
+    // Function to Clean Watermarks via AJAX
+    function handleCleanWatermark(btn, imagePath, onComplete) {
+        if (!imagePath) {
+            alert('No image found to clean.');
+            return;
+        }
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Cleaning...';
+
+        fetch('{{ url("question/clean-watermark") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ image_path: imagePath })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            if (data.success && data.image_path) {
+                if (data.cleaned) {
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="fa fa-check mr-1"></i> Cleaned!';
+                    setTimeout(() => {
+                        btn.className = 'btn btn-xs btn-outline-success btn-clean-diagram';
+                        btn.innerHTML = originalHtml;
+                    }, 2500);
+                } else {
+                    alert('No watermark detected in this image. The image is already clean.');
+                }
+                if (typeof onComplete === 'function') {
+                    onComplete(data.image_path);
+                }
+            } else {
+                alert('Watermark clean error: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            alert('Network error while cleaning watermark: ' + err.message);
+        });
+    }
+
+    // Function to Recreate Chart using AI + Matplotlib vector rendering
+    function handleRecreateChart(btn, imagePath, onComplete) {
+        if (!imagePath) {
+            alert('No image found to recreate.');
+            return;
+        }
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> AI Recreating...';
+
+        const customKey = document.getElementById('modal_gemini_api_key')?.value?.trim() || '';
+
+        fetch('{{ url("question/recreate-chart") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ image_path: imagePath, api_key: customKey })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            if (data.success && data.image_path) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-primary');
+                btn.innerHTML = '<i class="fa fa-check mr-1"></i> Recreated!';
+                setTimeout(() => {
+                    btn.className = 'btn btn-xs btn-outline-primary btn-recreate-chart';
+                    btn.innerHTML = originalHtml;
+                }, 2500);
+                if (typeof onComplete === 'function') {
+                    onComplete(data.image_path);
+                }
+            } else {
+                alert('AI chart recreation failed: ' + (data.message || 'Could not parse chart data from image.'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            alert('Network error while recreating chart: ' + err.message);
         });
     }
 
