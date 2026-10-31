@@ -405,9 +405,21 @@
   // Toggle Switch Handler
   const applyToggleState = (isOnline) => {
     if (isOnline) {
-      omrPanel.classList.add('hidden');
-      onlinePanel.classList.remove('hidden');
+      if (omrPanel) {
+        omrPanel.classList.add('d-none');
+        omrPanel.classList.add('hidden');
+        omrPanel.style.display = 'none';
+      }
+      if (onlinePanel) {
+        onlinePanel.classList.remove('d-none');
+        onlinePanel.classList.remove('hidden');
+        onlinePanel.style.display = 'block';
+      }
       toggleNote?.classList.remove('hidden');
+      toggleNote?.classList.remove('d-none');
+
+      const heroPrint = document.getElementById('btn-print-omr-hero');
+      if (heroPrint) heroPrint.classList.add('d-none');
 
       if (!editorsReady) {
         initCKEditors();
@@ -415,9 +427,21 @@
         loadQuestion(currentQuestion);
       }
     } else {
-      omrPanel.classList.remove('hidden');
-      onlinePanel.classList.add('hidden');
+      if (omrPanel) {
+        omrPanel.classList.remove('d-none');
+        omrPanel.classList.remove('hidden');
+        omrPanel.style.display = 'block';
+      }
+      if (onlinePanel) {
+        onlinePanel.classList.add('d-none');
+        onlinePanel.classList.add('hidden');
+        onlinePanel.style.display = 'none';
+      }
       toggleNote?.classList.add('hidden');
+      toggleNote?.classList.add('d-none');
+
+      const heroPrint = document.getElementById('btn-print-omr-hero');
+      if (heroPrint) heroPrint.classList.remove('d-none');
     }
   };
 

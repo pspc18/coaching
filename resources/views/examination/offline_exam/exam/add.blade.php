@@ -120,6 +120,27 @@
     color: #ffffff !important;
 }
 
+/* Workflow Hero Navigation */
+.hidden {
+    display: none !important;
+}
+.workflow-hero-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.workflow-hero-nav .dash-btn {
+    height: 28px;
+    font-size: 11px;
+}
+.workflow-hero-nav .dash-btn.active {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
 /* 2. Theme Card Standards */
 .theme-card {
     background: #ffffff;
@@ -464,17 +485,32 @@ textarea.theme-form-control {
                 </p>
             </div>
             <div class="perf-hero-actions">
-                <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" title="View all exams">
-                    <i class="fa fa-list"></i> Exam List
-                </a>
-                <button type="button" id="btn-print-omr-hero" class="dash-btn dash-btn-light" title="Print this OMR sheet">
+                @php
+                    $workflowClassId = $search['class_type_id'] ?? request('class_type_id') ?? request('class_name');
+                    $workflowExamId = $search['exam_id'] ?? request('exam_id');
+                    $workflowQuery = array_filter([
+                        'class_type_id' => $workflowClassId,
+                        'exam_id' => $workflowExamId,
+                    ]);
+                    $wfSteps = [
+                        ['title' => '1. Exam Setup', 'url' => url('view/exam'), 'active' => true, 'icon' => 'fa fa-check-circle'],
+                        ['title' => '2. Excel Import', 'url' => url('fill-marks-by-excel'), 'active' => false, 'icon' => 'fa fa-file-excel-o'],
+                        ['title' => '3. Manual Marks', 'url' => url('fill_marks').($workflowQuery ? '?'.http_build_query(array_merge($workflowQuery, ['show_all_subjects' => 1])) : '?show_all_subjects=1'), 'active' => false, 'icon' => 'fa fa-pencil'],
+                        ['title' => '4. Exam Report', 'url' => url('exam_wise_report').($workflowQuery ? '?'.http_build_query($workflowQuery) : ''), 'active' => false, 'icon' => 'fa fa-bar-chart'],
+                    ];
+                @endphp
+                <div class="workflow-hero-nav">
+                    @foreach($wfSteps as $step)
+                        <a href="{{ $step['url'] }}" class="dash-btn {{ $step['active'] ? 'dash-btn-light active' : 'dash-btn-outline' }}" title="{{ $step['title'] }}">
+                            <i class="{{ $step['icon'] }} mr-1"></i> {{ $step['title'] }}
+                        </a>
+                    @endforeach
+                </div>
+                <button type="button" id="btn-print-omr-hero" class="dash-btn dash-btn-light {{ $onlineEnabled ? 'd-none' : '' }}" title="Print this OMR sheet">
                     <i class="fa fa-print"></i> Print OMR
                 </button>
             </div>
         </div>
-
-        {{-- 2. Workflow Banner --}}
-        @include('examination.offline_exam.partials.workflow')
 
         {{-- Alerts --}}
         @if(session('message'))
@@ -672,7 +708,7 @@ textarea.theme-form-control {
             {{-- Right Column: Live Printable OMR Sheet Preview & Online Question Builder --}}
             <div class="col-lg-7 col-xl-7">
                 {{-- OMR Sheet Preview Card --}}
-                <div class="theme-card" id="exam-omr-preview-panel">
+                <div class="theme-card {{ $onlineEnabled ? 'd-none' : '' }}" id="exam-omr-preview-panel" style="{{ $onlineEnabled ? 'display: none !important;' : '' }}">
                     <div class="theme-card-header">
                         <h3 class="card-title">
                             <i class="fa fa-eye text-warning"></i> Live Printable OMR Sheet Preview
@@ -741,7 +777,7 @@ textarea.theme-form-control {
                 </div>
 
                 {{-- Online Question Builder Panel (Shown when Online CBT switch is active) --}}
-                <div class="theme-card {{ $onlineEnabled ? '' : 'd-none' }}" id="exam-online-builder-panel">
+                <div class="theme-card {{ $onlineEnabled ? '' : 'd-none' }}" id="exam-online-builder-panel" style="{{ $onlineEnabled ? '' : 'display: none !important;' }}">
                     <div class="theme-card-header">
                         <h3 class="card-title">
                             <i class="fa fa-superscript text-warning"></i> Online Question Editor (Math &amp; LaTeX)
@@ -850,6 +886,7 @@ textarea.theme-form-control {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
 <script src="{{ asset('js/exam-online-question-builder.js') }}?v={{ time() }}"></script>
 
 <script>
@@ -866,15 +903,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const initialAnswerKey = @json($previewAnswerKey);
     const answerKey = Object.fromEntries(Object.entries(initialAnswerKey || {}).map(([q, ans]) => [String(q), ans]));
 
-    // Online toggle handler
-    if (onlineToggle && onlinePanel) {
-        onlineToggle.addEventListener('change', function () {
-            if (this.checked) {
-                onlinePanel.classList.remove('d-none');
-            } else {
-                onlinePanel.classList.add('d-none');
+    // Online toggle handler - sync OMR preview & Online Question Builder
+    const syncCbtPanels = (isOnline) => {
+        if (isOnline) {
+            if (omrPanel) {
+                omrPanel.classList.add('d-none');
+                omrPanel.style.display = 'none';
             }
+            if (onlinePanel) {
+                onlinePanel.classList.remove('d-none');
+                onlinePanel.style.display = 'block';
+            }
+            const heroPrint = document.getElementById('btn-print-omr-hero');
+            if (heroPrint) heroPrint.classList.add('d-none');
+        } else {
+            if (omrPanel) {
+                omrPanel.classList.remove('d-none');
+                omrPanel.style.display = 'block';
+            }
+            if (onlinePanel) {
+                onlinePanel.classList.add('d-none');
+                onlinePanel.style.display = 'none';
+            }
+            const heroPrint = document.getElementById('btn-print-omr-hero');
+            if (heroPrint) heroPrint.classList.remove('d-none');
+        }
+    };
+
+    if (onlineToggle) {
+        onlineToggle.addEventListener('change', function () {
+            syncCbtPanels(this.checked);
         });
+        syncCbtPanels(onlineToggle.checked);
     }
 
     // Quick chips
