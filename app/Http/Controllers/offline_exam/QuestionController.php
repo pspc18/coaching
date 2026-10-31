@@ -319,9 +319,10 @@ class QuestionController extends Controller
                 ['gemini_api_key' => $apiKey, 'updated_at' => Carbon::now()]
             );
 
+            $modelName = $testResult['model_used'] ?? 'Gemini AI';
             return response()->json([
                 'success' => true,
-                'message' => 'Google Gemini API key validated and saved successfully!'
+                'message' => "Google Gemini API key validated and saved successfully! (Connected to {$modelName})"
             ]);
         } catch (\Exception $e) {
             return response()->json([

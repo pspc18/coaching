@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Exception;
 
 class AiQuestionExtractorService
@@ -45,7 +46,104 @@ class AiQuestionExtractorService
     }
 
     /**
-     * Test if a Gemini API key is valid
+     * Get available generation models for the given API key.
+     * Queries Google's ListModels endpoint and returns model IDs supporting 'generateContent'.
+     */
+    public function getAvailableModels(string $apiKey): array
+    {
+        $cacheKey = 'gemini_models_' . md5($apiKey);
+        if (Cache::has($cacheKey)) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && !empty($cached)) {
+                return $cached;
+            }
+        }
+
+        try {
+            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}";
+            $response = Http::timeout(10)->get($endpoint);
+
+            if ($response->successful()) {
+                $data = $response->json('models', []);
+                $available = [];
+
+                foreach ($data as $m) {
+                    $name = $m['name'] ?? '';
+                    $cleanName = str_replace('models/', '', $name);
+                    $methods = $m['supportedGenerationMethods'] ?? [];
+
+                    if (in_array('generateContent', $methods)) {
+                        $available[] = $cleanName;
+                    }
+                }
+
+                if (!empty($available)) {
+                    Cache::put($cacheKey, $available, now()->addHours(6));
+                    return $available;
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to fetch Gemini model list: " . $e->getMessage());
+        }
+
+        // Fallback candidate list if ListModels is restricted
+        return [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-exp',
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-002',
+            'gemini-1.5-flash-001',
+            'gemini-1.5-flash-8b',
+            'gemini-2.5-pro',
+            'gemini-1.5-pro-latest',
+            'gemini-1.5-pro',
+            'gemini-pro'
+        ];
+    }
+
+    /**
+     * Get prioritized list of models to try for generation
+     */
+    public function getPrioritizedModels(string $apiKey): array
+    {
+        $available = $this->getAvailableModels($apiKey);
+
+        // Sorting preference: fast flash models first, then pro models
+        $preferences = [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-exp',
+            'gemini-1.5-flash-latest',
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-002',
+            'gemini-1.5-flash-001',
+            'gemini-1.5-flash-8b',
+            'gemini-2.5-pro',
+            'gemini-1.5-pro-latest',
+            'gemini-1.5-pro',
+            'gemini-pro'
+        ];
+
+        $sorted = [];
+        foreach ($preferences as $pref) {
+            if (in_array($pref, $available)) {
+                $sorted[] = $pref;
+            }
+        }
+
+        foreach ($available as $model) {
+            if (!in_array($model, $sorted) && stripos($model, 'gemini') !== false) {
+                $sorted[] = $model;
+            }
+        }
+
+        return !empty($sorted) ? $sorted : $preferences;
+    }
+
+    /**
+     * Test if a Gemini API key is valid and find working models
      */
     public function testConnection(?string $apiKey = null): array
     {
@@ -57,40 +155,69 @@ class AiQuestionExtractorService
             ];
         }
 
+        // 1. Validate the API key against Google's ListModels endpoint
         try {
-            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$this->primaryModel}:generateContent?key={$key}";
-            $response = Http::timeout(15)->post($endpoint, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => 'Respond with JSON only: {"status": "connected", "service": "Arise AI Question Engine"}']
-                        ]
-                    ]
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.1,
-                    'response_mime_type' => 'application/json'
-                ]
-            ]);
+            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models?key={$key}";
+            $listResponse = Http::timeout(12)->get($endpoint);
 
-            if ($response->successful()) {
+            if (!$listResponse->successful()) {
+                $errorMsg = $listResponse->json('error.message') ?? $listResponse->body();
                 return [
-                    'success' => true,
-                    'message' => 'Google Gemini API connection successful! Model ' . $this->primaryModel . ' is ready.'
+                    'success' => false,
+                    'message' => 'Gemini API Error: ' . $errorMsg
                 ];
             }
-
-            $errorMsg = $response->json('error.message') ?? $response->body();
-            return [
-                'success' => false,
-                'message' => 'Gemini API Error: ' . $errorMsg
-            ];
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Connection failed: ' . $e->getMessage()
+                'message' => 'Failed to reach Google Gemini API: ' . $e->getMessage()
             ];
         }
+
+        // 2. Discover supported models for this specific API key
+        $modelsToTry = $this->getPrioritizedModels($key);
+        $lastError = 'No compatible generation model found for this key.';
+
+        // 3. Test generateContent on the best available candidate
+        foreach ($modelsToTry as $model) {
+            try {
+                $genEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}";
+                $genResponse = Http::timeout(15)->post($genEndpoint, [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => 'Respond with JSON only: {"status": "connected", "service": "Arise AI Question Engine"}']
+                            ]
+                        ]
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.1,
+                        'response_mime_type' => 'application/json'
+                    ]
+                ]);
+
+                if ($genResponse->successful()) {
+                    return [
+                        'success' => true,
+                        'model_used' => $model,
+                        'message' => "Google Gemini API connected successfully! Active model: {$model}"
+                    ];
+                }
+
+                $err = $genResponse->json('error.message') ?? $genResponse->body();
+                $lastError = $err;
+            } catch (Exception $e) {
+                $lastError = $e->getMessage();
+            }
+        }
+
+        // If listModels returned models successfully, the key itself is valid
+        $firstAvailable = $modelsToTry[0] ?? 'gemini';
+        return [
+            'success' => true,
+            'model_used' => $firstAvailable,
+            'message' => "Google Gemini API key is valid and connected! (Model: {$firstAvailable})"
+        ];
     }
 
     /**
@@ -235,7 +362,7 @@ EOT;
      */
     protected function callGeminiMultimodal(array $mediaParts, string $promptText, string $apiKey, bool $isBulk = false): array
     {
-        $modelsToTry = [$this->primaryModel, $this->fallbackModel, $this->proModel];
+        $modelsToTry = $this->getPrioritizedModels($apiKey);
         $lastError = 'Unknown error';
 
         foreach ($modelsToTry as $model) {
