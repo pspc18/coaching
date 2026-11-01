@@ -590,21 +590,38 @@
     border-bottom: none !important;
     margin-bottom: 0 !important;
     padding-bottom: 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
 }
 .card-receipt .student-card-actions {
     border-top: 1px solid #e2e8f0 !important;
     padding-top: 8px !important;
     margin-top: 6px !important;
 }
+.receipt-main-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.receipt-amount-col {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+}
 .receipt-disc-badge {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     color: #b45309;
     background: #fffbeb;
     border: 1px solid #fde68a;
     border-radius: 3px;
-    padding: 1px 6px;
-    margin-top: 5px;
+    padding: 1px 5px;
+    margin-top: 3px;
     display: inline-flex;
     align-items: center;
     gap: 3px;
@@ -2125,22 +2142,20 @@
                                 <i class="fa fa-file-text-o" style="font-size: 12px;"></i>
                             @endif
                         </div>
-                        <div class="student-header-info">
-                            <div class="student-name-row" style="align-items: flex-start;">
-                                <span class="student-mob-name">{{ $invTitle }}</span>
-                                <div class="text-right" style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end;">
-                                    <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
-                                    @if((float)($invoice->discount ?? 0) > 0)
-                                        <span class="receipt-disc-badge">
-                                            <i class="fa fa-tag"></i> Disc: ₹{{ number_format((float)$invoice->discount, 2) }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="student-pills-wrap" style="margin-top: 3px;">
+                        <div class="receipt-main-col">
+                            <span class="student-mob-name" style="line-height: 1.25; display: block;">{{ $invTitle }}</span>
+                            <div class="student-pills-wrap" style="margin-top: 4px;">
                                 <span class="tx-mode-tag">{{ $invoice->payment_mode ?: 'Cash' }}</span>
                                 <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ $invDate ? $invDate->format('d M Y') : '-' }}</span>
                             </div>
+                        </div>
+                        <div class="receipt-amount-col">
+                            <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
+                            @if((float)($invoice->discount ?? 0) > 0)
+                                <span class="receipt-disc-badge">
+                                    <i class="fa fa-tag"></i> Disc: ₹{{ number_format((float)$invoice->discount, 2) }}
+                                </span>
+                            @endif
                         </div>
                     </div>
 
