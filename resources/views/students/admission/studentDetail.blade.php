@@ -22,49 +22,49 @@
 /* ==============================================================================
    ARISE ERP - STUDENT PROFILE DOSSIER (DESKTOP)
    Standardized with Arise Theme (arise-theme.css & admin_dashboard)
-   Compact, Sharp-Edge (2px-3px), High Density & High Speed
+   Executive Contrast, Sharp-Edge (3px-4px), Balanced Spacing & Ultra-High Speed
    ============================================================================== */
 .student-profile-page {
     background: #f8fafc;
     color: #0f172a;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 12.5px;
-    padding: 0;
+    padding: 10px 12px 24px;
 }
 .student-profile-page * {
     box-sizing: border-box;
 }
 .student-profile-page .container-fluid {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
-/* 1. Top Hero Banner (Matching Arise ERP Unified Standard) */
+/* 1. Top Hero Banner (Arise Navy Executive Standard) */
 .profile-dash-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
-    border-radius: 3px;
-    padding: 8px 12px;
+    border-radius: 4px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
-    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.15);
-    margin-bottom: 6px;
+    gap: 10px;
+    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.16);
+    margin-bottom: 10px;
 }
 .profile-hero-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
 }
 .profile-hero-avatar-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 3px;
+    width: 38px;
+    height: 38px;
+    border-radius: 4px;
     background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -73,15 +73,16 @@
     flex-shrink: 0;
 }
 .profile-hero-kicker {
-    font-size: 9.5px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    opacity: .85;
+    letter-spacing: .06em;
+    color: #93c5fd;
     display: block;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
+    font-weight: 700;
 }
 .profile-hero-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
@@ -91,58 +92,100 @@
     gap: 8px;
 }
 .profile-hero-subtitle {
-    font-size: 11px;
-    opacity: .88;
-    margin: 2px 0 0 0;
+    font-size: 11.5px;
+    color: #cbd5e1;
+    margin: 3px 0 0 0;
+}
+.profile-hero-subtitle b {
+    color: #ffffff;
 }
 .profile-hero-actions {
     display: flex;
-    gap: 4px;
+    gap: 6px;
     flex-wrap: wrap;
     align-items: center;
 }
 
-/* 2. Top Grid Layout */
+/* Hero Action Buttons - High Contrast ERP Standard */
+.dash-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 11px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 3px;
+    text-decoration: none !important;
+    transition: all .15s ease;
+    cursor: pointer;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+.dash-btn-light {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    border: 1px solid #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.dash-btn-light:hover {
+    background: #f1f5f9 !important;
+    color: #001f3d !important;
+    transform: translateY(-1px);
+}
+.dash-btn-outline {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+.dash-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+/* 2. Top Grid Layout & Spacing */
 .profile-row-compact {
-    margin-left: -3px;
-    margin-right: -3px;
+    margin-left: -5px;
+    margin-right: -5px;
 }
 .profile-row-compact > [class*="col-"] {
-    padding-left: 3px;
-    padding-right: 3px;
-    margin-bottom: 6px !important;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 10px !important;
 }
 
 /* Sharp Card Standard */
 .dash-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     display: flex;
     flex-direction: column;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 .dash-card-header {
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-bottom: 1px solid #e2e8f0;
-    background: #fafbfc;
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 .dash-card-title {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
     margin: 0;
-    color: #0f172a;
+    color: #002C54;
     line-height: 1.2;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
 }
 .dash-card-body {
-    padding: 8px 10px;
+    padding: 10px 12px;
     flex: 1;
 }
 
@@ -150,8 +193,8 @@
 .dash-kpi {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    padding: 6px 8px;
+    border-radius: 4px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
     text-decoration: none !important;
@@ -159,72 +202,75 @@
     height: 100%;
     transition: border-color .15s, box-shadow .15s;
     position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .dash-kpi:hover {
     border-color: #cbd5e1;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
 }
 .kpi-primary { border-top: 3px solid #002C54; }
 .kpi-success { border-top: 3px solid #10b981; }
 .kpi-warning { border-top: 3px solid #f59e0b; }
 .kpi-info    { border-top: 3px solid #0284c7; }
+.kpi-danger  { border-top: 3px solid #ef4444; }
 .kpi-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 .kpi-label {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
-    letter-spacing: .03em;
+    letter-spacing: .04em;
 }
 .kpi-icon {
-    font-size: 13px;
+    font-size: 15px;
     color: #94a3b8;
 }
 .kpi-primary .kpi-icon { color: #002C54; }
 .kpi-success .kpi-icon { color: #10b981; }
 .kpi-warning .kpi-icon { color: #f59e0b; }
 .kpi-info .kpi-icon    { color: #0284c7; }
+.kpi-danger .kpi-icon  { color: #ef4444; }
 .kpi-value {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     line-height: 1.2;
     color: #0f172a;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 .kpi-meta {
-    font-size: 10.5px;
+    font-size: 11px;
     color: #64748b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .kpi-progress {
-    height: 5px;
+    height: 6px;
     background: #e2e8f0;
-    border-radius: 2px;
+    border-radius: 3px;
     overflow: hidden;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 .kpi-progress-bar {
     height: 100%;
-    border-radius: 2px;
+    border-radius: 3px;
 }
 
 /* Left Spotlight Card (Photo, Status, Portal Credentials) */
 .profile-avatar-box {
     position: relative;
     width: 100%;
-    height: 155px;
-    border-radius: 2px;
+    height: 165px;
+    border-radius: 4px;
     overflow: hidden;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 .profile-avatar-box img {
     width: 100%;
@@ -237,25 +283,27 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0, 44, 84, 0.88), transparent);
-    padding: 6px 4px 4px;
+    background: linear-gradient(to top, rgba(0, 44, 84, 0.92), transparent);
+    padding: 8px 6px 6px;
     display: flex;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
 }
 .avatar-action-btn {
     background: #ffffff;
     border: none;
-    border-radius: 2px;
+    border-radius: 3px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     color: #002C54;
-    padding: 2px 8px;
+    padding: 3px 10px;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: all .15s ease;
 }
 .avatar-action-btn:hover {
     background: #f1f5f9;
+    transform: translateY(-1px);
 }
 .avatar-action-btn.btn-del-photo {
     color: #ef4444;
@@ -263,30 +311,31 @@
 
 /* Portal Login Mini Strip */
 .portal-cred-strip {
-    background: #002C54;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
-    border-radius: 2px;
-    padding: 6px 8px;
-    margin-bottom: 6px;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.15);
 }
 .portal-cred-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 11.5px;
-    padding: 2px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+    padding: 3px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
 }
 .portal-cred-row:last-child {
     border-bottom: none;
 }
 .portal-cred-label {
-    color: #94a3b8;
+    color: #93c5fd;
     font-size: 10.5px;
-    font-weight: 600;
+    font-weight: 700;
 }
 .portal-cred-val {
-    font-family: monospace;
+    font-family: 'Consolas', 'Courier New', monospace;
     font-weight: 700;
     color: #ffffff;
     font-size: 12px;
@@ -299,18 +348,19 @@
     font-size: 12px;
 }
 .matrix-table th {
-    width: 16%;
+    width: 18%;
     background: #f8fafc;
-    color: #64748b;
+    color: #475569;
     font-weight: 700;
-    padding: 5px 8px;
+    padding: 7px 10px;
     border: 1px solid #e2e8f0;
     font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: .03em;
 }
 .matrix-table td {
-    width: 34%;
-    padding: 5px 8px;
+    width: 32%;
+    padding: 7px 10px;
     border: 1px solid #e2e8f0;
     color: #0f172a;
     font-weight: 600;
@@ -319,44 +369,49 @@
 /* 3. Sharp Tab Navigation Bar */
 .profile-tabs-bar {
     display: flex;
-    gap: 3px;
-    background: #e2e8f0;
-    padding: 3px;
-    border-radius: 3px;
-    margin-bottom: 6px;
-    border: 1px solid #cbd5e1;
+    gap: 4px;
+    background: #ffffff;
+    padding: 4px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 .profile-tab-link {
     flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 6px 10px;
-    font-size: 11.5px;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
     font-weight: 700;
     color: #475569;
     background: transparent;
-    border: none;
-    border-radius: 2px;
+    border: 1px solid transparent;
+    border-radius: 3px;
     cursor: pointer;
     transition: all .15s ease;
     white-space: nowrap;
 }
 .profile-tab-link:hover {
     color: #002C54;
-    background: rgba(255, 255, 255, 0.6);
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 .profile-tab-link.active {
     background: #002C54;
-    color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #ffffff !important;
+    border-color: #002C54;
+    box-shadow: 0 2px 4px rgba(0, 44, 84, 0.2);
 }
 .profile-tab-badge {
-    padding: 1px 5px;
+    padding: 2px 6px;
     font-size: 10px;
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.08);
+    font-weight: 700;
+    border-radius: 3px;
+    background: #e2e8f0;
+    color: #334155;
 }
 .profile-tab-link.active .profile-tab-badge {
     background: rgba(255, 255, 255, 0.25);
@@ -379,20 +434,21 @@
 }
 .arise-profile-table thead th {
     background: #002C54;
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .03em;
-    padding: 7px 8px;
+    letter-spacing: .04em;
+    padding: 9px 12px;
     border-right: 1px solid rgba(255, 255, 255, 0.12);
     border-bottom: 2px solid #001f3d;
     white-space: nowrap;
 }
 .arise-profile-table tbody td {
-    padding: 6px 8px;
+    padding: 8px 12px;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
+    color: #0f172a;
 }
 .arise-profile-table tbody tr:nth-child(even) {
     background: #f8fafc;
@@ -400,47 +456,31 @@
 .arise-profile-table tbody tr:hover {
     background: #f1f5f9;
 }
-
-/* Nested Fee Breakdown Table */
-.nested-receipt-table {
-    width: 100%;
-    font-size: 11px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 2px;
-}
-.nested-receipt-table th {
-    background: #edf2f7;
-    padding: 3px 6px;
-    font-size: 10.5px;
+.arise-profile-table tfoot td {
+    padding: 9px 12px;
     font-weight: 700;
-    color: #475569;
-}
-.nested-receipt-table td {
-    padding: 3px 6px;
-    border-bottom: 1px dashed #e2e8f0;
-}
-.nested-receipt-table tr:last-child td {
-    border-bottom: none;
+    border-top: 2px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
 /* Uniform & Inventory Boxes */
 .inventory-tile {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 2px;
-    padding: 8px 10px;
+    border-radius: 4px;
+    padding: 10px 12px;
     height: 100%;
 }
 .inventory-tile-label {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 .inventory-tile-value {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
     color: #0f172a;
 }
@@ -462,7 +502,7 @@
                     </span>
                     <h1 class="profile-hero-title">
                         {{ $studentName ?: 'Student Profile' }}
-                        <span id="studentStatusBadge" class="badge {{ $isActive ? 'badge-success' : 'badge-danger' }}" style="font-size:10px; padding:2px 6px; cursor:pointer;" onclick="toggleStudentStatus()" title="Click to change active/inactive status">
+                        <span id="studentStatusBadge" class="badge {{ $isActive ? 'badge-success' : 'badge-danger' }}" style="font-size:10px; padding:3px 8px; cursor:pointer; font-weight:700; letter-spacing:0.04em;" onclick="toggleStudentStatus()" title="Click to change active/inactive status">
                             {{ $isActive ? 'ACTIVE' : 'INACTIVE' }} <i class="fa fa-pencil ml-1" style="font-size:9px;"></i>
                         </span>
                     </h1>
@@ -540,18 +580,18 @@
                         <!-- Web & App Portal Credentials -->
                         <div class="portal-cred-strip">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:#38bdf8;">
+                                <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:#93c5fd;">
                                     <i class="fa fa-shield mr-1"></i> Portal Access
                                 </span>
                                 <div>
-                                    <button type="button" class="btn btn-xs btn-light py-0 px-1" onclick="copyCredentials()" title="Copy Credentials" style="font-size:9.5px;">
-                                        <i class="fa fa-copy"></i> Copy
+                                    <button type="button" class="btn btn-xs btn-light py-0 px-2 font-weight-bold" onclick="copyCredentials()" title="Copy Credentials" style="font-size:10px; color:#002C54 !important;">
+                                        <i class="fa fa-copy mr-1"></i> Copy
                                     </button>
                                     @if(!empty($fatherContact) && !empty($student->userName))
                                         @php
                                             $portalMsg = "Dear Parent, Login credentials for {$studentName} at Arise Portal:\nUsername: {$student->userName}\nPassword: {$student->confirm_password}\nPortal: " . url('/');
                                         @endphp
-                                        <a href="https://api.whatsapp.com/send?phone=91{{ $fatherContact }}&text={{ urlencode($portalMsg) }}" target="_blank" class="btn btn-xs btn-success py-0 px-1 ml-1" title="Send on WhatsApp" style="font-size:9.5px;">
+                                        <a href="https://api.whatsapp.com/send?phone=91{{ $fatherContact }}&text={{ urlencode($portalMsg) }}" target="_blank" class="btn btn-xs btn-success py-0 px-2 ml-1 font-weight-bold" title="Send on WhatsApp" style="font-size:10px;">
                                             <i class="fa fa-whatsapp"></i>
                                         </a>
                                     @endif
@@ -574,16 +614,16 @@
                         <!-- Fast Direct Contact Shortcuts -->
                         <div class="p-2 border rounded bg-light" style="font-size:11.5px;">
                             <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Father Mobile:</span>
-                                <b>{{ $student->father_mobile ?: '-' }}</b>
+                                <span class="text-muted font-weight-bold">Father Mobile:</span>
+                                <b class="text-dark">{{ $student->father_mobile ?: '-' }}</b>
                             </div>
                             <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Student Mobile:</span>
-                                <b>{{ $student->mobile ?: '-' }}</b>
+                                <span class="text-muted font-weight-bold">Student Mobile:</span>
+                                <b class="text-dark">{{ $student->mobile ?: '-' }}</b>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span class="text-muted">Admission Type:</span>
-                                <span class="badge {{ (int)($student->admission_type_id ?? 1) === 2 ? 'badge-warning' : 'badge-secondary' }}">
+                                <span class="text-muted font-weight-bold">Admission Type:</span>
+                                <span class="badge {{ (int)($student->admission_type_id ?? 1) === 2 ? 'badge-warning' : 'badge-secondary' }} font-weight-bold">
                                     {{ (int)($student->admission_type_id ?? 1) === 2 ? 'RTE' : 'Non-RTE' }}
                                 </span>
                             </div>
@@ -716,7 +756,7 @@
                 <i class="fa fa-user"></i> Full Profile & Kit
             </button>
             <button type="button" class="profile-tab-link" data-tab="tab-fees">
-                <i class="fa fa-inr"></i> Fee Head Ledger <span class="profile-tab-badge">{{ $feeHeadLedger->count() }}</span>
+                <i class="fa fa-inr"></i> Fee Ledger & Receipts <span class="profile-tab-badge">{{ collect($getPaidFees)->count() }}</span>
             </button>
             <button type="button" class="profile-tab-link" data-tab="tab-attendance">
                 <i class="fa fa-calendar-check-o"></i> Daily Attendance <span class="profile-tab-badge">{{ $attendanceTotal }}</span>
@@ -858,18 +898,74 @@
         </div>
 
         <!-- ==========================================
-             TAB 2: HEAD-WISE FEE LEDGER
+             TAB 2: FEES & PAYMENT RECEIPTS (UNIFIED)
              ========================================== -->
         <div class="profile-tab-content-pane" id="tab-fees">
-            <div class="dash-card">
+
+            <!-- 1. Fee Metrics Summary Strip -->
+            <div class="row profile-row-compact mb-2">
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="dash-kpi kpi-primary">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Assigned</span>
+                            <span class="kpi-icon"><i class="fa fa-calculator"></i></span>
+                        </div>
+                        <div class="kpi-value text-primary">₹{{ number_format($assignedFees, 2) }}</div>
+                        <div class="kpi-meta">{{ $feeHeadLedger->count() }} Fee Heads Assigned</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="dash-kpi kpi-info">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Discount</span>
+                            <span class="kpi-icon"><i class="fa fa-tag"></i></span>
+                        </div>
+                        <div class="kpi-value text-info">₹{{ number_format($feeDiscount, 2) }}</div>
+                        <div class="kpi-meta">Concessions / Waivers</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="dash-kpi kpi-success">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Paid</span>
+                            <span class="kpi-icon"><i class="fa fa-check-circle"></i></span>
+                        </div>
+                        <div class="kpi-value text-success">₹{{ number_format($paidFees, 2) }}</div>
+                        <div class="kpi-meta">{{ collect($getPaidFees)->count() }} Receipts Issued</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="dash-kpi kpi-warning">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Fine / Penalty</span>
+                            <span class="kpi-icon"><i class="fa fa-exclamation-triangle"></i></span>
+                        </div>
+                        <div class="kpi-value text-warning">₹{{ number_format($feeFine, 2) }}</div>
+                        <div class="kpi-meta">Late Fees Applied</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-12 col-xl">
+                    <div class="dash-kpi {{ $dueFees > 0 ? 'kpi-danger' : 'kpi-success' }}">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Outstanding Due</span>
+                            <span class="kpi-icon"><i class="fa {{ $dueFees > 0 ? 'fa-clock-o text-danger' : 'fa-check text-success' }}"></i></span>
+                        </div>
+                        <div class="kpi-value {{ $dueFees > 0 ? 'text-danger' : 'text-success' }}">₹{{ number_format($dueFees, 2) }}</div>
+                        <div class="kpi-meta">{{ $dueFees <= 0 ? 'All fees cleared' : 'Balance payment pending' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SECTION A: Fee Head Allocation & Balance Ledger Table -->
+            <div class="dash-card mb-3">
                 <div class="dash-card-header">
-                    <h3 class="dash-card-title"><i class="fa fa-inr text-success"></i> Fee Head-wise Payment Breakdown & Invoices</h3>
+                    <h3 class="dash-card-title"><i class="fa fa-list-ol text-primary"></i> Fee Head Allocation & Balance Ledger</h3>
                     <div>
                         <a href="{{ url('Fees/add?admission_no=' . $student->admissionNo) }}" class="btn btn-xs btn-success font-weight-bold">
                             <i class="fa fa-plus-circle mr-1"></i> Collect Fees
                         </a>
-                        <a href="{{ url('fees_ledger_view?admission_no=' . $student->admissionNo) }}" class="btn btn-xs btn-outline-primary ml-1">
-                            <i class="fa fa-list mr-1"></i> Full Ledger
+                        <a href="{{ url('fees_ledger_view?admission_no=' . $student->admissionNo) }}" class="btn btn-xs btn-outline-primary ml-1 font-weight-bold">
+                            <i class="fa fa-book mr-1"></i> Full Ledger Statement
                         </a>
                     </div>
                 </div>
@@ -877,68 +973,55 @@
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
-                                <th style="width:30px;">#</th>
-                                <th style="min-width:160px;">Fee Head</th>
-                                <th class="text-right" style="width:100px;">Assigned</th>
-                                <th class="text-right" style="width:90px;">Discount</th>
-                                <th class="text-right" style="width:100px;">Paid</th>
-                                <th class="text-right" style="width:80px;">Fine</th>
-                                <th class="text-right" style="width:100px;">Due Amount</th>
-                                <th style="min-width:340px;">Payment Breakdown & Receipts</th>
+                                <th style="width:35px;" class="text-center">#</th>
+                                <th style="min-width:200px;">Fee Head Name</th>
+                                <th class="text-right" style="width:120px;">Assigned</th>
+                                <th class="text-right" style="width:110px;">Discount</th>
+                                <th class="text-right" style="width:120px;">Paid Amount</th>
+                                <th class="text-right" style="width:100px;">Fine</th>
+                                <th class="text-right" style="width:120px;">Due Balance</th>
+                                <th class="text-center" style="width:130px;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                         @forelse($feeHeadLedger as $head)
+                            @php
+                                $headDue = (float)$head->due_amount;
+                                $headPaid = (float)$head->paid_amount;
+                                $headDiscount = (float)$head->discount;
+                            @endphp
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
                                 <td>
-                                    <div class="font-weight-bold text-dark">{{ $head->name }}</div>
-                                    @if($head->due_amount <= 0)
-                                        <span class="badge badge-success mt-1"><i class="fa fa-check"></i> Paid Fully</span>
-                                    @elseif($head->paid_amount > 0 || $head->discount > 0)
-                                        <span class="badge badge-warning mt-1"><i class="fa fa-clock-o"></i> Partially Paid</span>
-                                    @else
-                                        <span class="badge badge-danger mt-1"><i class="fa fa-exclamation"></i> Unpaid</span>
-                                    @endif
+                                    <span class="font-weight-bold text-dark" style="font-size:12.5px;">{{ $head->name }}</span>
                                 </td>
-                                <td class="text-right font-weight-bold">₹{{ number_format($head->assigned_amount, 2) }}</td>
-                                <td class="text-right text-info">₹{{ number_format($head->discount, 2) }}</td>
-                                <td class="text-right text-success font-weight-bold">₹{{ number_format($head->paid_amount, 2) }}</td>
-                                <td class="text-right text-warning">₹{{ number_format($head->fine_amount, 2) }}</td>
-                                <td class="text-right text-danger font-weight-bold">₹{{ number_format($head->due_amount, 2) }}</td>
-                                <td>
-                                    @if($head->payments->isNotEmpty())
-                                        <table class="nested-receipt-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Receipt #</th>
-                                                    <th>Mode</th>
-                                                    <th class="text-right">Paid</th>
-                                                    <th class="text-right">Discount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($head->payments as $payment)
-                                                    <tr>
-                                                        <td>{{ !empty($payment->date) ? \Carbon\Carbon::parse($payment->date)->format('d M Y') : '-' }}</td>
-                                                        <td><span class="badge badge-light border">{{ $payment->receipt_no ?: '-' }}</span></td>
-                                                        <td>{{ $payment->payment_mode ?: 'Cash' }}</td>
-                                                        <td class="text-right text-success font-weight-bold">₹{{ number_format((float)$payment->paid_amount, 2) }}</td>
-                                                        <td class="text-right">₹{{ number_format((float)$payment->discount, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                <td class="text-right font-weight-bold text-dark">₹{{ number_format($head->assigned_amount, 2) }}</td>
+                                <td class="text-right text-info font-weight-bold">
+                                    {{ $headDiscount > 0 ? '₹'.number_format($headDiscount, 2) : '-' }}
+                                </td>
+                                <td class="text-right text-success font-weight-bold">
+                                    {{ $headPaid > 0 ? '₹'.number_format($headPaid, 2) : '-' }}
+                                </td>
+                                <td class="text-right text-warning font-weight-bold">
+                                    {{ (float)$head->fine_amount > 0 ? '₹'.number_format($head->fine_amount, 2) : '-' }}
+                                </td>
+                                <td class="text-right font-weight-bold {{ $headDue > 0 ? 'text-danger' : 'text-success' }}">
+                                    ₹{{ number_format($headDue, 2) }}
+                                </td>
+                                <td class="text-center">
+                                    @if($headDue <= 0)
+                                        <span class="badge badge-success px-2 py-1"><i class="fa fa-check mr-1"></i> Paid Fully</span>
+                                    @elseif($headPaid > 0 || $headDiscount > 0)
+                                        <span class="badge badge-warning px-2 py-1"><i class="fa fa-clock-o mr-1"></i> Partial</span>
                                     @else
-                                        <span class="text-muted" style="font-size:11px;">No payments recorded.</span>
+                                        <span class="badge badge-danger px-2 py-1"><i class="fa fa-exclamation mr-1"></i> Unpaid</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="8" class="text-center py-4 text-muted">
-                                    <i class="fa fa-info-circle fa-2x mb-1 text-primary d-block"></i>
+                                    <i class="fa fa-info-circle fa-2x mb-2 text-primary d-block"></i>
                                     No fee heads are assigned to this student in the current session.
                                 </td>
                             </tr>
@@ -946,13 +1029,13 @@
                         </tbody>
                         @if($feeHeadLedger->isNotEmpty())
                             <tfoot>
-                                <tr style="background:#edf2f7; font-weight:700; border-top:2px solid #cbd5e1;">
-                                    <td colspan="2" class="text-right">Grand Total:</td>
-                                    <td class="text-right">₹{{ number_format($feeHeadLedger->sum('assigned_amount'), 2) }}</td>
-                                    <td class="text-right text-info">₹{{ number_format($feeHeadLedger->sum('discount'), 2) }}</td>
-                                    <td class="text-right text-success">₹{{ number_format($feeHeadLedger->sum('paid_amount'), 2) }}</td>
-                                    <td class="text-right text-warning">₹{{ number_format($feeHeadLedger->sum('fine_amount'), 2) }}</td>
-                                    <td class="text-right text-danger">₹{{ number_format($feeHeadLedger->sum('due_amount'), 2) }}</td>
+                                <tr>
+                                    <td colspan="2" class="text-right font-weight-bold">Total Allocation:</td>
+                                    <td class="text-right text-dark font-weight-bold">₹{{ number_format($feeHeadLedger->sum('assigned_amount'), 2) }}</td>
+                                    <td class="text-right text-info font-weight-bold">₹{{ number_format($feeHeadLedger->sum('discount'), 2) }}</td>
+                                    <td class="text-right text-success font-weight-bold">₹{{ number_format($feeHeadLedger->sum('paid_amount'), 2) }}</td>
+                                    <td class="text-right text-warning font-weight-bold">₹{{ number_format($feeHeadLedger->sum('fine_amount'), 2) }}</td>
+                                    <td class="text-right text-danger font-weight-bold">₹{{ number_format($feeHeadLedger->sum('due_amount'), 2) }}</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -960,12 +1043,159 @@
                     </table>
                 </div>
             </div>
+
+            <!-- 3. SECTION B: Fee Payment Receipts & Invoices Register (UNIFIED LISTING) -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">
+                        <i class="fa fa-file-text-o text-success"></i> Payment Receipts & Invoices Register (Unified)
+                    </h3>
+                    <span class="badge badge-success font-weight-bold" style="font-size:11px;">
+                        {{ collect($getPaidFees)->count() }} Receipts Issued
+                    </span>
+                </div>
+                <div class="dash-card-body p-0 table-responsive">
+                    <table class="arise-profile-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:35px;" class="text-center">#</th>
+                                <th style="width:120px;">Payment Date</th>
+                                <th style="width:130px;">Invoice No</th>
+                                <th style="width:130px;">Receipt No</th>
+                                <th style="width:120px;">Payment Mode</th>
+                                <th class="text-right" style="width:130px;">Amount Paid</th>
+                                <th class="text-right" style="width:110px;">Discount</th>
+                                <th class="text-right" style="width:100px;">Fine</th>
+                                <th class="text-center" style="min-width:160px;">Receipt Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @forelse(collect($getPaidFees) as $invoice)
+                            @php
+                                $rawInvDate = $invoice->payment_date ?: ($invoice->date ?: $invoice->created_at);
+                                $invDate = !empty($rawInvDate) ? \Carbon\Carbon::parse($rawInvDate) : null;
+                                $invNo = !empty($invoice->invoice_no) ? $invoice->invoice_no : '-';
+                                $receiptNo = !empty($invoice->receipt_no) ? $invoice->receipt_no : '-';
+                            @endphp
+                            <tr>
+                                <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
+                                <td>
+                                    @if($invDate)
+                                        <span class="font-weight-bold text-dark"><i class="fa fa-calendar-o text-muted mr-1"></i>{{ $invDate->format('d M Y') }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-light border text-primary font-weight-bold px-2 py-1" style="font-size:11.5px;">
+                                        {{ $invNo }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-light border text-dark font-weight-bold px-2 py-1" style="font-size:11.5px;">
+                                        {{ $receiptNo }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary px-2 py-1 font-weight-bold">
+                                        <i class="fa fa-credit-card mr-1"></i>{{ $invoice->payment_mode ?: 'Cash' }}
+                                    </span>
+                                </td>
+                                <td class="text-right font-weight-bold text-success" style="font-size:13px;">
+                                    ₹{{ number_format((float)$invoice->amount, 2) }}
+                                </td>
+                                <td class="text-right text-info font-weight-bold">
+                                    {{ (float)($invoice->discount ?? 0) > 0 ? '₹'.number_format((float)$invoice->discount, 2) : '-' }}
+                                </td>
+                                <td class="text-right text-warning font-weight-bold">
+                                    {{ (float)($invoice->total_fine ?? 0) > 0 ? '₹'.number_format((float)$invoice->total_fine, 2) : '-' }}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url('fees_receipt/' . $invoice->id . '/view') }}" target="_blank" class="btn btn-xs btn-primary mr-1 font-weight-bold" title="View Official Receipt">
+                                        <i class="fa fa-eye mr-1"></i> View
+                                    </a>
+                                    <a href="{{ url('fees_receipt/' . $invoice->id . '/download') }}" target="_blank" class="btn btn-xs btn-outline-success font-weight-bold" title="Download Receipt PDF">
+                                        <i class="fa fa-download mr-1"></i> PDF
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">
+                                    <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
+                                    No payment receipts or invoice records found for this student in the current session.
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                        @if(collect($getPaidFees)->isNotEmpty())
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5" class="text-right font-weight-bold">Total Collected ({{ collect($getPaidFees)->count() }} Receipts):</td>
+                                    <td class="text-right text-success font-weight-bold" style="font-size:13px;">₹{{ number_format(collect($getPaidFees)->sum('amount'), 2) }}</td>
+                                    <td class="text-right text-info font-weight-bold">₹{{ number_format(collect($getPaidFees)->sum('discount'), 2) }}</td>
+                                    <td class="text-right text-warning font-weight-bold">₹{{ number_format(collect($getPaidFees)->sum('total_fine'), 2) }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        @endif
+                    </table>
+                </div>
+            </div>
+
         </div>
 
         <!-- ==========================================
              TAB 3: DAILY ATTENDANCE PUNCHES
              ========================================== -->
         <div class="profile-tab-content-pane" id="tab-attendance">
+            
+            <!-- Attendance Summary Mini Strip -->
+            <div class="row profile-row-compact mb-2">
+                <div class="col-6 col-sm-6 col-md-3">
+                    <div class="dash-kpi kpi-success">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Present Days</span>
+                            <span class="kpi-icon"><i class="fa fa-check-circle"></i></span>
+                        </div>
+                        <div class="kpi-value text-success">{{ $attendancePresent }}</div>
+                        <div class="kpi-meta">Attended sessions</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-6 col-md-3">
+                    <div class="dash-kpi kpi-danger">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Absent Days</span>
+                            <span class="kpi-icon"><i class="fa fa-times-circle"></i></span>
+                        </div>
+                        <div class="kpi-value text-danger">{{ $attendanceAbsent }}</div>
+                        <div class="kpi-meta">Missed sessions</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-6 col-md-3">
+                    <div class="dash-kpi kpi-primary">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Total Marked</span>
+                            <span class="kpi-icon"><i class="fa fa-calendar"></i></span>
+                        </div>
+                        <div class="kpi-value text-primary">{{ $attendanceTotal }}</div>
+                        <div class="kpi-meta">Recorded school days</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-6 col-md-3">
+                    <div class="dash-kpi kpi-info">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Overall Rate</span>
+                            <span class="kpi-icon"><i class="fa fa-percent"></i></span>
+                        </div>
+                        <div class="kpi-value text-info">{{ number_format($attendancePercentage, 1) }}%</div>
+                        <div class="kpi-progress">
+                            <div class="kpi-progress-bar bg-info" style="width:{{ min(100, $attendancePercentage) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="dash-card">
                 <div class="dash-card-header">
                     <h3 class="dash-card-title"><i class="fa fa-calendar-check-o text-primary"></i> Daily Attendance Records</h3>
@@ -978,12 +1208,12 @@
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
-                                <th style="width:30px;">#</th>
-                                <th>Date</th>
-                                <th>Day</th>
-                                <th>In Time</th>
-                                <th>Out Time</th>
-                                <th>Status</th>
+                                <th style="width:35px;" class="text-center">#</th>
+                                <th style="width:140px;">Date</th>
+                                <th style="width:120px;">Day</th>
+                                <th style="width:110px;">In Time</th>
+                                <th style="width:110px;">Out Time</th>
+                                <th class="text-center" style="width:130px;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -997,17 +1227,17 @@
                                     : (in_array($attendanceKey, ['holiday','event','leave'], true) ? 'badge-info' : 'badge-success'));
                             @endphp
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td class="font-weight-bold text-dark">{{ $attDate->format('d M Y') }}</td>
-                                <td class="text-muted">{{ $attDate->format('l') }}</td>
-                                <td>{{ $attendance->time ?: '--:--' }}</td>
-                                <td>{{ $attendance->out_time ?: '--:--' }}</td>
-                                <td><span class="badge {{ $badgeClass }}">{{ $attendanceName }}</span></td>
+                                <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
+                                <td class="font-weight-bold text-dark"><i class="fa fa-calendar-o text-muted mr-1"></i>{{ $attDate->format('d M Y') }}</td>
+                                <td class="text-muted font-weight-bold">{{ $attDate->format('l') }}</td>
+                                <td class="font-weight-bold text-dark">{{ $attendance->time ?: '--:--' }}</td>
+                                <td class="font-weight-bold text-dark">{{ $attendance->out_time ?: '--:--' }}</td>
+                                <td class="text-center"><span class="badge {{ $badgeClass }} px-2 py-1 font-weight-bold">{{ $attendanceName }}</span></td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center py-4 text-muted">
-                                    <i class="fa fa-calendar-o fa-2x mb-1 text-primary d-block"></i>
+                                    <i class="fa fa-calendar-o fa-2x mb-2 text-primary d-block"></i>
                                     No attendance records found for this student.
                                 </td>
                             </tr>
@@ -1027,18 +1257,18 @@
                     <div class="dash-card">
                         <div class="dash-card-header">
                             <h3 class="dash-card-title"><i class="fa fa-trophy text-warning"></i> Examination Results</h3>
-                            <span class="badge badge-primary">{{ $examResults->count() }} Tests</span>
+                            <span class="badge badge-primary font-weight-bold">{{ $examResults->count() }} Tests</span>
                         </div>
                         <div class="dash-card-body p-0 table-responsive">
                             <table class="arise-profile-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Exam Name</th>
-                                        <th>Date</th>
-                                        <th style="min-width:180px;">Subject Marks</th>
-                                        <th class="text-right">Total Score</th>
-                                        <th class="text-right">Percentage</th>
-                                        <th class="text-center">Action</th>
+                                        <th style="min-width:140px;">Exam Name</th>
+                                        <th style="width:110px;">Date</th>
+                                        <th style="min-width:200px;">Subject Marks</th>
+                                        <th class="text-right" style="width:110px;">Total Score</th>
+                                        <th class="text-center" style="width:110px;">Percentage</th>
+                                        <th class="text-center" style="width:90px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1048,17 +1278,17 @@
                                         <td>{{ !empty($result->date) ? \Carbon\Carbon::parse($result->date)->format('d M Y') : '-' }}</td>
                                         <td>
                                             @forelse($result->subjects as $subject)
-                                                <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:11px;">
-                                                    <span>{{ $subject->name }}</span>
+                                                <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:11.5px;">
+                                                    <span class="text-dark font-weight-bold">{{ $subject->name }}</span>
                                                     <span class="text-muted"><b>{{ $subject->is_numeric ? number_format((float) $subject->marks, 1) : $subject->marks }}</b> / {{ number_format((float) $subject->maximum, 1) }}</span>
                                                 </div>
                                             @empty
                                                 <span class="text-muted">No marks</span>
                                             @endforelse
                                         </td>
-                                        <td class="text-right font-weight-bold">{{ number_format($result->obtained, 1) }} / {{ number_format($result->maximum, 1) }}</td>
-                                        <td class="text-right">
-                                            <span class="badge {{ $result->percentage >= 60 ? 'badge-success' : ($result->percentage >= 33 ? 'badge-warning' : 'badge-danger') }}">
+                                        <td class="text-right font-weight-bold text-dark">{{ number_format($result->obtained, 1) }} / {{ number_format($result->maximum, 1) }}</td>
+                                        <td class="text-center">
+                                            <span class="badge {{ $result->percentage >= 60 ? 'badge-success' : ($result->percentage >= 33 ? 'badge-warning' : 'badge-danger') }} px-2 py-1 font-weight-bold">
                                                 {{ number_format($result->percentage, 1) }}%
                                             </span>
                                         </td>
@@ -1072,7 +1302,7 @@
                                                     <input type="hidden" name="subject_id[]" value="{{ $subjectId }}">
                                                 @endforeach
                                                 <button type="submit" class="btn btn-xs btn-primary font-weight-bold" title="View Full Report">
-                                                    <i class="fa fa-eye"></i> View
+                                                    <i class="fa fa-eye mr-1"></i> View
                                                 </button>
                                             </form>
                                         </td>
@@ -1080,7 +1310,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="text-center py-4 text-muted">
-                                            <i class="fa fa-bar-chart fa-2x mb-1 text-primary d-block"></i>
+                                            <i class="fa fa-bar-chart fa-2x mb-2 text-primary d-block"></i>
                                             No marks recorded for this student in the current session.
                                         </td>
                                     </tr>
@@ -1101,7 +1331,7 @@
                             @forelse($subjectPerformance as $subject)
                                 <div class="mb-2 pb-1 border-bottom">
                                     <div class="d-flex justify-content-between font-weight-bold" style="font-size:11.5px;">
-                                        <span>{{ $subject->name }}</span>
+                                        <span class="text-dark">{{ $subject->name }}</span>
                                         <span class="{{ $subject->percentage >= 60 ? 'text-success' : ($subject->percentage >= 33 ? 'text-warning' : 'text-danger') }}">
                                             {{ number_format($subject->percentage, 1) }}%
                                         </span>
@@ -1112,7 +1342,8 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="text-muted text-center py-3" style="font-size:11.5px;">
+                                <div class="text-muted text-center py-4" style="font-size:11.5px;">
+                                    <i class="fa fa-book fa-2x mb-1 text-muted d-block"></i>
                                     Subject performance analytics will appear after exam marks are entered.
                                 </div>
                             @endforelse
@@ -1137,42 +1368,43 @@
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
-                                <th style="width:30px;">#</th>
-                                <th>Document Title</th>
-                                <th>Remark</th>
-                                <th>Upload Date</th>
-                                <th class="text-center" style="width:180px;">Action</th>
+                                <th style="width:35px;" class="text-center">#</th>
+                                <th style="min-width:200px;">Document Title</th>
+                                <th style="min-width:180px;">Remark / Description</th>
+                                <th style="width:130px;">Upload Date</th>
+                                <th class="text-center" style="width:190px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                         @forelse($getDocuments as $document)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
                                 <td class="font-weight-bold text-dark">
                                     <i class="fa fa-file-pdf-o text-danger mr-1"></i> {{ $document->title ?? 'Document' }}
                                 </td>
                                 <td>{{ $document->remark ?: '-' }}</td>
                                 <td>{{ $document->created_at ? \Carbon\Carbon::parse($document->created_at)->format('d M Y') : '-' }}</td>
                                 <td class="text-center">
-                                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="btn btn-xs btn-primary mr-1" title="View Document">
-                                        <i class="fa fa-eye"></i> View
+                                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="btn btn-xs btn-primary mr-1 font-weight-bold" title="View Document">
+                                        <i class="fa fa-eye mr-1"></i> View
                                     </a>
-                                    <button type="button" class="btn btn-xs btn-warning mr-1 edit-doc-btn"
+                                    <button type="button" class="btn btn-xs btn-warning mr-1 edit-doc-btn font-weight-bold"
+                                            style="color:#0f172a;"
                                             data-id="{{ $document->id }}"
                                             data-title="{{ $document->title }}"
                                             data-remark="{{ $document->remark }}"
                                             title="Edit Document">
-                                        <i class="fa fa-pencil"></i> Edit
+                                        <i class="fa fa-pencil mr-1"></i> Edit
                                     </button>
-                                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Are you sure you want to delete this document?')" class="btn btn-xs btn-danger" title="Delete Document">
-                                        <i class="fa fa-trash"></i> Delete
+                                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Are you sure you want to delete this document?')" class="btn btn-xs btn-danger font-weight-bold" title="Delete Document">
+                                        <i class="fa fa-trash mr-1"></i> Delete
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center py-4 text-muted">
-                                    <i class="fa fa-file-text-o fa-2x mb-1 text-primary d-block"></i>
+                                    <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
                                     No documents uploaded for this student yet. Click "Upload Document" above.
                                 </td>
                             </tr>
@@ -1193,32 +1425,37 @@
                     <div class="dash-card">
                         <div class="dash-card-header">
                             <h3 class="dash-card-title"><i class="fa fa-users text-warning"></i> Sibling Information</h3>
-                            <span class="badge badge-warning">{{ collect($siblings)->count() }}</span>
+                            <span class="badge badge-warning font-weight-bold">{{ collect($siblings)->count() }} Siblings</span>
                         </div>
                         <div class="dash-card-body p-0 table-responsive">
                             <table class="arise-profile-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Sibling Name</th>
-                                        <th>Adm No</th>
-                                        <th>Class</th>
-                                        <th class="text-center">Action</th>
+                                        <th style="width:35px;" class="text-center">#</th>
+                                        <th style="min-width:200px;">Sibling Name</th>
+                                        <th style="width:140px;">Admission No</th>
+                                        <th style="width:160px;">Class</th>
+                                        <th class="text-center" style="width:120px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 @forelse($siblings as $sibling)
                                     <tr>
+                                        <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
                                         <td class="font-weight-bold text-dark">{{ trim(($sibling->first_name ?? '').' '.($sibling->last_name ?? '')) }}</td>
-                                        <td>{{ $sibling->admissionNo ?? '-' }}</td>
-                                        <td>{{ $sibling->class_name ?? '-' }}</td>
+                                        <td><span class="badge badge-light border text-primary font-weight-bold">{{ $sibling->admissionNo ?? '-' }}</span></td>
+                                        <td><b>{{ $sibling->class_name ?? '-' }}</b></td>
                                         <td class="text-center">
-                                            <a href="{{ url('studentDetail/'.$sibling->id) }}" class="btn btn-xs btn-primary">
-                                                <i class="fa fa-eye mr-1"></i> View
+                                            <a href="{{ url('studentDetail/'.$sibling->id) }}" class="btn btn-xs btn-primary font-weight-bold">
+                                                <i class="fa fa-eye mr-1"></i> View Profile
                                             </a>
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-center py-3 text-muted">No siblings registered.</td></tr>
+                                    <tr><td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fa fa-users fa-2x mb-2 text-warning d-block"></i>
+                                        No siblings registered for this student.
+                                    </td></tr>
                                 @endforelse
                                 </tbody>
                             </table>
@@ -1241,8 +1478,8 @@
         <div class="modal-content">
             <form action="{{ url('document_upload/' . ($student->id ?? 0)) }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="uploadDocTitle"><i class="fa fa-upload mr-1"></i> Upload Student Document</h5>
+                <div class="modal-header" style="background:#002C54; color:#ffffff;">
+                    <h5 class="modal-title font-weight-bold text-white" id="uploadDocTitle"><i class="fa fa-upload mr-1"></i> Upload Student Document</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1261,9 +1498,9 @@
                         <input type="file" class="form-control form-control-sm" name="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,image/*,application/pdf" required>
                     </div>
                 </div>
-                <div class="modal-footer py-1">
+                <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-upload mr-1"></i> Upload</button>
+                    <button type="submit" class="btn btn-primary btn-sm font-weight-bold"><i class="fa fa-upload mr-1"></i> Upload</button>
                 </div>
             </form>
         </div>
@@ -1277,8 +1514,8 @@
             <form action="{{ url('document_update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="document_id" id="edit_document_id">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editDocTitle"><i class="fa fa-pencil mr-1"></i> Edit Student Document</h5>
+                <div class="modal-header" style="background:#002C54; color:#ffffff;">
+                    <h5 class="modal-title font-weight-bold text-white" id="editDocTitle"><i class="fa fa-pencil mr-1"></i> Edit Student Document</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1297,9 +1534,9 @@
                         <input type="file" class="form-control form-control-sm" name="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,image/*,application/pdf">
                     </div>
                 </div>
-                <div class="modal-footer py-1">
+                <div class="modal-footer py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i> Save Changes</button>
+                    <button type="submit" class="btn btn-primary btn-sm font-weight-bold"><i class="fa fa-save mr-1"></i> Save Changes</button>
                 </div>
             </form>
         </div>
@@ -1310,8 +1547,8 @@
 <div class="modal fade" id="studentStatusModal" tabindex="-1" role="dialog" aria-labelledby="statusTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="statusTitle"><i class="fa fa-power-off mr-1"></i> Student Status</h5>
+            <div class="modal-header" style="background:#002C54; color:#ffffff;">
+                <h5 class="modal-title font-weight-bold text-white" id="statusTitle"><i class="fa fa-power-off mr-1"></i> Student Status</h5>
                 <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -1320,9 +1557,9 @@
                 <p id="studentStatusConfirmText" class="mb-1 font-weight-bold text-dark" style="font-size:13px;"></p>
                 <small class="text-muted">This will change the student's active enrollment and portal access status.</small>
             </div>
-            <div class="modal-footer py-1">
+            <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirmStudentStatusBtn" class="btn btn-primary btn-sm">Confirm</button>
+                <button type="button" id="confirmStudentStatusBtn" class="btn btn-primary btn-sm font-weight-bold">Confirm</button>
             </div>
         </div>
     </div>
