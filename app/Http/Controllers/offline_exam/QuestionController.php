@@ -191,11 +191,139 @@ class QuestionController extends Controller
     }
 
     /**
-     * Create / Add Question (Multi-Mode: Manual, AI Single Image, AI Bulk PDF)
+     * Create / Add Question (Multi-Mode: Manual Standalone, Manual Directional Set, AI Single Image, AI Bulk PDF)
      */
     public function addQuestion(Request $request)
     {
         if ($request->isMethod('post')) {
+            $manualMode = $request->input('manual_mode', 'standalone');
+
+            // 1. DIRECTIONAL TYPE QUESTION SET INGESTION
+            if ($manualMode === 'directional' || $request->has('directional_questions')) {
+                $request->validate([
+                    'class_type_id' => 'required',
+                    'subject_id' => 'required',
+                    'direction' => 'required',
+                ]);
+
+                $groupId = trim($request->input('group_id') ?: ('DIR-' . date('Ymd-His') . '-' . strtoupper(Str::random(4))));
+                $direction = $request->input('direction');
+                $directionTable = $request->input('direction_table');
+
+                // Handle common direction diagram/graph
+                $dirImagePath = null;
+                if ($request->hasFile('direction_image')) {
+                    $file = $request->file('direction_image');
+                    $filename = 'dir_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                    $destPath = public_path('uploads/questions');
+                    if (!file_exists($destPath)) {
+                        mkdir($destPath, 0755, true);
+                    }
+                    $file->move($destPath, $filename);
+                    $dirImagePath = 'uploads/questions/' . $filename;
+                } elseif ($request->filled('direction_image_path')) {
+                    $dirImagePath = $request->input('direction_image_path');
+                }
+
+                $subQuestions = $request->input('directional_questions', []);
+                if (empty($subQuestions) || !is_array($subQuestions)) {
+                    return redirect()->back()->with('error', 'Please add at least one sub-question to the directional set.')->withInput();
+                }
+
+                $userId = Session::get('id') ?: 1;
+                $sessionId = Session::get('session_id') ?: 1;
+                $branchId = Session::get('branch_id') ?: 1;
+                $classTypeId = (int)$request->class_type_id;
+                $subjectId = (int)$request->subject_id;
+                $now = Carbon::now();
+
+                DB::beginTransaction();
+                try {
+                    $savedCount = 0;
+                    foreach ($subQuestions as $idx => $subQ) {
+                        $qName = trim($subQ['name'] ?? '');
+                        if (empty($qName)) {
+                            continue;
+                        }
+
+                        // Sub-question specific image
+                        $subImgPath = null;
+                        if ($request->hasFile("directional_questions.{$idx}.image")) {
+                            $file = $request->file("directional_questions.{$idx}.image");
+                            $filename = 'q_sub_' . time() . "_{$idx}_" . Str::random(6) . '.' . $file->getClientOriginalExtension();
+                            $destPath = public_path('uploads/questions');
+                            if (!file_exists($destPath)) {
+                                mkdir($destPath, 0755, true);
+                            }
+                            $file->move($destPath, $filename);
+                            $subImgPath = 'uploads/questions/' . $filename;
+                        } elseif (!empty($subQ['image_path'])) {
+                            $subImgPath = $subQ['image_path'];
+                        }
+
+                        $finalImg = $subImgPath ?: $dirImagePath;
+
+                        $add = new Question;
+                        $add->user_id = $userId;
+                        $add->session_id = $sessionId;
+                        $add->branch_id = $branchId;
+                        $add->class_type_id = $classTypeId;
+                        $add->subject_id = $subjectId;
+                        $add->name = $qName;
+                        $add->question_type_id = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
+                        $add->ans1 = $subQ['ans1'] ?? null;
+                        $add->ans2 = $subQ['ans2'] ?? null;
+                        $add->ans3 = $subQ['ans3'] ?? null;
+                        $add->ans4 = $subQ['ans4'] ?? null;
+                        $add->ans5 = $subQ['ans5'] ?? null;
+                        $add->correct_ans = isset($subQ['correct_ans']) ? (string)$subQ['correct_ans'] : '0';
+                        $add->group_id = $groupId;
+                        $add->direction = $direction;
+                        $add->direction_table = $directionTable;
+                        $add->sub_question_no = !empty($subQ['sub_question_no']) ? $subQ['sub_question_no'] : ($idx + 1);
+                        $add->explanation = $subQ['explanation'] ?? null;
+                        $add->difficulty_level = $subQ['difficulty_level'] ?? 'Medium';
+                        $add->image = $finalImg;
+                        $add->ai_extracted = false;
+                        $add->created_at = $now;
+                        $add->updated_at = $now;
+                        $add->save();
+
+                        $savedCount++;
+                    }
+
+                    if ($savedCount === 0) {
+                        DB::rollBack();
+                        return redirect()->back()->with('error', 'Please enter at least one valid question statement in the directional set.')->withInput();
+                    }
+
+                    DB::commit();
+
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => "Successfully created Directional Question Set [{$groupId}] with {$savedCount} sub-questions!",
+                            'group_id' => $groupId,
+                            'count' => $savedCount,
+                            'redirect' => url('view/question?group_filter=' . urlencode($groupId))
+                        ]);
+                    }
+
+                    if ($request->input('submit_action') === 'save_and_add') {
+                        return redirect()->back()
+                            ->withInput($request->only('class_type_id', 'subject_id'))
+                            ->with('message', "Directional Set [{$groupId}] added successfully with {$savedCount} sub-questions! You can now add another set.");
+                    }
+
+                    return redirect('view/question?group_filter=' . urlencode($groupId))
+                        ->with('message', "Successfully created Directional Question Set [{$groupId}] with {$savedCount} sub-questions!");
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Failed to save directional set: ' . $e->getMessage())->withInput();
+                }
+            }
+
+            // 2. STANDALONE SINGLE QUESTION INGESTION
             $request->validate([
                 'class_type_id' => 'required',
                 'subject_id' => 'required',

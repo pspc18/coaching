@@ -618,7 +618,7 @@ textarea.theme-form-control {
         </div>
 
         {{-- =========================================================================
-             TAB 1: MANUAL QUESTION BUILDER
+             TAB 1: MANUAL QUESTION BUILDER (STANDALONE & DIRECTIONAL SET MODES)
              ========================================================================= --}}
         <div id="tab-manual" class="tab-content-panel">
             <form id="form-manual-question" action="{{ url('add/question') }}" method="post" enctype="multipart/form-data">
@@ -627,223 +627,431 @@ textarea.theme-form-control {
                 <input type="hidden" name="subject_id" id="manual_subject_id">
                 <input type="hidden" name="question_type_id" id="manual_question_type_id" value="1">
                 <input type="hidden" name="submit_action" id="manual_submit_action" value="save">
+                <input type="hidden" name="manual_mode" id="manual_mode" value="standalone">
 
-                <div class="row">
-                    {{-- Left Column: Statement & Options --}}
-                    <div class="col-lg-8">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-pencil text-warning mr-2"></i> Question Statement &amp; Answers
-                                </h3>
-                                <span class="badge badge-light" style="font-size: 10.5px; color: #002C54; font-weight: 700;">
-                                    Format: LaTeX Math Supported ($...$)
-                                </span>
+                {{-- Mode Switcher Card: Standalone vs Directional Set --}}
+                <div class="theme-card mb-2" style="background: #ffffff; border: 1px solid #cbd5e1;">
+                    <div class="p-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                <i class="fa fa-sliders text-primary mr-1"></i> Question Format Mode:
+                            </span>
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-sm btn-outline-primary active manual-mode-pill" id="lbl-mode-standalone" style="font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 2px; cursor: pointer;">
+                                    <input type="radio" name="manual_mode_toggle" id="mode-standalone" value="standalone" checked autocomplete="off">
+                                    <i class="fa fa-file-text-o mr-1"></i> Standalone Question
+                                </label>
+                                <label class="btn btn-sm btn-outline-primary manual-mode-pill" id="lbl-mode-directional" style="font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 2px; cursor: pointer;">
+                                    <input type="radio" name="manual_mode_toggle" id="mode-directional" value="directional" autocomplete="off">
+                                    <i class="fa fa-sitemap mr-1"></i> Directional Set (Passage &amp; Sub-Questions)
+                                </label>
                             </div>
-                            <div class="theme-card-body">
-                                {{-- Math Ribbon --}}
-                                <div class="math-ribbon-card">
-                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                        <span class="ribbon-title">
-                                            <i class="fa fa-calculator mr-1 text-primary"></i> Quick Insert Math &amp; Science Symbols:
-                                        </span>
-                                        <span class="text-muted small" style="font-size: 9.5px;">Click to insert at cursor</span>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-1 math-ribbon-buttons">
-                                        <button type="button" data-insert="\frac{a}{b}" class="math-symbol-btn">½ \frac{a}{b}</button>
-                                        <button type="button" data-insert="\sqrt{x}" class="math-symbol-btn">√x \sqrt{x}</button>
-                                        <button type="button" data-insert="x^{2}" class="math-symbol-btn">x²</button>
-                                        <button type="button" data-insert="x_{1}" class="math-symbol-btn">x₁</button>
-                                        <button type="button" data-insert="\pm" class="math-symbol-btn">±</button>
-                                        <button type="button" data-insert="\times" class="math-symbol-btn">×</button>
-                                        <button type="button" data-insert="\div" class="math-symbol-btn">÷</button>
-                                        <button type="button" data-insert="\pi" class="math-symbol-btn">π</button>
-                                        <button type="button" data-insert="\theta" class="math-symbol-btn">θ</button>
-                                        <button type="button" data-insert="\Delta" class="math-symbol-btn">Δ</button>
-                                        <button type="button" data-insert="\infty" class="math-symbol-btn">∞</button>
-                                        <button type="button" data-insert="\le" class="math-symbol-btn">≤</button>
-                                        <button type="button" data-insert="\ge" class="math-symbol-btn">≥</button>
-                                        <button type="button" data-insert="\ne" class="math-symbol-btn">≠</button>
-                                        <button type="button" data-insert="\rightarrow" class="math-symbol-btn">→</button>
-                                    </div>
-                                </div>
+                        </div>
+                        <div class="small text-muted" id="manual-mode-description" style="font-size: 11px;">
+                            <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.
+                        </div>
+                    </div>
+                </div>
 
-                                {{-- Question Textarea --}}
-                                <div class="theme-form-group">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label for="manual_question_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
-                                            Question Statement <span class="text-danger">*</span>
-                                        </label>
-                                        <div class="d-flex align-items-center gap-1 editor-height-tools">
-                                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
-                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="-40" title="Decrease Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="50" title="Increase Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
-                                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_question_name" data-reset="125" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                {{-- SECTION A: STANDALONE QUESTION BUILDER --}}
+                <div id="manual-standalone-wrap">
+                    <div class="row">
+                        {{-- Left Column: Statement & Options --}}
+                        <div class="col-lg-8">
+                            <div class="theme-card">
+                                <div class="theme-card-header">
+                                    <h3 class="card-title">
+                                        <i class="fa fa-pencil text-warning mr-2"></i> Question Statement &amp; Answers
+                                    </h3>
+                                    <span class="badge badge-light" style="font-size: 10.5px; color: #002C54; font-weight: 700;">
+                                        Format: LaTeX Math Supported ($...$)
+                                    </span>
+                                </div>
+                                <div class="theme-card-body">
+                                    {{-- Math Ribbon --}}
+                                    <div class="math-ribbon-card">
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                            <span class="ribbon-title">
+                                                <i class="fa fa-calculator mr-1 text-primary"></i> Quick Insert Math &amp; Science Symbols:
+                                            </span>
+                                            <span class="text-muted small" style="font-size: 9.5px;">Click to insert at cursor</span>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-1 math-ribbon-buttons">
+                                            <button type="button" data-insert="\frac{a}{b}" class="math-symbol-btn">½ \frac{a}{b}</button>
+                                            <button type="button" data-insert="\sqrt{x}" class="math-symbol-btn">√x \sqrt{x}</button>
+                                            <button type="button" data-insert="x^{2}" class="math-symbol-btn">x²</button>
+                                            <button type="button" data-insert="x_{1}" class="math-symbol-btn">x₁</button>
+                                            <button type="button" data-insert="\pm" class="math-symbol-btn">±</button>
+                                            <button type="button" data-insert="\times" class="math-symbol-btn">×</button>
+                                            <button type="button" data-insert="\div" class="math-symbol-btn">÷</button>
+                                            <button type="button" data-insert="\pi" class="math-symbol-btn">π</button>
+                                            <button type="button" data-insert="\theta" class="math-symbol-btn">θ</button>
+                                            <button type="button" data-insert="\Delta" class="math-symbol-btn">Δ</button>
+                                            <button type="button" data-insert="\infty" class="math-symbol-btn">∞</button>
+                                            <button type="button" data-insert="\le" class="math-symbol-btn">≤</button>
+                                            <button type="button" data-insert="\ge" class="math-symbol-btn">≥</button>
+                                            <button type="button" data-insert="\ne" class="math-symbol-btn">≠</button>
+                                            <button type="button" data-insert="\rightarrow" class="math-symbol-btn">→</button>
                                         </div>
                                     </div>
-                                    <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." required>{{ old('name') }}</textarea>
-                                </div>
 
-                                {{-- Options Section (Objective) --}}
-                                <div id="manual-options-container">
-                                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
-                                        <div class="d-flex align-items-center">
-                                            <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
-                                                <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
+                                    {{-- Question Textarea --}}
+                                    <div class="theme-form-group">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="manual_question_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                                                Question Statement <span class="text-danger">*</span>
                                             </label>
-                                            <span class="text-muted small ml-2" style="font-size: 10px;">(Select radio button for the correct option)</span>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
                                             <div class="d-flex align-items-center gap-1 editor-height-tools">
-                                                <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> All Options Height:</span>
-                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="-25" title="Decrease All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="35" title="Increase All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
-                                                <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-options-height" data-reset="55" title="Reset All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                                <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="-40" title="Decrease Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="50" title="Increase Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_question_name" data-reset="125" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
-                                            <button type="button" id="btn-toggle-manual-opt-5" class="btn btn-xs btn-outline-primary" style="font-size: 10.5px; padding: 2px 8px; font-weight: 600;">
-                                                <i class="fa fa-plus-circle mr-1"></i> Add 5th Option (E)
-                                            </button>
                                         </div>
+                                        <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." required>{{ old('name') }}</textarea>
                                     </div>
 
-                                    <div class="row" id="manual-options-row">
-                                        @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
-                                             @php $optIndex = (string)($num - 1); @endphp
-                                            <div class="col-md-6 mb-2">
-                                                <div class="option-input-card" id="manual-opt-card-{{ $num }}">
+                                    {{-- Options Section (Objective) --}}
+                                    <div id="manual-options-container">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
+                                            <div class="d-flex align-items-center">
+                                                <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
+                                                    <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
+                                                </label>
+                                                <span class="text-muted small ml-2" style="font-size: 10px;">(Select radio button for the correct option)</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                                    <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> All Options Height:</span>
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="-25" title="Decrease All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="35" title="Increase All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-options-height" data-reset="55" title="Reset All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                                </div>
+                                                <button type="button" id="btn-toggle-manual-opt-5" class="btn btn-xs btn-outline-primary" style="font-size: 10.5px; padding: 2px 8px; font-weight: 600;">
+                                                    <i class="fa fa-plus-circle mr-1"></i> Add 5th Option (E)
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="manual-options-row">
+                                            @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
+                                                 @php $optIndex = (string)($num - 1); @endphp
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="option-input-card" id="manual-opt-card-{{ $num }}">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="option-label-pill mr-2">{{ $letter }}</span>
+                                                                <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
+                                                            </div>
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
+                                                                    <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="-25" title="Decrease Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                                    <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="35" title="Increase Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                                </div>
+                                                                <label class="correct-radio-label text-success mb-0">
+                                                                    <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
+                                                                    <span>Mark Correct</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ old('ans'.$num) }}</textarea>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+
+                                            {{-- 5th Option (Option E) --}}
+                                            <div class="col-md-6 mb-2 {{ old('ans5') ? '' : 'd-none' }}" id="manual-opt-col-5">
+                                                <div class="option-input-card" id="manual-opt-card-5">
                                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
                                                         <div class="d-flex align-items-center">
-                                                            <span class="option-label-pill mr-2">{{ $letter }}</span>
-                                                            <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
+                                                            <span class="option-label-pill mr-2">E</span>
+                                                            <strong style="font-size: 11px; color: #334155;">Option E</strong>
+                                                            <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
                                                         </div>
                                                         <div class="d-flex align-items-center">
                                                             <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
-                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="-25" title="Decrease Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="35" title="Increase Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="-25" title="Decrease Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="35" title="Increase Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                                             </div>
-                                                            <label class="correct-radio-label text-success mb-0">
-                                                                <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
+                                                            <label class="correct-radio-label text-success mb-0 mr-2">
+                                                                <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ old('correct_ans') == '4' ? 'checked' : '' }}>
                                                                 <span>Mark Correct</span>
                                                             </label>
+                                                            <button type="button" id="btn-remove-manual-opt-5" class="btn btn-xs btn-link text-danger p-0" title="Remove Option E" style="font-size: 11px;">
+                                                                <i class="fa fa-times"></i>
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ old('ans'.$num) }}</textarea>
+                                                    <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5') }}</textarea>
                                                 </div>
-                                            </div>
-                                        @endforeach
-
-                                        {{-- 5th Option (Option E) --}}
-                                        <div class="col-md-6 mb-2 {{ old('ans5') ? '' : 'd-none' }}" id="manual-opt-col-5">
-                                            <div class="option-input-card" id="manual-opt-card-5">
-                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="option-label-pill mr-2">E</span>
-                                                        <strong style="font-size: 11px; color: #334155;">Option E</strong>
-                                                        <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
-                                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="-25" title="Decrease Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="35" title="Increase Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
-                                                        </div>
-                                                        <label class="correct-radio-label text-success mb-0 mr-2">
-                                                            <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ old('correct_ans') == '4' ? 'checked' : '' }}>
-                                                            <span>Mark Correct</span>
-                                                        </label>
-                                                        <button type="button" id="btn-remove-manual-opt-5" class="btn btn-xs btn-link text-danger p-0" title="Remove Option E" style="font-size: 11px;">
-                                                            <i class="fa fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5') }}</textarea>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {{-- Explanation / Solution --}}
+                                    <div class="theme-form-group mb-0">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="manual_explanation" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #334155;">
+                                                <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span>
+                                            </label>
+                                            <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                                <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-warning"></i> Height:</span>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="-30" title="Decrease Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="40" title="Increase Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_explanation" data-reset="75" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                            </div>
+                                        </div>
+                                        <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation') }}</textarea>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                {{-- Explanation / Solution --}}
-                                <div class="theme-form-group mb-0">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label for="manual_explanation" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #334155;">
-                                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span>
+                        {{-- Right Column: Media, Difficulty & Live Preview --}}
+                        <div class="col-lg-4">
+                            {{-- Meta Card --}}
+                            <div class="theme-card">
+                                <div class="theme-card-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff;">
+                                    <h3 class="card-title">
+                                        <i class="fa fa-sliders text-warning mr-2"></i> Question Meta &amp; Diagram
+                                    </h3>
+                                </div>
+                                <div class="theme-card-body" style="background: #ffffff;">
+                                    {{-- Diagram / Figure Image Upload --}}
+                                    <div class="theme-form-group mb-3">
+                                        <label for="manual_image" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
+                                            <i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure <span class="text-muted font-weight-normal">(JPG, PNG)</span>
                                         </label>
-                                        <div class="d-flex align-items-center gap-1 editor-height-tools">
-                                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-warning"></i> Height:</span>
-                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="-30" title="Decrease Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="40" title="Increase Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
-                                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_explanation" data-reset="75" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                        <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
+                                            <input type="file" id="manual_image" name="image" accept="image/*" class="form-control-file" style="font-size: 11px;">
+                                            <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
+                                                <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
+                                                <div class="mt-1">
+                                                    <button type="button" id="btn-remove-manual-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
+                                                        <i class="fa fa-trash mr-1"></i> Remove Image
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation') }}</textarea>
+
+                                    {{-- Difficulty Level --}}
+                                    <div class="theme-form-group mb-3">
+                                        <label for="manual_difficulty" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
+                                            <i class="fa fa-tachometer text-muted mr-1"></i> Difficulty Level
+                                        </label>
+                                        <select id="manual_difficulty" name="difficulty_level" class="theme-form-control" style="height: 33px; font-size: 12px;">
+                                            <option value="Easy">Easy (Fundamental)</option>
+                                            <option value="Medium" selected>Medium (Standard)</option>
+                                            <option value="Hard">Hard (Advanced / Olympiad)</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- Student View (Exam Paper Preview) Matching Arise ERP Theme --}}
+                                    <div class="preview-exam-card mb-3" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                        <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9;">
+                                            <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                                <i class="fa fa-desktop text-primary mr-1"></i> Student View (Live Preview)
+                                            </span>
+                                            <span id="manual-preview-correct-badge" class="badge badge-success" style="font-size: 10px; padding: 2px 8px; background: #10b981;">Correct: Option A</span>
+                                        </div>
+                                        <div class="p-3" id="manual-live-preview" style="min-height: 100px; font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                            <em>Type above to see live preview with rendered LaTeX formulas...</em>
+                                        </div>
+                                    </div>
+
+                                    {{-- Action Buttons --}}
+                                    <div class="d-flex flex-column gap-2 mt-3">
+                                        <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                            <i class="fa fa-save mr-1"></i> Save Question to Bank
+                                        </button>
+                                        <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                                            <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
+                                        </button>
+                                        <button type="reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
+                                            <i class="fa fa-undo mr-1"></i> Reset
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {{-- Right Column: Media, Difficulty & Live Preview --}}
-                    <div class="col-lg-4">
-                        {{-- Meta Card --}}
-                        <div class="theme-card">
-                            <div class="theme-card-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff;">
-                                <h3 class="card-title">
-                                    <i class="fa fa-sliders text-warning mr-2"></i> Question Meta &amp; Diagram
-                                </h3>
-                            </div>
-                            <div class="theme-card-body" style="background: #ffffff;">
-                                {{-- Diagram / Figure Image Upload --}}
-                                <div class="theme-form-group mb-3">
-                                    <label for="manual_image" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
-                                        <i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure <span class="text-muted font-weight-normal">(JPG, PNG)</span>
-                                    </label>
-                                    <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
-                                        <input type="file" id="manual_image" name="image" accept="image/*" class="form-control-file" style="font-size: 11px;">
-                                        <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
-                                            <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
-                                            <div class="mt-1">
-                                                <button type="button" id="btn-remove-manual-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
-                                                    <i class="fa fa-trash mr-1"></i> Remove Image
-                                                </button>
+                {{-- SECTION B: DIRECTIONAL TYPE QUESTION SET BUILDER --}}
+                <div id="manual-directional-wrap" class="d-none">
+                    <div class="row">
+                        {{-- Left Column: Common Direction / Passage & Dynamic Sub-Questions --}}
+                        <div class="col-lg-8">
+                            {{-- 1. Common Passage / Direction Context Card --}}
+                            <div class="theme-card mb-3">
+                                <div class="theme-card-header">
+                                    <h3 class="card-title">
+                                        <i class="fa fa-sitemap text-warning mr-2"></i> Common Passage / Direction Context
+                                    </h3>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="text-white small font-weight-bold" style="font-size: 11px;">Set ID:</span>
+                                        <input type="text" name="group_id" id="dir_group_id" class="form-control form-control-sm text-monospace font-weight-bold text-center" style="width: 170px; height: 26px; font-size: 11px; background:#ffffff; color:#002C54; border: 1px solid #cbd5e1; border-radius: 2px;" placeholder="DIR-XXXXXX" value="DIR-{{ date('Ymd-His') }}">
+                                        <button type="button" id="btn-refresh-dir-group-id" class="btn btn-xs btn-light border py-0 px-2" title="Generate New Set ID" style="height: 26px; border-radius: 2px;"><i class="fa fa-refresh"></i></button>
+                                    </div>
+                                </div>
+                                <div class="theme-card-body">
+                                    {{-- Math Ribbon --}}
+                                    <div class="math-ribbon-card">
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                            <span class="ribbon-title">
+                                                <i class="fa fa-calculator mr-1 text-primary"></i> Quick Insert Math &amp; Science Symbols:
+                                            </span>
+                                            <span class="text-muted small" style="font-size: 9.5px;">Click to insert at cursor</span>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-1 math-ribbon-buttons">
+                                            <button type="button" data-insert="\frac{a}{b}" class="math-symbol-btn">½ \frac{a}{b}</button>
+                                            <button type="button" data-insert="\sqrt{x}" class="math-symbol-btn">√x \sqrt{x}</button>
+                                            <button type="button" data-insert="x^{2}" class="math-symbol-btn">x²</button>
+                                            <button type="button" data-insert="x_{1}" class="math-symbol-btn">x₁</button>
+                                            <button type="button" data-insert="\pm" class="math-symbol-btn">±</button>
+                                            <button type="button" data-insert="\times" class="math-symbol-btn">×</button>
+                                            <button type="button" data-insert="\div" class="math-symbol-btn">÷</button>
+                                            <button type="button" data-insert="\pi" class="math-symbol-btn">π</button>
+                                            <button type="button" data-insert="\theta" class="math-symbol-btn">θ</button>
+                                            <button type="button" data-insert="\Delta" class="math-symbol-btn">Δ</button>
+                                            <button type="button" data-insert="\infty" class="math-symbol-btn">∞</button>
+                                            <button type="button" data-insert="\le" class="math-symbol-btn">≤</button>
+                                            <button type="button" data-insert="\ge" class="math-symbol-btn">≥</button>
+                                            <button type="button" data-insert="\ne" class="math-symbol-btn">≠</button>
+                                            <button type="button" data-insert="\rightarrow" class="math-symbol-btn">→</button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Common Passage Textarea with Height Adjustment --}}
+                                    <div class="theme-form-group">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="dir_direction" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                                                Common Passage / Direction Text <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                                <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_direction" data-delta="-40" title="Decrease Passage Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_direction" data-delta="50" title="Increase Passage Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_direction" data-reset="140" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                            </div>
+                                        </div>
+                                        <textarea id="dir_direction" name="direction" rows="4" class="theme-form-control active-math-target" placeholder="Enter common instructions or comprehension passage (e.g. Directions (Q.1 - Q.5): Read the following passage carefully and answer the questions given below...)..."></textarea>
+                                    </div>
+
+                                    {{-- Common Diagram & Data Table Row --}}
+                                    <div class="row">
+                                        {{-- Common Diagram / Graph --}}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
+                                                <label for="dir_image" class="font-weight-bold mb-1 d-block" style="font-size: 11px; color: #334155;">
+                                                    <i class="fa fa-picture-o text-primary mr-1"></i> Common Passage Diagram / Graph <span class="text-muted font-weight-normal">(Optional)</span>
+                                                </label>
+                                                <input type="file" id="dir_image" name="direction_image" accept="image/*" class="form-control-file" style="font-size: 11px;">
+                                                <div id="dir-image-preview-wrapper" class="mt-2 text-center d-none">
+                                                    <img id="dir-image-preview" src="" alt="Direction Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 120px;">
+                                                    <div class="mt-1">
+                                                        <button type="button" id="btn-remove-dir-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
+                                                            <i class="fa fa-trash mr-1"></i> Remove Image
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Common Data Table / Matrix --}}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="p-2 rounded border h-100" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <label for="dir_direction_table" class="font-weight-bold mb-0" style="font-size: 11px; color: #334155;">
+                                                        <i class="fa fa-table text-info mr-1"></i> Common Data Table / Matrix <span class="text-muted font-weight-normal">(Optional)</span>
+                                                    </label>
+                                                    <button type="button" id="btn-insert-table-template" class="btn btn-xs btn-light border py-0 px-1 text-primary" style="font-size: 9.5px;" title="Insert sample 3x3 table">
+                                                        <i class="fa fa-plus-square mr-1"></i> Sample Table
+                                                    </button>
+                                                </div>
+                                                <textarea id="dir_direction_table" name="direction_table" rows="3" class="form-control form-control-sm" style="font-size: 11px; font-family: monospace;" placeholder="Paste HTML &lt;table&gt;...&lt;/table&gt; or click Sample Table..."></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                {{-- Difficulty Level --}}
-                                <div class="theme-form-group mb-3">
-                                    <label for="manual_difficulty" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
-                                        <i class="fa fa-tachometer text-muted mr-1"></i> Difficulty Level
-                                    </label>
-                                    <select id="manual_difficulty" name="difficulty_level" class="theme-form-control" style="height: 33px; font-size: 12px;">
-                                        <option value="Easy">Easy (Fundamental)</option>
-                                        <option value="Medium" selected>Medium (Standard)</option>
-                                        <option value="Hard">Hard (Advanced / Olympiad)</option>
-                                    </select>
+                            {{-- 2. Sub-Questions Header Bar --}}
+                            <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white rounded border">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="font-weight-bold text-dark" style="font-size: 12.5px;">
+                                        <i class="fa fa-list-ol text-primary mr-1"></i> Sub-Questions in this Set:
+                                    </span>
+                                    <span class="badge badge-info" id="dir-sub-count-text" style="font-size: 11px; background:#0284c7;">2 Sub-Questions</span>
                                 </div>
+                                <button type="button" class="btn btn-xs btn-outline-primary btn-add-subq-trigger font-weight-bold px-2 py-1" style="font-size: 11px;">
+                                    <i class="fa fa-plus-circle mr-1"></i> + Add Sub-Question
+                                </button>
+                            </div>
 
-                                {{-- Student View (Exam Paper Preview) Matching Arise ERP Theme --}}
-                                <div class="preview-exam-card mb-3" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                                    <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9;">
-                                        <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
-                                            <i class="fa fa-desktop text-primary mr-1"></i> Student View (Live Preview)
-                                        </span>
-                                        <span id="manual-preview-correct-badge" class="badge badge-success" style="font-size: 10px; padding: 2px 8px; background: #10b981;">Correct: Option A</span>
-                                    </div>
-                                    <div class="p-3" id="manual-live-preview" style="min-height: 100px; font-size: 12px; color: #0f172a; line-height: 1.5;">
-                                        <em>Type above to see live preview with rendered LaTeX formulas...</em>
-                                    </div>
+                            {{-- 3. Dynamic Sub-Questions List (Initialized with 2 Sub-Questions) --}}
+                            <div id="directional-sub-questions-list"></div>
+
+                            {{-- 4. Bottom Add Sub-Question Button --}}
+                            <div class="my-3 text-center">
+                                <button type="button" id="btn-add-directional-subq" class="btn btn-block btn-outline-primary py-2 font-weight-bold" style="border: 2px dashed #0284c7; background: #f0f7ff; color: #0284c7; font-size: 12.5px;">
+                                    <i class="fa fa-plus-circle mr-1"></i> + Add Another Sub-Question to Set
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Directional Meta & Student View Preview --}}
+                        <div class="col-lg-4">
+                            <div class="theme-card">
+                                <div class="theme-card-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff;">
+                                    <h3 class="card-title">
+                                        <i class="fa fa-sliders text-warning mr-2"></i> Directional Set Summary
+                                    </h3>
                                 </div>
+                                <div class="theme-card-body" style="background: #ffffff;">
+                                    {{-- Set Meta Pills --}}
+                                    <div class="mb-3 p-2 rounded border" style="background: #f8fafc;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                            <span class="text-muted small">Set Identifier:</span>
+                                            <span class="badge badge-light border text-primary font-weight-bold text-monospace" id="dir-meta-id-display">DIR-XXXX</span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span class="text-muted small">Sub-Questions Count:</span>
+                                            <span class="badge badge-info" id="dir-meta-total-display">2 Sub-Questions</span>
+                                        </div>
+                                    </div>
 
-                                {{-- Action Buttons --}}
-                                <div class="d-flex flex-column gap-2 mt-3">
-                                    <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
-                                        <i class="fa fa-save mr-1"></i> Save Question to Bank
-                                    </button>
-                                    <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
-                                        <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
-                                    </button>
-                                    <button type="reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
-                                        <i class="fa fa-undo mr-1"></i> Reset
-                                    </button>
+                                    {{-- Student View (Exam Paper Real-Time Preview) --}}
+                                    <div class="preview-exam-card mb-3" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                        <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9;">
+                                            <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                                <i class="fa fa-desktop text-primary mr-1"></i> Student View (Live Preview)
+                                            </span>
+                                            <span id="dir-preview-active-subq-badge" class="badge badge-primary" style="font-size: 10px; padding: 2px 8px; background: #0284c7;">Viewing Sub-Q #1</span>
+                                        </div>
+
+                                        {{-- Sub-Question Switcher Navigation Pills --}}
+                                        <div class="p-2 border-bottom bg-light d-flex align-items-center gap-1 flex-wrap" id="dir-preview-tabs"></div>
+
+                                        {{-- Preview Content Box --}}
+                                        <div class="p-3" id="directional-live-preview" style="min-height: 120px; font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                            <em>Type passage and questions to see live preview...</em>
+                                        </div>
+                                    </div>
+
+                                    {{-- Action Buttons --}}
+                                    <div class="d-flex flex-column gap-2 mt-3">
+                                        <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                            <i class="fa fa-save mr-1"></i> Save Directional Set to Bank
+                                        </button>
+                                        <button type="button" id="btn-dir-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                                            <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another Set
+                                        </button>
+                                        <button type="button" id="btn-dir-reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
+                                            <i class="fa fa-undo mr-1"></i> Reset Set
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1355,6 +1563,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 { name: 'tools', items: [ 'Maximize', 'Source' ] }
             ]
         },
+        direction: {
+            height: 140,
+            removePlugins: 'elementspath',
+            resize_enabled: true,
+            resize_dir: 'vertical',
+            resize_minHeight: 80,
+            resize_maxHeight: 1200,
+            toolbar: [
+                { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
+                { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
+                { name: 'insert', items: [ 'Table', 'SpecialChar', 'HorizontalRule' ] },
+                { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+                { name: 'tools', items: [ 'Maximize', 'Source' ] }
+            ]
+        },
         option: {
             height: 55,
             removePlugins: 'elementspath',
@@ -1446,10 +1669,20 @@ document.addEventListener('DOMContentLoaded', function () {
             activeCKInstance = editor;
         });
         editor.on('change', function () {
-            updateManualLivePreview();
+            if (document.getElementById('manual_mode')?.value === 'directional') {
+                updateDirectionalLivePreview();
+            } else {
+                updateManualLivePreview();
+            }
         });
         editor.on('key', function () {
-            setTimeout(updateManualLivePreview, 60);
+            setTimeout(() => {
+                if (document.getElementById('manual_mode')?.value === 'directional') {
+                    updateDirectionalLivePreview();
+                } else {
+                    updateManualLivePreview();
+                }
+            }, 60);
         });
     }
 
@@ -1796,6 +2029,745 @@ document.addEventListener('DOMContentLoaded', function () {
         updateManualLivePreview();
     });
 
+    // =========================================================================
+    // DIRECTIONAL SET BUILDER JAVASCRIPT ENGINE
+    // =========================================================================
+    let directionalEditorsInitialized = false;
+    let directionalSubQuestions = []; // array of { idx: number, seq: number }
+    let nextSubQIndex = 0;
+    let activeDirSubqIdx = 0;
+
+    // Helper to generate a unique Direction Group ID (e.g. DIR-20261101-9F2B)
+    function generateDirectionGroupId() {
+        const d = new Date();
+        const ymd = d.getFullYear().toString() +
+            String(d.getMonth() + 1).padStart(2, '0') +
+            String(d.getDate()).padStart(2, '0');
+        const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `DIR-${ymd}-${rand}`;
+    }
+
+    // Refresh Set ID button
+    document.getElementById('btn-refresh-dir-group-id')?.addEventListener('click', function () {
+        const newId = generateDirectionGroupId();
+        const grpInput = document.getElementById('dir_group_id');
+        if (grpInput) {
+            grpInput.value = newId;
+            syncDirectionGroupDisplay();
+        }
+    });
+
+    document.getElementById('dir_group_id')?.addEventListener('input', syncDirectionGroupDisplay);
+
+    function syncDirectionGroupDisplay() {
+        const val = document.getElementById('dir_group_id')?.value.trim() || 'DIR-SET';
+        const display = document.getElementById('dir-meta-id-display');
+        if (display) display.textContent = val;
+        updateDirectionalLivePreview();
+    }
+
+    // Mode Switcher handler
+    function switchManualMode(mode) {
+        const standaloneWrap = document.getElementById('manual-standalone-wrap');
+        const directionalWrap = document.getElementById('manual-directional-wrap');
+        const modeInput = document.getElementById('manual_mode');
+        const questionNameInput = document.getElementById('manual_question_name');
+        const modeDesc = document.getElementById('manual-mode-description');
+
+        if (mode === 'directional') {
+            if (modeInput) modeInput.value = 'directional';
+            standaloneWrap?.classList.add('d-none');
+            directionalWrap?.classList.remove('d-none');
+            questionNameInput?.removeAttribute('required');
+
+            document.getElementById('lbl-mode-directional')?.classList.add('active');
+            document.getElementById('lbl-mode-standalone')?.classList.remove('active');
+            if (modeDesc) {
+                modeDesc.innerHTML = '<span class="text-info font-weight-bold"><i class="fa fa-sitemap mr-1"></i> Directional Set Mode:</span> Common passage &amp; multiple linked sub-questions sharing one Group ID.';
+            }
+
+            initDirectionalEngine();
+            setTimeout(updateDirectionalLivePreview, 120);
+        } else {
+            if (modeInput) modeInput.value = 'standalone';
+            directionalWrap?.classList.add('d-none');
+            standaloneWrap?.classList.remove('d-none');
+            questionNameInput?.setAttribute('required', 'required');
+
+            document.getElementById('lbl-mode-standalone')?.classList.add('active');
+            document.getElementById('lbl-mode-directional')?.classList.remove('active');
+            if (modeDesc) {
+                modeDesc.innerHTML = '<span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.';
+            }
+
+            initManualCKEditors();
+            setTimeout(updateManualLivePreview, 120);
+        }
+    }
+
+    document.querySelectorAll('input[name="manual_mode_toggle"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            switchManualMode(this.value);
+        });
+    });
+
+    // Sub-Question HTML Builder
+    function buildSubQuestionCardHtml(idx, seq) {
+        return `
+        <div class="theme-card sub-question-card mb-3" id="dir-subq-card-${idx}" data-idx="${idx}" style="border-left: 4px solid #0284c7 !important;">
+            <div class="theme-card-header d-flex align-items-center justify-content-between py-2 px-3" style="background: #f8fafc !important; border-bottom: 1px solid #cbd5e1;">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge badge-primary font-weight-bold px-2 py-1" style="background: #0284c7; font-size: 11px;">
+                        <i class="fa fa-question-circle mr-1"></i> Sub-Question #<span class="sub-q-seq">${seq}</span>
+                    </span>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="small font-weight-bold text-dark" style="font-size: 11px;">No:</span>
+                        <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${seq}" style="width: 50px; height: 24px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px;">
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="small font-weight-bold text-dark" style="font-size: 11px;">Level:</span>
+                        <select name="directional_questions[${idx}][difficulty_level]" class="form-control form-control-sm" style="width: 85px; height: 24px; font-size: 11px; padding: 2px 4px;">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-xs btn-outline-danger btn-remove-subq" data-idx="${idx}" title="Remove Sub-Question" style="font-size: 10.5px; padding: 2px 8px;">
+                        <i class="fa fa-trash mr-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+            <div class="theme-card-body p-3">
+                {{-- Statement Textarea --}}
+                <div class="theme-form-group mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="dir_sub_${idx}_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                            Question Statement <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex align-items-center gap-1 editor-height-tools">
+                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_name" data-delta="-30" title="Decrease Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_name" data-delta="40" title="Increase Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_sub_${idx}_name" data-reset="90" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                        </div>
+                    </div>
+                    <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="Enter question statement or formula..."></textarea>
+                </div>
+
+                {{-- Options Section --}}
+                <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                        <span class="font-weight-bold text-primary small" style="font-size: 11px;">
+                            <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
+                        </span>
+                        <button type="button" class="btn btn-xs btn-outline-primary btn-toggle-subq-opt5" data-idx="${idx}" style="font-size: 10px; padding: 1px 7px;">
+                            <i class="fa fa-plus mr-1"></i> Add 5th Option (E)
+                        </button>
+                    </div>
+                    <div class="row">
+                        ${[
+                            { num: 1, letter: 'A', val: '0' },
+                            { num: 2, letter: 'B', val: '1' },
+                            { num: 3, letter: 'C', val: '2' },
+                            { num: 4, letter: 'D', val: '3' },
+                        ].map(opt => `
+                            <div class="col-md-6 mb-2">
+                                <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <span class="option-label-pill mr-2">${opt.letter}</span>
+                                            <strong style="font-size: 11px; color: #334155;">Option ${opt.letter}</strong>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
+                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                            </div>
+                                            <label class="correct-radio-label text-success mb-0" style="font-size: 11px; cursor: pointer;">
+                                                <input type="radio" name="directional_questions[${idx}][correct_ans]" value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${opt.val === '0' ? 'checked' : ''}>
+                                                <span>Mark Correct</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <textarea name="directional_questions[${idx}][ans${opt.num}]" id="dir_sub_${idx}_ans${opt.num}" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option ${opt.letter}..."></textarea>
+                                </div>
+                            </div>
+                        `).join('')}
+
+                        {{-- Option E --}}
+                        <div class="col-md-6 mb-2 d-none" id="dir_sub_${idx}_col_5">
+                            <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff;">
+                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                    <div class="d-flex align-items-center">
+                                        <span class="option-label-pill mr-2">E</span>
+                                        <strong style="font-size: 11px; color: #334155;">Option E</strong>
+                                        <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
+                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                        </div>
+                                        <label class="correct-radio-label text-success mb-0 mr-2" style="font-size: 11px; cursor: pointer;">
+                                            <input type="radio" name="directional_questions[${idx}][correct_ans]" value="4" class="dir-correct-radio mr-1" data-idx="${idx}">
+                                            <span>Mark Correct</span>
+                                        </label>
+                                        <button type="button" class="btn btn-xs btn-link text-danger p-0 btn-remove-subq-opt5" data-idx="${idx}" title="Remove Option E" style="font-size: 11px;">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option E..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Sub-Question Diagram & Explanation Row --}}
+                <div class="row">
+                    <div class="col-md-7 mb-2">
+                        <div class="theme-form-group mb-0">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label for="dir_sub_${idx}_explanation" class="font-weight-bold mb-0" style="font-size: 11px; color: #334155;">
+                                    <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution / Explanation <span class="text-muted font-weight-normal">(Optional)</span>
+                                </label>
+                                <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_explanation" data-delta="-25" title="Decrease Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_explanation" data-delta="30" title="Increase Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <textarea id="dir_sub_${idx}_explanation" name="directional_questions[${idx}][explanation]" rows="2" class="theme-form-control active-math-target dir-subq-field" placeholder="Step-by-step reasoning or formula notes..."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-5 mb-2">
+                        <label class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
+                            <i class="fa fa-picture-o text-primary mr-1"></i> Sub-Q Diagram <span class="text-muted font-weight-normal">(Optional)</span>
+                        </label>
+                        <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
+                            <input type="file" id="dir_sub_${idx}_image" name="directional_questions[${idx}][image]" accept="image/*" class="form-control-file dir-subq-img-input" data-idx="${idx}" style="font-size: 11px;">
+                            <div id="dir_sub_${idx}_img_preview_wrap" class="mt-2 text-center d-none">
+                                <img id="dir_sub_${idx}_img_preview" src="" alt="Sub-Q Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 90px;">
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-xs btn-outline-danger btn-remove-subq-img" data-idx="${idx}" style="font-size: 10px;">
+                                        <i class="fa fa-trash mr-1"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // Initialize CKEditors for a single sub-question
+    function initSubQuestionCKEditors(idx) {
+        if (!window.CKEDITOR) return;
+
+        // Statement
+        const nameId = `dir_sub_${idx}_name`;
+        if (document.getElementById(nameId) && !CKEDITOR.instances[nameId]) {
+            try {
+                const ed = CKEDITOR.replace(nameId, manualCKConfigs.question);
+                attachCKEvents(ed);
+            } catch (e) { console.warn(e); }
+        }
+
+        // Options A-D
+        for (let opt = 1; opt <= 4; opt++) {
+            const optId = `dir_sub_${idx}_ans${opt}`;
+            if (document.getElementById(optId) && !CKEDITOR.instances[optId]) {
+                try {
+                    const ed = CKEDITOR.replace(optId, manualCKConfigs.option);
+                    attachCKEvents(ed);
+                } catch (e) { console.warn(e); }
+            }
+        }
+
+        // Explanation
+        const expId = `dir_sub_${idx}_explanation`;
+        if (document.getElementById(expId) && !CKEDITOR.instances[expId]) {
+            try {
+                const ed = CKEDITOR.replace(expId, manualCKConfigs.explanation);
+                attachCKEvents(ed);
+            } catch (e) { console.warn(e); }
+        }
+    }
+
+    // Add a new Sub-Question
+    function addSubQuestion() {
+        const seq = directionalSubQuestions.length + 1;
+        const idx = nextSubQIndex++;
+        directionalSubQuestions.push({ idx: idx, seq: seq });
+
+        const list = document.getElementById('directional-sub-questions-list');
+        if (list) {
+            const div = document.createElement('div');
+            div.innerHTML = buildSubQuestionCardHtml(idx, seq);
+            list.appendChild(div.firstElementChild);
+            initSubQuestionCKEditors(idx);
+        }
+
+        activeDirSubqIdx = idx;
+        updateDirectionalSubqCounts();
+        rebuildDirectionalPreviewTabs();
+        updateDirectionalLivePreview();
+
+        // Scroll to newly added card
+        const newCard = document.getElementById(`dir-subq-card-${idx}`);
+        if (newCard) {
+            newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    // Remove Sub-Question
+    function removeSubQuestion(idx) {
+        if (directionalSubQuestions.length <= 1) {
+            alert('A Directional Set must contain at least one sub-question.');
+            return;
+        }
+
+        // Destroy CKEditors
+        const editorIds = [
+            `dir_sub_${idx}_name`,
+            `dir_sub_${idx}_ans1`,
+            `dir_sub_${idx}_ans2`,
+            `dir_sub_${idx}_ans3`,
+            `dir_sub_${idx}_ans4`,
+            `dir_sub_${idx}_ans5`,
+            `dir_sub_${idx}_explanation`
+        ];
+        editorIds.forEach(id => {
+            if (window.CKEDITOR && CKEDITOR.instances[id]) {
+                try { CKEDITOR.instances[id].destroy(); } catch (e) {}
+            }
+        });
+
+        // Remove element
+        document.getElementById(`dir-subq-card-${idx}`)?.remove();
+
+        // Update list
+        directionalSubQuestions = directionalSubQuestions.filter(x => x.idx !== idx);
+
+        // Re-index remaining sequences
+        directionalSubQuestions.forEach((item, index) => {
+            item.seq = index + 1;
+            const card = document.getElementById(`dir-subq-card-${item.idx}`);
+            if (card) {
+                const seqBadge = card.querySelector('.sub-q-seq');
+                if (seqBadge) seqBadge.textContent = item.seq;
+                const noInput = card.querySelector('.dir-sub-no-input');
+                if (noInput && (!noInput.value || noInput.value == (index + 2))) {
+                    noInput.value = item.seq;
+                }
+            }
+        });
+
+        if (activeDirSubqIdx === idx) {
+            activeDirSubqIdx = directionalSubQuestions[0] ? directionalSubQuestions[0].idx : 0;
+        }
+
+        updateDirectionalSubqCounts();
+        rebuildDirectionalPreviewTabs();
+        updateDirectionalLivePreview();
+    }
+
+    // Update counts display
+    function updateDirectionalSubqCounts() {
+        const count = directionalSubQuestions.length;
+        const text = `${count} Sub-Question${count > 1 ? 's' : ''}`;
+        const countBadge = document.getElementById('dir-sub-count-text');
+        if (countBadge) countBadge.textContent = text;
+        const metaCount = document.getElementById('dir-meta-total-display');
+        if (metaCount) metaCount.textContent = text;
+    }
+
+    // Rebuild Student View Preview Sub-Question Switcher Tabs
+    function rebuildDirectionalPreviewTabs() {
+        const container = document.getElementById('dir-preview-tabs');
+        if (!container) return;
+
+        let html = '';
+        directionalSubQuestions.forEach(item => {
+            const isActive = (item.idx === activeDirSubqIdx);
+            html += `
+                <button type="button" class="btn btn-xs ${isActive ? 'btn-primary font-weight-bold shadow-sm' : 'btn-outline-secondary'} dir-preview-tab-btn" data-idx="${item.idx}" style="font-size: 10px; padding: 2px 8px; border-radius: 2px;">
+                    <i class="fa fa-question-circle-o mr-1"></i> Q.${item.seq}
+                </button>
+            `;
+        });
+        container.innerHTML = html;
+
+        // Update active badge
+        const activeItem = directionalSubQuestions.find(x => x.idx === activeDirSubqIdx);
+        const badge = document.getElementById('dir-preview-active-subq-badge');
+        if (badge) {
+            badge.textContent = `Viewing Sub-Q #${activeItem ? activeItem.seq : 1}`;
+        }
+    }
+
+    // Tab switcher click
+    document.addEventListener('click', function (e) {
+        const tabBtn = e.target.closest('.dir-preview-tab-btn');
+        if (tabBtn) {
+            e.preventDefault();
+            activeDirSubqIdx = parseInt(tabBtn.dataset.idx, 10);
+            rebuildDirectionalPreviewTabs();
+            updateDirectionalLivePreview();
+            return;
+        }
+
+        // Add sub-question triggers
+        if (e.target.closest('#btn-add-directional-subq') || e.target.closest('.btn-add-subq-trigger')) {
+            e.preventDefault();
+            addSubQuestion();
+            return;
+        }
+
+        // Remove sub-question
+        const remBtn = e.target.closest('.btn-remove-subq');
+        if (remBtn) {
+            e.preventDefault();
+            const idx = parseInt(remBtn.dataset.idx, 10);
+            removeSubQuestion(idx);
+            return;
+        }
+
+        // Toggle Option 5 for Sub-Question
+        const togOpt5 = e.target.closest('.btn-toggle-subq-opt5');
+        if (togOpt5) {
+            e.preventDefault();
+            const idx = parseInt(togOpt5.dataset.idx, 10);
+            const col5 = document.getElementById(`dir_sub_${idx}_col_5`);
+            if (col5) {
+                col5.classList.remove('d-none');
+                if (window.CKEDITOR && !CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
+                    try {
+                        const ed5 = CKEDITOR.replace(`dir_sub_${idx}_ans5`, manualCKConfigs.option);
+                        attachCKEvents(ed5);
+                    } catch (e) {}
+                }
+                togOpt5.style.display = 'none';
+                updateDirectionalLivePreview();
+            }
+            return;
+        }
+
+        // Remove Option 5 for Sub-Question
+        const remOpt5 = e.target.closest('.btn-remove-subq-opt5');
+        if (remOpt5) {
+            e.preventDefault();
+            const idx = parseInt(remOpt5.dataset.idx, 10);
+            const col5 = document.getElementById(`dir_sub_${idx}_col_5`);
+            if (col5) {
+                col5.classList.add('d-none');
+                if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
+                    CKEDITOR.instances[`dir_sub_${idx}_ans5`].setData('');
+                }
+                const togBtn = document.querySelector(`.btn-toggle-subq-opt5[data-idx="${idx}"]`);
+                if (togBtn) togBtn.style.display = '';
+
+                // Reset radio if 4 was selected
+                const checkedRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"]:checked`);
+                if (checkedRadio && checkedRadio.value === '4') {
+                    const opt1 = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"][value="0"]`);
+                    if (opt1) opt1.checked = true;
+                }
+                updateDirectionalLivePreview();
+            }
+            return;
+        }
+
+        // Remove Sub-Question Image
+        const remImg = e.target.closest('.btn-remove-subq-img');
+        if (remImg) {
+            e.preventDefault();
+            const idx = parseInt(remImg.dataset.idx, 10);
+            const fileInput = document.getElementById(`dir_sub_${idx}_image`);
+            if (fileInput) fileInput.value = '';
+            document.getElementById(`dir_sub_${idx}_img_preview_wrap`)?.classList.add('d-none');
+            updateDirectionalLivePreview();
+            return;
+        }
+    });
+
+    // Listen to changes in correct radio for sub-questions
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('dir-correct-radio')) {
+            updateDirectionalLivePreview();
+            return;
+        }
+        if (e.target.classList.contains('dir-sub-no-input')) {
+            rebuildDirectionalPreviewTabs();
+            updateDirectionalLivePreview();
+            return;
+        }
+        // Sub-question image selection
+        if (e.target.classList.contains('dir-subq-img-input')) {
+            const idx = e.target.dataset.idx;
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.getElementById(`dir_sub_${idx}_img_preview`);
+                    const wrap = document.getElementById(`dir_sub_${idx}_img_preview_wrap`);
+                    if (img) img.src = ev.target.result;
+                    if (wrap) wrap.classList.remove('d-none');
+                    updateDirectionalLivePreview();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+            return;
+        }
+    });
+
+    // Common Direction Diagram selection & removal
+    const dirImgInput = document.getElementById('dir_image');
+    dirImgInput?.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('dir-image-preview');
+                const wrap = document.getElementById('dir-image-preview-wrapper');
+                if (img) img.src = e.target.result;
+                if (wrap) wrap.classList.remove('d-none');
+                updateDirectionalLivePreview();
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    document.getElementById('btn-remove-dir-img')?.addEventListener('click', function () {
+        if (dirImgInput) dirImgInput.value = '';
+        document.getElementById('dir-image-preview-wrapper')?.classList.add('d-none');
+        updateDirectionalLivePreview();
+    });
+
+    // Insert Sample Table Template
+    document.getElementById('btn-insert-table-template')?.addEventListener('click', function () {
+        const tableArea = document.getElementById('dir_direction_table');
+        if (tableArea) {
+            const sampleHtml = `<table class="table table-bordered table-sm text-center mb-0">
+  <thead style="background:#f1f5f9;">
+    <tr><th>Category / Year</th><th>2023</th><th>2024</th><th>2025</th><th>2026</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Production (Units in '000)</td><td>120</td><td>145</td><td>180</td><td>210</td></tr>
+    <tr><td>Export Sales (₹ Crores)</td><td>45.5</td><td>58.2</td><td>72.0</td><td>89.4</td></tr>
+    <tr><td>Domestic Sales (₹ Crores)</td><td>32.0</td><td>38.5</td><td>44.2</td><td>51.8</td></tr>
+  </tbody>
+</table>`;
+            tableArea.value = sampleHtml;
+            updateDirectionalLivePreview();
+        }
+    });
+    document.getElementById('dir_direction_table')?.addEventListener('input', updateDirectionalLivePreview);
+
+    // Initialize Directional Engine (Direction Passage CKEditor + Sub-Q 1 & 2)
+    function initDirectionalEngine() {
+        if (directionalEditorsInitialized) return;
+
+        // 1. Passage CKEditor
+        if (window.CKEDITOR && document.getElementById('dir_direction') && !CKEDITOR.instances['dir_direction']) {
+            try {
+                const edDir = CKEDITOR.replace('dir_direction', manualCKConfigs.direction);
+                attachCKEvents(edDir);
+            } catch (e) { console.warn(e); }
+        }
+
+        // 2. Clear and inject default 2 sub-questions
+        const list = document.getElementById('directional-sub-questions-list');
+        if (list && directionalSubQuestions.length === 0) {
+            list.innerHTML = '';
+            // Sub-Q 1
+            const idx0 = nextSubQIndex++;
+            directionalSubQuestions.push({ idx: idx0, seq: 1 });
+            list.innerHTML += buildSubQuestionCardHtml(idx0, 1);
+
+            // Sub-Q 2
+            const idx1 = nextSubQIndex++;
+            directionalSubQuestions.push({ idx: idx1, seq: 2 });
+            list.innerHTML += buildSubQuestionCardHtml(idx1, 2);
+
+            // Initialize CKEditors for Sub-Q 1 & 2
+            setTimeout(() => {
+                initSubQuestionCKEditors(idx0);
+                initSubQuestionCKEditors(idx1);
+                activeDirSubqIdx = idx0;
+                updateDirectionalSubqCounts();
+                rebuildDirectionalPreviewTabs();
+                updateDirectionalLivePreview();
+            }, 80);
+        }
+
+        directionalEditorsInitialized = true;
+    }
+
+    // Directional Real-Time Live Student View Preview
+    function updateDirectionalLivePreview() {
+        const previewEl = document.getElementById('directional-live-preview');
+        if (!previewEl) return;
+
+        const groupId = document.getElementById('dir_group_id')?.value.trim() || 'DIR-SET';
+        const dirText = getManualFieldVal('dir_direction').trim();
+        const dirTable = document.getElementById('dir_direction_table')?.value.trim() || '';
+
+        const dirImgSrc = document.getElementById('dir-image-preview')?.getAttribute('src');
+        const hasDirImg = dirImgSrc && !document.getElementById('dir-image-preview-wrapper')?.classList.contains('d-none');
+
+        let html = '';
+
+        // 1. Common Passage Banner
+        html += `
+        <div class="mb-3 p-3 rounded shadow-sm border" style="background: linear-gradient(180deg, #f0f7ff 0%, #e6f0fa 100%); border-left: 4px solid #0284c7 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-info">
+                <span class="badge badge-primary font-weight-bold px-2 py-1" style="background: #0284c7; font-size: 10px;">
+                    <i class="fa fa-sitemap mr-1"></i> DIRECTION SET: ${escapeHtml(groupId)}
+                </span>
+                <span class="text-muted small" style="font-size: 10px;">Common Instructions / Passage</span>
+            </div>
+            ${dirText ? `
+            <div class="font-weight-bold text-dark mb-2" style="font-size: 12px; line-height: 1.6;">
+                ${formatRichExamContent(dirText)}
+            </div>` : `<div class="text-muted small mb-2"><em>Enter common passage or DI instructions above...</em></div>`}
+
+            ${hasDirImg ? `
+            <div class="text-center my-2 p-2 bg-white rounded border">
+                <img src="${dirImgSrc}" class="img-fluid rounded" style="max-height: 180px;" alt="Direction Diagram">
+            </div>` : ''}
+
+            ${dirTable ? `
+            <div class="my-2 p-2 bg-white rounded border table-responsive" style="font-size: 11px;">
+                ${dirTable}
+            </div>` : ''}
+        </div>`;
+
+        // 2. Active Sub-Question Preview
+        const activeSubQ = directionalSubQuestions.find(x => x.idx === activeDirSubqIdx) || directionalSubQuestions[0];
+        if (activeSubQ) {
+            const idx = activeSubQ.idx;
+            const seq = activeSubQ.seq;
+            const qNoInput = document.querySelector(`#dir-subq-card-${idx} .dir-sub-no-input`);
+            const qNoDisplay = qNoInput ? qNoInput.value.trim() : seq;
+
+            const qText = getManualFieldVal(`dir_sub_${idx}_name`).trim();
+            const a1 = getManualFieldVal(`dir_sub_${idx}_ans1`).trim();
+            const a2 = getManualFieldVal(`dir_sub_${idx}_ans2`).trim();
+            const a3 = getManualFieldVal(`dir_sub_${idx}_ans3`).trim();
+            const a4 = getManualFieldVal(`dir_sub_${idx}_ans4`).trim();
+            const a5 = getManualFieldVal(`dir_sub_${idx}_ans5`).trim();
+            const explanation = getManualFieldVal(`dir_sub_${idx}_explanation`).trim();
+
+            const isOpt5Visible = !document.getElementById(`dir_sub_${idx}_col_5`)?.classList.contains('d-none');
+            const correctRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"]:checked`);
+            const correctIdx = correctRadio ? parseInt(correctRadio.value, 10) : 0;
+
+            const subImgSrc = document.getElementById(`dir_sub_${idx}_img_preview`)?.getAttribute('src');
+            const hasSubImg = subImgSrc && !document.getElementById(`dir_sub_${idx}_img_preview_wrap`)?.classList.contains('d-none');
+
+            html += `
+            <div class="p-2 bg-white rounded border">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                    <span class="font-weight-bold text-dark" style="font-size: 11.5px;">
+                        <i class="fa fa-question-circle text-primary mr-1"></i> Question #${qNoDisplay}
+                    </span>
+                    <span class="badge badge-success" style="font-size: 9.5px; background: #10b981;">
+                        Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
+                    </span>
+                </div>
+
+                ${qText ? `
+                <div class="font-weight-bold mb-3" style="font-size: 12px; color: #002C54; line-height: 1.55;">
+                    ${formatRichExamContent(qText)}
+                </div>` : `<div class="text-muted small mb-3"><em>Enter statement for Sub-Question #${seq}...</em></div>`}
+
+                ${hasSubImg ? `
+                <div class="mb-3 text-center p-2 rounded bg-light border">
+                    <img src="${subImgSrc}" style="max-height: 130px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
+                </div>` : ''}
+
+                <div class="row">`;
+
+            const options = [
+                { letter: 'A', text: a1, idx: 0 },
+                { letter: 'B', text: a2, idx: 1 },
+                { letter: 'C', text: a3, idx: 2 },
+                { letter: 'D', text: a4, idx: 3 },
+            ];
+            if (isOpt5Visible || a5) {
+                options.push({ letter: 'E', text: a5, idx: 4 });
+            }
+
+            options.forEach(opt => {
+                const isCorrect = (correctIdx === opt.idx);
+                const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1px solid #10b981;' : 'background: #ffffff; border: 1px solid #e2e8f0;';
+                const badgeStyle = isCorrect ? 'background: #10b981; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                const colWidth = (options.length === 5 && opt.letter === 'E') ? 'col-12' : 'col-6';
+
+                html += `
+                <div class="${colWidth} mb-2">
+                    <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
+                        <span class="badge mr-2" style="${badgeStyle} font-size: 10px; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
+                        <div class="flex-grow-1" style="font-size: 11px; color: ${isCorrect ? '#065f46' : '#1e293b'}; font-weight: ${isCorrect ? '600' : '400'};">
+                            ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                        </div>
+                        ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 13px;" title="Correct Answer"></i>' : ''}
+                    </div>
+                </div>`;
+            });
+
+            html += `</div>`;
+
+            if (explanation) {
+                html += `
+                <div class="mt-2 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 11px; color: #92400e;">
+                    <strong><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
+                </div>`;
+            }
+
+            html += `</div>`;
+        }
+
+        previewEl.innerHTML = html;
+        renderKaTeXIn(previewEl);
+    }
+
+    // Directional Action Buttons
+    document.getElementById('btn-dir-save-and-add')?.addEventListener('click', function () {
+        syncAllCKEditors();
+        document.getElementById('manual_submit_action').value = 'save_and_add';
+        $('#form-manual-question').submit();
+    });
+
+    document.getElementById('btn-dir-reset')?.addEventListener('click', function () {
+        if (!confirm('Are you sure you want to reset all directional passage and sub-question fields?')) return;
+        ['dir_direction'].forEach(id => {
+            if (window.CKEDITOR && CKEDITOR.instances[id]) CKEDITOR.instances[id].setData('');
+        });
+        const tableArea = document.getElementById('dir_direction_table');
+        if (tableArea) tableArea.value = '';
+        if (dirImgInput) dirImgInput.value = '';
+        document.getElementById('dir-image-preview-wrapper')?.classList.add('d-none');
+
+        directionalSubQuestions.forEach(item => {
+            ['name', 'ans1', 'ans2', 'ans3', 'ans4', 'ans5', 'explanation'].forEach(field => {
+                const edId = `dir_sub_${item.idx}_${field}`;
+                if (window.CKEDITOR && CKEDITOR.instances[edId]) {
+                    CKEDITOR.instances[edId].setData('');
+                }
+            });
+            const fileInput = document.getElementById(`dir_sub_${item.idx}_image`);
+            if (fileInput) fileInput.value = '';
+            document.getElementById(`dir_sub_${item.idx}_img_preview_wrap`)?.classList.add('d-none');
+        });
+
+        const newId = generateDirectionGroupId();
+        const grpInput = document.getElementById('dir_group_id');
+        if (grpInput) grpInput.value = newId;
+        syncDirectionGroupDisplay();
+        updateDirectionalLivePreview();
+    });
+
     function syncAllCKEditors() {
         if (window.CKEDITOR && CKEDITOR.instances) {
             for (let name in CKEDITOR.instances) {
@@ -1830,20 +2802,48 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
 
-        const qVal = getManualFieldVal('manual_question_name').trim();
-        if (!qVal) {
-            alert('Please enter a Question Statement before saving.');
-            if (CKEDITOR.instances['manual_question_name']) {
-                CKEDITOR.instances['manual_question_name'].focus();
-            } else {
-                document.getElementById('manual_question_name')?.focus();
+        const mode = document.getElementById('manual_mode')?.value || 'standalone';
+        if (mode === 'directional') {
+            const dirVal = getManualFieldVal('dir_direction').trim();
+            if (!dirVal) {
+                alert('Please enter the Common Direction / Passage text before saving.');
+                if (window.CKEDITOR && CKEDITOR.instances['dir_direction']) {
+                    CKEDITOR.instances['dir_direction'].focus();
+                } else {
+                    document.getElementById('dir_direction')?.focus();
+                }
+                e.preventDefault();
+                return false;
             }
-            e.preventDefault();
-            return false;
+
+            // Check if at least one sub-question has statement
+            let hasValidSubQ = false;
+            directionalSubQuestions.forEach(item => {
+                const qStatement = getManualFieldVal(`dir_sub_${item.idx}_name`).trim();
+                if (qStatement) hasValidSubQ = true;
+            });
+
+            if (!hasValidSubQ) {
+                alert('Please enter a question statement for at least one sub-question in the set.');
+                e.preventDefault();
+                return false;
+            }
+        } else {
+            const qVal = getManualFieldVal('manual_question_name').trim();
+            if (!qVal) {
+                alert('Please enter a Question Statement before saving.');
+                if (CKEDITOR.instances['manual_question_name']) {
+                    CKEDITOR.instances['manual_question_name'].focus();
+                } else {
+                    document.getElementById('manual_question_name')?.focus();
+                }
+                e.preventDefault();
+                return false;
+            }
         }
     });
 
-    // Reset button handler
+    // Reset button handler for standalone
     document.querySelector('#form-manual-question button[type="reset"]')?.addEventListener('click', function (e) {
         setTimeout(() => {
             ['manual_question_name', 'manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5', 'manual_explanation'].forEach(id => {
