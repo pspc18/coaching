@@ -327,27 +327,34 @@
     height: 220px;
     border-radius: 4px;
     overflow: hidden;
-    background: #f1f5f9;
+    background: #f8fafc;
     border: 1px solid #cbd5e1;
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .profile-avatar-box img {
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
     height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: contain;
+    object-position: center center;
     display: block;
+    margin: 0 auto;
 }
 .profile-avatar-actions {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0, 44, 84, 0.92), transparent);
-    padding: 8px 6px 6px;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.72) 0%, transparent 100%);
+    padding: 6px;
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
+    z-index: 3;
 }
 .avatar-action-btn {
     background: #ffffff;
