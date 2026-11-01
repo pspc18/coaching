@@ -1623,7 +1623,7 @@ class StudentsAdmissionController extends Controller
                             ->orderBy('sort_by')
                             ->get(['id', 'name']);
 
-                        return view('students.admission.studentDetail', compact(
+                        return Helper::view('students.admission.studentDetail', compact(
                             'data',
                             'getFees',
                             'getPaidFees',
