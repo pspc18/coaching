@@ -979,6 +979,7 @@ textarea.theme-form-control {
                                         </label>
                                         <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
                                             <input type="file" id="manual_image" name="image" accept="image/*" class="form-control-file" style="font-size: 11px;">
+                                            <input type="hidden" id="manual_image_path" name="image_path">
                                             <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
                                                 <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
                                                 <div class="mt-1">
@@ -1103,6 +1104,7 @@ textarea.theme-form-control {
                                                     <i class="fa fa-picture-o text-primary mr-1"></i> Common Passage Diagram / Graph <span class="text-muted font-weight-normal">(Optional)</span>
                                                 </label>
                                                 <input type="file" id="dir_image" name="direction_image" accept="image/*" class="form-control-file" style="font-size: 11px;">
+                                                <input type="hidden" id="dir_image_path" name="direction_image_path">
                                                 <div id="dir-image-preview-wrapper" class="mt-2 text-center d-none">
                                                     <img id="dir-image-preview" src="" alt="Direction Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 120px;">
                                                     <div class="mt-1">
@@ -2631,6 +2633,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </label>
                         <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
                             <input type="file" id="dir_sub_${idx}_image" name="directional_questions[${idx}][image]" accept="image/*" class="form-control-file dir-subq-img-input" data-idx="${idx}" style="font-size: 11px;">
+                            <input type="hidden" id="dir_sub_${idx}_image_path" name="directional_questions[${idx}][image_path]">
                             <div id="dir_sub_${idx}_img_preview_wrap" class="mt-2 text-center d-none">
                                 <img id="dir_sub_${idx}_img_preview" src="" alt="Sub-Q Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 90px;">
                                 <div class="mt-1">
@@ -4932,11 +4935,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const correctIdx = parseInt(q.correct_ans, 10) || 0;
             const diff = q.difficulty_level || 'Medium';
             const diffColor = diff === 'Easy' ? '#059669' : (diff === 'Hard' ? '#dc2626' : '#d97706');
+            const imgUrl = q.image ? (q.image.startsWith('http') ? q.image : '{{ asset("") }}' + q.image) : null;
 
             html += `
             <div class="ai-staging-card standalone-card p-3" data-card-type="standalone" id="ai-card-standalone-${sIdx}">
                 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <label class="custom-control custom-checkbox mb-0" style="cursor: pointer;">
                             <input type="checkbox" class="custom-control-input ai-staging-chk" data-type="standalone" data-idx="${sIdx}" checked>
                             <span class="custom-control-label"></span>
@@ -4945,6 +4949,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <i class="fa fa-file-text-o mr-1"></i> Standalone Q #${sIdx + 1}
                         </span>
                         <span class="badge" style="background: ${diffColor}; color: #ffffff; font-size: 10px;">${diff}</span>
+                        ${imgUrl ? `<span class="badge badge-info" style="font-size: 10px; background: #0284c7;"><i class="fa fa-picture-o mr-1"></i> Has Diagram</span>` : ''}
                         <span class="badge badge-success font-weight-bold" style="background: #059669; color: #ffffff; font-size: 10px;">
                             <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
                         </span>
@@ -4960,6 +4965,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="font-weight-bold mb-2 text-dark" style="font-size: 12.5px; line-height: 1.6;">
                     ${formatRichExamContent(q.name)}
                 </div>
+
+                ${imgUrl ? `
+                <div class="mb-2 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                    <img src="${imgUrl}" style="max-height: 130px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
+                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Attached Diagram / Figure</div>
+                </div>` : ''}
 
                 {{-- Options Grid --}}
                 <div class="row mb-2">
@@ -4996,11 +5007,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // 2. Render Directional Sets
         dirSets.forEach((set, setIdx) => {
             const subQs = Array.isArray(set.sub_questions) ? set.sub_questions : [];
+            const setImgUrl = set.image ? (set.image.startsWith('http') ? set.image : '{{ asset("") }}' + set.image) : null;
 
             html += `
             <div class="ai-staging-card directional-card p-3" data-card-type="directional" id="ai-card-dir-${setIdx}">
                 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <label class="custom-control custom-checkbox mb-0" style="cursor: pointer;">
                             <input type="checkbox" class="custom-control-input ai-staging-chk" data-type="directional" data-idx="${setIdx}" checked>
                             <span class="custom-control-label"></span>
@@ -5011,6 +5023,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="badge badge-info" style="font-size: 11px; background: #0284c7;">
                             ${subQs.length} Sub-Questions
                         </span>
+                        ${set.direction_table ? `<span class="badge badge-secondary" style="font-size: 10px;"><i class="fa fa-table mr-1"></i> Data Table</span>` : ''}
+                        ${setImgUrl ? `<span class="badge badge-info" style="font-size: 10px; background: #0284c7;"><i class="fa fa-picture-o mr-1"></i> Set Diagram</span>` : ''}
                     </div>
                     <div>
                         <button type="button" class="btn btn-xs btn-outline-primary btn-ai-load-directional font-weight-bold" data-idx="${setIdx}" style="font-size: 11px; padding: 3px 10px;">
@@ -5025,6 +5039,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa fa-align-left mr-1"></i> COMMON PASSAGE / DIRECTION CONTEXT:
                     </div>
                     ${formatRichExamContent(set.direction || '<em>No common narrative provided</em>')}
+
+                    ${setImgUrl ? `
+                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
+                        <img src="${setImgUrl}" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram">
+                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
+                    </div>` : ''}
+
                     ${set.direction_table ? `<div class="mt-2 table-responsive">${set.direction_table}</div>` : ''}
                 </div>
 
@@ -5033,6 +5054,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="small font-weight-bold mb-2 text-dark">Sub-Questions in this set:</div>
                     ${subQs.map((sq, sqIdx) => {
                         const sqCorrIdx = parseInt(sq.correct_ans, 10) || 0;
+                        const sqImgUrl = (sq.image && sq.image !== set.image) ? (sq.image.startsWith('http') ? sq.image : '{{ asset("") }}' + sq.image) : null;
                         return `
                         <div class="mb-3 p-2 bg-white rounded border" style="background: #ffffff; border-color: #e2e8f0 !important;">
                             <div class="d-flex align-items-center justify-content-between mb-1">
@@ -5046,6 +5068,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a; line-height: 1.5;">
                                 ${formatRichExamContent(sq.name)}
                             </div>
+
+                            ${sqImgUrl ? `
+                            <div class="my-2 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                                <img src="${sqImgUrl}" style="max-height: 110px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
+                            </div>` : ''}
+
                             <div class="row mb-1">
                                 ${[
                                     { k: 'ans1', l: 'A', i: 0 },
@@ -5088,8 +5116,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     delimiters: [
                         { left: '$$', right: '$$', display: true },
                         { left: '$', right: '$', display: false },
-                        { left: '\\[', right: '\\]', display: true },
-                        { left: '\\(', right: '\\)', display: false }
+                        { left: '\[', right: '\]', display: true },
+                        { left: '\(', right: '\)', display: false }
                     ],
                     throwOnError: false
                 });
@@ -5159,6 +5187,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     const el = document.getElementById('manual_question_name');
                     if (el) el.value = q.name || '';
+                }
+
+                // Populate Diagram Image if present
+                const manualImgInput = document.getElementById('manual_image_path');
+                const manualImgWrap = document.getElementById('manual-image-preview-wrapper');
+                const manualImgPreview = document.getElementById('manual-image-preview');
+                if (q.image) {
+                    if (manualImgInput) manualImgInput.value = q.image;
+                    const fullImg = q.image.startsWith('http') ? q.image : '{{ asset("") }}' + q.image;
+                    if (manualImgPreview) manualImgPreview.src = fullImg;
+                    manualImgWrap?.classList.remove('d-none');
+                } else {
+                    if (manualImgInput) manualImgInput.value = '';
+                    manualImgWrap?.classList.add('d-none');
                 }
 
                 // Populate Options 1-4
@@ -5241,15 +5283,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Set Direction Passage & Table
                 let fullPassage = set.direction || '';
-                if (set.direction_table) {
-                    fullPassage += '\n\n' + set.direction_table;
-                }
 
                 if (window.CKEDITOR && CKEDITOR.instances['dir_direction']) {
                     CKEDITOR.instances['dir_direction'].setData(fullPassage);
                 } else {
                     const el = document.getElementById('dir_direction');
                     if (el) el.value = fullPassage;
+                }
+
+                // Set Direction Table if present
+                const dirTableInput = document.getElementById('dir_direction_table');
+                if (dirTableInput) {
+                    dirTableInput.value = set.direction_table || '';
+                }
+
+                // Populate Passage Diagram Image if present
+                const dirImgInput = document.getElementById('dir_image_path');
+                const dirImgWrap = document.getElementById('dir-image-preview-wrapper');
+                const dirImgPreview = document.getElementById('dir-image-preview');
+                if (set.image) {
+                    if (dirImgInput) dirImgInput.value = set.image;
+                    const fullImg = set.image.startsWith('http') ? set.image : '{{ asset("") }}' + set.image;
+                    if (dirImgPreview) dirImgPreview.src = fullImg;
+                    dirImgWrap?.classList.remove('d-none');
+                } else {
+                    if (dirImgInput) dirImgInput.value = '';
+                    dirImgWrap?.classList.add('d-none');
                 }
 
                 // Set Set ID
@@ -5295,6 +5354,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         // Statement
                         if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_name`]) {
                             CKEDITOR.instances[`dir_sub_${idx}_name`].setData(sq.name || '');
+                        }
+
+                        // Sub Q Image
+                        const subImg = sq.image || set.image;
+                        if (subImg) {
+                            const subImgInput = document.getElementById(`dir_sub_${idx}_image_path`);
+                            if (subImgInput) subImgInput.value = subImg;
+                            const subWrap = document.getElementById(`dir_sub_${idx}_img_preview_wrap`);
+                            const subPrev = document.getElementById(`dir_sub_${idx}_img_preview`);
+                            if (subPrev) subPrev.src = subImg.startsWith('http') ? subImg : '{{ asset("") }}' + subImg;
+                            subWrap?.classList.remove('d-none');
                         }
 
                         // Options A-D
@@ -5349,6 +5419,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
 
     // Update Staging Selected Questions Count
     function updateAiStagingSelectedCount() {
@@ -5407,6 +5478,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     correct_ans: q.correct_ans,
                     explanation: q.explanation || null,
                     difficulty_level: q.difficulty_level || 'Medium',
+                    image: q.image || null,
                     group_id: null,
                     direction: null,
                     direction_table: null,
@@ -5427,6 +5499,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         correct_ans: sq.correct_ans,
                         explanation: sq.explanation || null,
                         difficulty_level: sq.difficulty_level || 'Medium',
+                        image: sq.image || set.image || null,
                         group_id: set.group_id,
                         direction: set.direction,
                         direction_table: set.direction_table || null,

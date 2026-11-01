@@ -634,6 +634,7 @@ EOT;
         $mediaParts = [];
         $extractedDiagrams = [];
         $referenceDocNote = "";
+        $uploadedRefImage = null;
 
         if (!empty($filePath) && file_exists($filePath)) {
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
@@ -653,9 +654,42 @@ EOT;
                 $imgPayload = $this->prepareImagePayload($filePath);
                 if ($imgPayload['success']) {
                     $mediaParts[] = $imgPayload['data'];
-                    $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. Carefully analyze its contents, style, formulas, and pattern. Generate questions following this pattern and the user's specific instructions.";
+
+                    // Save a copy in public uploads for diagram attachment
+                    $filename = 'ai_ref_' . time() . '_' . Str::random(6) . '.' . ($ext ?: 'jpg');
+                    $destDir = public_path('uploads/questions');
+                    if (!file_exists($destDir)) {
+                        mkdir($destDir, 0755, true);
+                    }
+                    @copy($filePath, $destDir . '/' . $filename);
+                    $uploadedRefImage = 'uploads/questions/' . $filename;
+                    $extractedDiagrams = [
+                        [
+                            'id' => 'diag_img_1',
+                            'page' => 1,
+                            'type' => 'image',
+                            'image_path' => $uploadedRefImage
+                        ]
+                    ];
+                    $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. Carefully analyze its contents, style, formulas, and pattern. If any question or directional set references or requires this image/diagram, set \"diagram_id\": \"diag_img_1\" and \"has_diagram\": true.";
                 }
             }
+        }
+
+        $diagramsCatalogPrompt = "";
+        if (!empty($extractedDiagrams)) {
+            $diagramsCatalogPrompt = "DOCUMENT EXTRACTED DIAGRAMS CATALOG:\n";
+            $diagramsCatalogPrompt .= "The reference document was pre-scanned and the following diagrams were extracted:\n";
+            foreach ($extractedDiagrams as $d) {
+                $diagId = $d['id'] ?? ('diag_p' . ($d['page'] ?? 1));
+                $dPage = $d['page'] ?? 1;
+                $dType = $d['type'] ?? 'diagram';
+                $hint = !empty($d['context_hint']) ? (' | Context: ' . mb_substr($d['context_hint'], 0, 80)) : '';
+                $diagramsCatalogPrompt .= "- ID: \"{$diagId}\" | Page: {$dPage} | Type: {$dType}{$hint}\n";
+            }
+            $diagramsCatalogPrompt .= "\nDIAGRAM & TABLE MAPPING RULES:\n";
+            $diagramsCatalogPrompt .= "1. If a question or directional set refers to or depends on an extracted diagram/chart/figure above, set \"diagram_id\" to its exact ID (e.g. \"{$extractedDiagrams[0]['id']}\") and \"has_diagram\": true.\n";
+            $diagramsCatalogPrompt .= "2. If questions contain data tables, matrix, or charts, convert all tabular data to clean HTML <table>...</table> as specified below.\n\n";
         }
 
         $className = !empty($context['class_name']) ? $context['class_name'] : 'Standard / Competitive Level';
@@ -663,19 +697,22 @@ EOT;
         $diffPref = !empty($context['difficulty']) ? $context['difficulty'] : 'Mixed (Easy, Medium, Hard)';
         $optionsCount = !empty($context['options_count']) ? (int)$context['options_count'] : 4;
 
-        $prompt = <<<EOT
+        // Use Nowdoc <<<'PROMPT_TEMPLATE' so PHP NEVER attempts variable interpolation on $LaTeX or $ math expressions!
+        $template = <<<'PROMPT_TEMPLATE'
 You are an elite, highly trained Academic Examination Question Creator AI for school boards (CBSE, ICSE, State Boards) and competitive exams (NEET, JEE Main/Advanced, Banking PO/Clerk, SSC CGL/CHSL, UPSC, NDA, Railway, Olympiads).
 
-{$referenceDocNote}
+{{REFERENCE_DOC_NOTE}}
+
+{{DIAGRAMS_CATALOG_PROMPT}}
 
 USER INSTRUCTIONS / PROMPT:
-"{$userPrompt}"
+"{{USER_PROMPT}}"
 
 ACADEMIC CONTEXT:
-- Target Class / Level: {$className}
-- Subject: {$subjectName}
-- Target Difficulty: {$diffPref}
-- Default Options Count: {$optionsCount} options per MCQ
+- Target Class / Level: {{CLASS_NAME}}
+- Subject: {{SUBJECT_NAME}}
+- Target Difficulty: {{DIFF_PREF}}
+- Default Options Count: {{OPTIONS_COUNT}} options per MCQ
 
 CORE OBJECTIVE:
 Synthesize high-quality, authentic, examination-grade questions adhering strictly to the user's prompt.
@@ -688,12 +725,27 @@ The user may ask for:
 STRICT GUIDELINES:
 1. MATHEMATICAL & SCIENTIFIC FORMULAS (LATEX):
    - You MUST format ALL mathematical expressions, physical equations, chemical reactions, formulas, fractions, powers, square roots, integrals, matrices, and Greek letters using standard LaTeX syntax enclosed in dollar signs ($...$ for inline).
-   - Examples: $\frac{x^2 + 1}{2x}$, $\sqrt{3x - 5}$, $\int_0^1 x^2 dx$, $\alpha + \beta = -\frac{b}{a}$, $\vec{F} = m\vec{a}$.
+   - Examples: $rac{x^2 + 1}{2x}$, $\sqrt{3x - 5}$, $\int_0^1 x^2 dx$, $lpha + eta = -rac{b}{a}$, $ec{F} = mec{a}$.
    - Never write plain text math like "x^2" or "sqrt(x)". Always use LaTeX.
 
-2. STANDALONE QUESTIONS:
+2. TABLES & DATA STRUCTURES:
+   - For Directional Sets: If the context contains a data table, schedule, quarterly breakdown, or matrix, you MUST provide the complete HTML table inside "direction_table":
+     <table class="table table-bordered table-sm text-center"><thead><tr><th>Header 1</th>...</tr></thead><tbody><tr><td>Data</td>...</tr></tbody></table>
+   - For Standalone Questions: If a standalone question contains a table, provide it in the "table" property:
+     <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
+     (or embed it directly inside "name").
+   - Never leave tables empty or summarized with "...". Include complete rows and numbers.
+
+3. DIAGRAMS & ILLUSTRATIONS:
+   - If a question or directional set references a diagram, figure, chart, geometry drawing, or graph from the attached reference document, set "diagram_id" to the matching diagram ID and "has_diagram": true.
+   - If no diagram is referenced, set "diagram_id": null and "has_diagram": false.
+
+4. STANDALONE QUESTIONS:
    - "name": Clear, self-contained question statement.
    - "question_type_id": 1 (Objective / MCQ).
+   - "table": HTML <table> string if this question contains a data table, otherwise null.
+   - "has_diagram": boolean.
+   - "diagram_id": string or null.
    - "ans1", "ans2", "ans3", "ans4": Clear, distinct, unambiguous option texts (with LaTeX if mathematical).
    - "ans5": Provide Option E if 5 options are requested (e.g. Banking exams), otherwise null.
    - Do NOT include letter prefixes like "(A)" or "A." inside the option text.
@@ -702,23 +754,27 @@ STRICT GUIDELINES:
    - "explanation": Comprehensive, pedagogically sound, step-by-step solution / derivation.
    - "difficulty_level": "Easy", "Medium", or "Hard".
 
-3. DIRECTIONAL QUESTION SETS (PASSAGE / CASE STUDY / DATA INTERPRETATION):
+5. DIRECTIONAL QUESTION SETS (PASSAGE / CASE STUDY / DATA INTERPRETATION):
    - "direction": The full common passage, comprehension story, or problem statement that introduces the context for the set.
    - "direction_table": If the set is based on a data table or matrix, provide a clean, complete HTML table:
      <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
      (If no table is needed, set to null).
+   - "has_diagram": boolean.
+   - "diagram_id": string or null.
    - "sub_questions": An array of questions that depend on this common direction/passage.
      Each sub-question must have:
      - "sub_question_no": 1, 2, 3, etc.
      - "name": Specific question statement for this sub-question (do NOT repeat the common passage).
      - "question_type_id": 1.
+     - "has_diagram": boolean.
+     - "diagram_id": string or null.
      - "ans1", "ans2", "ans3", "ans4", "ans5" (if applicable).
      - "correct_ans": "0", "1", "2", "3", or "4".
      - "correct_option_letter": "A", "B", "C", "D", or "E".
      - "explanation": Detailed solution for this specific sub-question.
      - "difficulty_level": "Easy", "Medium", or "Hard".
 
-4. SCHEMA INTEGRITY:
+6. SCHEMA INTEGRITY:
    - Return pure, valid JSON matching the exact schema below.
    - Do NOT wrap in markdown fences. Output raw JSON only.
 
@@ -728,8 +784,11 @@ SCHEMA:
   "topic": "Primary Topic / Chapter Name",
   "standalone_questions": [
     {
-      "name": "Question statement with $LaTeX$...",
+      "name": "Question statement with LaTeX...",
       "question_type_id": 1,
+      "table": null,
+      "has_diagram": false,
+      "diagram_id": null,
       "ans1": "Option A text",
       "ans2": "Option B text",
       "ans3": "Option C text",
@@ -745,11 +804,15 @@ SCHEMA:
     {
       "direction": "Common narrative passage or context text...",
       "direction_table": null,
+      "has_diagram": false,
+      "diagram_id": null,
       "sub_questions": [
         {
           "sub_question_no": 1,
           "name": "Sub-question 1 statement...",
           "question_type_id": 1,
+          "has_diagram": false,
+          "diagram_id": null,
           "ans1": "Option A text",
           "ans2": "Option B text",
           "ans3": "Option C text",
@@ -764,7 +827,29 @@ SCHEMA:
     }
   ]
 }
-EOT;
+PROMPT_TEMPLATE;
+
+        $prompt = str_replace(
+            [
+                '{{REFERENCE_DOC_NOTE}}',
+                '{{DIAGRAMS_CATALOG_PROMPT}}',
+                '{{USER_PROMPT}}',
+                '{{CLASS_NAME}}',
+                '{{SUBJECT_NAME}}',
+                '{{DIFF_PREF}}',
+                '{{OPTIONS_COUNT}}'
+            ],
+            [
+                $referenceDocNote,
+                $diagramsCatalogPrompt,
+                $userPrompt,
+                $className,
+                $subjectName,
+                $diffPref,
+                $optionsCount
+            ],
+            $template
+        );
 
         $result = $this->callGeminiMultimodal($mediaParts, $prompt, $key, true);
 
@@ -789,6 +874,8 @@ EOT;
                             $grouped[$gKey] = [
                                 'direction' => $q['direction'] ?? '',
                                 'direction_table' => $q['direction_table'] ?? null,
+                                'has_diagram' => $q['has_diagram'] ?? false,
+                                'diagram_id' => $q['diagram_id'] ?? null,
                                 'sub_questions' => []
                             ];
                         }
@@ -803,7 +890,43 @@ EOT;
                 $data['directional_sets'] = array_values($grouped);
             }
 
-            // Assign unique group_ids and sanitize directional sets
+            // Index extracted diagrams by id
+            $diagramsById = [];
+            foreach ($extractedDiagrams as $d) {
+                if (!empty($d['id'])) {
+                    $diagramsById[$d['id']] = $d;
+                }
+            }
+
+            // Post-processing 1: Standalone Questions (Tables & Diagrams)
+            foreach ($data['standalone_questions'] as &$sq) {
+                // Attach diagram image if matched
+                $matchedDiag = null;
+                if (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']])) {
+                    $matchedDiag = $diagramsById[$sq['diagram_id']];
+                } elseif (!empty($sq['has_diagram']) && !empty($extractedDiagrams)) {
+                    $matchedDiag = $extractedDiagrams[0];
+                } elseif (!empty($uploadedRefImage)) {
+                    $matchedDiag = $extractedDiagrams[0] ?? null;
+                }
+
+                if ($matchedDiag) {
+                    $sq['image'] = $matchedDiag['image_path'];
+                    $sq['has_diagram'] = true;
+                } else {
+                    $sq['image'] = $sq['image'] ?? null;
+                }
+
+                // Append table to name if standalone question has a separate table property
+                if (!empty($sq['table']) && is_string($sq['table'])) {
+                    if (strpos($sq['name'], '<table') === false) {
+                        $sq['name'] .= '<div class="table-responsive my-2">' . $sq['table'] . '</div>';
+                    }
+                }
+            }
+            unset($sq);
+
+            // Post-processing 2: Directional Sets (Tables, Unique Group IDs, Diagrams)
             $timestamp = date('Ymd-His');
             foreach ($data['directional_sets'] as $sIdx => &$set) {
                 if (empty($set['group_id'])) {
@@ -812,11 +935,40 @@ EOT;
                 if (!isset($set['sub_questions']) || !is_array($set['sub_questions'])) {
                     $set['sub_questions'] = [];
                 }
+
+                // Match diagram for directional set
+                $matchedSetDiag = null;
+                if (!empty($set['diagram_id']) && isset($diagramsById[$set['diagram_id']])) {
+                    $matchedSetDiag = $diagramsById[$set['diagram_id']];
+                } elseif (!empty($set['has_diagram']) && !empty($extractedDiagrams)) {
+                    $matchedSetDiag = $extractedDiagrams[0];
+                } elseif (!empty($uploadedRefImage)) {
+                    $matchedSetDiag = $extractedDiagrams[0] ?? null;
+                }
+
+                if ($matchedSetDiag) {
+                    $set['image'] = $matchedSetDiag['image_path'];
+                    $set['has_diagram'] = true;
+                } else {
+                    $set['image'] = $set['image'] ?? null;
+                }
+
                 foreach ($set['sub_questions'] as $qIdx => &$sq) {
                     $sq['group_id'] = $set['group_id'];
                     $sq['sub_question_no'] = !empty($sq['sub_question_no']) ? $sq['sub_question_no'] : ($qIdx + 1);
                     $sq['direction'] = $set['direction'] ?? null;
                     $sq['direction_table'] = $set['direction_table'] ?? null;
+
+                    // Match sub-question specific diagram or fallback to set diagram
+                    if (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']])) {
+                        $sq['image'] = $diagramsById[$sq['diagram_id']]['image_path'];
+                        $sq['has_diagram'] = true;
+                    } elseif (!empty($set['image'])) {
+                        $sq['image'] = $set['image'];
+                        $sq['has_diagram'] = true;
+                    } else {
+                        $sq['image'] = $sq['image'] ?? null;
+                    }
                 }
                 unset($sq);
             }
@@ -827,7 +979,6 @@ EOT;
 
         return $result;
     }
-
 
     /**
      * Intelligently focus and slice PDF to the target question/direction pages.
