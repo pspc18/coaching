@@ -336,50 +336,754 @@
 .mob-kit-tag { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
 .mob-kit-val { font-size: 11.5px; font-weight: 800; color: #0f172a; }
 
-/* Fee Item Card */
-.mob-fee-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+/* ==============================================================================
+   ARISE ERP - NATIVE FEES LEDGER STYLES (MATCHING fees_history.blade.php)
+   ============================================================================== */
+.mob-fee-hero {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.mob-fee-item-head {
+.mob-fee-hero-top {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 5px;
+    justify-content: space-between;
+    margin-bottom: 8px;
 }
-.mob-fee-name { font-size: 12.5px; font-weight: 700; color: #0f172a; }
-.mob-fee-grid {
+.mob-fee-hero-title {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-fee-session-pill {
+    font-size: 9.5px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.mob-dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.mob-radar-col {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+.mob-radar-tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.mob-radar-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    margin: 1px 0;
+}
+.mob-radar-meta {
+    font-size: 9px;
+    color: #cbd5e1;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.hero-due-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 1px 0 2px 0;
+}
+.hero-due-row .mob-radar-val {
+    margin: 0;
+    line-height: 1.2;
+}
+.hero-due-pay-btn {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    line-height: 1.2;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 1px 6px rgba(16, 185, 129, 0.35);
+    cursor: pointer;
+    transition: transform .12s ease;
+}
+.hero-due-pay-btn:active {
+    transform: scale(0.95);
+}
+.mob-hero-progress-strip {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+.progress-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9.5px;
+    color: #cbd5e1;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.progress-meta-row b {
+    color: #38bdf8;
+    font-weight: 800;
+}
+.progress-track-bg {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.progress-track-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 2px;
+    transition: width .4s ease;
+}
+
+/* Sub-tab segment toolbar for Fees (Fee Heads vs Receipts) */
+.mob-subtab-bar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-subtab-btn {
+    flex: 1;
+    height: 30px;
+    padding: 0 8px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: all .12s ease;
+}
+.mob-subtab-btn.active-subtab {
+    background: #002C54;
+    border-color: #002C54;
+    color: #ffffff;
+}
+.mob-subtab-btn:active {
+    transform: scale(0.96);
+}
+
+/* Feed List & Card Item */
+.student-mob-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 9px 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    position: relative;
+    margin-bottom: 8px;
+    transition: transform .1s ease, border-color .1s ease;
+}
+.card-paid { border-left: 3px solid #16a34a !important; }
+.card-partial { border-left: 3px solid #f59e0b !important; }
+.card-due { border-left: 3px solid #ef4444 !important; }
+.card-receipt { border-left: 3px solid #0284c7 !important; }
+
+.student-card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.student-avatar-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 3px;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+    border: 1px solid #cbd5e1;
+}
+.student-avatar-box.avatar-paid {
+    background: #dcfce7;
+    color: #16a34a;
+    border-color: #86efac;
+}
+.student-avatar-box.avatar-partial {
+    background: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+}
+.student-avatar-box.avatar-due {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+.student-header-info {
+    flex: 1;
+    overflow: hidden;
+}
+.student-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+}
+.student-mob-name {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    text-decoration: none !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.student-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+.student-adm-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+}
+.student-class-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #e0f2fe;
+    color: #0284c7;
+    padding: 1px 5px;
+    border-radius: 2px;
+}
+.student-status-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.status-badge-active { background: #dcfce7; color: #16a34a; }
+.status-badge-warning { background: #fef3c7; color: #b45309; }
+.status-badge-inactive { background: #fee2e2; color: #dc2626; }
+
+.student-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    font-size: 10.5px;
+    color: #334155;
+    margin-bottom: 8px;
+}
+.student-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.student-meta-item > i {
+    width: 13px;
+    font-size: 10.5px;
+    color: #64748b;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.student-card-actions {
+    display: flex;
+    gap: 5px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
+}
+.mob-btn-action {
+    flex: 1;
+    height: 29px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .12s ease;
+}
+.mob-btn-action:active { transform: scale(0.96); }
+.btn-act-fee { background: #16a34a; color: #ffffff !important; }
+.btn-act-edit { background: #f8fafc; border-color: #cbd5e1; color: #334155 !important; }
+
+/* Expandable Transactions Drawer */
+.tx-drawer-box {
+    display: none;
+    margin-top: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px 10px;
+}
+.tx-drawer-box.show { display: block; }
+.tx-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.tx-item-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+.tx-item-card:last-child {
+    border-bottom: none;
+    padding-bottom: 1px;
+}
+.tx-item-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+.tx-icon-pill {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+    text-align: center;
+    padding: 2px;
+}
+.tx-date-day {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0369a1;
+    letter-spacing: -0.2px;
+}
+.tx-date-mon {
+    font-size: 7.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0284c7;
+    margin-top: 1px;
+}
+.tx-item-details {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.tx-receipt-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #002C54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+.tx-meta-sub {
+    font-size: 9.5px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1.2;
+}
+.tx-mode-tag {
+    font-size: 8.5px;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #334155;
+    padding: 1px 4px;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+.tx-item-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.tx-amount-badge {
+    font-size: 12px;
+    font-weight: 800;
+    color: #16a34a;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+.tx-btn-view {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #002C54 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    text-decoration: none !important;
+    transition: all .12s ease;
+}
+.tx-btn-view:active {
+    transform: scale(0.92);
+    background: #f1f5f9;
+}
+
+/* ==============================================================================
+   ARISE ERP - NATIVE ATTENDANCE STYLES (MATCHING student_login/mobile/attendence)
+   ============================================================================== */
+.matrix-pills-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
+}
+.matrix-status-cell {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 6px 3px;
+    text-align: center;
+}
+.matrix-status-tag {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.matrix-status-val {
+    font-size: 14px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.15;
+    margin-top: 2px;
+}
+.cell-present { background: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+.cell-present .matrix-status-val { color: #16a34a !important; }
+.cell-absent { background: #fef2f2 !important; border-color: #fecaca !important; }
+.cell-absent .matrix-status-val { color: #dc2626 !important; }
+.cell-rate { background: #e0f2fe !important; border-color: #bae6fd !important; }
+.cell-rate .matrix-status-val { color: #0284c7 !important; }
+.cell-total { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+.cell-total .matrix-status-val { color: #334155 !important; }
+
+/* Attendance Punch Activity List */
+.native-list-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 4px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.native-list-item:last-child {
+    border-bottom: none;
+    padding-bottom: 2px;
+}
+.item-date-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.date-badge-day {
+    font-size: 13px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1;
+}
+.date-badge-wday {
+    font-size: 8px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+.item-info-col {
+    flex: 1;
+    overflow: hidden;
+}
+.item-primary-txt {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.item-secondary-txt {
+    font-size: 9.5px;
+    color: #64748b;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.punch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+    font-size: 9px;
+    font-weight: 600;
+}
+.status-chip {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    display: inline-block;
+    white-space: nowrap;
+}
+.chip-present { background: #dcfce7; color: #15803d; }
+.chip-absent { background: #fee2e2; color: #b91c1c; }
+.chip-halfday { background: #f3e8ff; color: #7e22ce; }
+.chip-holiday { background: #e0f2fe; color: #0369a1; }
+.chip-leave { background: #fef3c7; color: #b45309; }
+
+/* ==============================================================================
+   ARISE ERP - NATIVE EXAMS STYLES (MATCHING student_login/exams/view.blade.php)
+   ============================================================================== */
+.exam-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.exam-title-cluster {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+.exam-icon-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #001833, #002C54);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.exam-title-text {
+    min-width: 0;
+    flex: 1;
+}
+.exam-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    line-height: 1.25;
+    margin: 0 0 2px;
+    word-break: break-word;
+}
+.exam-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9.5px;
+    color: #64748b;
+    font-weight: 600;
+    flex-wrap: wrap;
+}
+.exam-meta-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.exam-score-badge {
+    text-align: right;
+    flex-shrink: 0;
+}
+.score-pill {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.1;
+    display: inline-block;
+    border: 1px solid;
+}
+.score-pill-sub {
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    margin-top: 2px;
+    display: block;
+}
+.exam-metrics-ribbon {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    gap: 6px;
     background: #f8fafc;
-    padding: 5px 6px;
-    border-radius: 3px;
-    font-size: 10.5px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
 }
-.mob-fee-col { text-align: center; }
-.mob-fee-col span { font-size: 8.5px; color: #64748b; display: block; text-transform: uppercase; }
-.mob-fee-col b { font-size: 11.5px; }
+.ribbon-item {
+    text-align: center;
+}
+.ribbon-item:not(:last-child) {
+    border-right: 1px solid #e2e8f0;
+}
+.ribbon-label {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+    line-height: 1.2;
+}
+.ribbon-value {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-top: 1px;
+}
+.ribbon-value.highlight-green { color: #16a34a; }
+.ribbon-value.highlight-blue { color: #0284c7; }
 
-/* Exam Item Card */
-.mob-exam-item {
+.subject-marks-wrap {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-bottom: 8px;
 }
-.mob-exam-top {
+.subject-mark-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 5px;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    font-size: 10.5px;
 }
-.mob-exam-title { font-size: 12.5px; font-weight: 700; color: #0f172a; }
-.mob-exam-sub { font-size: 10px; color: #64748b; }
+.subject-mark-row:last-child {
+    border-bottom: none;
+}
+.subject-mark-name {
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+}
+.subject-mark-val {
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 700;
+}
+.subject-mark-val b {
+    color: #002C54;
+}
 
 /* Document Item Card */
 .mob-doc-item {
@@ -795,113 +1499,371 @@
          PANE 2: FEE HEAD-WISE LEDGER
          ========================================== -->
     <div class="mob-pane" id="pane-fees">
-        <!-- Fees Summary Banner -->
-        <div class="mob-card" style="background:#fafbfc; border-left:3px solid #002C54;">
-            <div class="mob-card-body p-2 d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size:10px; color:#64748b; font-weight:700;">ASSIGNED / PAID / DUE</div>
-                    <div style="font-size:13.5px; font-weight:800; color:#0f172a;">
-                        ₹{{ number_format($assignedFees) }} / <span class="text-success">₹{{ number_format($paidFees) }}</span> / <span class="text-danger">₹{{ number_format($dueFees) }}</span>
-                    </div>
+        <!-- Fees Hero Overview Card -->
+        <div class="mob-fee-hero">
+            <div class="mob-fee-hero-top">
+                <div class="mob-fee-hero-title">
+                    <i class="fa fa-inr text-warning"></i> Fee Ledger Overview
                 </div>
-                <a href="{{ url('Fees/add?admission_no=' . $student->admissionNo . '&layout=mobile') }}" class="btn btn-xs btn-success font-weight-bold">
-                    <i class="fa fa-plus-circle"></i> Pay
-                </a>
+                <div class="mob-fee-session-pill">
+                    Session {{ $sessionLabel ?: 'Current' }}
+                </div>
+            </div>
+
+            <div class="mob-dual-grid">
+                <!-- Radar 1: Assigned Fee -->
+                <div class="mob-radar-col">
+                    <span class="mob-radar-tag">
+                        <i class="fa fa-calculator text-primary"></i> Assigned Fee
+                    </span>
+                    <div class="mob-radar-val">
+                        ₹{{ number_format($assignedFees, 2) }}
+                    </div>
+                    <span class="mob-radar-meta">
+                        Net: ₹{{ number_format(max(0, $assignedFees - $feeDiscount), 2) }}
+                    </span>
+                </div>
+
+                <!-- Radar 2: Concession / Discount -->
+                <div class="mob-radar-col">
+                    <span class="mob-radar-tag">
+                        <i class="fa fa-tag text-warning"></i> Scholarship/Disc.
+                    </span>
+                    <div class="mob-radar-val" style="color: #fbbf24;">
+                        ₹{{ number_format($feeDiscount, 2) }}
+                    </div>
+                    <span class="mob-radar-meta">
+                        @if($feeFine > 0)
+                            +₹{{ number_format($feeFine, 2) }} Fine
+                        @else
+                            No Fine Added
+                        @endif
+                    </span>
+                </div>
+
+                <!-- Radar 3: Received Fees -->
+                <div class="mob-radar-col">
+                    <span class="mob-radar-tag">
+                        <i class="fa fa-check-circle text-success"></i> Received Fees
+                    </span>
+                    <div class="mob-radar-val" style="color: #34d399;">
+                        ₹{{ number_format($paidFees, 2) }}
+                    </div>
+                    <span class="mob-radar-meta">
+                        {{ $feePaidPercentage }}% of Net Fees
+                    </span>
+                </div>
+
+                <!-- Radar 4: Outstanding Due -->
+                <div class="mob-radar-col">
+                    <span class="mob-radar-tag">
+                        <i class="fa fa-clock-o {{ $dueFees > 0 ? 'text-danger' : 'text-success' }}"></i> Outstanding Due
+                    </span>
+                    <div class="hero-due-row">
+                        <div class="mob-radar-val" style="color: {{ $dueFees > 0 ? '#f87171' : '#34d399' }};">
+                            ₹{{ number_format($dueFees, 2) }}
+                        </div>
+                        @if($dueFees > 0)
+                            <a href="{{ url('Fees/add?admission_no=' . $student->admissionNo . '&layout=mobile') }}" class="hero-due-pay-btn" title="Collect Fees">
+                                <i class="fa fa-plus-circle" style="font-size: 9px; margin-right: 3px;"></i> Collect
+                            </a>
+                        @endif
+                    </div>
+                    <span class="mob-radar-meta">
+                        {{ $dueFees <= 0 ? 'All dues cleared ✓' : 'Payment Pending' }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Clearance Progress Track -->
+            <div class="mob-hero-progress-strip">
+                <div class="progress-meta-row">
+                    <span>Course Fee Clearance</span>
+                    <b>{{ $feePaidPercentage }}% Cleared</b>
+                </div>
+                <div class="progress-track-bg">
+                    <div class="progress-track-fill" style="width: {{ $feePaidPercentage }}%;"></div>
+                </div>
             </div>
         </div>
 
-        @forelse($feeHeadLedger as $head)
-            <div class="mob-fee-item">
-                <div class="mob-fee-item-head">
-                    <span class="mob-fee-name">{{ $head->name }}</span>
-                    @if($head->due_amount <= 0)
-                        <span class="badge badge-success" style="font-size:9px;"><i class="fa fa-check"></i> Paid</span>
-                    @elseif($head->paid_amount > 0 || $head->discount > 0)
-                        <span class="badge badge-warning" style="font-size:9px;"><i class="fa fa-clock-o"></i> Partial</span>
-                    @else
-                        <span class="badge badge-danger" style="font-size:9px;"><i class="fa fa-exclamation"></i> Unpaid</span>
+        <!-- Segment Toolbar for Fees (Heads vs Invoices) -->
+        <div class="mob-subtab-bar">
+            <button type="button" class="mob-subtab-btn active-subtab" id="btnFeeSubHeads" onclick="switchFeeSubTab('heads', this)">
+                <i class="fa fa-list-ol"></i> Fee Heads ({{ $feeHeadLedger->count() }})
+            </button>
+            <button type="button" class="mob-subtab-btn" id="btnFeeSubReceipts" onclick="switchFeeSubTab('receipts', this)">
+                <i class="fa fa-file-text-o"></i> Receipts ({{ collect($getPaidFees)->count() }})
+            </button>
+        </div>
+
+        <!-- Panel 1: Fee Heads Ledger -->
+        <div id="panel-fee-heads">
+            @forelse($feeHeadLedger as $head)
+                @php
+                    $isPaid = $head->due_amount <= 0;
+                    $isPartial = !$isPaid && ($head->paid_amount > 0 || $head->discount > 0);
+                    $cardStatusClass = $isPaid ? 'card-paid' : ($isPartial ? 'card-partial' : 'card-due');
+                    $avatarStatusClass = $isPaid ? 'avatar-paid' : ($isPartial ? 'avatar-partial' : 'avatar-due');
+                    $badgeStatusClass = $isPaid ? 'status-badge-active' : ($isPartial ? 'status-badge-warning' : 'status-badge-inactive');
+                    $statusText = $isPaid ? 'PAID' : ($isPartial ? 'PARTIAL' : 'DUE');
+                @endphp
+                <div class="student-mob-card {{ $cardStatusClass }}">
+                    <!-- Card Header -->
+                    <div class="student-card-header">
+                        <div class="student-avatar-box {{ $avatarStatusClass }}">
+                            @if($isPaid)
+                                <i class="fa fa-check"></i>
+                            @elseif($isPartial)
+                                <i class="fa fa-hourglass-half"></i>
+                            @else
+                                <i class="fa fa-exclamation"></i>
+                            @endif
+                        </div>
+                        <div class="student-header-info">
+                            <div class="student-name-row">
+                                <span class="student-mob-name">{{ $head->name }}</span>
+                                <span class="student-status-badge {{ $badgeStatusClass }}">
+                                    {{ $statusText }}
+                                </span>
+                            </div>
+                            <div class="student-pills-wrap">
+                                <span class="student-adm-badge">Head #{{ $head->fees_group_id }}</span>
+                                @if($head->payments->count() > 0)
+                                    <span class="student-class-badge">
+                                        <i class="fa fa-check-circle"></i> {{ $head->payments->count() }} {{ Str::plural('Payment', $head->payments->count()) }}
+                                    </span>
+                                @else
+                                    <span class="student-class-badge" style="background:#f1f5f9; color:#64748b;">
+                                        No Payments
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Meta Grid -->
+                    <div class="student-meta-grid">
+                        <div class="student-meta-item">
+                            <i class="fa fa-calculator text-primary"></i>
+                            <span>Assigned: <b>₹{{ number_format($head->assigned_amount, 2) }}</b></span>
+                        </div>
+                        <div class="student-meta-item">
+                            <i class="fa fa-tag text-warning"></i>
+                            <span>Disc: <b>₹{{ number_format($head->discount, 2) }}</b></span>
+                        </div>
+                        <div class="student-meta-item">
+                            <i class="fa fa-check-circle text-success"></i>
+                            <span>Received: <b class="text-success">₹{{ number_format($head->paid_amount, 2) }}</b></span>
+                        </div>
+                        <div class="student-meta-item">
+                            <i class="fa fa-clock-o {{ $head->due_amount > 0 ? 'text-danger' : '' }}"></i>
+                            <span>Due: <b class="{{ $head->due_amount > 0 ? 'text-danger' : 'text-muted' }}">₹{{ number_format($head->due_amount, 2) }}</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Row -->
+                    <div class="student-card-actions">
+                        @if($head->payments->isNotEmpty())
+                            <button type="button" class="mob-btn-action btn-act-edit" onclick="toggleFeeTxDrawer('{{ $head->fees_group_id }}')">
+                                <i class="fa fa-list-alt"></i> Receipts ({{ $head->payments->count() }}) <i class="fa fa-chevron-down ml-1" id="fee-arrow-{{ $head->fees_group_id }}" style="font-size: 9px;"></i>
+                            </button>
+                        @endif
+                        @if($head->due_amount > 0)
+                            <a href="{{ url('Fees/add?admission_no=' . $student->admissionNo . '&layout=mobile') }}" class="mob-btn-action btn-act-fee">
+                                <i class="fa fa-plus-circle"></i> Collect Fee
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Expandable Drawer for Payments -->
+                    @if($head->payments->isNotEmpty())
+                        <div class="tx-drawer-box" id="fee-tx-drawer-{{ $head->fees_group_id }}">
+                            <div class="tx-drawer-head">
+                                <span><i class="fa fa-history text-primary"></i> Payment Receipts</span>
+                                <span>{{ $head->payments->count() }} {{ Str::plural('Transaction', $head->payments->count()) }}</span>
+                            </div>
+                            @foreach($head->payments as $payment)
+                                <div class="tx-item-card">
+                                    <div class="tx-item-left">
+                                        <div class="tx-icon-pill" title="{{ !empty($payment->date) ? date('d-m-Y', strtotime($payment->date)) : '' }}">
+                                            @if(!empty($payment->date))
+                                                <span class="tx-date-day">{{ date('d', strtotime($payment->date)) }}</span>
+                                                <span class="tx-date-mon">{{ date('M', strtotime($payment->date)) }}</span>
+                                            @else
+                                                <i class="fa fa-calendar-check-o" style="font-size: 11px;"></i>
+                                            @endif
+                                        </div>
+                                        <div class="tx-item-details">
+                                            <span class="tx-receipt-title">
+                                                {{ !empty($payment->receipt_no) ? 'Receipt #'.$payment->receipt_no : (!empty($payment->invoice_id) ? 'Invoice #'.$payment->invoice_id : 'Fee Payment') }}
+                                            </span>
+                                            <div class="tx-meta-sub">
+                                                <span><i class="fa fa-calendar-o"></i> {{ !empty($payment->date) ? date('d M Y', strtotime($payment->date)) : '-' }}</span>
+                                                <span class="tx-mode-tag">{{ $payment->payment_mode ?: 'Cash' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tx-item-right">
+                                        <span class="tx-amount-badge">+₹{{ number_format((float) $payment->paid_amount, 2) }}</span>
+                                        @if(!empty($payment->invoice_id))
+                                            <a href="{{ url('fees_receipt/' . $payment->invoice_id . '/view') }}" target="_blank" class="tx-btn-view" title="Print Receipt">
+                                                <i class="fa fa-print"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
+            @empty
+                <div class="text-center py-4 text-muted bg-white border rounded">
+                    <i class="fa fa-inr fa-2x mb-2 text-primary d-block"></i>
+                    No fee heads are assigned to this student.
+                </div>
+            @endforelse
+        </div>
 
-                <div class="mob-fee-grid">
-                    <div class="mob-fee-col">
-                        <span>Assigned</span>
-                        <b>₹{{ number_format($head->assigned_amount) }}</b>
+        <!-- Panel 2: Fee Receipts & Invoices -->
+        <div id="panel-fee-receipts" style="display: none;">
+            @forelse(collect($getPaidFees) as $invoice)
+                <div class="student-mob-card card-receipt">
+                    <div class="student-card-header">
+                        <div class="tx-icon-pill">
+                            @if(!empty($invoice->date))
+                                <span class="tx-date-day">{{ date('d', strtotime($invoice->date)) }}</span>
+                                <span class="tx-date-mon">{{ date('M', strtotime($invoice->date)) }}</span>
+                            @else
+                                <i class="fa fa-file-text-o" style="font-size: 12px;"></i>
+                            @endif
+                        </div>
+                        <div class="student-header-info">
+                            <div class="student-name-row">
+                                <span class="student-mob-name">
+                                    {{ !empty($invoice->receipt_no) ? 'Receipt #'.$invoice->receipt_no : 'Invoice #'.$invoice->id }}
+                                </span>
+                                <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
+                            </div>
+                            <div class="student-pills-wrap">
+                                <span class="tx-mode-tag">{{ $invoice->payment_mode ?: 'Cash' }}</span>
+                                <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ !empty($invoice->date) ? date('d M Y', strtotime($invoice->date)) : '-' }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mob-fee-col">
-                        <span>Paid</span>
-                        <b class="text-success">₹{{ number_format($head->paid_amount) }}</b>
+
+                    <div class="student-meta-grid">
+                        <div class="student-meta-item">
+                            <i class="fa fa-money text-success"></i>
+                            <span>Paid: <b class="text-success">₹{{ number_format((float)$invoice->amount, 2) }}</b></span>
+                        </div>
+                        <div class="student-meta-item">
+                            <i class="fa fa-tag text-warning"></i>
+                            <span>Disc: <b>₹{{ number_format((float)($invoice->discount ?? 0), 2) }}</b></span>
+                        </div>
                     </div>
-                    <div class="mob-fee-col">
-                        <span>Due</span>
-                        <b class="text-danger">₹{{ number_format($head->due_amount) }}</b>
+
+                    <div class="student-card-actions">
+                        <a href="{{ url('fees_receipt/' . $invoice->id . '/view') }}" target="_blank" class="mob-btn-action btn-act-edit">
+                            <i class="fa fa-eye"></i> View Receipt
+                        </a>
+                        <a href="{{ url('fees_receipt/' . $invoice->id . '/download') }}" target="_blank" class="mob-btn-action btn-act-fee">
+                            <i class="fa fa-download"></i> Download PDF
+                        </a>
                     </div>
                 </div>
-
-                @if($head->payments->isNotEmpty())
-                    <div class="mt-2 pt-1 border-top" style="font-size:10px;">
-                        <span class="text-muted font-weight-bold"><i class="fa fa-history mr-1"></i> Receipts:</span>
-                        @foreach($head->payments as $payment)
-                            <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:10px;">
-                                <span>{{ !empty($payment->date) ? date('d M Y', strtotime($payment->date)) : '-' }} ({{ $payment->payment_mode ?: 'Cash' }})</span>
-                                <span class="text-success font-weight-bold">₹{{ number_format((float)$payment->paid_amount) }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-        @empty
-            <div class="text-center py-4 text-muted">
-                <i class="fa fa-inr fa-2x mb-1 text-primary d-block"></i>
-                No fee heads are assigned to this student.
-            </div>
-        @endforelse
+            @empty
+                <div class="text-center py-4 text-muted bg-white border rounded">
+                    <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
+                    No fee receipts recorded for this session.
+                </div>
+            @endforelse
+        </div>
     </div>
 
     <!-- ==========================================
          PANE 3: ATTENDANCE LOG
          ========================================== -->
     <div class="mob-pane" id="pane-attendance">
+        <!-- Attendance Overview Card -->
         <div class="mob-card">
             <div class="mob-card-head">
-                <h4 class="mob-card-title"><i class="fa fa-calendar-check-o text-primary"></i> Attendance Summary</h4>
-                <span class="badge badge-primary">{{ $attendanceTotal }} Days</span>
+                <h4 class="mob-card-title"><i class="fa fa-calendar-check-o text-primary"></i> Attendance Snapshot</h4>
+                <span class="badge badge-primary">{{ $attendanceTotal }} Days Total</span>
             </div>
             <div class="mob-card-body p-2">
-                <div class="d-flex justify-content-between mb-2" style="font-size:11px; font-weight:700;">
-                    <span class="text-success"><i class="fa fa-check-circle"></i> {{ $attendancePresent }} Present</span>
-                    <span class="text-danger"><i class="fa fa-times-circle"></i> {{ $attendanceAbsent }} Absent</span>
-                    <span class="text-primary">{{ number_format($attendancePercentage, 1) }}% Rate</span>
+                <!-- 4-Column Matrix Grid matching attendence.blade.php -->
+                <div class="matrix-pills-row">
+                    <div class="matrix-status-cell cell-present">
+                        <div class="matrix-status-tag"><i class="fa fa-check-circle text-success"></i> Present</div>
+                        <div class="matrix-status-val">{{ $attendancePresent }}</div>
+                    </div>
+                    <div class="matrix-status-cell cell-absent">
+                        <div class="matrix-status-tag"><i class="fa fa-times-circle text-danger"></i> Absent</div>
+                        <div class="matrix-status-val">{{ $attendanceAbsent }}</div>
+                    </div>
+                    <div class="matrix-status-cell cell-rate">
+                        <div class="matrix-status-tag"><i class="fa fa-pie-chart text-info"></i> Rate</div>
+                        <div class="matrix-status-val">{{ number_format($attendancePercentage, 1) }}%</div>
+                    </div>
+                    <div class="matrix-status-cell cell-total">
+                        <div class="matrix-status-tag"><i class="fa fa-calendar"></i> Days</div>
+                        <div class="matrix-status-val">{{ $attendanceTotal }}</div>
+                    </div>
                 </div>
-                <div class="kpi-progress">
-                    <div class="kpi-progress-bar bg-success" style="width:{{ min(100, $attendancePercentage) }}%"></div>
+
+                <!-- Attendance Rate Progress Track -->
+                <div class="progress-meta-row" style="color: #64748b; font-size: 10px; margin-top: 4px;">
+                    <span>Presence Ratio</span>
+                    <b class="text-primary">{{ number_format($attendancePercentage, 1) }}% Overall</b>
+                </div>
+                <div class="progress-track-bg" style="height: 6px; background: #e2e8f0;">
+                    <div class="progress-track-fill bg-success" style="width: {{ min(100, $attendancePercentage) }}%;"></div>
                 </div>
             </div>
         </div>
 
+        <!-- Daily Activity Punch Records matching native attendance list -->
         <div class="mob-card">
             <div class="mob-card-head">
-                <h4 class="mob-card-title"><i class="fa fa-history text-info"></i> Recent Punch Records</h4>
+                <h4 class="mob-card-title"><i class="fa fa-history text-info"></i> Daily Punch History</h4>
+                <span class="badge badge-light border" style="font-size: 9.5px; font-weight: 700;">{{ $recentAttendance->count() }} Punches</span>
             </div>
-            <div class="mob-card-body p-0 px-2">
+            <div class="mob-card-body p-2">
                 @forelse($recentAttendance as $attendance)
                     @php
                         $attDate = \Carbon\Carbon::parse($attendance->date);
                         $attendanceName = $attendance->profile_status ?? '-';
                         $attendanceKey = $attendance->profile_status_key ?? '';
-                        $badgeClass = $attendanceKey === 'absent' ? 'badge-danger'
-                            : (in_array($attendanceKey, ['late','early_out','halfday'], true) ? 'badge-warning'
-                            : (in_array($attendanceKey, ['holiday','event','leave'], true) ? 'badge-info' : 'badge-success'));
+                        $chipClass = $attendanceKey === 'absent' ? 'chip-absent'
+                            : (in_array($attendanceKey, ['late','early_out','halfday'], true) ? 'chip-halfday'
+                            : (in_array($attendanceKey, ['holiday','event','leave'], true) ? 'chip-holiday' : 'chip-present'));
                     @endphp
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:11px;">
-                        <div>
-                            <div class="font-weight-bold text-dark">{{ $attDate->format('d M Y') }} ({{ $attDate->format('D') }})</div>
-                            <div class="text-muted" style="font-size:9.5px;">In: {{ $attendance->time ?: '--:--' }} · Out: {{ $attendance->out_time ?: '--:--' }}</div>
+                    <div class="native-list-item">
+                        <div class="item-date-badge">
+                            <span class="date-badge-day">{{ $attDate->format('d') }}</span>
+                            <span class="date-badge-wday">{{ $attDate->format('D') }}</span>
                         </div>
-                        <span class="badge {{ $badgeClass }}" style="font-size:9.5px; padding:2px 5px;">{{ $attendanceName }}</span>
+                        <div class="item-info-col">
+                            <div class="item-primary-txt">
+                                <span>{{ $attDate->format('d M Y') }}</span>
+                                <span class="status-chip {{ $chipClass }}">{{ $attendanceName }}</span>
+                            </div>
+                            <div class="item-secondary-txt">
+                                <span class="punch-pill">
+                                    <i class="fa fa-sign-in text-success"></i> In: <b>{{ $attendance->time ?: '--:--' }}</b>
+                                </span>
+                                <span class="punch-pill">
+                                    <i class="fa fa-sign-out text-danger"></i> Out: <b>{{ $attendance->out_time ?: '--:--' }}</b>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 @empty
-                    <div class="text-center py-3 text-muted">No attendance records found.</div>
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa fa-calendar-times-o fa-2x mb-2 text-primary d-block"></i>
+                        No attendance records logged for this session.
+                    </div>
                 @endforelse
             </div>
         </div>
@@ -911,31 +1873,94 @@
          PANE 4: EXAMINATIONS
          ========================================== -->
     <div class="mob-pane" id="pane-exams">
-        @forelse($examResults as $result)
-            <div class="mob-exam-item">
-                <div class="mob-exam-top">
-                    <div>
-                        <div class="mob-exam-title">{{ $result->name }}</div>
-                        <div class="mob-exam-sub">{{ !empty($result->date) ? date('d M Y', strtotime($result->date)) : '-' }}</div>
+        @if($examResults->isNotEmpty())
+            <!-- Exams Snapshot Ribbon -->
+            <div class="mob-card" style="background: linear-gradient(135deg, #001833, #002C54); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28);">
+                <div class="mob-card-body p-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">
+                            <i class="fa fa-trophy text-warning mr-1"></i> Exam Performance Glance
+                        </span>
+                        <span class="mob-fee-session-pill">{{ $examResults->count() }} {{ Str::plural('Test', $examResults->count()) }}</span>
                     </div>
-                    <span class="badge {{ $result->percentage >= 60 ? 'badge-success' : ($result->percentage >= 33 ? 'badge-warning' : 'badge-danger') }}" style="font-size:10.5px;">
-                        {{ number_format($result->percentage, 1) }}%
-                    </span>
-                </div>
-
-                <div class="p-2 bg-light rounded mb-2" style="font-size:10.5px;">
-                    <div class="d-flex justify-content-between font-weight-bold mb-1">
-                        <span>Total Score:</span>
-                        <span>{{ number_format($result->obtained, 1) }} / {{ number_format($result->maximum, 1) }}</span>
-                    </div>
-                    @foreach($result->subjects as $subject)
-                        <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:10px;">
-                            <span>{{ $subject->name }}</span>
-                            <span class="text-muted"><b>{{ $subject->is_numeric ? number_format((float) $subject->marks, 1) : $subject->marks }}</b> / {{ number_format((float) $subject->maximum, 1) }}</span>
+                    <div class="mob-dual-grid mb-0">
+                        <div class="mob-radar-col">
+                            <span class="mob-radar-tag"><i class="fa fa-line-chart text-info"></i> Overall Avg</span>
+                            <div class="mob-radar-val" style="color: #38bdf8;">{{ number_format($overallExamPercentage, 1) }}%</div>
+                            <span class="mob-radar-meta">Across all tests</span>
                         </div>
-                    @endforeach
+                        <div class="mob-radar-col">
+                            <span class="mob-radar-tag"><i class="fa fa-star text-warning"></i> Highest Score</span>
+                            <div class="mob-radar-val" style="color: #34d399;">{{ number_format($examResults->max('percentage'), 1) }}%</div>
+                            <span class="mob-radar-meta">Best performance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @forelse($examResults as $result)
+            @php
+                $pct = (float)$result->percentage;
+                $gradeLabel = $pct >= 75 ? 'Distinction' : ($pct >= 60 ? '1st Division' : ($pct >= 33 ? 'Passed' : 'Needs Work'));
+                $gradeBorder = $pct >= 75 ? '#16a34a' : ($pct >= 60 ? '#0284c7' : ($pct >= 33 ? '#f59e0b' : '#ef4444'));
+                $gradeBg = $pct >= 75 ? '#dcfce7' : ($pct >= 60 ? '#e0f2fe' : ($pct >= 33 ? '#fef3c7' : '#fee2e2'));
+                $gradeColor = $pct >= 75 ? '#15803d' : ($pct >= 60 ? '#0369a1' : ($pct >= 33 ? '#b45309' : '#dc2626'));
+            @endphp
+            <div class="student-mob-card" style="border-left: 3px solid {{ $gradeBorder }} !important;">
+                <!-- Exam Card Header -->
+                <div class="exam-card-header">
+                    <div class="exam-title-cluster">
+                        <div class="exam-icon-circle">
+                            <i class="fa fa-graduation-cap"></i>
+                        </div>
+                        <div class="exam-title-text">
+                            <h4 class="exam-title">{{ $result->name }}</h4>
+                            <div class="exam-meta-row">
+                                <span><i class="fa fa-calendar-o text-primary"></i> {{ !empty($result->date) ? date('d M Y', strtotime($result->date)) : '-' }}</span>
+                                <span><i class="fa fa-book text-primary"></i> {{ count($result->subjects) }} Subjects</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exam-score-badge">
+                        <div class="score-pill" style="border-color: {{ $gradeBorder }}; background: {{ $gradeBg }}; color: {{ $gradeColor }};">
+                            {{ number_format($pct, 1) }}%
+                        </div>
+                        <span class="score-pill-sub" style="color: {{ $gradeColor }};">{{ $gradeLabel }}</span>
+                    </div>
                 </div>
 
+                <!-- Score Metrics Ribbon -->
+                <div class="exam-metrics-ribbon">
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Obtained</span>
+                        <span class="ribbon-value highlight-green">{{ number_format($result->obtained, 1) }}</span>
+                    </div>
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Total Max</span>
+                        <span class="ribbon-value">{{ number_format($result->maximum, 1) }}</span>
+                    </div>
+                    <div class="ribbon-item">
+                        <span class="ribbon-label">Percentage</span>
+                        <span class="ribbon-value highlight-blue">{{ number_format($pct, 1) }}%</span>
+                    </div>
+                </div>
+
+                <!-- Subject Scores Breakdown -->
+                @if(count($result->subjects) > 0)
+                    <div class="subject-marks-wrap">
+                        @foreach($result->subjects as $subject)
+                            <div class="subject-mark-row">
+                                <span class="subject-mark-name">{{ $subject->name }}</span>
+                                <span class="subject-mark-val">
+                                    <b>{{ $subject->is_numeric ? number_format((float) $subject->marks, 1) : $subject->marks }}</b> / {{ number_format((float) $subject->maximum, 1) }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <!-- Full Scorecard Form Button -->
                 <form action="{{ url('exam_wise_report') }}" method="POST" target="_blank">
                     @csrf
                     <input type="hidden" name="exam_id" value="{{ $result->exam_id }}">
@@ -944,14 +1969,14 @@
                     @foreach($result->subjects->pluck('id')->filter()->unique() as $subjectId)
                         <input type="hidden" name="subject_id[]" value="{{ $subjectId }}">
                     @endforeach
-                    <button type="submit" class="btn btn-xs btn-outline-primary btn-block font-weight-bold">
-                        <i class="fa fa-eye mr-1"></i> Full Scorecard
+                    <button type="submit" class="btn btn-xs btn-outline-primary btn-block font-weight-bold" style="height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fa fa-file-text-o"></i> View Full Scorecard
                     </button>
                 </form>
             </div>
         @empty
-            <div class="text-center py-4 text-muted">
-                <i class="fa fa-trophy fa-2x mb-1 text-primary d-block"></i>
+            <div class="text-center py-4 text-muted bg-white border rounded">
+                <i class="fa fa-trophy fa-2x mb-2 text-primary d-block"></i>
                 No examination marks recorded for this student.
             </div>
         @endforelse
@@ -1219,6 +2244,32 @@ $(document).ready(function () {
         });
     });
 });
+
+// Fee Drawer Toggle
+function toggleFeeTxDrawer(groupId) {
+    var drawer = $('#fee-tx-drawer-' + groupId);
+    var arrow = $('#fee-arrow-' + groupId);
+    if (drawer.hasClass('show')) {
+        drawer.removeClass('show');
+        arrow.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    } else {
+        drawer.addClass('show');
+        arrow.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    }
+}
+
+// Fee Sub-Tab Switcher (Fee Heads vs Receipts)
+function switchFeeSubTab(type, btn) {
+    $('.mob-subtab-btn').removeClass('active-subtab');
+    $(btn).addClass('active-subtab');
+    if (type === 'heads') {
+        $('#panel-fee-heads').show();
+        $('#panel-fee-receipts').hide();
+    } else {
+        $('#panel-fee-heads').hide();
+        $('#panel-fee-receipts').show();
+    }
+}
 
 // Bottom Sheet Open / Close Helpers
 function closeAllSheets() {
