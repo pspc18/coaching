@@ -314,7 +314,32 @@ textarea.theme-form-control {
 .cke_bottom {
     background: #f8fafc !important;
     border-top: 1px solid #e2e8f0 !important;
-    padding: 2px 6px !important;
+    padding: 1px 6px !important;
+    min-height: 14px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+.cke_resizer {
+    cursor: se-resize !important;
+    display: block !important;
+    border-width: 0 0 10px 10px !important;
+    border-style: solid !important;
+    border-color: transparent transparent #002C54 transparent !important;
+    opacity: 0.65 !important;
+    transition: opacity .15s ease, border-color .15s ease;
+    margin: 2px 0 !important;
+}
+.cke_resizer:hover {
+    opacity: 1 !important;
+    border-color: transparent transparent #0f3460 transparent !important;
+}
+.editor-height-tools .btn {
+    border-radius: 2px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    padding: 1px 5px !important;
+    font-weight: 600;
 }
 .cke_toolgroup {
     border: 1px solid #cbd5e1 !important;
@@ -645,7 +670,17 @@ textarea.theme-form-control {
 
                                 {{-- Question Textarea --}}
                                 <div class="theme-form-group">
-                                    <label for="manual_question_name">Question Statement <span class="text-danger">*</span></label>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label for="manual_question_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                                            Question Statement <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="-40" title="Decrease Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="50" title="Increase Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_question_name" data-reset="125" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                        </div>
+                                    </div>
                                     <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." required>{{ old('name') }}</textarea>
                                 </div>
 
@@ -658,7 +693,13 @@ textarea.theme-form-control {
                                             </label>
                                             <span class="text-muted small ml-2" style="font-size: 10px;">(Select radio button for the correct option)</span>
                                         </div>
-                                        <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                                <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> All Options Height:</span>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="-25" title="Decrease All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-options-height" data-delta="35" title="Increase All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-options-height" data-reset="55" title="Reset All Options Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                            </div>
                                             <button type="button" id="btn-toggle-manual-opt-5" class="btn btn-xs btn-outline-primary" style="font-size: 10.5px; padding: 2px 8px; font-weight: 600;">
                                                 <i class="fa fa-plus-circle mr-1"></i> Add 5th Option (E)
                                             </button>
@@ -667,7 +708,7 @@ textarea.theme-form-control {
 
                                     <div class="row" id="manual-options-row">
                                         @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
-                                            @php $optIndex = (string)($num - 1); @endphp
+                                             @php $optIndex = (string)($num - 1); @endphp
                                             <div class="col-md-6 mb-2">
                                                 <div class="option-input-card" id="manual-opt-card-{{ $num }}">
                                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
@@ -675,10 +716,16 @@ textarea.theme-form-control {
                                                             <span class="option-label-pill mr-2">{{ $letter }}</span>
                                                             <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
                                                         </div>
-                                                        <label class="correct-radio-label text-success mb-0">
-                                                            <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
-                                                            <span>Mark Correct</span>
-                                                        </label>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
+                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="-25" title="Decrease Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="35" title="Increase Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                            </div>
+                                                            <label class="correct-radio-label text-success mb-0">
+                                                                <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
+                                                                <span>Mark Correct</span>
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                     <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ old('ans'.$num) }}</textarea>
                                                 </div>
@@ -695,6 +742,10 @@ textarea.theme-form-control {
                                                         <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
                                                     </div>
                                                     <div class="d-flex align-items-center">
+                                                        <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
+                                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="-25" title="Decrease Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="35" title="Increase Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                        </div>
                                                         <label class="correct-radio-label text-success mb-0 mr-2">
                                                             <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ old('correct_ans') == '4' ? 'checked' : '' }}>
                                                             <span>Mark Correct</span>
@@ -712,9 +763,17 @@ textarea.theme-form-control {
 
                                 {{-- Explanation / Solution --}}
                                 <div class="theme-form-group mb-0">
-                                    <label for="manual_explanation" class="font-weight-bold" style="font-size: 11.5px; color: #334155;">
-                                        <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span>
-                                    </label>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label for="manual_explanation" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #334155;">
+                                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span>
+                                        </label>
+                                        <div class="d-flex align-items-center gap-1 editor-height-tools">
+                                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-warning"></i> Height:</span>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="-30" title="Decrease Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_explanation" data-delta="40" title="Increase Solution Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_explanation" data-reset="75" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                                        </div>
+                                    </div>
                                     <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation') }}</textarea>
                                 </div>
                             </div>
@@ -1145,9 +1204,17 @@ textarea.theme-form-control {
             <div class="modal-body p-3">
                 <input type="hidden" id="modal-ck-q-index" value="">
                 <div class="theme-form-group mb-3">
-                    <label class="font-weight-bold mb-1" style="font-size: 11.5px; color: #002C54;">
-                        Question Statement (WYSIWYG Rich Editor):
-                    </label>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                            Question Statement (WYSIWYG Rich Editor):
+                        </label>
+                        <div class="d-flex align-items-center gap-1 editor-height-tools">
+                            <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="modal-ckeditor-question-textarea" data-delta="-40" title="Decrease Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="modal-ckeditor-question-textarea" data-delta="50" title="Increase Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                            <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="modal-ckeditor-question-textarea" data-reset="150" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
+                        </div>
+                    </div>
                     <textarea id="modal-ckeditor-question-textarea" class="form-control"></textarea>
                 </div>
                 <div class="row">
@@ -1275,7 +1342,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const manualCKConfigs = {
         question: {
             height: 125,
-            removePlugins: 'elementspath,resize',
+            removePlugins: 'elementspath',
+            resize_enabled: true,
+            resize_dir: 'vertical',
+            resize_minHeight: 50,
+            resize_maxHeight: 1200,
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
@@ -1286,7 +1357,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         option: {
             height: 55,
-            removePlugins: 'elementspath,resize',
+            removePlugins: 'elementspath',
+            resize_enabled: true,
+            resize_dir: 'vertical',
+            resize_minHeight: 35,
+            resize_maxHeight: 600,
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'insert', items: [ 'SpecialChar' ] },
@@ -1296,7 +1371,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         explanation: {
             height: 75,
-            removePlugins: 'elementspath,resize',
+            removePlugins: 'elementspath',
+            resize_enabled: true,
+            resize_dir: 'vertical',
+            resize_minHeight: 45,
+            resize_maxHeight: 800,
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
@@ -1306,6 +1385,61 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         }
     };
+
+    // =========================================================================
+    // DYNAMIC CKEDITOR HEIGHT ADJUSTMENT (MANUAL DRAG & BUTTON CONTROLS)
+    // =========================================================================
+    function adjustCKEditorHeight(targetId, delta, resetVal) {
+        if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances[targetId]) {
+            const editor = CKEDITOR.instances[targetId];
+            const contents = editor.ui.space('contents');
+            if (contents) {
+                let current = contents.$.clientHeight || 60;
+                let targetHeight;
+                if (resetVal) {
+                    targetHeight = parseInt(resetVal, 10);
+                } else {
+                    targetHeight = Math.max(35, Math.min(1200, current + delta));
+                }
+                contents.setStyle('height', targetHeight + 'px');
+                editor.fire('resize');
+            }
+        } else {
+            const ta = document.getElementById(targetId);
+            if (ta) {
+                let current = ta.clientHeight || 60;
+                let targetHeight = resetVal ? parseInt(resetVal, 10) : Math.max(35, current + delta);
+                ta.style.height = targetHeight + 'px';
+            }
+        }
+    }
+
+    function adjustAllOptionsHeight(delta, resetVal) {
+        ['manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5'].forEach(id => {
+            adjustCKEditorHeight(id, delta, resetVal);
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-adjust-height');
+        if (btn) {
+            e.preventDefault();
+            const targetId = btn.dataset.target;
+            const delta = btn.dataset.delta ? parseInt(btn.dataset.delta, 10) : 0;
+            const resetVal = btn.dataset.reset;
+            adjustCKEditorHeight(targetId, delta, resetVal);
+            return;
+        }
+
+        const optBtn = e.target.closest('.btn-adjust-options-height');
+        if (optBtn) {
+            e.preventDefault();
+            const delta = optBtn.dataset.delta ? parseInt(optBtn.dataset.delta, 10) : 0;
+            const resetVal = optBtn.dataset.reset;
+            adjustAllOptionsHeight(delta, resetVal);
+            return;
+        }
+    });
 
     function attachCKEvents(editor) {
         editor.on('focus', function () {
@@ -2865,7 +2999,11 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 ckModalEditor = CKEDITOR.replace('modal-ckeditor-question-textarea', {
                     height: 150,
-                    removePlugins: 'elementspath,resize',
+                    removePlugins: 'elementspath',
+                    resize_enabled: true,
+                    resize_dir: 'vertical',
+                    resize_minHeight: 80,
+                    resize_maxHeight: 1200,
                     toolbar: [
                         { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                         { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Blockquote' ] },
