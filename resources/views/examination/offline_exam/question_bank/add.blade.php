@@ -286,6 +286,45 @@ textarea.theme-form-control {
     border-radius: 2px;
     font-size: 11px;
     font-weight: 700;
+    margin-right: 8px !important;
+    flex-shrink: 0;
+}
+.gap-1 { gap: 6px !important; }
+.gap-2 { gap: 10px !important; }
+
+/* CKEditor Arise ERP Theme Styling */
+.cke {
+    border-radius: 3px !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    transition: border-color .15s ease;
+}
+.cke:focus-within {
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 1px rgba(0, 44, 84, 0.15) !important;
+}
+.cke_inner {
+    border-radius: 3px !important;
+}
+.cke_top {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 3px 6px !important;
+}
+.cke_bottom {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 2px 6px !important;
+}
+.cke_toolgroup {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    border-radius: 2px !important;
+    margin: 1px 3px 1px 0 !important;
+}
+.cke_button:hover {
+    background: #e2e8f0 !important;
+    border-radius: 2px !important;
 }
 .correct-radio-label {
     margin: 0;
@@ -612,24 +651,31 @@ textarea.theme-form-control {
 
                                 {{-- Options Section (Objective) --}}
                                 <div id="manual-options-container">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
-                                            <i class="fa fa-list-ul mr-2"></i> Multiple Choice Options &amp; Correct Answer:
-                                        </label>
-                                        <span class="text-muted small" style="font-size: 10px;">Select radio button for the correct option</span>
+                                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
+                                        <div class="d-flex align-items-center">
+                                            <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
+                                                <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
+                                            </label>
+                                            <span class="text-muted small ml-2" style="font-size: 10px;">(Select radio button for the correct option)</span>
+                                        </div>
+                                        <div>
+                                            <button type="button" id="btn-toggle-manual-opt-5" class="btn btn-xs btn-outline-primary" style="font-size: 10.5px; padding: 2px 8px; font-weight: 600;">
+                                                <i class="fa fa-plus-circle mr-1"></i> Add 5th Option (E)
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div class="row">
+                                    <div class="row" id="manual-options-row">
                                         @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
                                             @php $optIndex = (string)($num - 1); @endphp
-                                            <div class="col-md-6">
+                                            <div class="col-md-6 mb-2">
                                                 <div class="option-input-card" id="manual-opt-card-{{ $num }}">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <div class="d-flex align-items-center gap-1">
-                                                            <span class="option-label-pill">{{ $letter }}</span>
-                                                            <strong style="font-size: 11px;">Option {{ $letter }}</strong>
+                                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                        <div class="d-flex align-items-center">
+                                                            <span class="option-label-pill mr-2">{{ $letter }}</span>
+                                                            <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
                                                         </div>
-                                                        <label class="correct-radio-label text-success">
+                                                        <label class="correct-radio-label text-success mb-0">
                                                             <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
                                                             <span>Mark Correct</span>
                                                         </label>
@@ -638,12 +684,37 @@ textarea.theme-form-control {
                                                 </div>
                                             </div>
                                         @endforeach
+
+                                        {{-- 5th Option (Option E) --}}
+                                        <div class="col-md-6 mb-2 {{ old('ans5') ? '' : 'd-none' }}" id="manual-opt-col-5">
+                                            <div class="option-input-card" id="manual-opt-card-5">
+                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="option-label-pill mr-2">E</span>
+                                                        <strong style="font-size: 11px; color: #334155;">Option E</strong>
+                                                        <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        <label class="correct-radio-label text-success mb-0 mr-2">
+                                                            <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ old('correct_ans') == '4' ? 'checked' : '' }}>
+                                                            <span>Mark Correct</span>
+                                                        </label>
+                                                        <button type="button" id="btn-remove-manual-opt-5" class="btn btn-xs btn-link text-danger p-0" title="Remove Option E" style="font-size: 11px;">
+                                                            <i class="fa fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5') }}</textarea>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {{-- Explanation / Solution --}}
                                 <div class="theme-form-group mb-0">
-                                    <label for="manual_explanation">Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span></label>
+                                    <label for="manual_explanation" class="font-weight-bold" style="font-size: 11.5px; color: #334155;">
+                                        <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Explanation / Hint <span class="text-muted font-weight-normal">(Optional)</span>
+                                    </label>
                                     <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation') }}</textarea>
                                 </div>
                             </div>
@@ -654,54 +725,64 @@ textarea.theme-form-control {
                     <div class="col-lg-4">
                         {{-- Meta Card --}}
                         <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title"><i class="fa fa-cog text-warning mr-2"></i> Question Meta &amp; Diagram</h3>
+                            <div class="theme-card-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff;">
+                                <h3 class="card-title">
+                                    <i class="fa fa-sliders text-warning mr-2"></i> Question Meta &amp; Diagram
+                                </h3>
                             </div>
-                            <div class="theme-card-body">
+                            <div class="theme-card-body" style="background: #ffffff;">
                                 {{-- Diagram / Figure Image Upload --}}
-                                <div class="theme-form-group">
-                                    <label for="manual_image">Question Diagram / Figure <span class="text-muted font-weight-normal">(JPG, PNG)</span></label>
-                                    <input type="file" id="manual_image" name="image" accept="image/*" class="theme-form-control" style="height: 33px; padding: 3px;">
-                                    <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
-                                        <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded" style="max-height: 140px;">
-                                        <div class="mt-1">
-                                            <button type="button" id="btn-remove-manual-img" class="btn btn-xs btn-outline-danger">Remove Image</button>
+                                <div class="theme-form-group mb-3">
+                                    <label for="manual_image" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
+                                        <i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure <span class="text-muted font-weight-normal">(JPG, PNG)</span>
+                                    </label>
+                                    <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
+                                        <input type="file" id="manual_image" name="image" accept="image/*" class="form-control-file" style="font-size: 11px;">
+                                        <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
+                                            <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
+                                            <div class="mt-1">
+                                                <button type="button" id="btn-remove-manual-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
+                                                    <i class="fa fa-trash mr-1"></i> Remove Image
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {{-- Difficulty Level --}}
-                                <div class="theme-form-group">
-                                    <label for="manual_difficulty">Difficulty Level</label>
-                                    <select id="manual_difficulty" name="difficulty_level" class="theme-form-control">
+                                <div class="theme-form-group mb-3">
+                                    <label for="manual_difficulty" class="font-weight-bold mb-1" style="font-size: 11px; color: #334155;">
+                                        <i class="fa fa-tachometer text-muted mr-1"></i> Difficulty Level
+                                    </label>
+                                    <select id="manual_difficulty" name="difficulty_level" class="theme-form-control" style="height: 33px; font-size: 12px;">
                                         <option value="Easy">Easy (Fundamental)</option>
                                         <option value="Medium" selected>Medium (Standard)</option>
                                         <option value="Hard">Hard (Advanced / Olympiad)</option>
                                     </select>
                                 </div>
 
-                                {{-- Real-Time Math & Question Preview --}}
-                                <div class="border rounded p-2 bg-light mb-2">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <strong class="text-primary small" style="font-size: 11px;">
-                                            <i class="fa fa-eye mr-2"></i> Live Render Preview:
-                                        </strong>
-                                        <span id="manual-preview-correct-badge" class="badge badge-success" style="font-size: 9.5px;">Correct: A</span>
+                                {{-- Student View (Exam Paper Preview) Matching Arise ERP Theme --}}
+                                <div class="preview-exam-card mb-3" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                    <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9;">
+                                        <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                            <i class="fa fa-desktop text-primary mr-1"></i> Student View (Live Preview)
+                                        </span>
+                                        <span id="manual-preview-correct-badge" class="badge badge-success" style="font-size: 10px; padding: 2px 8px; background: #10b981;">Correct: Option A</span>
                                     </div>
-                                    <div id="manual-live-preview" class="p-2 bg-white border rounded" style="min-height: 60px; font-size: 11.5px; color: #0f172a;">
+                                    <div class="p-3" id="manual-live-preview" style="min-height: 100px; font-size: 12px; color: #0f172a; line-height: 1.5;">
                                         <em>Type above to see live preview with rendered LaTeX formulas...</em>
                                     </div>
                                 </div>
 
                                 {{-- Action Buttons --}}
                                 <div class="d-flex flex-column gap-2 mt-3">
-                                    <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:34px;">
+                                    <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
                                         <i class="fa fa-save mr-1"></i> Save Question to Bank
                                     </button>
-                                    <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:34px;">
+                                    <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
                                         <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
                                     </button>
-                                    <button type="reset" class="dash-btn dash-btn-outline" style="justify-content:center; color:#334155 !important; border-color:#cbd5e1; height:30px;">
+                                    <button type="reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
                                         <i class="fa fa-undo mr-1"></i> Reset
                                     </button>
                                 </div>
@@ -831,10 +912,10 @@ textarea.theme-form-control {
                                         @php $optIndex = (string)($num - 1); @endphp
                                         <div class="col-md-6 mb-2">
                                             <div class="option-input-card" id="ai-opt-card-{{ $num }}">
-                                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <span class="option-label-pill">{{ $letter }}</span>
-                                                        <strong style="font-size: 11px;">Option {{ $letter }}</strong>
+                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="option-label-pill mr-2">{{ $letter }}</span>
+                                                        <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
                                                     </div>
                                                     <label class="correct-radio-label text-success">
                                                         <input type="radio" name="ai_single_correct" value="{{ $optIndex }}" class="ai-correct-radio mr-1">
@@ -1177,8 +1258,171 @@ document.addEventListener('DOMContentLoaded', function () {
                 panel.classList.add('d-none');
             });
             document.getElementById(targetId)?.classList.remove('d-none');
+
+            if (targetId === 'tab-manual') {
+                initManualCKEditors();
+                setTimeout(updateManualLivePreview, 100);
+            }
         });
     });
+
+    // =========================================================================
+    // CKEDITOR FOR MANUAL BUILDER (QUESTION, OPTIONS A-E, SOLUTION)
+    // =========================================================================
+    let activeCKInstance = null;
+    let manualEditorsInitialized = false;
+
+    const manualCKConfigs = {
+        question: {
+            height: 125,
+            removePlugins: 'elementspath,resize',
+            toolbar: [
+                { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
+                { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
+                { name: 'insert', items: [ 'Table', 'SpecialChar', 'HorizontalRule' ] },
+                { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
+                { name: 'tools', items: [ 'Maximize', 'Source' ] }
+            ]
+        },
+        option: {
+            height: 55,
+            removePlugins: 'elementspath,resize',
+            toolbar: [
+                { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
+                { name: 'insert', items: [ 'SpecialChar' ] },
+                { name: 'colors', items: [ 'TextColor' ] },
+                { name: 'tools', items: [ 'Source' ] }
+            ]
+        },
+        explanation: {
+            height: 75,
+            removePlugins: 'elementspath,resize',
+            toolbar: [
+                { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
+                { name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
+                { name: 'insert', items: [ 'Table', 'SpecialChar' ] },
+                { name: 'colors', items: [ 'TextColor' ] },
+                { name: 'tools', items: [ 'Source' ] }
+            ]
+        }
+    };
+
+    function attachCKEvents(editor) {
+        editor.on('focus', function () {
+            activeCKInstance = editor;
+        });
+        editor.on('change', function () {
+            updateManualLivePreview();
+        });
+        editor.on('key', function () {
+            setTimeout(updateManualLivePreview, 60);
+        });
+    }
+
+    function initManualCKEditors() {
+        if (!window.CKEDITOR || manualEditorsInitialized) return;
+
+        // Question Statement
+        if (document.getElementById('manual_question_name') && !CKEDITOR.instances['manual_question_name']) {
+            try {
+                const edQ = CKEDITOR.replace('manual_question_name', manualCKConfigs.question);
+                attachCKEvents(edQ);
+                activeCKInstance = edQ;
+            } catch (e) {
+                console.warn('CKEditor manual_question_name init error:', e);
+            }
+        }
+
+        // Options A to D
+        ['manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4'].forEach(id => {
+            if (document.getElementById(id) && !CKEDITOR.instances[id]) {
+                try {
+                    const edOpt = CKEDITOR.replace(id, manualCKConfigs.option);
+                    attachCKEvents(edOpt);
+                } catch (e) {
+                    console.warn(`CKEditor ${id} init error:`, e);
+                }
+            }
+        });
+
+        // Option E (if visible)
+        const col5 = document.getElementById('manual-opt-col-5');
+        if (col5 && !col5.classList.contains('d-none')) {
+            initOption5CKEditor();
+        }
+
+        // Explanation / Solution
+        if (document.getElementById('manual_explanation') && !CKEDITOR.instances['manual_explanation']) {
+            try {
+                const edExp = CKEDITOR.replace('manual_explanation', manualCKConfigs.explanation);
+                attachCKEvents(edExp);
+            } catch (e) {
+                console.warn('CKEditor manual_explanation init error:', e);
+            }
+        }
+
+        manualEditorsInitialized = true;
+    }
+
+    function initOption5CKEditor() {
+        if (!window.CKEDITOR) return;
+        if (document.getElementById('manual_ans5') && !CKEDITOR.instances['manual_ans5']) {
+            try {
+                const ed5 = CKEDITOR.replace('manual_ans5', manualCKConfigs.option);
+                attachCKEvents(ed5);
+            } catch (e) {
+                console.warn('CKEditor manual_ans5 init error:', e);
+            }
+        }
+    }
+
+    // =========================================================================
+    // OPTION 5 (E) DYNAMIC TOGGLE
+    // =========================================================================
+    const btnToggleOpt5 = document.getElementById('btn-toggle-manual-opt-5');
+    const colOpt5 = document.getElementById('manual-opt-col-5');
+    const btnRemoveOpt5 = document.getElementById('btn-remove-manual-opt-5');
+
+    function showOption5() {
+        if (!colOpt5) return;
+        colOpt5.classList.remove('d-none');
+        initOption5CKEditor();
+        if (btnToggleOpt5) {
+            btnToggleOpt5.innerHTML = '<i class="fa fa-check text-success mr-1"></i> Option E Active';
+            btnToggleOpt5.classList.add('disabled');
+            btnToggleOpt5.setAttribute('disabled', 'disabled');
+        }
+        updateManualLivePreview();
+    }
+
+    function hideOption5() {
+        if (!colOpt5) return;
+        colOpt5.classList.add('d-none');
+        if (window.CKEDITOR && CKEDITOR.instances['manual_ans5']) {
+            CKEDITOR.instances['manual_ans5'].setData('');
+        }
+        const ta5 = document.getElementById('manual_ans5');
+        if (ta5) ta5.value = '';
+
+        // If Option E (val 4) was selected as correct answer, reset to Option A (val 0)
+        const opt5Radio = document.querySelector('input[name="correct_ans"][value="4"]');
+        if (opt5Radio && opt5Radio.checked) {
+            const opt1Radio = document.querySelector('input[name="correct_ans"][value="0"]');
+            if (opt1Radio) {
+                opt1Radio.checked = true;
+            }
+        }
+
+        if (btnToggleOpt5) {
+            btnToggleOpt5.innerHTML = '<i class="fa fa-plus-circle mr-1"></i> Add 5th Option (E)';
+            btnToggleOpt5.classList.remove('disabled');
+            btnToggleOpt5.removeAttribute('disabled');
+        }
+        updateManualLivePreview();
+    }
+
+    btnToggleOpt5?.addEventListener('click', showOption5);
+    btnRemoveOpt5?.addEventListener('click', hideOption5);
 
     // =========================================================================
     // MATH FORMULA INSERTION & LIVE PREVIEW (KATEX)
@@ -1194,17 +1438,23 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.math-symbol-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const math = this.dataset.insert;
-            if (!lastActiveTextarea) return;
+            const insertLatex = ` $${math}$ `;
 
-            const start = lastActiveTextarea.selectionStart || 0;
-            const end = lastActiveTextarea.selectionEnd || 0;
-            const val = lastActiveTextarea.value;
-            const insertText = ` $${math}$ `;
+            if (activeCKInstance && window.CKEDITOR && CKEDITOR.instances[activeCKInstance.name]) {
+                activeCKInstance.insertHtml(insertLatex);
+                updateManualLivePreview();
+                return;
+            }
 
-            lastActiveTextarea.value = val.substring(0, start) + insertText + val.substring(end);
-            lastActiveTextarea.focus();
-            lastActiveTextarea.selectionStart = lastActiveTextarea.selectionEnd = start + insertText.length;
-            updateManualLivePreview();
+            if (lastActiveTextarea) {
+                const start = lastActiveTextarea.selectionStart || 0;
+                const end = lastActiveTextarea.selectionEnd || 0;
+                const val = lastActiveTextarea.value;
+                lastActiveTextarea.value = val.substring(0, start) + insertLatex + val.substring(end);
+                lastActiveTextarea.focus();
+                lastActiveTextarea.selectionStart = lastActiveTextarea.selectionEnd = start + insertLatex.length;
+                updateManualLivePreview();
+            }
         });
     });
 
@@ -1290,39 +1540,96 @@ document.addEventListener('DOMContentLoaded', function () {
         return str.trim();
     }
 
+    function getManualFieldVal(id) {
+        if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances[id]) {
+            return CKEDITOR.instances[id].getData();
+        }
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+    }
+
     function updateManualLivePreview() {
         const previewEl = document.getElementById('manual-live-preview');
-        const qText = document.getElementById('manual_question_name')?.value?.trim();
-        const a1 = document.getElementById('manual_ans1')?.value?.trim();
-        const a2 = document.getElementById('manual_ans2')?.value?.trim();
-        const a3 = document.getElementById('manual_ans3')?.value?.trim();
-        const a4 = document.getElementById('manual_ans4')?.value?.trim();
+        const qText = getManualFieldVal('manual_question_name').trim();
+        const a1 = getManualFieldVal('manual_ans1').trim();
+        const a2 = getManualFieldVal('manual_ans2').trim();
+        const a3 = getManualFieldVal('manual_ans3').trim();
+        const a4 = getManualFieldVal('manual_ans4').trim();
+        const a5 = getManualFieldVal('manual_ans5').trim();
+        const explanation = getManualFieldVal('manual_explanation').trim();
+
+        const isOpt5Visible = colOpt5 && !colOpt5.classList.contains('d-none');
         const correctRadio = document.querySelector('input[name="correct_ans"]:checked');
         const correctBadge = document.getElementById('manual-preview-correct-badge');
 
-        const optLetters = ['A', 'B', 'C', 'D'];
+        const optLetters = ['A', 'B', 'C', 'D', 'E'];
         const correctIdx = correctRadio ? parseInt(correctRadio.value, 10) : 0;
         if (correctBadge) {
             correctBadge.textContent = `Correct: Option ${optLetters[correctIdx] || 'A'}`;
         }
 
-        // Highlight correct option card
-        document.querySelectorAll('.option-input-card').forEach((card, idx) => {
-            card.classList.toggle('correct-selected', idx === correctIdx);
-        });
+        // Highlight correct option card in form
+        for (let i = 1; i <= 5; i++) {
+            const card = document.getElementById(`manual-opt-card-${i}`);
+            if (card) {
+                card.classList.toggle('correct-selected', (i - 1) === correctIdx);
+            }
+        }
 
-        if (!qText && !a1 && !a2 && !a3 && !a4) {
-            if (previewEl) previewEl.innerHTML = '<em>Type above to see live preview with rendered LaTeX formulas...</em>';
+        // Diagram preview check
+        const imgPreviewSrc = document.getElementById('manual-image-preview')?.getAttribute('src');
+        const hasImg = imgPreviewSrc && !document.getElementById('manual-image-preview-wrapper')?.classList.contains('d-none');
+
+        if (!qText && !a1 && !a2 && !a3 && !a4 && !a5 && !hasImg) {
+            if (previewEl) previewEl.innerHTML = '<div class="text-muted text-center py-4" style="font-size: 11.5px;"><i class="fa fa-info-circle mr-1"></i> Start typing question statement and options to see real-time KaTeX rendered preview...</div>';
             return;
         }
 
-        let html = `<div class="font-weight-bold mb-2">${formatRichExamContent(qText || 'Question statement...')}</div>`;
+        let html = '';
+        if (qText) {
+            html += `<div class="font-weight-bold mb-3" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">${formatRichExamContent(qText)}</div>`;
+        }
+
+        if (hasImg) {
+            html += `<div class="mb-3 text-center p-2 rounded" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                <img src="${imgPreviewSrc}" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
+            </div>`;
+        }
+
         if (globalTypeSelect?.value === '1') {
-            html += `<div class="row">
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 0 ? 'bg-success text-white' : 'bg-white'}"><strong>(A)</strong> ${formatRichExamContent(a1 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 1 ? 'bg-success text-white' : 'bg-white'}"><strong>(B)</strong> ${formatRichExamContent(a2 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 2 ? 'bg-success text-white' : 'bg-white'}"><strong>(C)</strong> ${formatRichExamContent(a3 || '—')}</div></div>
-                <div class="col-6 mb-1"><div class="p-1 border rounded ${correctIdx === 3 ? 'bg-success text-white' : 'bg-white'}"><strong>(D)</strong> ${formatRichExamContent(a4 || '—')}</div></div>
+            const options = [
+                { letter: 'A', text: a1, idx: 0 },
+                { letter: 'B', text: a2, idx: 1 },
+                { letter: 'C', text: a3, idx: 2 },
+                { letter: 'D', text: a4, idx: 3 },
+            ];
+            if (isOpt5Visible || a5) {
+                options.push({ letter: 'E', text: a5, idx: 4 });
+            }
+
+            html += `<div class="row">`;
+            options.forEach(opt => {
+                const isCorrect = (correctIdx === opt.idx);
+                const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1px solid #10b981;' : 'background: #ffffff; border: 1px solid #e2e8f0;';
+                const badgeStyle = isCorrect ? 'background: #10b981; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                const colWidth = (options.length === 5 && opt.letter === 'E') ? 'col-12' : 'col-6';
+
+                html += `<div class="${colWidth} mb-2">
+                    <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
+                        <span class="badge mr-2" style="${badgeStyle} font-size: 10px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
+                        <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#1e293b'}; font-weight: ${isCorrect ? '600' : '400'};">
+                            ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                        </div>
+                        ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+
+        if (explanation) {
+            html += `<div class="mt-3 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 11.5px; color: #92400e;">
+                <strong><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
             </div>`;
         }
 
@@ -1344,6 +1651,7 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.onload = (e) => {
                 document.getElementById('manual-image-preview').src = e.target.result;
                 document.getElementById('manual-image-preview-wrapper').classList.remove('d-none');
+                updateManualLivePreview();
             };
             reader.readAsDataURL(this.files[0]);
         }
@@ -1351,16 +1659,30 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-remove-manual-img')?.addEventListener('click', () => {
         if (manualImgInput) manualImgInput.value = '';
         document.getElementById('manual-image-preview-wrapper').classList.add('d-none');
+        updateManualLivePreview();
     });
+
+    function syncAllCKEditors() {
+        if (window.CKEDITOR && CKEDITOR.instances) {
+            for (let name in CKEDITOR.instances) {
+                if (CKEDITOR.instances.hasOwnProperty(name)) {
+                    CKEDITOR.instances[name].updateElement();
+                }
+            }
+        }
+    }
 
     // Manual form submission
     document.getElementById('btn-save-and-add')?.addEventListener('click', () => {
+        syncAllCKEditors();
         document.getElementById('manual_submit_action').value = 'save_and_add';
-        document.getElementById('form-manual-question').submit();
+        $('#form-manual-question').submit();
     });
 
     document.getElementById('form-manual-question')?.addEventListener('submit', function (e) {
+        syncAllCKEditors();
         syncGlobalToManual();
+
         if (!globalClassSelect?.value) {
             alert('Please select a Target Class in the top parameters bar.');
             globalClassSelect.focus();
@@ -1373,7 +1695,54 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             return false;
         }
+
+        const qVal = getManualFieldVal('manual_question_name').trim();
+        if (!qVal) {
+            alert('Please enter a Question Statement before saving.');
+            if (CKEDITOR.instances['manual_question_name']) {
+                CKEDITOR.instances['manual_question_name'].focus();
+            } else {
+                document.getElementById('manual_question_name')?.focus();
+            }
+            e.preventDefault();
+            return false;
+        }
     });
+
+    // Reset button handler
+    document.querySelector('#form-manual-question button[type="reset"]')?.addEventListener('click', function (e) {
+        setTimeout(() => {
+            ['manual_question_name', 'manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5', 'manual_explanation'].forEach(id => {
+                if (window.CKEDITOR && CKEDITOR.instances[id]) {
+                    CKEDITOR.instances[id].setData('');
+                }
+            });
+            hideOption5();
+            const opt1Radio = document.querySelector('input[name="correct_ans"][value="0"]');
+            if (opt1Radio) opt1Radio.checked = true;
+            document.getElementById('manual-image-preview-wrapper')?.classList.add('d-none');
+            const manualImg = document.getElementById('manual_image');
+            if (manualImg) manualImg.value = '';
+            updateManualLivePreview();
+        }, 50);
+    });
+
+    // Auto-initialize Manual CKEditors on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initManualCKEditors, 100);
+            @if(old('ans5') || old('correct_ans') == '4')
+                showOption5();
+            @endif
+            setTimeout(updateManualLivePreview, 250);
+        });
+    } else {
+        setTimeout(initManualCKEditors, 100);
+        @if(old('ans5') || old('correct_ans') == '4')
+            showOption5();
+        @endif
+        setTimeout(updateManualLivePreview, 250);
+    }
 
     // =========================================================================
     // TAB 2: AI SINGLE IMAGE SCANNER (PASTE & UPLOAD)
