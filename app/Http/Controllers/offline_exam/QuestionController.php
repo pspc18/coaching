@@ -27,10 +27,33 @@ class QuestionController extends Controller
      */
     public function viewQuestion(Request $request)
     {
-        $search['name'] = $request->name;
-        $search['subject_id'] = $request->subject_id;
-        $search['class_type_id'] = $request->class_type_id;
-        $search['question_type_id'] = $request->question_type_id;
+        $search = [
+            'name' => $request->name,
+            'subject_id' => $request->subject_id,
+            'class_type_id' => $request->class_type_id,
+            'question_type_id' => $request->question_type_id,
+            'difficulty_level' => $request->difficulty_level,
+            'has_diagram' => $request->has_diagram,
+            'group_filter' => $request->group_filter,
+            'ai_extracted' => $request->ai_extracted,
+            'format_filter' => $request->format_filter,
+        ];
+
+        // Base query for branch scoping and KPI stats
+        $baseQuery = Question::whereNull('deleted_at');
+        if (Session::get('role_id') > 1) {
+            $baseQuery = $baseQuery->where('questions.branch_id', Session::get('branch_id'));
+        }
+
+        // Compute KPI Summary Stats
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'mcq' => (clone $baseQuery)->where('question_type_id', 1)->count(),
+            'descriptive' => (clone $baseQuery)->where('question_type_id', 2)->count(),
+            'grouped' => (clone $baseQuery)->whereNotNull('group_id')->where('group_id', '!=', '')->count(),
+            'diagram' => (clone $baseQuery)->whereNotNull('image')->where('image', '!=', '')->count(),
+            'ai_extracted' => (clone $baseQuery)->where('ai_extracted', 1)->count(),
+        ];
 
         $data = Question::select(
             'questions.*',
@@ -44,28 +67,92 @@ class QuestionController extends Controller
             $data = $data->where('questions.branch_id', Session::get('branch_id'));
         }
 
-        if ($request->isMethod('post') || $request->filled('filter')) {
-            if (!empty($request->name)) {
-                $data = $data->where("questions.name", 'like', '%' . $request->name . '%');
-            }
-            if (!empty($request->class_type_id)) {
-                $data = $data->where("questions.class_type_id", $request->class_type_id);
-            }
-            if (!empty($request->subject_id)) {
-                $data = $data->where("questions.subject_id", $request->subject_id);
-            }
-            if (!empty($request->question_type_id)) {
-                $data = $data->where("questions.question_type_id", $request->question_type_id);
+        // 1. Keyword search (statement, explanation, direction, group_id)
+        if (!empty($request->name)) {
+            $kw = '%' . trim($request->name) . '%';
+            $data = $data->where(function($q) use ($kw) {
+                $q->where('questions.name', 'like', $kw)
+                  ->orWhere('questions.explanation', 'like', $kw)
+                  ->orWhere('questions.direction', 'like', $kw)
+                  ->orWhere('questions.group_id', 'like', $kw);
+            });
+        }
+
+        // 2. Class Type filter
+        if (!empty($request->class_type_id)) {
+            $data = $data->where('questions.class_type_id', $request->class_type_id);
+        }
+
+        // 3. Subject filter
+        if (!empty($request->subject_id)) {
+            $data = $data->where('questions.subject_id', $request->subject_id);
+        }
+
+        // 4. Question Type (1 = MCQ/Objective, 2 = Descriptive)
+        if (!empty($request->question_type_id)) {
+            $data = $data->where('questions.question_type_id', $request->question_type_id);
+        }
+
+        // 5. Difficulty Level (Easy, Medium, Hard)
+        if (!empty($request->difficulty_level)) {
+            $data = $data->where('questions.difficulty_level', $request->difficulty_level);
+        }
+
+        // 6. Format Quick Filter (from KPI pills or dropdown: grouped, standalone, diagram, ai_extracted)
+        if (!empty($request->format_filter)) {
+            if ($request->format_filter === 'grouped') {
+                $data = $data->whereNotNull('questions.group_id')->where('questions.group_id', '!=', '');
+            } elseif ($request->format_filter === 'standalone') {
+                $data = $data->where(function($q) {
+                    $q->whereNull('questions.group_id')->orWhere('questions.group_id', '');
+                });
+            } elseif ($request->format_filter === 'diagram') {
+                $data = $data->whereNotNull('questions.image')->where('questions.image', '!=', '');
+            } elseif ($request->format_filter === 'ai_extracted') {
+                $data = $data->where('questions.ai_extracted', 1);
             }
         }
 
-        $data = $data->orderBy('questions.id', 'DESC')->paginate(25);
+        // 7. Attached Diagram Filter
+        if ($request->filled('has_diagram')) {
+            if ($request->has_diagram == '1') {
+                $data = $data->whereNotNull('questions.image')->where('questions.image', '!=', '');
+            } elseif ($request->has_diagram == '0') {
+                $data = $data->where(function($q) {
+                    $q->whereNull('questions.image')->orWhere('questions.image', '');
+                });
+            }
+        }
+
+        // 8. Grouped / Direction Filter
+        if (!empty($request->group_filter)) {
+            if ($request->group_filter === 'grouped') {
+                $data = $data->whereNotNull('questions.group_id')->where('questions.group_id', '!=', '');
+            } elseif ($request->group_filter === 'standalone') {
+                $data = $data->where(function($q) {
+                    $q->whereNull('questions.group_id')->orWhere('questions.group_id', '');
+                });
+            } elseif ($request->group_filter !== 'all') {
+                $data = $data->where('questions.group_id', $request->group_filter);
+            }
+        }
+
+        // 9. AI Extracted Filter
+        if ($request->filled('ai_extracted')) {
+            $data = $data->where('questions.ai_extracted', (int)$request->ai_extracted);
+        }
+
+        $perPage = (int) $request->input('per_page', 25);
+        if ($perPage < 5) $perPage = 25;
+
+        $data = $data->orderBy('questions.id', 'DESC')->paginate($perPage)->appends($request->all());
         $classType = Helper::classType();
         $allSubjects = Helper::getSubject();
 
-        return view('examination.offline_exam.question_bank.view', [
+        return Helper::view('examination.offline_exam.question_bank.view', [
             'data' => $data,
             'search' => $search,
+            'stats' => $stats,
             'classType' => $classType,
             'allSubjects' => $allSubjects
         ]);
