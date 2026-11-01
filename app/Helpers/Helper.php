@@ -2450,6 +2450,38 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
             'student' => $currentAdmission,
         ];
     }
+
+    /**
+     * Clean and format HTML/LaTeX strings for exam questions and formulas.
+     * Unescapes safe HTML tags and formats linebreaks cleanly.
+     *
+     * @param string|null $content
+     * @return string
+     */
+    public static function cleanHtmlFormat($content)
+    {
+        if ($content === null || $content === '') {
+            return '';
+        }
+
+        $text = (string)$content;
+
+        // Unescape standard safe HTML tags if they were escaped as &lt;br&gt;, etc.
+        $text = preg_replace_callback(
+            '/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6])(?:\s+[^&>]*)?)&gt;/i',
+            function ($m) {
+                return '<' . htmlspecialchars_decode($m[1], ENT_QUOTES) . '>';
+            },
+            $text
+        );
+
+        // If content does not contain HTML tags, convert newlines to <br>
+        if (!preg_match('/<[a-z][\s\S]*>/i', $text)) {
+            $text = nl2br($text);
+        }
+
+        return $text;
+    }
 }
 
 
