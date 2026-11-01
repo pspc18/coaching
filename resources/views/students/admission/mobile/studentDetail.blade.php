@@ -290,23 +290,76 @@
 
 /* Portal Credentials Mobile Strip */
 .mob-cred-card {
-    background: #002C54;
-    border-radius: 3px;
-    padding: 8px 10px;
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 4px;
+    padding: 10px 12px;
     color: #ffffff;
     margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 20, 40, 0.2);
+}
+.mob-cred-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mob-cred-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.mob-cred-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.mob-cred-btn {
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none !important;
+    line-height: 1;
+    white-space: nowrap;
+    transition: transform .12s ease;
+}
+.mob-cred-btn:active { transform: scale(0.95); }
+.mob-cred-btn-copy {
+    background: #ffffff;
+    color: #002C54 !important;
+    border: 1px solid #cbd5e1;
+}
+.mob-cred-btn-share {
+    background: #10b981;
+    color: #ffffff !important;
 }
 .mob-cred-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 3px 0;
+    padding: 5px 0;
     font-size: 11.5px;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
 }
 .mob-cred-row:last-child { border-bottom: none; }
-.mob-cred-lbl { color: #94a3b8; font-size: 10.5px; font-weight: 600; }
-.mob-cred-val { font-family: monospace; font-size: 12px; font-weight: 800; color: #ffffff; }
+.mob-cred-lbl { color: #94a3b8; font-size: 11px; font-weight: 600; }
+.mob-cred-val { font-family: monospace; font-size: 12.5px; font-weight: 800; color: #ffffff; }
 
 /* Data Rows */
 .mob-info-row {
@@ -1335,7 +1388,7 @@
         <button type="button" class="mob-seg-btn" data-pane="pane-attendance">Attendance <span class="mob-seg-pill">{{ $attendanceTotal }}</span></button>
         <button type="button" class="mob-seg-btn" data-pane="pane-exams">Exams <span class="mob-seg-pill">{{ $examResults->count() }}</span></button>
         <button type="button" class="mob-seg-btn" data-pane="pane-docs">Docs <span class="mob-seg-pill">{{ collect($getDocuments)->count() }}</span></button>
-        <button type="button" class="mob-seg-btn" data-pane="pane-family">Siblings & Hist</button>
+        <button type="button" class="mob-seg-btn" data-pane="pane-family">Siblings <span class="mob-seg-pill">{{ collect($siblings)->count() }}</span></button>
     </div>
 
     <!-- ==========================================
@@ -1344,17 +1397,17 @@
     <div class="mob-pane active" id="pane-overview">
         <!-- Portal Credentials Strip -->
         <div class="mob-cred-card">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="font-weight-bold" style="font-size:11.5px; color:#38bdf8;"><i class="fa fa-shield mr-1"></i> Portal Access</span>
-                <div>
-                    <button type="button" class="btn btn-xs btn-light py-0 px-2 font-weight-bold" onclick="copyMobCredentials()" style="font-size:9.5px;">
+            <div class="mob-cred-header">
+                <span class="mob-cred-title"><i class="fa fa-shield"></i> Portal Access</span>
+                <div class="mob-cred-actions">
+                    <button type="button" class="mob-cred-btn mob-cred-btn-copy" onclick="copyMobCredentials()">
                         <i class="fa fa-copy"></i> Copy
                     </button>
                     @if(!empty($fatherContact) && !empty($student->userName))
                         @php
                             $portalMsg = "Dear Parent, Login credentials for {$studentName} at Arise Portal:\nUsername: {$student->userName}\nPassword: {$student->confirm_password}\nPortal: " . url('/');
                         @endphp
-                        <a href="https://api.whatsapp.com/send?phone=91{{ $fatherContact }}&text={{ urlencode($portalMsg) }}" target="_blank" class="btn btn-xs btn-success py-0 px-2 font-weight-bold ml-1" style="font-size:9.5px;">
+                        <a href="https://api.whatsapp.com/send?phone=91{{ $fatherContact }}&text={{ urlencode($portalMsg) }}" target="_blank" class="mob-cred-btn mob-cred-btn-share">
                             <i class="fa fa-whatsapp"></i> Share
                         </a>
                     @endif
@@ -1369,7 +1422,7 @@
                 <span class="mob-cred-val">
                     <span id="mobPassMasked">••••••••</span>
                     <span id="mobPassPlain" style="display:none;">{{ $student->confirm_password ?: 'Not Set' }}</span>
-                    <i class="fa fa-eye ml-1 text-sky" id="mobPassEye" onclick="toggleMobPassword()" style="font-size:11px; cursor:pointer; color:#38bdf8;"></i>
+                    <i class="fa fa-eye" id="mobPassEye" onclick="toggleMobPassword()" style="font-size:12px; cursor:pointer; color:#38bdf8; margin-left:6px;"></i>
                 </span>
             </div>
         </div>
@@ -1684,22 +1737,25 @@
                                 <span>{{ $head->payments->count() }} {{ Str::plural('Transaction', $head->payments->count()) }}</span>
                             </div>
                             @foreach($head->payments as $payment)
+                                @php
+                                    $rawPayDate = $payment->date ?: ($payment->payment_date ?: $payment->created_at);
+                                    $payDate = !empty($rawPayDate) ? \Carbon\Carbon::parse($rawPayDate) : null;
+                                    $payTitle = !empty($payment->receipt_no) ? 'Receipt #'.$payment->receipt_no : (!empty($payment->invoice_id) ? 'Invoice #'.$payment->invoice_id : 'Fee Payment');
+                                @endphp
                                 <div class="tx-item-card">
                                     <div class="tx-item-left">
-                                        <div class="tx-icon-pill" title="{{ !empty($payment->date) ? date('d-m-Y', strtotime($payment->date)) : '' }}">
-                                            @if(!empty($payment->date))
-                                                <span class="tx-date-day">{{ date('d', strtotime($payment->date)) }}</span>
-                                                <span class="tx-date-mon">{{ date('M', strtotime($payment->date)) }}</span>
+                                        <div class="tx-icon-pill" title="{{ $payDate ? $payDate->format('d-m-Y') : '' }}">
+                                            @if($payDate)
+                                                <span class="tx-date-day">{{ $payDate->format('d') }}</span>
+                                                <span class="tx-date-mon">{{ $payDate->format('M') }}</span>
                                             @else
                                                 <i class="fa fa-calendar-check-o" style="font-size: 11px;"></i>
                                             @endif
                                         </div>
                                         <div class="tx-item-details">
-                                            <span class="tx-receipt-title">
-                                                {{ !empty($payment->receipt_no) ? 'Receipt #'.$payment->receipt_no : (!empty($payment->invoice_id) ? 'Invoice #'.$payment->invoice_id : 'Fee Payment') }}
-                                            </span>
+                                            <span class="tx-receipt-title">{{ $payTitle }}</span>
                                             <div class="tx-meta-sub">
-                                                <span><i class="fa fa-calendar-o"></i> {{ !empty($payment->date) ? date('d M Y', strtotime($payment->date)) : '-' }}</span>
+                                                <span><i class="fa fa-calendar-o"></i> {{ $payDate ? $payDate->format('d M Y') : '-' }}</span>
                                                 <span class="tx-mode-tag">{{ $payment->payment_mode ?: 'Cash' }}</span>
                                             </div>
                                         </div>
@@ -1728,26 +1784,29 @@
         <!-- Panel 2: Fee Receipts & Invoices -->
         <div id="panel-fee-receipts" style="display: none;">
             @forelse(collect($getPaidFees) as $invoice)
+                @php
+                    $rawInvDate = $invoice->payment_date ?: ($invoice->date ?: $invoice->created_at);
+                    $invDate = !empty($rawInvDate) ? \Carbon\Carbon::parse($rawInvDate) : null;
+                    $invTitle = !empty($invoice->invoice_no) ? 'Invoice #'.$invoice->invoice_no : (!empty($invoice->receipt_no) ? 'Receipt #'.$invoice->receipt_no : 'Invoice #'.$invoice->id);
+                @endphp
                 <div class="student-mob-card card-receipt">
                     <div class="student-card-header">
                         <div class="tx-icon-pill">
-                            @if(!empty($invoice->date))
-                                <span class="tx-date-day">{{ date('d', strtotime($invoice->date)) }}</span>
-                                <span class="tx-date-mon">{{ date('M', strtotime($invoice->date)) }}</span>
+                            @if($invDate)
+                                <span class="tx-date-day">{{ $invDate->format('d') }}</span>
+                                <span class="tx-date-mon">{{ $invDate->format('M') }}</span>
                             @else
                                 <i class="fa fa-file-text-o" style="font-size: 12px;"></i>
                             @endif
                         </div>
                         <div class="student-header-info">
                             <div class="student-name-row">
-                                <span class="student-mob-name">
-                                    {{ !empty($invoice->receipt_no) ? 'Receipt #'.$invoice->receipt_no : 'Invoice #'.$invoice->id }}
-                                </span>
+                                <span class="student-mob-name">{{ $invTitle }}</span>
                                 <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
                             </div>
                             <div class="student-pills-wrap">
                                 <span class="tx-mode-tag">{{ $invoice->payment_mode ?: 'Cash' }}</span>
-                                <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ !empty($invoice->date) ? date('d M Y', strtotime($invoice->date)) : '-' }}</span>
+                                <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ $invDate ? $invDate->format('d M Y') : '-' }}</span>
                             </div>
                         </div>
                     </div>
@@ -1875,25 +1934,25 @@
     <div class="mob-pane" id="pane-exams">
         @if($examResults->isNotEmpty())
             <!-- Exams Snapshot Ribbon -->
-            <div class="mob-card" style="background: linear-gradient(135deg, #001833, #002C54); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28);">
-                <div class="mob-card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="font-size: 12px; font-weight: 800; color: #ffffff;">
-                            <i class="fa fa-trophy text-warning mr-1"></i> Exam Performance Glance
-                        </span>
-                        <span class="mob-fee-session-pill">{{ $examResults->count() }} {{ Str::plural('Test', $examResults->count()) }}</span>
+            <div class="mob-card" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0, 20, 40, 0.25);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="font-size: 13.5px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 7px; line-height: 1.2;">
+                        <i class="fa fa-trophy text-warning" style="font-size: 14px;"></i> Exam Performance Glance
+                    </span>
+                    <span style="font-size: 10px; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.35); padding: 3px 8px; border-radius: 3px; line-height: 1.2; display: inline-flex; align-items: center;">
+                        {{ $examResults->count() }} {{ Str::plural('Test', $examResults->count()) }}
+                    </span>
+                </div>
+                <div class="mob-dual-grid" style="margin-bottom: 0; gap: 8px;">
+                    <div class="mob-radar-col" style="padding: 8px 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14);">
+                        <span class="mob-radar-tag" style="font-size: 9px;"><i class="fa fa-line-chart text-info"></i> OVERALL AVG</span>
+                        <div class="mob-radar-val" style="color: #38bdf8; font-size: 18px; margin: 3px 0 2px;">{{ number_format($overallExamPercentage, 1) }}%</div>
+                        <span class="mob-radar-meta" style="font-size: 9px;">Across all tests</span>
                     </div>
-                    <div class="mob-dual-grid mb-0">
-                        <div class="mob-radar-col">
-                            <span class="mob-radar-tag"><i class="fa fa-line-chart text-info"></i> Overall Avg</span>
-                            <div class="mob-radar-val" style="color: #38bdf8;">{{ number_format($overallExamPercentage, 1) }}%</div>
-                            <span class="mob-radar-meta">Across all tests</span>
-                        </div>
-                        <div class="mob-radar-col">
-                            <span class="mob-radar-tag"><i class="fa fa-star text-warning"></i> Highest Score</span>
-                            <div class="mob-radar-val" style="color: #34d399;">{{ number_format($examResults->max('percentage'), 1) }}%</div>
-                            <span class="mob-radar-meta">Best performance</span>
-                        </div>
+                    <div class="mob-radar-col" style="padding: 8px 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14);">
+                        <span class="mob-radar-tag" style="font-size: 9px;"><i class="fa fa-star text-warning"></i> HIGHEST SCORE</span>
+                        <div class="mob-radar-val" style="color: #34d399; font-size: 18px; margin: 3px 0 2px;">{{ number_format($examResults->max('percentage'), 1) }}%</div>
+                        <span class="mob-radar-meta" style="font-size: 9px;">Best performance</span>
                     </div>
                 </div>
             </div>
@@ -1986,91 +2045,120 @@
          PANE 5: DOCUMENTS VAULT
          ========================================== -->
     <div class="mob-pane" id="pane-docs">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="font-weight-bold text-dark" style="font-size:12.5px;"><i class="fa fa-folder-open text-danger mr-1"></i> Student Vault</span>
-            <button type="button" class="btn btn-xs btn-primary font-weight-bold" onclick="openDocUploadSheet()">
-                <i class="fa fa-upload mr-1"></i> Add File
-            </button>
+        <!-- Docs Vault Header -->
+        <div class="mob-card" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa fa-folder-open text-warning"></i> Documents Vault
+                    </div>
+                    <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">
+                        {{ collect($getDocuments)->count() }} Verified {{ Str::plural('Document', collect($getDocuments)->count()) }}
+                    </div>
+                </div>
+                <button type="button" class="btn btn-xs btn-primary font-weight-bold" onclick="openDocUploadSheet()" style="height: 28px; padding: 0 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
+                    <i class="fa fa-upload"></i> Add File
+                </button>
+            </div>
         </div>
 
         @forelse($getDocuments as $document)
-            <div class="mob-doc-item">
-                <div class="mob-doc-left">
-                    <div class="mob-doc-icon"><i class="fa fa-file-text-o"></i></div>
-                    <div style="min-width:0;">
-                        <div class="mob-doc-name">{{ $document->title ?: 'Document' }}</div>
-                        <div class="mob-doc-meta">{{ $document->created_at ? date('d M Y', strtotime($document->created_at)) : '-' }} · {{ $document->remark ?: 'No remark' }}</div>
+            @php
+                $ext = strtolower(pathinfo($document->file ?? '', PATHINFO_EXTENSION));
+                $isPdf = $ext === 'pdf';
+                $isImg = in_array($ext, ['jpg','jpeg','png','webp'], true);
+            @endphp
+            <div class="student-mob-card" style="border-left: 3px solid #0284c7 !important;">
+                <div class="student-card-header">
+                    <div class="student-avatar-box" style="background: {{ $isPdf ? '#fee2e2' : ($isImg ? '#e0f2fe' : '#f1f5f9') }}; color: {{ $isPdf ? '#dc2626' : ($isImg ? '#0284c7' : '#475569') }}; border-color: {{ $isPdf ? '#fca5a5' : ($isImg ? '#bae6fd' : '#cbd5e1') }};">
+                        <i class="fa {{ $isPdf ? 'fa-file-pdf-o' : ($isImg ? 'fa-file-image-o' : 'fa-file-text-o') }}"></i>
+                    </div>
+                    <div class="student-header-info">
+                        <div class="student-name-row">
+                            <span class="student-mob-name">{{ $document->title ?: 'Document' }}</span>
+                            <span class="tx-mode-tag">{{ strtoupper($ext ?: 'FILE') }}</span>
+                        </div>
+                        <div class="student-pills-wrap">
+                            <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ $document->created_at ? date('d M Y', strtotime($document->created_at)) : '-' }}</span>
+                            <span class="student-status-badge status-badge-active"><i class="fa fa-check"></i> Uploaded</span>
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex gap-1">
-                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="btn btn-xs btn-outline-primary" title="View">
-                        <i class="fa fa-eye"></i>
+
+                @if(!empty($document->remark))
+                    <div style="font-size: 10px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 3px; padding: 4px 8px; margin-bottom: 7px;">
+                        <i class="fa fa-comment-o text-muted mr-1"></i> {{ $document->remark }}
+                    </div>
+                @endif
+
+                <div class="student-card-actions">
+                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="mob-btn-action btn-act-edit">
+                        <i class="fa fa-eye"></i> View
                     </a>
-                    <button type="button" class="btn btn-xs btn-outline-warning" onclick="openDocEditSheet('{{ $document->id }}', '{{ addslashes($document->title) }}', '{{ addslashes($document->remark) }}')" title="Edit">
-                        <i class="fa fa-pencil"></i>
+                    <button type="button" class="mob-btn-action btn-act-edit" onclick="openDocEditSheet('{{ $document->id }}', '{{ addslashes($document->title) }}', '{{ addslashes($document->remark) }}')">
+                        <i class="fa fa-pencil"></i> Edit
                     </button>
-                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Delete this document?')" class="btn btn-xs btn-outline-danger" title="Delete">
-                        <i class="fa fa-trash"></i>
+                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Delete this document?')" class="mob-btn-action" style="background:#fee2e2; border-color:#fca5a5; color:#dc2626 !important;">
+                        <i class="fa fa-trash"></i> Delete
                     </a>
                 </div>
             </div>
         @empty
-            <div class="text-center py-4 text-muted">
-                <i class="fa fa-file-text-o fa-2x mb-1 text-primary d-block"></i>
+            <div class="text-center py-4 text-muted bg-white border rounded">
+                <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
                 No documents uploaded yet. Tap "Add File" above to upload.
             </div>
         @endforelse
     </div>
 
     <!-- ==========================================
-         PANE 6: SIBLINGS & PROMOTION HISTORY
+         PANE 6: SIBLINGS
          ========================================== -->
     <div class="mob-pane" id="pane-family">
-        <!-- Siblings -->
-        <div class="mob-card">
-            <div class="mob-card-head">
-                <h4 class="mob-card-title"><i class="fa fa-users text-warning"></i> Sibling Information</h4>
-                <span class="badge badge-warning">{{ collect($siblings)->count() }}</span>
-            </div>
-            <div class="mob-card-body p-0 px-2">
-                @forelse($siblings as $sibling)
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:11.5px;">
-                        <div>
-                            <div class="font-weight-bold text-dark">{{ trim(($sibling->first_name ?? '').' '.($sibling->last_name ?? '')) }}</div>
-                            <div class="text-muted" style="font-size:9.5px;">Adm: {{ $sibling->admissionNo ?? '-' }} · Class: {{ $sibling->class_name ?? '-' }}</div>
-                        </div>
-                        <a href="{{ url('studentDetail/'.$sibling->id.'?layout=mobile') }}" class="btn btn-xs btn-primary font-weight-bold">
-                            <i class="fa fa-eye"></i> View
-                        </a>
+        <!-- Siblings Header -->
+        <div class="mob-card" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa fa-users text-warning"></i> Sibling Information
                     </div>
-                @empty
-                    <div class="text-center py-3 text-muted">No sibling records registered.</div>
-                @endforelse
+                    <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">
+                        Family members enrolled in school
+                    </div>
+                </div>
+                <span class="mob-fee-session-pill">{{ collect($siblings)->count() }} {{ Str::plural('Sibling', collect($siblings)->count()) }}</span>
             </div>
         </div>
 
-        <!-- Promotion History -->
-        <div class="mob-card">
-            <div class="mob-card-head">
-                <h4 class="mob-card-title"><i class="fa fa-history text-primary"></i> Promotion History</h4>
-                <span class="badge badge-info">{{ $promotion_history->count() }}</span>
-            </div>
-            <div class="mob-card-body p-0 px-2">
-                @forelse($promotion_history as $history)
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:11.5px;">
-                        <div>
-                            <div class="font-weight-bold text-dark">{{ collect([$history->from_year, $history->to_year])->filter()->implode('-') ?: '-' }}</div>
-                            <div class="text-muted" style="font-size:9.5px;">Class: {{ $history->class_name ?? '-' }} · Roll: {{ $history->roll_no ?? '-' }}</div>
-                        </div>
-                        <span class="badge {{ (int)$history->status === 1 ? 'badge-success' : 'badge-secondary' }}">
-                            {{ (int)$history->status === 1 ? 'Active' : 'Promoted' }}
-                        </span>
+        @forelse($siblings as $sibling)
+            <div class="student-mob-card" style="border-left: 3px solid #0284c7 !important;">
+                <div class="student-card-header">
+                    <div class="student-avatar-box" style="background: #e0f2fe; color: #0284c7;">
+                        <i class="fa fa-user"></i>
                     </div>
-                @empty
-                    <div class="text-center py-3 text-muted">No promotion history found.</div>
-                @endforelse
+                    <div class="student-header-info">
+                        <div class="student-name-row">
+                            <span class="student-mob-name">{{ trim(($sibling->first_name ?? '').' '.($sibling->last_name ?? '')) }}</span>
+                            <span class="student-status-badge status-badge-active">Enrolled</span>
+                        </div>
+                        <div class="student-pills-wrap">
+                            <span class="student-adm-badge">Adm: {{ $sibling->admissionNo ?? '-' }}</span>
+                            <span class="student-class-badge"><i class="fa fa-book"></i> {{ $sibling->class_name ?? '-' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-card-actions">
+                    <a href="{{ url('studentDetail/'.$sibling->id.'?layout=mobile') }}" class="mob-btn-action btn-act-edit">
+                        <i class="fa fa-id-card-o"></i> View Sibling Profile
+                    </a>
+                </div>
             </div>
-        </div>
+        @empty
+            <div class="text-center py-4 text-muted bg-white border rounded">
+                <i class="fa fa-users fa-2x mb-2 text-primary d-block"></i>
+                No sibling records registered for this student.
+            </div>
+        @endforelse
     </div>
 
 </div>

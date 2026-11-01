@@ -728,7 +728,7 @@
                 <i class="fa fa-file-text-o"></i> Documents Vault <span class="profile-tab-badge">{{ collect($getDocuments)->count() }}</span>
             </button>
             <button type="button" class="profile-tab-link" data-tab="tab-family">
-                <i class="fa fa-users"></i> Siblings & History <span class="profile-tab-badge">{{ collect($siblings)->count() }}</span>
+                <i class="fa fa-users"></i> Siblings <span class="profile-tab-badge">{{ collect($siblings)->count() }}</span>
             </button>
         </div>
 
@@ -1184,12 +1184,12 @@
         </div>
 
         <!-- ==========================================
-             TAB 6: SIBLINGS & PROMOTION HISTORY
+             TAB 6: SIBLINGS
              ========================================== -->
         <div class="profile-tab-content-pane" id="tab-family">
             <div class="row profile-row-compact">
                 <!-- Siblings Table -->
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="dash-card">
                         <div class="dash-card-header">
                             <h3 class="dash-card-title"><i class="fa fa-users text-warning"></i> Sibling Information</h3>
@@ -1219,44 +1219,6 @@
                                     </tr>
                                 @empty
                                     <tr><td colspan="4" class="text-center py-3 text-muted">No siblings registered.</td></tr>
-                                @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Promotion Progression -->
-                <div class="col-md-6">
-                    <div class="dash-card">
-                        <div class="dash-card-header">
-                            <h3 class="dash-card-title"><i class="fa fa-history text-primary"></i> Promotion History</h3>
-                            <span class="badge badge-info">{{ $promotion_history->count() }}</span>
-                        </div>
-                        <div class="dash-card-body p-0 table-responsive">
-                            <table class="arise-profile-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Session</th>
-                                        <th>Class</th>
-                                        <th>Roll No</th>
-                                        <th class="text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                @forelse($promotion_history as $history)
-                                    <tr>
-                                        <td class="font-weight-bold text-dark">{{ collect([$history->from_year, $history->to_year])->filter()->implode('-') ?: '-' }}</td>
-                                        <td>{{ $history->class_name ?? '-' }}</td>
-                                        <td>{{ $history->roll_no ?? '-' }}</td>
-                                        <td class="text-center">
-                                            <span class="badge {{ (int)$history->status === 1 ? 'badge-success' : 'badge-secondary' }}">
-                                                {{ (int)$history->status === 1 ? 'Active' : 'Promoted' }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="4" class="text-center py-3 text-muted">No promotion history recorded.</td></tr>
                                 @endforelse
                                 </tbody>
                             </table>

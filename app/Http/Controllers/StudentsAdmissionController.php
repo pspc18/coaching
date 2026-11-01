@@ -1334,15 +1334,6 @@ class StudentsAdmissionController extends Controller
                                 ['admissions.branch_id', Session::get('branch_id')],
                                 ['admissions.id', $id]])->first();
                                 $promotion_history = collect();
-                                if (!empty($data)) {
-                                    $promotion_history = Admission::select('admissions.*','class.name as class_name','gender.name as genderName','sessions.from_year','sessions.to_year')
-                                ->leftJoin('class_types as class', 'class.id', 'admissions.class_type_id')
-                                ->leftJoin('gender', 'gender.id', 'admissions.gender_id')
-                                ->leftJoin('sessions', 'sessions.id', 'admissions.session_id')
-                                ->where('admissions.unique_system_id', $data->unique_system_id)
-                                ->orderBy('class.orderBy', 'ASC')
-                                ->get();
-                                }
                              $siblings = [];
                             if ($data) {
                                 $siblings = Admission::select('admissions.*','class.name as class_name','gender.name as genderName' )
