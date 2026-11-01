@@ -493,6 +493,95 @@ textarea.theme-form-control {
 .fa-external-link {
     margin-left: 4px;
 }
+
+/* ==========================================================================
+   THEME COLOR VISIBILITY & OVERRIDES FOR QUESTION BUILDER
+   ========================================================================== */
+/* Neutralize .bg-light override from common.css inside Question Builder */
+.qb-page-wrapper .bg-light {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+/* Mode Switcher Pills */
+.manual-mode-pill {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 5px 14px !important;
+    border-radius: 2px !important;
+    cursor: pointer !important;
+    border: 1px solid #002C54 !important;
+    color: #002C54 !important;
+    background: #ffffff !important;
+    transition: all .15s ease !important;
+}
+.manual-mode-pill:hover {
+    background: #f1f5f9 !important;
+    color: #001833 !important;
+}
+.manual-mode-pill.active {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.25) !important;
+}
+
+/* Sub-Question Card & Header (Left Column) */
+.sub-question-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: 4px solid #002C54 !important;
+    border-radius: 2px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+.subq-card-header {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    color: #0f172a !important;
+}
+
+/* Student View Preview Sub-Question Tabs Bar (Right Column) */
+.qb-preview-tabs-bar {
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding: 6px 10px !important;
+}
+.qb-subq-preview-tab {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    border-radius: 3px !important;
+    transition: all .15s ease !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    line-height: 1.3 !important;
+}
+.qb-subq-preview-tab:hover {
+    background: #e2e8f0 !important;
+    color: #002C54 !important;
+    border-color: #002C54 !important;
+}
+.qb-subq-preview-tab.active {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.25) !important;
+    font-weight: 700 !important;
+}
+
+/* Option Input Card Selection */
+.option-input-card.correct-selected .option-label-pill {
+    background: #059669 !important;
+    color: #ffffff !important;
+}
 </style>
 
 <div class="content-wrapper">
@@ -978,12 +1067,12 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- 2. Sub-Questions Header Bar --}}
-                            <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white rounded border">
+                            <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white rounded border" style="border-left: 4px solid #002C54 !important;">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="font-weight-bold text-dark" style="font-size: 12.5px;">
+                                    <span class="font-weight-bold" style="font-size: 12.5px; color: #002C54;">
                                         <i class="fa fa-list-ol text-primary mr-1"></i> Sub-Questions in this Set:
                                     </span>
-                                    <span class="badge badge-info" id="dir-sub-count-text" style="font-size: 11px; background:#0284c7;">2 Sub-Questions</span>
+                                    <span class="badge" id="dir-sub-count-text" style="font-size: 11px; background:#002C54; color:#ffffff; font-weight:700;">2 Sub-Questions</span>
                                 </div>
                                 <button type="button" class="btn btn-xs btn-outline-primary btn-add-subq-trigger font-weight-bold px-2 py-1" style="font-size: 11px;">
                                     <i class="fa fa-plus-circle mr-1"></i> + Add Sub-Question
@@ -995,8 +1084,8 @@ textarea.theme-form-control {
 
                             {{-- 4. Bottom Add Sub-Question Button --}}
                             <div class="my-3 text-center">
-                                <button type="button" id="btn-add-directional-subq" class="btn btn-block btn-outline-primary py-2 font-weight-bold" style="border: 2px dashed #0284c7; background: #f0f7ff; color: #0284c7; font-size: 12.5px;">
-                                    <i class="fa fa-plus-circle mr-1"></i> + Add Another Sub-Question to Set
+                                <button type="button" id="btn-add-directional-subq" class="btn btn-block btn-outline-primary py-2 font-weight-bold" style="border: 2px dashed #002C54; background: #f8fafc; color: #002C54; font-size: 12.5px;">
+                                    <i class="fa fa-plus-circle mr-1 text-primary"></i> + Add Another Sub-Question to Set
                                 </button>
                             </div>
                         </div>
@@ -1011,31 +1100,31 @@ textarea.theme-form-control {
                                 </div>
                                 <div class="theme-card-body" style="background: #ffffff;">
                                     {{-- Set Meta Pills --}}
-                                    <div class="mb-3 p-2 rounded border" style="background: #f8fafc;">
-                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                            <span class="text-muted small">Set Identifier:</span>
-                                            <span class="badge badge-light border text-primary font-weight-bold text-monospace" id="dir-meta-id-display">DIR-XXXX</span>
+                                    <div class="mb-3 p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
+                                            <span class="small font-weight-bold" style="color: #475569;">Set Identifier:</span>
+                                            <span class="badge font-weight-bold text-monospace" id="dir-meta-id-display" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-size: 11px;">DIR-XXXX</span>
                                         </div>
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <span class="text-muted small">Sub-Questions Count:</span>
-                                            <span class="badge badge-info" id="dir-meta-total-display">2 Sub-Questions</span>
+                                            <span class="small font-weight-bold" style="color: #475569;">Sub-Questions Count:</span>
+                                            <span class="badge font-weight-bold" id="dir-meta-total-display" style="background: #002C54; color: #ffffff; font-size: 10px;">2 Sub-Questions</span>
                                         </div>
                                     </div>
 
                                     {{-- Student View (Exam Paper Real-Time Preview) --}}
                                     <div class="preview-exam-card mb-3" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                                        <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9;">
+                                        <div class="d-flex align-items-center justify-content-between p-2 px-3 border-bottom" style="background: #f1f5f9; border-color: #cbd5e1 !important;">
                                             <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
                                                 <i class="fa fa-desktop text-primary mr-1"></i> Student View (Live Preview)
                                             </span>
-                                            <span id="dir-preview-active-subq-badge" class="badge badge-primary" style="font-size: 10px; padding: 2px 8px; background: #0284c7;">Viewing Sub-Q #1</span>
+                                            <span id="dir-preview-active-subq-badge" class="badge" style="font-size: 10px; padding: 3px 8px; background: #002C54; color: #ffffff;">Viewing Sub-Q #1</span>
                                         </div>
 
                                         {{-- Sub-Question Switcher Navigation Pills --}}
-                                        <div class="p-2 border-bottom bg-light d-flex align-items-center gap-1 flex-wrap" id="dir-preview-tabs"></div>
+                                        <div class="qb-preview-tabs-bar d-flex align-items-center gap-1 flex-wrap" id="dir-preview-tabs"></div>
 
                                         {{-- Preview Content Box --}}
-                                        <div class="p-3" id="directional-live-preview" style="min-height: 120px; font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                        <div class="p-3" id="directional-live-preview" style="min-height: 120px; font-size: 12px; color: #0f172a; line-height: 1.5; background: #ffffff;">
                                             <em>Type passage and questions to see live preview...</em>
                                         </div>
                                     </div>
@@ -2114,19 +2203,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Sub-Question HTML Builder
     function buildSubQuestionCardHtml(idx, seq) {
         return `
-        <div class="theme-card sub-question-card mb-3" id="dir-subq-card-${idx}" data-idx="${idx}" style="border-left: 4px solid #0284c7 !important;">
-            <div class="theme-card-header d-flex align-items-center justify-content-between py-2 px-3" style="background: #f8fafc !important; border-bottom: 1px solid #cbd5e1;">
+        <div class="sub-question-card mb-3" id="dir-subq-card-${idx}" data-idx="${idx}">
+            <div class="subq-card-header d-flex align-items-center justify-content-between py-2 px-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="badge badge-primary font-weight-bold px-2 py-1" style="background: #0284c7; font-size: 11px;">
-                        <i class="fa fa-question-circle mr-1"></i> Sub-Question #<span class="sub-q-seq">${seq}</span>
+                    <span class="badge font-weight-bold px-2 py-1" style="background: #002C54; color: #ffffff; font-size: 11px; border-radius: 2px;">
+                        <i class="fa fa-question-circle mr-1 text-warning"></i> Sub-Question #<span class="sub-q-seq">${seq}</span>
                     </span>
                     <div class="d-flex align-items-center gap-1">
-                        <span class="small font-weight-bold text-dark" style="font-size: 11px;">No:</span>
-                        <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${seq}" style="width: 50px; height: 24px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px;">
+                        <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">No:</span>
+                        <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${seq}" style="width: 50px; height: 26px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px; background: #ffffff !important; color: #002C54 !important;">
                     </div>
                     <div class="d-flex align-items-center gap-1">
-                        <span class="small font-weight-bold text-dark" style="font-size: 11px;">Level:</span>
-                        <select name="directional_questions[${idx}][difficulty_level]" class="form-control form-control-sm" style="width: 85px; height: 24px; font-size: 11px; padding: 2px 4px;">
+                        <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">Level:</span>
+                        <select name="directional_questions[${idx}][difficulty_level]" class="form-control form-control-sm font-weight-bold" style="width: 88px; height: 26px; font-size: 11px; padding: 2px 4px; background: #ffffff !important; color: #002C54 !important; border: 1px solid #cbd5e1 !important;">
                             <option value="Easy">Easy</option>
                             <option value="Medium" selected>Medium</option>
                             <option value="Hard">Hard</option>
@@ -2134,12 +2223,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-xs btn-outline-danger btn-remove-subq" data-idx="${idx}" title="Remove Sub-Question" style="font-size: 10.5px; padding: 2px 8px;">
+                    <button type="button" class="btn btn-xs btn-outline-danger btn-remove-subq" data-idx="${idx}" title="Remove Sub-Question" style="font-size: 10.5px; padding: 2px 8px; font-weight: 600;">
                         <i class="fa fa-trash mr-1"></i> Remove
                     </button>
                 </div>
             </div>
-            <div class="theme-card-body p-3">
+            <div class="p-3 bg-white">
                 {{-- Statement Textarea --}}
                 <div class="theme-form-group mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1">
@@ -2158,11 +2247,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 {{-- Options Section --}}
                 <div class="mb-2">
-                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                        <span class="font-weight-bold text-primary small" style="font-size: 11px;">
+                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #cbd5e1 !important;">
+                        <span class="font-weight-bold text-primary small" style="font-size: 11.5px;">
                             <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
                         </span>
-                        <button type="button" class="btn btn-xs btn-outline-primary btn-toggle-subq-opt5" data-idx="${idx}" style="font-size: 10px; padding: 1px 7px;">
+                        <button type="button" class="btn btn-xs btn-outline-primary btn-toggle-subq-opt5 font-weight-bold" data-idx="${idx}" style="font-size: 10px; padding: 2px 8px;">
                             <i class="fa fa-plus mr-1"></i> Add 5th Option (E)
                         </button>
                     </div>
@@ -2174,18 +2263,18 @@ document.addEventListener('DOMContentLoaded', function () {
                             { num: 4, letter: 'D', val: '3' },
                         ].map(opt => `
                             <div class="col-md-6 mb-2">
-                                <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff;">
-                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                <div class="option-input-card p-2 border rounded ${opt.val === '0' ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                         <div class="d-flex align-items-center">
                                             <span class="option-label-pill mr-2">${opt.letter}</span>
-                                            <strong style="font-size: 11px; color: #334155;">Option ${opt.letter}</strong>
+                                            <strong style="font-size: 11px; color: #002C54;">Option ${opt.letter}</strong>
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
-                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-minus"></i></button>
+                                                <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                             </div>
-                                            <label class="correct-radio-label text-success mb-0" style="font-size: 11px; cursor: pointer;">
+                                            <label class="correct-radio-label mb-0" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
                                                 <input type="radio" name="directional_questions[${idx}][correct_ans]" value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${opt.val === '0' ? 'checked' : ''}>
                                                 <span>Mark Correct</span>
                                             </label>
@@ -2198,19 +2287,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         {{-- Option E --}}
                         <div class="col-md-6 mb-2 d-none" id="dir_sub_${idx}_col_5">
-                            <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff;">
-                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                            <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                     <div class="d-flex align-items-center">
                                         <span class="option-label-pill mr-2">E</span>
-                                        <strong style="font-size: 11px; color: #334155;">Option E</strong>
-                                        <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
+                                        <strong style="font-size: 11px; color: #002C54;">Option E</strong>
+                                        <span class="badge border small ml-1" style="font-size: 9px; background: #f1f5f9; color: #64748b;">Optional</span>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
-                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
-                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="-20" title="Decrease Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-minus"></i></button>
+                                            <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                         </div>
-                                        <label class="correct-radio-label text-success mb-0 mr-2" style="font-size: 11px; cursor: pointer;">
+                                        <label class="correct-radio-label mb-0 mr-2" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
                                             <input type="radio" name="directional_questions[${idx}][correct_ans]" value="4" class="dir-correct-radio mr-1" data-idx="${idx}">
                                             <span>Mark Correct</span>
                                         </label>
@@ -2230,7 +2319,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="col-md-7 mb-2">
                         <div class="theme-form-group mb-0">
                             <div class="d-flex align-items-center justify-content-between mb-1">
-                                <label for="dir_sub_${idx}_explanation" class="font-weight-bold mb-0" style="font-size: 11px; color: #334155;">
+                                <label for="dir_sub_${idx}_explanation" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #334155;">
                                     <i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution / Explanation <span class="text-muted font-weight-normal">(Optional)</span>
                                 </label>
                                 <div class="d-flex align-items-center gap-1 editor-height-tools">
@@ -2393,8 +2482,8 @@ document.addEventListener('DOMContentLoaded', function () {
         directionalSubQuestions.forEach(item => {
             const isActive = (item.idx === activeDirSubqIdx);
             html += `
-                <button type="button" class="btn btn-xs ${isActive ? 'btn-primary font-weight-bold shadow-sm' : 'btn-outline-secondary'} dir-preview-tab-btn" data-idx="${item.idx}" style="font-size: 10px; padding: 2px 8px; border-radius: 2px;">
-                    <i class="fa fa-question-circle-o mr-1"></i> Q.${item.seq}
+                <button type="button" class="qb-subq-preview-tab ${isActive ? 'active' : ''} dir-preview-tab-btn" data-idx="${item.idx}">
+                    <i class="fa fa-question-circle mr-1 ${isActive ? 'text-warning' : 'text-primary'}"></i> Q.${item.seq}
                 </button>
             `;
         });
@@ -2496,6 +2585,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Listen to changes in correct radio for sub-questions
     document.addEventListener('change', function (e) {
         if (e.target.classList.contains('dir-correct-radio')) {
+            const qIdx = e.target.dataset.idx;
+            const correctVal = e.target.value;
+            [1, 2, 3, 4, 5].forEach(num => {
+                const optCard = document.getElementById(`dir-sub-${qIdx}-opt-card-${num}`);
+                if (optCard) {
+                    optCard.classList.toggle('correct-selected', (num - 1) === parseInt(correctVal, 10));
+                }
+            });
             updateDirectionalLivePreview();
             return;
         }
@@ -2619,25 +2716,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 1. Common Passage Banner
         html += `
-        <div class="mb-3 p-3 rounded shadow-sm border" style="background: linear-gradient(180deg, #f0f7ff 0%, #e6f0fa 100%); border-left: 4px solid #0284c7 !important;">
-            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-info">
-                <span class="badge badge-primary font-weight-bold px-2 py-1" style="background: #0284c7; font-size: 10px;">
-                    <i class="fa fa-sitemap mr-1"></i> DIRECTION SET: ${escapeHtml(groupId)}
+        <div class="mb-3 p-3 rounded shadow-sm border" style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #002C54 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom" style="border-color: #cbd5e1 !important;">
+                <span class="badge font-weight-bold px-2 py-1" style="background: #002C54; color: #ffffff; font-size: 10.5px; border-radius: 2px;">
+                    <i class="fa fa-sitemap mr-1 text-warning"></i> DIRECTION SET: ${escapeHtml(groupId)}
                 </span>
-                <span class="text-muted small" style="font-size: 10px;">Common Instructions / Passage</span>
+                <span class="badge" style="background: #e2e8f0; color: #002C54; font-size: 10px; font-weight: 600; padding: 3px 8px; border: 1px solid #cbd5e1;">
+                    <i class="fa fa-info-circle mr-1 text-primary"></i> Common Passage
+                </span>
             </div>
             ${dirText ? `
-            <div class="font-weight-bold text-dark mb-2" style="font-size: 12px; line-height: 1.6;">
+            <div class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a !important; line-height: 1.6;">
                 ${formatRichExamContent(dirText)}
-            </div>` : `<div class="text-muted small mb-2"><em>Enter common passage or DI instructions above...</em></div>`}
+            </div>` : `<div class="small mb-2" style="color: #64748b; font-style: italic;">Enter common passage or DI instructions above...</div>`}
 
             ${hasDirImg ? `
-            <div class="text-center my-2 p-2 bg-white rounded border">
+            <div class="text-center my-2 p-2 bg-white rounded border" style="border-color: #cbd5e1 !important;">
                 <img src="${dirImgSrc}" class="img-fluid rounded" style="max-height: 180px;" alt="Direction Diagram">
             </div>` : ''}
 
             ${dirTable ? `
-            <div class="my-2 p-2 bg-white rounded border table-responsive" style="font-size: 11px;">
+            <div class="my-2 p-2 bg-white rounded border table-responsive" style="font-size: 11px; border-color: #cbd5e1 !important;">
                 ${dirTable}
             </div>` : ''}
         </div>`;
@@ -2666,23 +2765,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const hasSubImg = subImgSrc && !document.getElementById(`dir_sub_${idx}_img_preview_wrap`)?.classList.contains('d-none');
 
             html += `
-            <div class="p-2 bg-white rounded border">
-                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                    <span class="font-weight-bold text-dark" style="font-size: 11.5px;">
+            <div class="p-3 bg-white rounded border" style="border-color: #cbd5e1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
+                    <span class="font-weight-bold" style="font-size: 12px; color: #002C54;">
                         <i class="fa fa-question-circle text-primary mr-1"></i> Question #${qNoDisplay}
                     </span>
-                    <span class="badge badge-success" style="font-size: 9.5px; background: #10b981;">
-                        Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
+                    <span class="badge badge-success font-weight-bold" style="font-size: 10px; background: #059669; color: #ffffff; padding: 3px 8px; border-radius: 2px;">
+                        <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
                     </span>
                 </div>
 
                 ${qText ? `
-                <div class="font-weight-bold mb-3" style="font-size: 12px; color: #002C54; line-height: 1.55;">
+                <div class="font-weight-bold mb-3" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">
                     ${formatRichExamContent(qText)}
-                </div>` : `<div class="text-muted small mb-3"><em>Enter statement for Sub-Question #${seq}...</em></div>`}
+                </div>` : `<div class="small mb-3" style="color: #64748b; font-style: italic;">Enter statement for Sub-Question #${seq}...</div>`}
 
                 ${hasSubImg ? `
-                <div class="mb-3 text-center p-2 rounded bg-light border">
+                <div class="mb-3 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
                     <img src="${subImgSrc}" style="max-height: 130px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
                 </div>` : ''}
 
@@ -2700,18 +2799,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             options.forEach(opt => {
                 const isCorrect = (correctIdx === opt.idx);
-                const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1px solid #10b981;' : 'background: #ffffff; border: 1px solid #e2e8f0;';
-                const badgeStyle = isCorrect ? 'background: #10b981; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1.5px solid #059669;' : 'background: #f8fafc; border: 1px solid #cbd5e1;';
+                const badgeStyle = isCorrect ? 'background: #059669; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
                 const colWidth = (options.length === 5 && opt.letter === 'E') ? 'col-12' : 'col-6';
 
                 html += `
                 <div class="${colWidth} mb-2">
                     <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
-                        <span class="badge mr-2" style="${badgeStyle} font-size: 10px; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
-                        <div class="flex-grow-1" style="font-size: 11px; color: ${isCorrect ? '#065f46' : '#1e293b'}; font-weight: ${isCorrect ? '600' : '400'};">
+                        <span class="badge mr-2" style="${badgeStyle} font-size: 10.5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
+                        <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#0f172a'}; font-weight: ${isCorrect ? '700' : '500'}; line-height: 1.45;">
                             ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
                         </div>
-                        ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 13px;" title="Correct Answer"></i>' : ''}
+                        ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
                     </div>
                 </div>`;
             });
@@ -2720,8 +2819,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (explanation) {
                 html += `
-                <div class="mt-2 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 11px; color: #92400e;">
-                    <strong><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
+                <div class="mt-2 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 3.5px solid #f59e0b; font-size: 11px; color: #92400e; line-height: 1.45;">
+                    <strong><i class="fa fa-lightbulb-o mr-1" style="color: #d97706;"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
                 </div>`;
             }
 
