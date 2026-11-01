@@ -1728,7 +1728,7 @@
     <div class="mob-seg-bar">
         <button type="button" class="mob-seg-btn active" data-pane="pane-overview">Overview</button>
         <button type="button" class="mob-seg-btn" data-pane="pane-fees">Fees <span class="mob-seg-pill">{{ $feeHeadLedger->count() }}</span></button>
-        <button type="button" class="mob-seg-btn" data-pane="pane-attendance">Attendance <span class="mob-seg-pill">{{ $attendanceTotal }}</span></button>
+        <button type="button" class="mob-seg-btn" data-pane="pane-attendance">Attendance <span class="mob-seg-pill">{{ $attendancePresent }}</span></button>
         <button type="button" class="mob-seg-btn" data-pane="pane-exams">Exams <span class="mob-seg-pill">{{ $examResults->count() }}</span></button>
         <button type="button" class="mob-seg-btn" data-pane="pane-docs">Docs <span class="mob-seg-pill">{{ collect($getDocuments)->count() }}</span></button>
         <button type="button" class="mob-seg-btn" data-pane="pane-family">Siblings <span class="mob-seg-pill">{{ collect($siblings)->count() }}</span></button>
@@ -2188,7 +2188,7 @@
         <div class="mob-card">
             <div class="mob-card-head">
                 <h4 class="mob-card-title"><i class="fa fa-calendar-check-o text-primary"></i> Attendance Snapshot</h4>
-                <span class="badge badge-primary">{{ $attendanceTotal }} Days Total</span>
+                <span class="badge badge-primary">{{ $attendanceTotal }} Working Days</span>
             </div>
             <div class="mob-card-body p-2">
                 <!-- 4-Column Matrix Grid matching attendence.blade.php -->
@@ -2226,17 +2226,17 @@
         <div class="mob-card">
             <div class="mob-card-head">
                 <h4 class="mob-card-title"><i class="fa fa-history text-info"></i> Daily Punch History</h4>
-                <span class="badge badge-light border" style="font-size: 9.5px; font-weight: 700;">{{ $recentAttendance->count() }} Punches</span>
+                <span class="badge badge-light border" style="font-size: 9.5px; font-weight: 700;">{{ $recentAttendance->count() }} Punches Logged</span>
             </div>
-            <div class="mob-card-body p-2">
+            <div class="mob-card-body p-2" style="max-height: 480px; overflow-y: auto;">
                 @forelse($recentAttendance as $attendance)
                     @php
                         $attDate = \Carbon\Carbon::parse($attendance->date);
                         $attendanceName = $attendance->profile_status ?? '-';
                         $attendanceKey = $attendance->profile_status_key ?? '';
-                        $chipClass = $attendanceKey === 'absent' ? 'chip-absent'
-                            : (in_array($attendanceKey, ['late','early_out','halfday'], true) ? 'chip-halfday'
-                            : (in_array($attendanceKey, ['holiday','event','leave'], true) ? 'chip-holiday' : 'chip-present'));
+                        $chipClass = in_array($attendanceKey, ['absent','leave'], true) ? 'chip-absent'
+                            : (in_array($attendanceKey, ['late','early_out','halfday','half_day'], true) ? 'chip-halfday'
+                            : (in_array($attendanceKey, ['holiday','event'], true) ? 'chip-holiday' : 'chip-present'));
                     @endphp
                     <div class="native-list-item">
                         <div class="item-date-badge">

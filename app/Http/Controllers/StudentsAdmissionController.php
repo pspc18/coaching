@@ -1443,10 +1443,17 @@ class StudentsAdmissionController extends Controller
 
                         // The current attendance module stores the stable student unique ID,
                         // not the session-specific admissions.id created after promotion.
+                        $attendanceIds = array_values(array_filter(array_unique([
+                            $attendanceUniqueId,
+                            trim((string) ($data->admissionNo ?? '')),
+                            'STU-' . $data->id,
+                            (string) $data->id,
+                        ])));
+
                         $attendanceMarks = AttendanceMark::where('branch_id', Session::get('branch_id'))
                             ->where('session_id', Session::get('session_id'))
                             ->where('entity_type', 'student')
-                            ->where('unique_id', $attendanceUniqueId)
+                            ->whereIn('unique_id', $attendanceIds)
                             ->orderBy('date', 'desc')
                             ->orderBy('updated_at', 'desc')
                             ->get()
@@ -1456,17 +1463,48 @@ class StudentsAdmissionController extends Controller
                             })
                             ->values();
 
+                        $presentKeys = ['present', 'in', 'out', 'late', 'early_out'];
+                        $absentKeys = ['absent', 'leave'];
+                        $halfdayKeys = ['halfday', 'half_day', 'half-day'];
+                        $holidayKeys = ['holiday', 'event'];
+
                         if ($attendanceMarks->isNotEmpty()) {
-                            $attendanceTotal = $attendanceMarks->count();
-                            $attendancePresent = $attendanceMarks->whereIn('status', ['present', 'late', 'early_out'])->count();
-                            $attendanceAbsent = $attendanceMarks->where('status', 'absent')->count();
-                            $attendanceCredit = $attendancePresent + ($attendanceMarks->where('status', 'halfday')->count() * 0.5);
+                            $attendanceTotalRecords = $attendanceMarks->count();
+                            $attendancePresent = $attendanceMarks->filter(function ($m) use ($presentKeys) {
+                                return in_array(strtolower(trim((string) $m->status)), $presentKeys, true);
+                            })->count();
+                            $attendanceAbsent = $attendanceMarks->filter(function ($m) use ($absentKeys) {
+                                return in_array(strtolower(trim((string) $m->status)), $absentKeys, true);
+                            })->count();
+                            $attendanceHalfday = $attendanceMarks->filter(function ($m) use ($halfdayKeys) {
+                                return in_array(strtolower(trim((string) $m->status)), $halfdayKeys, true);
+                            })->count();
+                            $attendanceHoliday = $attendanceMarks->filter(function ($m) use ($holidayKeys) {
+                                return in_array(strtolower(trim((string) $m->status)), $holidayKeys, true);
+                            })->count();
+
+                            $attendanceWorkingDays = $attendancePresent + $attendanceAbsent + $attendanceHalfday;
+                            $attendanceTotal = $attendanceWorkingDays > 0 ? $attendanceWorkingDays : $attendanceTotalRecords;
+                            $attendanceCredit = $attendancePresent + ($attendanceHalfday * 0.5);
                             $attendancePercentage = $attendanceTotal > 0
                                 ? round(($attendanceCredit / $attendanceTotal) * 100, 2)
                                 : 0;
-                            $recentAttendance = $attendanceMarks->take(8)->map(function ($mark) {
-                                $mark->profile_status = ucwords(str_replace('_', ' ', (string) $mark->status));
-                                $mark->profile_status_key = strtolower((string) $mark->status);
+
+                            $recentAttendance = $attendanceMarks->map(function ($mark) {
+                                $rawStatus = strtolower(trim((string) $mark->status));
+                                $mark->profile_status = match ($rawStatus) {
+                                    'in', 'present' => 'Present',
+                                    'out' => 'Present (Out)',
+                                    'late' => 'Late',
+                                    'early_out' => 'Early Out',
+                                    'halfday', 'half_day' => 'Half Day',
+                                    'absent' => 'Absent',
+                                    'leave' => 'Leave',
+                                    'holiday' => 'Holiday',
+                                    'event' => 'Event',
+                                    default => ucwords(str_replace('_', ' ', (string) $mark->status)),
+                                };
+                                $mark->profile_status_key = $rawStatus;
                                 $mark->time = $mark->in_time;
                                 return $mark;
                             });
@@ -1494,17 +1532,26 @@ class StudentsAdmissionController extends Controller
                                     return $marks->first();
                                 })
                                 ->values();
-                            $attendanceTotal = $legacyAttendance->count();
-                            $attendancePresent = $legacyAttendance->filter(function ($mark) {
-                                return in_array(strtolower((string) optional($mark->AttendanceStatus)->name), ['in', 'out', 'present'], true);
+                            $attendanceTotalRecords = $legacyAttendance->count();
+                            $attendancePresent = $legacyAttendance->filter(function ($mark) use ($presentKeys) {
+                                return in_array(strtolower((string) optional($mark->AttendanceStatus)->name), $presentKeys, true);
                             })->count();
-                            $attendanceAbsent = $legacyAttendance->filter(function ($mark) {
-                                return strtolower((string) optional($mark->AttendanceStatus)->name) === 'absent';
+                            $attendanceAbsent = $legacyAttendance->filter(function ($mark) use ($absentKeys) {
+                                return in_array(strtolower((string) optional($mark->AttendanceStatus)->name), $absentKeys, true);
                             })->count();
+                            $attendanceHalfday = $legacyAttendance->filter(function ($mark) use ($halfdayKeys) {
+                                return in_array(strtolower((string) optional($mark->AttendanceStatus)->name), $halfdayKeys, true);
+                            })->count();
+                            $attendanceHoliday = $legacyAttendance->filter(function ($mark) use ($holidayKeys) {
+                                return in_array(strtolower((string) optional($mark->AttendanceStatus)->name), $holidayKeys, true);
+                            })->count();
+                            $attendanceWorkingDays = $attendancePresent + $attendanceAbsent + $attendanceHalfday;
+                            $attendanceTotal = $attendanceWorkingDays > 0 ? $attendanceWorkingDays : $attendanceTotalRecords;
+                            $attendanceCredit = $attendancePresent + ($attendanceHalfday * 0.5);
                             $attendancePercentage = $attendanceTotal > 0
-                                ? round(($attendancePresent / $attendanceTotal) * 100, 2)
+                                ? round(($attendanceCredit / $attendanceTotal) * 100, 2)
                                 : 0;
-                            $recentAttendance = $legacyAttendance->take(8)->map(function ($mark) {
+                            $recentAttendance = $legacyAttendance->map(function ($mark) {
                                 $mark->profile_status = optional($mark->AttendanceStatus)->name ?: 'Marked';
                                 $mark->profile_status_key = strtolower((string) $mark->profile_status);
                                 return $mark;
@@ -1629,8 +1676,12 @@ class StudentsAdmissionController extends Controller
                             'dueFees',
                             'feePaidPercentage',
                             'attendanceTotal',
+                            'attendanceTotalRecords',
+                            'attendanceWorkingDays',
                             'attendancePresent',
                             'attendanceAbsent',
+                            'attendanceHoliday',
+                            'attendanceHalfday',
                             'attendancePercentage',
                             'recentAttendance',
                             'examResults',

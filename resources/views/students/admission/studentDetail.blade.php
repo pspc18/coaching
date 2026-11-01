@@ -820,7 +820,7 @@
                         <h3 class="dash-card-title"><i class="fa fa-address-card text-primary"></i> Academic & Personal Overview</h3>
                         <span class="badge badge-secondary" style="font-size:10.5px;">Session {{ $sessionLabel ?: 'Current' }}</span>
                     </div>
-                    <div class="dash-card-body p-0 table-responsive">
+                    <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                         <table class="matrix-table mb-0">
                             <tr>
                                 <th>Class / Stream</th>
@@ -874,7 +874,7 @@
                 <i class="fa fa-inr"></i> Fee Ledger & Receipts <span class="profile-tab-badge">{{ collect($getPaidFees)->count() }}</span>
             </button>
             <button type="button" class="profile-tab-link" data-tab="tab-attendance">
-                <i class="fa fa-calendar-check-o"></i> Daily Attendance <span class="profile-tab-badge">{{ $attendanceTotal }}</span>
+                <i class="fa fa-calendar-check-o"></i> Daily Attendance <span class="profile-tab-badge">{{ $attendancePresent }}</span>
             </button>
             <button type="button" class="profile-tab-link" data-tab="tab-exams">
                 <i class="fa fa-bar-chart"></i> Examination Scorecards <span class="profile-tab-badge">{{ $examResults->count() }}</span>
@@ -975,7 +975,7 @@
                         <i class="fa fa-pencil mr-1"></i> Edit Details
                     </a>
                 </div>
-                <div class="dash-card-body p-0 table-responsive">
+                <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                     <table class="matrix-table mb-0">
                         <tr>
                             <th>Father Mobile</th>
@@ -1094,7 +1094,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="dash-card-body p-0 table-responsive">
+                <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
@@ -1179,7 +1179,7 @@
                         {{ collect($getPaidFees)->count() }} Receipts Issued
                     </span>
                 </div>
-                <div class="dash-card-body p-0 table-responsive">
+                <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
@@ -1309,7 +1309,7 @@
                         <div class="stat-content">
                             <span class="stat-label">Total Marked</span>
                             <div class="stat-value text-primary">{{ $attendanceTotal }}</div>
-                            <div class="stat-meta">Recorded school days</div>
+                            <div class="stat-meta">Working days ({{ $recentAttendance->count() }} logged)</div>
                         </div>
                     </div>
                 </div>
@@ -1334,10 +1334,13 @@
                     <h3 class="dash-card-title"><i class="fa fa-calendar-check-o text-primary"></i> Daily Attendance Records</h3>
                     <div>
                         <span class="badge badge-success mr-1"><i class="fa fa-check"></i> {{ $attendancePresent }} Present</span>
-                        <span class="badge badge-danger"><i class="fa fa-times"></i> {{ $attendanceAbsent }} Absent</span>
+                        <span class="badge badge-danger mr-1"><i class="fa fa-times"></i> {{ $attendanceAbsent }} Absent</span>
+                        @if(!empty($attendanceHoliday))
+                            <span class="badge badge-info mr-1"><i class="fa fa-coffee"></i> {{ $attendanceHoliday }} Holiday</span>
+                        @endif
                     </div>
                 </div>
-                <div class="dash-card-body p-0 table-responsive">
+                <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
@@ -1355,9 +1358,9 @@
                                 $attDate = \Carbon\Carbon::parse($attendance->date);
                                 $attendanceName = $attendance->profile_status ?? '-';
                                 $attendanceKey = $attendance->profile_status_key ?? '';
-                                $badgeClass = $attendanceKey === 'absent' ? 'badge-danger'
-                                    : (in_array($attendanceKey, ['late','early_out','halfday'], true) ? 'badge-warning'
-                                    : (in_array($attendanceKey, ['holiday','event','leave'], true) ? 'badge-info' : 'badge-success'));
+                                $badgeClass = in_array($attendanceKey, ['absent','leave'], true) ? 'badge-danger'
+                                    : (in_array($attendanceKey, ['late','early_out','halfday','half_day'], true) ? 'badge-warning'
+                                    : (in_array($attendanceKey, ['holiday','event'], true) ? 'badge-info' : 'badge-success'));
                             @endphp
                             <tr>
                                 <td class="text-center font-weight-bold text-muted">{{ $loop->iteration }}</td>
@@ -1392,7 +1395,7 @@
                             <h3 class="dash-card-title"><i class="fa fa-trophy text-warning"></i> Examination Results</h3>
                             <span class="badge badge-primary font-weight-bold">{{ $examResults->count() }} Tests</span>
                         </div>
-                        <div class="dash-card-body p-0 table-responsive">
+                        <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                             <table class="arise-profile-table mb-0">
                                 <thead>
                                     <tr>
@@ -1497,7 +1500,7 @@
                         <i class="fa fa-upload mr-1"></i> Upload Document
                     </button>
                 </div>
-                <div class="dash-card-body p-0 table-responsive">
+                <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                     <table class="arise-profile-table mb-0">
                         <thead>
                             <tr>
@@ -1560,7 +1563,7 @@
                             <h3 class="dash-card-title"><i class="fa fa-users text-warning"></i> Sibling Information</h3>
                             <span class="badge badge-warning font-weight-bold">{{ collect($siblings)->count() }} Siblings</span>
                         </div>
-                        <div class="dash-card-body p-0 table-responsive">
+                        <div class="dash-card-body p-0 table-responsive" style="max-height: 520px; overflow-y: auto;">
                             <table class="arise-profile-table mb-0">
                                 <thead>
                                     <tr>
