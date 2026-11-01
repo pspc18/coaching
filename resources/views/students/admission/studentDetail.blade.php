@@ -39,6 +39,17 @@
     padding-right: 0 !important;
 }
 
+/* Safety overrides against external CSS (.bg-light & .badge-light) */
+.student-profile-page .bg-light {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+.student-profile-page .badge.badge-light {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
 /* 1. Top Hero Banner (Arise Navy Executive Standard) */
 .profile-dash-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
@@ -189,76 +200,124 @@
     flex: 1;
 }
 
-/* Sharp KPI Metric Tiles (Matched exactly with admin_dashboard) */
-.dash-kpi {
+/* ==============================================================================
+   ARISE ERP THEME STATS CARDS (.dash-stat-card)
+   Standard Info-Box + Card-Outline Hybrid Layout
+   Ultra-High Contrast, Sharp-Edge, Elevated Icon Avatar & Live Metrics
+   ============================================================================== */
+.dash-stat-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 4px;
     padding: 10px 12px;
     display: flex;
-    flex-direction: column;
-    text-decoration: none !important;
-    color: #0f172a !important;
+    align-items: center;
+    gap: 12px;
     height: 100%;
-    transition: border-color .15s, box-shadow .15s;
     position: relative;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all .15s ease-in-out;
 }
-.dash-kpi:hover {
+.dash-stat-card:hover {
     border-color: #cbd5e1;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
 }
-.kpi-primary { border-top: 3px solid #002C54; }
-.kpi-success { border-top: 3px solid #10b981; }
-.kpi-warning { border-top: 3px solid #f59e0b; }
-.kpi-info    { border-top: 3px solid #0284c7; }
-.kpi-danger  { border-top: 3px solid #ef4444; }
-.kpi-header {
+.dash-stat-card.stat-primary { border-top: 3px solid #002C54; }
+.dash-stat-card.stat-success { border-top: 3px solid #10b981; }
+.dash-stat-card.stat-warning { border-top: 3px solid #f59e0b; }
+.dash-stat-card.stat-info    { border-top: 3px solid #0284c7; }
+.dash-stat-card.stat-danger  { border-top: 3px solid #ef4444; }
+
+.stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #ffffff !important;
+    flex-shrink: 0;
+}
+.stat-icon-primary {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);
+}
+.stat-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+.stat-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+}
+.stat-icon-info {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+.stat-icon-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
+}
+
+.stat-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.stat-header-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 3px;
+    gap: 4px;
+    margin-bottom: 2px;
 }
-.kpi-label {
+.stat-label {
     font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
     letter-spacing: .04em;
-}
-.kpi-icon {
-    font-size: 15px;
-    color: #94a3b8;
-}
-.kpi-primary .kpi-icon { color: #002C54; }
-.kpi-success .kpi-icon { color: #10b981; }
-.kpi-warning .kpi-icon { color: #f59e0b; }
-.kpi-info .kpi-icon    { color: #0284c7; }
-.kpi-danger .kpi-icon  { color: #ef4444; }
-.kpi-value {
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 1.2;
-    color: #0f172a;
-    margin-bottom: 3px;
-}
-.kpi-meta {
-    font-size: 11px;
-    color: #64748b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.kpi-progress {
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 6px;
+.stat-pill {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    line-height: 1.2;
 }
-.kpi-progress-bar {
+.stat-value {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+.stat-meta {
+    font-size: 10.5px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+.stat-progress {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.stat-progress-bar {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 /* Left Spotlight Card (Photo, Status, Portal Credentials) */
@@ -311,11 +370,11 @@
 
 /* Portal Login Mini Strip */
 .portal-cred-strip {
-    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
     border-radius: 4px;
     padding: 8px 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 44, 84, 0.15);
 }
 .portal-cred-row {
@@ -330,15 +389,47 @@
     border-bottom: none;
 }
 .portal-cred-label {
-    color: #93c5fd;
+    color: #93c5fd !important;
     font-size: 10.5px;
     font-weight: 700;
 }
 .portal-cred-val {
     font-family: 'Consolas', 'Courier New', monospace;
     font-weight: 700;
-    color: #ffffff;
+    color: #ffffff !important;
     font-size: 12px;
+}
+
+/* Fast Direct Contact Shortcuts Box (High-Contrast White Card) */
+.profile-contact-box {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-top: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+.profile-contact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 11.5px;
+}
+.profile-contact-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.profile-contact-label {
+    color: #475569 !important;
+    font-weight: 600;
+    font-size: 11px;
+}
+.profile-contact-value {
+    color: #0f172a !important;
+    font-weight: 700;
+    font-size: 11.5px;
 }
 
 /* Key-Value Matrix Table */
@@ -611,18 +702,18 @@
                             </div>
                         </div>
 
-                        <!-- Fast Direct Contact Shortcuts -->
-                        <div class="p-2 border rounded bg-light" style="font-size:11.5px;">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted font-weight-bold">Father Mobile:</span>
-                                <b class="text-dark">{{ $student->father_mobile ?: '-' }}</b>
+                        <!-- Fast Direct Contact Shortcuts (Theme White Card Standard) -->
+                        <div class="profile-contact-box">
+                            <div class="profile-contact-row">
+                                <span class="profile-contact-label"><i class="fa fa-phone text-primary mr-1"></i> Father Mobile:</span>
+                                <b class="profile-contact-value">{{ $student->father_mobile ?: '-' }}</b>
                             </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted font-weight-bold">Student Mobile:</span>
-                                <b class="text-dark">{{ $student->mobile ?: '-' }}</b>
+                            <div class="profile-contact-row">
+                                <span class="profile-contact-label"><i class="fa fa-mobile text-primary mr-1"></i> Student Mobile:</span>
+                                <b class="profile-contact-value">{{ $student->mobile ?: '-' }}</b>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted font-weight-bold">Admission Type:</span>
+                            <div class="profile-contact-row">
+                                <span class="profile-contact-label"><i class="fa fa-id-badge text-primary mr-1"></i> Admission Type:</span>
                                 <span class="badge {{ (int)($student->admission_type_id ?? 1) === 2 ? 'badge-warning' : 'badge-secondary' }} font-weight-bold">
                                     {{ (int)($student->admission_type_id ?? 1) === 2 ? 'RTE' : 'Non-RTE' }}
                                 </span>
@@ -636,64 +727,88 @@
             <!-- RIGHT COLUMN: 4 KPIS + MATRIX DETAILS TABLE (Col-md-9) -->
             <div class="col-md-9 col-lg-9 col-xl-9">
                 
-                <!-- 4 COMPACT SHARP KPI TILES (Matching admin_dashboard) -->
+                <!-- 4 THEME STATS TILES (Theme Layout Standard) -->
                 <div class="row profile-row-compact mb-2">
-                    <!-- Fee Collection Tile -->
+                    <!-- 1. Fee Balance Card -->
                     <div class="col-6 col-sm-6 col-md-3">
-                        <div class="dash-kpi kpi-primary">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Fee Balance</span>
-                                <span class="kpi-icon"><i class="fa fa-inr"></i></span>
+                        <div class="dash-stat-card stat-primary">
+                            <div class="stat-icon-wrap stat-icon-primary">
+                                <i class="fa fa-inr"></i>
                             </div>
-                            <div class="kpi-value text-primary">₹{{ number_format($dueFees, 0) }}</div>
-                            <div class="kpi-meta">Paid ₹{{ number_format($paidFees, 0) }} of ₹{{ number_format($assignedFees, 0) }}</div>
-                            <div class="kpi-progress">
-                                <div class="kpi-progress-bar bg-primary" style="width:{{ min(100, $feePaidPercentage) }}%;"></div>
+                            <div class="stat-content">
+                                <div class="stat-header-row">
+                                    <span class="stat-label">Fee Balance</span>
+                                    @if($dueFees > 0)
+                                        <span class="badge badge-danger stat-pill">Pending</span>
+                                    @else
+                                        <span class="badge badge-success stat-pill">Cleared</span>
+                                    @endif
+                                </div>
+                                <div class="stat-value text-primary">₹{{ number_format($dueFees, 0) }}</div>
+                                <div class="stat-meta">Paid ₹{{ number_format($paidFees, 0) }} of ₹{{ number_format($assignedFees, 0) }}</div>
+                                <div class="stat-progress">
+                                    <div class="stat-progress-bar bg-primary" style="width:{{ min(100, $feePaidPercentage) }}%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Attendance Tile -->
+                    <!-- 2. Attendance Card -->
                     <div class="col-6 col-sm-6 col-md-3">
-                        <div class="dash-kpi kpi-success">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Attendance Rate</span>
-                                <span class="kpi-icon"><i class="fa fa-check-circle"></i></span>
+                        <div class="dash-stat-card stat-success">
+                            <div class="stat-icon-wrap stat-icon-success">
+                                <i class="fa fa-check-circle"></i>
                             </div>
-                            <div class="kpi-value text-success">{{ number_format($attendancePercentage, 0) }}%</div>
-                            <div class="kpi-meta">{{ $attendancePresent }} Present · {{ $attendanceAbsent }} Absent</div>
-                            <div class="kpi-progress">
-                                <div class="kpi-progress-bar bg-success" style="width:{{ min(100, $attendancePercentage) }}%;"></div>
+                            <div class="stat-content">
+                                <div class="stat-header-row">
+                                    <span class="stat-label">Attendance</span>
+                                    <span class="badge badge-success stat-pill">{{ number_format($attendancePercentage, 0) }}%</span>
+                                </div>
+                                <div class="stat-value text-success">{{ number_format($attendancePercentage, 0) }}%</div>
+                                <div class="stat-meta">{{ $attendancePresent }} Present · {{ $attendanceAbsent }} Absent</div>
+                                <div class="stat-progress">
+                                    <div class="stat-progress-bar bg-success" style="width:{{ min(100, $attendancePercentage) }}%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Examination Tile -->
+                    <!-- 3. Examination Card -->
                     <div class="col-6 col-sm-6 col-md-3">
-                        <div class="dash-kpi kpi-warning">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Exams Average</span>
-                                <span class="kpi-icon"><i class="fa fa-trophy"></i></span>
+                        <div class="dash-stat-card stat-warning">
+                            <div class="stat-icon-wrap stat-icon-warning">
+                                <i class="fa fa-trophy"></i>
                             </div>
-                            <div class="kpi-value text-warning">{{ $examResults->count() ? number_format($overallExamPercentage, 0).'%' : 'N/A' }}</div>
-                            <div class="kpi-meta">{{ $examResults->count() }} Tests · {{ $examResults->sum('subject_count') }} Entries</div>
-                            <div class="kpi-progress">
-                                <div class="kpi-progress-bar bg-warning" style="width:{{ min(100, $overallExamPercentage) }}%;"></div>
+                            <div class="stat-content">
+                                <div class="stat-header-row">
+                                    <span class="stat-label">Exams Average</span>
+                                    <span class="badge badge-warning stat-pill">{{ $examResults->count() }} Tests</span>
+                                </div>
+                                <div class="stat-value text-warning">{{ $examResults->count() ? number_format($overallExamPercentage, 0).'%' : 'N/A' }}</div>
+                                <div class="stat-meta">{{ $examResults->count() }} Tests · {{ $examResults->sum('subject_count') }} Entries</div>
+                                <div class="stat-progress">
+                                    <div class="stat-progress-bar bg-warning" style="width:{{ min(100, $overallExamPercentage) }}%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Records & Inventory Tile -->
+                    <!-- 4. Records Vault Card -->
                     <div class="col-6 col-sm-6 col-md-3">
-                        <div class="dash-kpi kpi-info">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Records Vault</span>
-                                <span class="kpi-icon"><i class="fa fa-folder-open"></i></span>
+                        <div class="dash-stat-card stat-info">
+                            <div class="stat-icon-wrap stat-icon-info">
+                                <i class="fa fa-folder-open"></i>
                             </div>
-                            <div class="kpi-value text-info">{{ collect($getDocuments)->count() }} Files</div>
-                            <div class="kpi-meta">{{ collect($siblings)->count() }} Siblings · {{ $assignedSubjects->count() }} Subjects</div>
-                            <div class="kpi-progress">
-                                <div class="kpi-progress-bar bg-info" style="width:100%;"></div>
+                            <div class="stat-content">
+                                <div class="stat-header-row">
+                                    <span class="stat-label">Records Vault</span>
+                                    <span class="badge badge-info stat-pill">{{ collect($getDocuments)->count() }} Files</span>
+                                </div>
+                                <div class="stat-value text-info">{{ collect($getDocuments)->count() }} Files</div>
+                                <div class="stat-meta">{{ collect($siblings)->count() }} Siblings · {{ $assignedSubjects->count() }} Subjects</div>
+                                <div class="stat-progress">
+                                    <div class="stat-progress-bar bg-info" style="width:100%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -902,56 +1017,66 @@
              ========================================== -->
         <div class="profile-tab-content-pane" id="tab-fees">
 
-            <!-- 1. Fee Metrics Summary Strip -->
+            <!-- 1. Fee Metrics Summary Strip (Theme Stat Cards) -->
             <div class="row profile-row-compact mb-2">
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="dash-kpi kpi-primary">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Assigned</span>
-                            <span class="kpi-icon"><i class="fa fa-calculator"></i></span>
+                    <div class="dash-stat-card stat-primary">
+                        <div class="stat-icon-wrap stat-icon-primary">
+                            <i class="fa fa-calculator"></i>
                         </div>
-                        <div class="kpi-value text-primary">₹{{ number_format($assignedFees, 2) }}</div>
-                        <div class="kpi-meta">{{ $feeHeadLedger->count() }} Fee Heads Assigned</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Assigned</span>
+                            <div class="stat-value text-primary">₹{{ number_format($assignedFees, 2) }}</div>
+                            <div class="stat-meta">{{ $feeHeadLedger->count() }} Fee Heads</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="dash-kpi kpi-info">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Discount</span>
-                            <span class="kpi-icon"><i class="fa fa-tag"></i></span>
+                    <div class="dash-stat-card stat-info">
+                        <div class="stat-icon-wrap stat-icon-info">
+                            <i class="fa fa-tag"></i>
                         </div>
-                        <div class="kpi-value text-info">₹{{ number_format($feeDiscount, 2) }}</div>
-                        <div class="kpi-meta">Concessions / Waivers</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Discount</span>
+                            <div class="stat-value text-info">₹{{ number_format($feeDiscount, 2) }}</div>
+                            <div class="stat-meta">Waivers Applied</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="dash-kpi kpi-success">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Paid</span>
-                            <span class="kpi-icon"><i class="fa fa-check-circle"></i></span>
+                    <div class="dash-stat-card stat-success">
+                        <div class="stat-icon-wrap stat-icon-success">
+                            <i class="fa fa-check-circle"></i>
                         </div>
-                        <div class="kpi-value text-success">₹{{ number_format($paidFees, 2) }}</div>
-                        <div class="kpi-meta">{{ collect($getPaidFees)->count() }} Receipts Issued</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Paid</span>
+                            <div class="stat-value text-success">₹{{ number_format($paidFees, 2) }}</div>
+                            <div class="stat-meta">{{ collect($getPaidFees)->count() }} Receipts</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="dash-kpi kpi-warning">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Fine / Penalty</span>
-                            <span class="kpi-icon"><i class="fa fa-exclamation-triangle"></i></span>
+                    <div class="dash-stat-card stat-warning">
+                        <div class="stat-icon-wrap stat-icon-warning">
+                            <i class="fa fa-exclamation-triangle"></i>
                         </div>
-                        <div class="kpi-value text-warning">₹{{ number_format($feeFine, 2) }}</div>
-                        <div class="kpi-meta">Late Fees Applied</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Fine / Penalty</span>
+                            <div class="stat-value text-warning">₹{{ number_format($feeFine, 2) }}</div>
+                            <div class="stat-meta">Late Fees</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-12 col-md-12 col-xl">
-                    <div class="dash-kpi {{ $dueFees > 0 ? 'kpi-danger' : 'kpi-success' }}">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Outstanding Due</span>
-                            <span class="kpi-icon"><i class="fa {{ $dueFees > 0 ? 'fa-clock-o text-danger' : 'fa-check text-success' }}"></i></span>
+                    <div class="dash-stat-card {{ $dueFees > 0 ? 'stat-danger' : 'stat-success' }}">
+                        <div class="stat-icon-wrap {{ $dueFees > 0 ? 'stat-icon-danger' : 'stat-icon-success' }}">
+                            <i class="fa {{ $dueFees > 0 ? 'fa-clock-o' : 'fa-check' }}"></i>
                         </div>
-                        <div class="kpi-value {{ $dueFees > 0 ? 'text-danger' : 'text-success' }}">₹{{ number_format($dueFees, 2) }}</div>
-                        <div class="kpi-meta">{{ $dueFees <= 0 ? 'All fees cleared' : 'Balance payment pending' }}</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Outstanding Due</span>
+                            <div class="stat-value {{ $dueFees > 0 ? 'text-danger' : 'text-success' }}">₹{{ number_format($dueFees, 2) }}</div>
+                            <div class="stat-meta">{{ $dueFees <= 0 ? 'All fees settled' : 'Payment pending' }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1150,47 +1275,55 @@
              ========================================== -->
         <div class="profile-tab-content-pane" id="tab-attendance">
             
-            <!-- Attendance Summary Mini Strip -->
+            <!-- Attendance Summary Mini Strip (Theme Stat Cards) -->
             <div class="row profile-row-compact mb-2">
                 <div class="col-6 col-sm-6 col-md-3">
-                    <div class="dash-kpi kpi-success">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Present Days</span>
-                            <span class="kpi-icon"><i class="fa fa-check-circle"></i></span>
+                    <div class="dash-stat-card stat-success">
+                        <div class="stat-icon-wrap stat-icon-success">
+                            <i class="fa fa-check-circle"></i>
                         </div>
-                        <div class="kpi-value text-success">{{ $attendancePresent }}</div>
-                        <div class="kpi-meta">Attended sessions</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Present Days</span>
+                            <div class="stat-value text-success">{{ $attendancePresent }}</div>
+                            <div class="stat-meta">Attended sessions</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-sm-6 col-md-3">
-                    <div class="dash-kpi kpi-danger">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Absent Days</span>
-                            <span class="kpi-icon"><i class="fa fa-times-circle"></i></span>
+                    <div class="dash-stat-card stat-danger">
+                        <div class="stat-icon-wrap stat-icon-danger">
+                            <i class="fa fa-times-circle"></i>
                         </div>
-                        <div class="kpi-value text-danger">{{ $attendanceAbsent }}</div>
-                        <div class="kpi-meta">Missed sessions</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Absent Days</span>
+                            <div class="stat-value text-danger">{{ $attendanceAbsent }}</div>
+                            <div class="stat-meta">Missed sessions</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-sm-6 col-md-3">
-                    <div class="dash-kpi kpi-primary">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Marked</span>
-                            <span class="kpi-icon"><i class="fa fa-calendar"></i></span>
+                    <div class="dash-stat-card stat-primary">
+                        <div class="stat-icon-wrap stat-icon-primary">
+                            <i class="fa fa-calendar"></i>
                         </div>
-                        <div class="kpi-value text-primary">{{ $attendanceTotal }}</div>
-                        <div class="kpi-meta">Recorded school days</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Marked</span>
+                            <div class="stat-value text-primary">{{ $attendanceTotal }}</div>
+                            <div class="stat-meta">Recorded school days</div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 col-sm-6 col-md-3">
-                    <div class="dash-kpi kpi-info">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Overall Rate</span>
-                            <span class="kpi-icon"><i class="fa fa-percent"></i></span>
+                    <div class="dash-stat-card stat-info">
+                        <div class="stat-icon-wrap stat-icon-info">
+                            <i class="fa fa-percent"></i>
                         </div>
-                        <div class="kpi-value text-info">{{ number_format($attendancePercentage, 1) }}%</div>
-                        <div class="kpi-progress">
-                            <div class="kpi-progress-bar bg-info" style="width:{{ min(100, $attendancePercentage) }}%;"></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Overall Rate</span>
+                            <div class="stat-value text-info">{{ number_format($attendancePercentage, 1) }}%</div>
+                            <div class="stat-progress">
+                                <div class="stat-progress-bar bg-info" style="width:{{ min(100, $attendancePercentage) }}%;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1336,8 +1469,8 @@
                                             {{ number_format($subject->percentage, 1) }}%
                                         </span>
                                     </div>
-                                    <div class="kpi-progress">
-                                        <div class="kpi-progress-bar {{ $subject->percentage >= 60 ? 'bg-success' : ($subject->percentage >= 33 ? 'bg-warning' : 'bg-danger') }}"
+                                    <div class="stat-progress">
+                                        <div class="stat-progress-bar {{ $subject->percentage >= 60 ? 'bg-success' : ($subject->percentage >= 33 ? 'bg-warning' : 'bg-danger') }}"
                                              style="width:{{ min(100, $subject->percentage) }}%"></div>
                                     </div>
                                 </div>
