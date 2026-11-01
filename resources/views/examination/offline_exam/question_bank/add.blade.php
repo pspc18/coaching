@@ -582,6 +582,63 @@ textarea.theme-form-control {
     background: #059669 !important;
     color: #ffffff !important;
 }
+
+/* AI Question Generator & Staging Styles */
+.ai-prompt-preset-btn {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+    border-radius: 2px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #002C54 !important;
+    font-weight: 600 !important;
+    transition: all .15s ease !important;
+    cursor: pointer !important;
+}
+.ai-prompt-preset-btn:hover {
+    background: #002C54 !important;
+    color: #ffffff !important;
+    border-color: #002C54 !important;
+}
+
+#ai-gen-dropzone.drag-over {
+    border-color: #0284c7 !important;
+    background: #eff6ff !important;
+}
+
+.ai-staging-filter-btn {
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    padding: 3px 10px !important;
+    border-radius: 2px !important;
+}
+
+.ai-staging-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 3px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    transition: all .15s ease !important;
+}
+.ai-staging-card:hover {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.07) !important;
+}
+.ai-staging-card.directional-card {
+    border-left: 4px solid #002C54 !important;
+}
+.ai-staging-card.standalone-card {
+    border-left: 4px solid #0284c7 !important;
+}
+.btn-ai-pulse-glow {
+    animation: aiPulse 2.5s infinite;
+}
+@keyframes aiPulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
 </style>
 
 <div class="content-wrapper">
@@ -602,6 +659,9 @@ textarea.theme-form-control {
                 </p>
             </div>
             <div class="perf-hero-actions">
+                <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff; border: 1px solid #60a5fa;" title="Generate Questions using AI Prompt & Pattern Engine">
+                    <i class="fa fa-magic text-warning mr-1"></i> AI Question Generator
+                </button>
                 <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" title="View all questions in Question Bank">
                     <i class="fa fa-list mr-1"></i> Question Bank
                 </a>
@@ -721,7 +781,7 @@ textarea.theme-form-control {
                 {{-- Mode Switcher Card: Standalone vs Directional Set --}}
                 <div class="theme-card mb-2" style="background: #ffffff; border: 1px solid #cbd5e1;">
                     <div class="p-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
                                 <i class="fa fa-sliders text-primary mr-1"></i> Question Format Mode:
                             </span>
@@ -736,8 +796,14 @@ textarea.theme-form-control {
                                 </label>
                             </div>
                         </div>
-                        <div class="small text-muted" id="manual-mode-description" style="font-size: 11px;">
-                            <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="small text-muted d-none d-lg-block" id="manual-mode-description" style="font-size: 11px;">
+                                <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.
+                            </div>
+                            <button type="button" class="btn btn-sm btn-ai-pulse-glow" id="btn-open-ai-generator" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%); color: #ffffff; border: 1px solid #3b82f6; font-weight: 700; font-size: 11.5px; padding: 5px 14px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25); cursor: pointer; transition: all .2s ease;">
+                                <i class="fa fa-magic text-warning mr-1"></i> Generate Question with AI
+                                <span class="badge ml-1" style="background: rgba(255,255,255,0.22); font-size: 9.5px; color: #ffffff; padding: 2px 6px; border-radius: 2px; font-weight: 600;">Prompt &bull; PDF / Img</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1547,6 +1613,235 @@ textarea.theme-form-control {
                         <i class="fa fa-check mr-1"></i> Apply Changes
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- =========================================================================
+     MODAL: AI QUESTION GENERATOR (PROMPT + PDF/IMAGE PATTERN ENGINE)
+     ========================================================================= --}}
+<div class="modal fade" id="modal-ai-generator" tabindex="-1" role="dialog" aria-labelledby="aiGenModalTitle" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 95%;">
+        <div class="modal-content" style="border: none; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);">
+            {{-- Modal Header --}}
+            <div class="modal-header py-2 px-3 text-white" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="mr-2" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa fa-magic text-warning" style="font-size: 16px;"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title font-weight-bold mb-0 text-white" id="aiGenModalTitle" style="font-size: 14px; letter-spacing: 0.3px;">
+                            AI Question Generation &amp; Pattern Engine
+                        </h5>
+                        <p class="mb-0 text-white-50" style="font-size: 10.5px;">
+                            Generate Standalone Questions, Directional Sets (Passages + Tables), or multi-topic batches using your custom prompt &amp; reference file.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px; padding: 4px 8px;">
+                        <i class="fa fa-check-circle mr-1"></i> Gemini AI Active
+                    </span>
+                    <button type="button" class="close text-white ml-2" data-dismiss="modal" aria-label="Close" style="opacity: 0.85; font-size: 22px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="modal-body p-3" style="background: #f8fafc; min-height: 480px;">
+
+                {{-- 1. INPUT CONFIGURATION VIEW --}}
+                <div id="ai-gen-input-view">
+                    {{-- Target Academic Scope Alert --}}
+                    <div class="d-flex align-items-center justify-content-between p-2 mb-3 bg-white rounded border" style="border-left: 4px solid #002C54 !important;">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="small font-weight-bold" style="color: #002C54; font-size: 11.5px;">
+                                <i class="fa fa-graduation-cap text-primary mr-1"></i> Target Academic Context:
+                            </span>
+                            <span class="badge badge-primary px-2 py-1" id="ai-gen-badge-class" style="background: #002C54; font-size: 11px;">Class: Not Selected</span>
+                            <span class="badge badge-info px-2 py-1" id="ai-gen-badge-subject" style="background: #0284c7; font-size: 11px;">Subject: Not Selected</span>
+                        </div>
+                        <span class="small text-muted" style="font-size: 10.5px;">
+                            <i class="fa fa-info-circle text-info mr-1"></i> Pre-filled from top header selectors.
+                        </span>
+                    </div>
+
+                    <div class="row">
+                        {{-- Left Column: User Prompt & Templates --}}
+                        <div class="col-lg-7">
+                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                <label class="font-weight-bold d-flex align-items-center justify-content-between mb-1" style="font-size: 12px; color: #002C54;">
+                                    <span><i class="fa fa-commenting-o text-primary mr-1"></i> User Prompt &amp; Instructions <span class="text-danger">*</span></span>
+                                    <span class="text-muted font-weight-normal small" style="font-size: 10px;">LaTeX math ($...$) supported</span>
+                                </label>
+                                <textarea id="ai-gen-prompt-text" class="form-control" rows="5" style="font-size: 12px; line-height: 1.5; border-color: #cbd5e1; border-radius: 3px;" placeholder="Example: Create 10 standalone MCQs on Newton's Laws of Motion and 2 directional sets with 3 sub-questions each on Projectile Motion with data tables and step-by-step LaTeX solutions..."></textarea>
+
+                                {{-- Quick Prompt Template Pills --}}
+                                <div class="mt-2 pt-2 border-top">
+                                    <span class="small font-weight-bold text-muted mr-1" style="font-size: 10px;">
+                                        <i class="fa fa-bolt text-warning mr-1"></i> Quick Templates:
+                                    </span>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Generate 10 standalone MCQs and 2 directional sets with 3 sub-questions each based on this pattern. Include step-by-step solutions and standard LaTeX math ($...$).">
+                                            ⚡ 10 Standalone + 2 Directional Sets (3 Qs each)
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 5 high-quality standalone MCQs on this topic with clear options (A-D), accurate correct answers, and detailed step-by-step explanations in LaTeX.">
+                                            ⚡ 5 Standalone MCQs with Solutions
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 1 Directional Question Set with a comprehensive Common Passage, an HTML data table, and 4 linked sub-questions with full explanations.">
+                                            ⚡ 1 Directional Set (Passage &amp; Table)
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Carefully analyze the attached file's topic, format, formulas, and difficulty. Generate 10 similar questions strictly following this exam pattern.">
+                                            ⚡ Generate matching questions from attached file pattern
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Optional Reference File & Preferences --}}
+                        <div class="col-lg-5">
+                            {{-- File Attachment Dropzone --}}
+                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                <label class="font-weight-bold d-flex align-items-center justify-content-between mb-1" style="font-size: 12px; color: #002C54;">
+                                    <span><i class="fa fa-paperclip text-primary mr-1"></i> Reference File / Exam Pattern <span class="text-muted font-weight-normal">(Optional)</span></span>
+                                    <span class="text-muted small" style="font-size: 10px;">PDF, PNG, JPG (up to 20MB)</span>
+                                </label>
+
+                                <div id="ai-gen-dropzone" class="border rounded p-3 text-center" style="border: 2px dashed #94a3b8 !important; background: #f8fafc; cursor: pointer; transition: all .2s ease;">
+                                    <input type="file" id="ai-gen-file" class="d-none" accept=".pdf,image/png,image/jpeg,image/webp">
+                                    <div id="ai-gen-dropzone-prompt">
+                                        <i class="fa fa-cloud-upload text-primary mb-1" style="font-size: 26px;"></i>
+                                        <div class="font-weight-bold text-dark" style="font-size: 11.5px;">Click to upload or drag &amp; drop reference file</div>
+                                        <div class="text-muted small" style="font-size: 10px;">Question paper, syllabus notes, screenshots, diagrams, textbook page</div>
+                                    </div>
+                                    <div id="ai-gen-file-preview" class="d-none align-items-center justify-content-between p-2 rounded" style="background: #e2e8f0;">
+                                        <div class="d-flex align-items-center text-left" style="overflow: hidden;">
+                                            <i class="fa fa-file-pdf-o text-danger mr-2" id="ai-gen-file-icon" style="font-size: 20px;"></i>
+                                            <div style="min-width: 0;">
+                                                <div class="font-weight-bold text-truncate" id="ai-gen-file-name" style="font-size: 11px; max-width: 180px;">sample.pdf</div>
+                                                <div class="text-muted small" id="ai-gen-file-size" style="font-size: 9.5px;">1.2 MB</div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ml-2" id="btn-remove-ai-file" title="Remove File">
+                                            <i class="fa fa-times-circle" style="font-size: 16px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Question Format Preferences --}}
+                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                                <label class="font-weight-bold mb-2" style="font-size: 12px; color: #002C54;">
+                                    <i class="fa fa-sliders text-primary mr-1"></i> Generation Preferences
+                                </label>
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Difficulty Level:</label>
+                                        <select id="ai-gen-difficulty" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
+                                            <option value="Mixed" selected>Mixed (Easy, Medium, Hard)</option>
+                                            <option value="Easy">Easy</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="Hard">Hard / Advanced</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Options Format:</label>
+                                        <select id="ai-gen-options-count" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
+                                            <option value="4" selected>4 Options (A, B, C, D)</option>
+                                            <option value="5">5 Options (A, B, C, D, E)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-1">
+                                    <div class="custom-control custom-checkbox small">
+                                        <input type="checkbox" class="custom-control-input" id="ai-gen-math-latex" checked disabled>
+                                        <label class="custom-control-label" for="ai-gen-math-latex" style="font-size: 10.5px; color: #334155;">
+                                            Strict LaTeX Math Formatting ($...$) for scientific expressions
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Action Button Bar --}}
+                    <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded border">
+                        <span class="text-muted small" style="font-size: 11px;">
+                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> AI creates original questions according to the syllabus pattern. You can review, load into the manual builder, or save directly.
+                        </span>
+                        <div>
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                            <button type="button" id="btn-do-ai-generate" class="btn btn-sm font-weight-bold" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%); color: #ffffff; border: 1px solid #3b82f6; padding: 6px 18px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);">
+                                <i class="fa fa-magic text-warning mr-1"></i> Generate Questions with AI
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. LOADING STATE VIEW --}}
+                <div id="ai-gen-loading-view" class="d-none text-center py-5">
+                    <div class="mb-4">
+                        <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem; border-width: 0.3em;">
+                            <span class="sr-only">Generating...</span>
+                        </div>
+                    </div>
+                    <h5 class="font-weight-bold" style="color: #002C54;" id="ai-gen-loading-title">
+                        AI Question Generation Engine Active...
+                    </h5>
+                    <p class="text-muted small mb-3" id="ai-gen-loading-msg" style="font-size: 12px; max-width: 500px; margin: 0 auto;">
+                        Analyzing prompt instructions and attached reference document to synthesize exam-ready questions with formulas and full solutions.
+                    </p>
+                    <div class="badge badge-light p-2 border" style="font-size: 11px; color: #002C54;">
+                        <i class="fa fa-clock-o text-warning mr-1"></i> Usually takes 10 to 30 seconds depending on question count &amp; PDF pages.
+                    </div>
+                </div>
+
+                {{-- 3. STAGING & REVIEW WORKSPACE VIEW --}}
+                <div id="ai-gen-staging-view" class="d-none">
+                    {{-- Summary Bar --}}
+                    <div class="d-flex align-items-center justify-content-between p-2 mb-2 bg-white rounded border flex-wrap gap-2" style="border-left: 4px solid #10b981 !important;">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="font-weight-bold" style="color: #002C54; font-size: 13px;">
+                                <i class="fa fa-check-circle text-success mr-1"></i> Generated Questions Staging Workspace
+                            </span>
+                            <span class="badge badge-success px-2 py-1" id="ai-staging-total-badge" style="font-size: 11px; background: #059669;">0 Questions</span>
+                            <span class="badge badge-primary px-2 py-1" id="ai-staging-standalone-badge" style="font-size: 11px; background: #002C54;">0 Standalone</span>
+                            <span class="badge badge-info px-2 py-1" id="ai-staging-dir-badge" style="font-size: 11px; background: #0284c7;">0 Directional Sets</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-ai-gen-restart">
+                                <i class="fa fa-refresh mr-1"></i> New Prompt
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success font-weight-bold" id="btn-ai-staging-save-all" style="background: #059669; border-color: #059669; padding: 6px 16px;">
+                                <i class="fa fa-database mr-1"></i> Confirm &amp; Save Selected (<span id="ai-staging-selected-count">0</span>) to Bank
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Staging Filter & Selection Toolbar --}}
+                    <div class="d-flex align-items-center justify-content-between p-2 mb-2 bg-white rounded border flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-1">
+                            <button type="button" class="btn btn-xs btn-primary ai-staging-filter-btn active" data-filter="all">All (<span id="count-filter-all">0</span>)</button>
+                            <button type="button" class="btn btn-xs btn-outline-primary ai-staging-filter-btn" data-filter="standalone">Standalone (<span id="count-filter-standalone">0</span>)</button>
+                            <button type="button" class="btn btn-xs btn-outline-primary ai-staging-filter-btn" data-filter="directional">Directional Sets (<span id="count-filter-dir">0</span>)</button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="custom-control custom-checkbox mb-0 small" style="cursor: pointer;">
+                                <input type="checkbox" class="custom-control-input" id="ai-staging-select-all" checked>
+                                <span class="custom-control-label font-weight-bold text-dark" style="font-size: 11.5px;">Select All</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Question Cards List --}}
+                    <div id="ai-staging-cards-container" style="max-height: 520px; overflow-y: auto; padding-right: 4px;">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -4399,6 +4694,789 @@ document.addEventListener('DOMContentLoaded', function () {
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return String(text).replace(/[&<>"']/g, m => map[m]);
     }
+
+    // =========================================================================
+    // AI QUESTION GENERATOR (PROMPT + PDF/IMAGE PATTERN ENGINE)
+    // =========================================================================
+    let currentAiGeneratedData = null;
+    let aiSelectedFile = null;
+
+    // Sync academic context badges when opening modal
+    $('#modal-ai-generator').on('show.bs.modal', function () {
+        const clsName = globalClassSelect && globalClassSelect.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : '';
+        const subName = globalSubjectSelect && globalSubjectSelect.selectedOptions[0] ? globalSubjectSelect.selectedOptions[0].text : '';
+
+        const badgeClass = document.getElementById('ai-gen-badge-class');
+        const badgeSubject = document.getElementById('ai-gen-badge-subject');
+
+        if (globalClassSelect && globalClassSelect.value) {
+            badgeClass.className = 'badge badge-primary px-2 py-1';
+            badgeClass.style.background = '#002C54';
+            badgeClass.textContent = `Class: ${clsName}`;
+        } else {
+            badgeClass.className = 'badge badge-warning px-2 py-1 text-dark';
+            badgeClass.style.background = '#f59e0b';
+            badgeClass.textContent = 'Class: Not Selected';
+        }
+
+        if (globalSubjectSelect && globalSubjectSelect.value) {
+            badgeSubject.className = 'badge badge-info px-2 py-1';
+            badgeSubject.style.background = '#0284c7';
+            badgeSubject.textContent = `Subject: ${subName}`;
+        } else {
+            badgeSubject.className = 'badge badge-warning px-2 py-1 text-dark';
+            badgeSubject.style.background = '#f59e0b';
+            badgeSubject.textContent = 'Subject: Not Selected';
+        }
+    });
+
+    // Quick Prompt Presets
+    document.querySelectorAll('.ai-prompt-preset-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const promptInput = document.getElementById('ai-gen-prompt-text');
+            if (promptInput) {
+                const preset = this.getAttribute('data-preset');
+                promptInput.value = preset;
+                promptInput.focus();
+            }
+        });
+    });
+
+    // File Dropzone Handling
+    const aiDropzone = document.getElementById('ai-gen-dropzone');
+    const aiFileInput = document.getElementById('ai-gen-file');
+    const aiFilePrompt = document.getElementById('ai-gen-dropzone-prompt');
+    const aiFilePreview = document.getElementById('ai-gen-file-preview');
+    const aiFileName = document.getElementById('ai-gen-file-name');
+    const aiFileSize = document.getElementById('ai-gen-file-size');
+    const aiFileIcon = document.getElementById('ai-gen-file-icon');
+    const btnRemoveAiFile = document.getElementById('btn-remove-ai-file');
+
+    aiDropzone?.addEventListener('click', function (e) {
+        if (e.target !== btnRemoveAiFile && !btnRemoveAiFile?.contains(e.target)) {
+            aiFileInput?.click();
+        }
+    });
+
+    aiDropzone?.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+
+    aiDropzone?.addEventListener('dragleave', function () {
+        this.classList.remove('drag-over');
+    });
+
+    aiDropzone?.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleAiSelectedFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    aiFileInput?.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            handleAiSelectedFile(this.files[0]);
+        }
+    });
+
+    btnRemoveAiFile?.addEventListener('click', function (e) {
+        e.stopPropagation();
+        aiSelectedFile = null;
+        if (aiFileInput) aiFileInput.value = '';
+        aiFilePreview?.classList.add('d-none');
+        aiFilePreview?.classList.remove('d-flex');
+        aiFilePrompt?.classList.remove('d-none');
+    });
+
+    function handleAiSelectedFile(file) {
+        if (file.size > 20 * 1024 * 1024) {
+            alert('File exceeds 20MB limit. Please upload a smaller document or image.');
+            return;
+        }
+        aiSelectedFile = file;
+        if (aiFileName) aiFileName.textContent = file.name;
+        if (aiFileSize) aiFileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+        if (aiFileIcon) {
+            if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                aiFileIcon.className = 'fa fa-file-pdf-o text-danger mr-2';
+            } else {
+                aiFileIcon.className = 'fa fa-file-image-o text-primary mr-2';
+            }
+        }
+
+        aiFilePrompt?.classList.add('d-none');
+        aiFilePreview?.classList.remove('d-none');
+        aiFilePreview?.classList.add('d-flex');
+    }
+
+    // Do AI Generate Action
+    document.getElementById('btn-do-ai-generate')?.addEventListener('click', function () {
+        const promptText = document.getElementById('ai-gen-prompt-text')?.value.trim();
+        if (!promptText) {
+            alert('Please enter your prompt instructions for the AI.');
+            document.getElementById('ai-gen-prompt-text')?.focus();
+            return;
+        }
+
+        // Show loading state
+        const inputView = document.getElementById('ai-gen-input-view');
+        const loadingView = document.getElementById('ai-gen-loading-view');
+        const stagingView = document.getElementById('ai-gen-staging-view');
+        const loadingMsg = document.getElementById('ai-gen-loading-title');
+
+        inputView?.classList.add('d-none');
+        stagingView?.classList.add('d-none');
+        loadingView?.classList.remove('d-none');
+
+        // Dynamic Loading ticker
+        const loadingSteps = [
+            'Analyzing prompt instructions and target academic context...',
+            'Reading attached pattern file and analyzing question formats...',
+            'Formulating questions with standard LaTeX math ($...$)...',
+            'Structuring options, answers, and comprehensive explanations...',
+            'Building directional sets, common passages, and data tables...'
+        ];
+        let stepIdx = 0;
+        const stepInterval = setInterval(() => {
+            stepIdx = (stepIdx + 1) % loadingSteps.length;
+            const subMsg = document.getElementById('ai-gen-loading-msg');
+            if (subMsg) subMsg.textContent = loadingSteps[stepIdx];
+        }, 4000);
+
+        const formData = new FormData();
+        formData.append('prompt', promptText);
+        if (globalClassSelect && globalClassSelect.value) formData.append('class_type_id', globalClassSelect.value);
+        if (globalSubjectSelect && globalSubjectSelect.value) formData.append('subject_id', globalSubjectSelect.value);
+        formData.append('difficulty', document.getElementById('ai-gen-difficulty')?.value || 'Mixed');
+        formData.append('options_count', document.getElementById('ai-gen-options-count')?.value || '4');
+
+        if (aiSelectedFile) {
+            formData.append('file', aiSelectedFile);
+        }
+
+        fetch('{{ url("question/ai-generate") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(res => {
+            clearInterval(stepInterval);
+            if (res.success && res.data) {
+                currentAiGeneratedData = res.data;
+                renderAiStagingWorkspace(res.data);
+            } else {
+                loadingView?.classList.add('d-none');
+                inputView?.classList.remove('d-none');
+                alert(res.message || 'AI Generation failed. Please try again.');
+            }
+        })
+        .catch(err => {
+            clearInterval(stepInterval);
+            loadingView?.classList.add('d-none');
+            inputView?.classList.remove('d-none');
+            alert('AI Generation request error: ' + err.message);
+        });
+    });
+
+    // Reset to New Prompt View
+    document.getElementById('btn-ai-gen-restart')?.addEventListener('click', function () {
+        document.getElementById('ai-gen-staging-view')?.classList.add('d-none');
+        document.getElementById('ai-gen-loading-view')?.classList.add('d-none');
+        document.getElementById('ai-gen-input-view')?.classList.remove('d-none');
+    });
+
+    // Render Staging Workspace
+    function renderAiStagingWorkspace(data) {
+        const inputView = document.getElementById('ai-gen-input-view');
+        const loadingView = document.getElementById('ai-gen-loading-view');
+        const stagingView = document.getElementById('ai-gen-staging-view');
+        const container = document.getElementById('ai-staging-cards-container');
+
+        loadingView?.classList.add('d-none');
+        inputView?.classList.add('d-none');
+        stagingView?.classList.remove('d-none');
+
+        const standalone = Array.isArray(data.standalone_questions) ? data.standalone_questions : [];
+        const dirSets = Array.isArray(data.directional_sets) ? data.directional_sets : [];
+
+        let totalSubQCount = 0;
+        dirSets.forEach(s => {
+            totalSubQCount += (Array.isArray(s.sub_questions) ? s.sub_questions.length : 0);
+        });
+        const grandTotal = standalone.length + totalSubQCount;
+
+        // Update badges
+        const badgeTotal = document.getElementById('ai-staging-total-badge');
+        const badgeStandalone = document.getElementById('ai-staging-standalone-badge');
+        const badgeDir = document.getElementById('ai-staging-dir-badge');
+
+        if (badgeTotal) badgeTotal.textContent = `${grandTotal} Total Questions`;
+        if (badgeStandalone) badgeStandalone.textContent = `${standalone.length} Standalone`;
+        if (badgeDir) badgeDir.textContent = `${dirSets.length} Sets (${totalSubQCount} Sub-Qs)`;
+
+        document.getElementById('count-filter-all').textContent = grandTotal;
+        document.getElementById('count-filter-standalone').textContent = standalone.length;
+        document.getElementById('count-filter-dir').textContent = `${dirSets.length} Sets`;
+
+        let html = '';
+
+        // 1. Render Standalone Questions
+        standalone.forEach((q, sIdx) => {
+            const correctIdx = parseInt(q.correct_ans, 10) || 0;
+            const diff = q.difficulty_level || 'Medium';
+            const diffColor = diff === 'Easy' ? '#059669' : (diff === 'Hard' ? '#dc2626' : '#d97706');
+
+            html += `
+            <div class="ai-staging-card standalone-card p-3" data-card-type="standalone" id="ai-card-standalone-${sIdx}">
+                <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="custom-control custom-checkbox mb-0" style="cursor: pointer;">
+                            <input type="checkbox" class="custom-control-input ai-staging-chk" data-type="standalone" data-idx="${sIdx}" checked>
+                            <span class="custom-control-label"></span>
+                        </label>
+                        <span class="badge font-weight-bold" style="background: #002C54; color: #ffffff; font-size: 11px;">
+                            <i class="fa fa-file-text-o mr-1"></i> Standalone Q #${sIdx + 1}
+                        </span>
+                        <span class="badge" style="background: ${diffColor}; color: #ffffff; font-size: 10px;">${diff}</span>
+                        <span class="badge badge-success font-weight-bold" style="background: #059669; color: #ffffff; font-size: 10px;">
+                            <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
+                        </span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-xs btn-outline-primary btn-ai-load-standalone font-weight-bold" data-idx="${sIdx}" style="font-size: 11px; padding: 3px 10px;">
+                            <i class="fa fa-pencil mr-1"></i> Load into Manual Builder Form
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Statement --}}
+                <div class="font-weight-bold mb-2 text-dark" style="font-size: 12.5px; line-height: 1.6;">
+                    ${formatRichExamContent(q.name)}
+                </div>
+
+                {{-- Options Grid --}}
+                <div class="row mb-2">
+                    ${[
+                        { k: 'ans1', l: 'A', i: 0 },
+                        { k: 'ans2', l: 'B', i: 1 },
+                        { k: 'ans3', l: 'C', i: 2 },
+                        { k: 'ans4', l: 'D', i: 3 },
+                        ...(q.ans5 ? [{ k: 'ans5', l: 'E', i: 4 }] : [])
+                    ].map(opt => {
+                        const isCorr = (correctIdx === opt.i);
+                        const cardBg = isCorr ? 'background: #ecfdf5; border: 1.5px solid #059669;' : 'background: #f8fafc; border: 1px solid #cbd5e1;';
+                        const badgeBg = isCorr ? 'background: #059669; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                        return `
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded d-flex align-items-center" style="${cardBg}">
+                                <span class="badge mr-2" style="${badgeBg} font-size: 10.5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.l}</span>
+                                <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorr ? '#065f46' : '#0f172a'}; font-weight: ${isCorr ? '700' : '500'}; line-height: 1.45;">
+                                    ${formatRichExamContent(q[opt.k] || '—')}
+                                </div>
+                                ${isCorr ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;"></i>' : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+
+                ${q.explanation ? `
+                <div class="p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 3.5px solid #f59e0b; font-size: 11px; color: #92400e; line-height: 1.45;">
+                    <strong><i class="fa fa-lightbulb-o mr-1" style="color: #d97706;"></i> Solution:</strong> ${formatRichExamContent(q.explanation)}
+                </div>` : ''}
+            </div>`;
+        });
+
+        // 2. Render Directional Sets
+        dirSets.forEach((set, setIdx) => {
+            const subQs = Array.isArray(set.sub_questions) ? set.sub_questions : [];
+
+            html += `
+            <div class="ai-staging-card directional-card p-3" data-card-type="directional" id="ai-card-dir-${setIdx}">
+                <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="custom-control custom-checkbox mb-0" style="cursor: pointer;">
+                            <input type="checkbox" class="custom-control-input ai-staging-chk" data-type="directional" data-idx="${setIdx}" checked>
+                            <span class="custom-control-label"></span>
+                        </label>
+                        <span class="badge font-weight-bold" style="background: #002C54; color: #ffffff; font-size: 11.5px; padding: 4px 10px;">
+                            <i class="fa fa-sitemap mr-1 text-warning"></i> Directional Set #${setIdx + 1}: ${set.group_id || 'DIR-SET'}
+                        </span>
+                        <span class="badge badge-info" style="font-size: 11px; background: #0284c7;">
+                            ${subQs.length} Sub-Questions
+                        </span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-xs btn-outline-primary btn-ai-load-directional font-weight-bold" data-idx="${setIdx}" style="font-size: 11px; padding: 3px 10px;">
+                            <i class="fa fa-sitemap mr-1"></i> Load into Directional Builder Form
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Common Passage --}}
+                <div class="p-2 mb-2 rounded" style="background: #f1f5f9; border-left: 4px solid #002C54; font-size: 12px; color: #0f172a; line-height: 1.55;">
+                    <div class="font-weight-bold text-primary small mb-1">
+                        <i class="fa fa-align-left mr-1"></i> COMMON PASSAGE / DIRECTION CONTEXT:
+                    </div>
+                    ${formatRichExamContent(set.direction || '<em>No common narrative provided</em>')}
+                    ${set.direction_table ? `<div class="mt-2 table-responsive">${set.direction_table}</div>` : ''}
+                </div>
+
+                {{-- Sub-Questions List --}}
+                <div class="pl-2 border-left" style="border-left-width: 2px !important; border-color: #cbd5e1 !important;">
+                    <div class="small font-weight-bold mb-2 text-dark">Sub-Questions in this set:</div>
+                    ${subQs.map((sq, sqIdx) => {
+                        const sqCorrIdx = parseInt(sq.correct_ans, 10) || 0;
+                        return `
+                        <div class="mb-3 p-2 bg-white rounded border" style="background: #ffffff; border-color: #e2e8f0 !important;">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                    <i class="fa fa-question-circle text-primary mr-1"></i> Sub-Q #${sq.sub_question_no || (sqIdx + 1)}
+                                </span>
+                                <span class="badge badge-success" style="font-size: 9.5px; background: #059669; color: #ffffff;">
+                                    Correct: Option ${['A','B','C','D','E'][sqCorrIdx] || 'A'}
+                                </span>
+                            </div>
+                            <div class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a; line-height: 1.5;">
+                                ${formatRichExamContent(sq.name)}
+                            </div>
+                            <div class="row mb-1">
+                                ${[
+                                    { k: 'ans1', l: 'A', i: 0 },
+                                    { k: 'ans2', l: 'B', i: 1 },
+                                    { k: 'ans3', l: 'C', i: 2 },
+                                    { k: 'ans4', l: 'D', i: 3 },
+                                    ...(sq.ans5 ? [{ k: 'ans5', l: 'E', i: 4 }] : [])
+                                ].map(opt => {
+                                    const isCorr = (sqCorrIdx === opt.i);
+                                    const cardBg = isCorr ? 'background: #ecfdf5; border: 1px solid #059669;' : 'background: #f8fafc; border: 1px solid #cbd5e1;';
+                                    const badgeBg = isCorr ? 'background: #059669; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                                    return `
+                                    <div class="col-md-6 mb-1">
+                                        <div class="p-1 px-2 rounded d-flex align-items-center" style="${cardBg}">
+                                            <span class="badge mr-1" style="${badgeBg} font-size: 9.5px; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700;">${opt.l}</span>
+                                            <div class="flex-grow-1" style="font-size: 11px; color: ${isCorr ? '#065f46' : '#1e293b'}; font-weight: ${isCorr ? '700' : '400'};">
+                                                ${formatRichExamContent(sq[opt.k] || '—')}
+                                            </div>
+                                            ${isCorr ? '<i class="fa fa-check text-success ml-1" style="font-size: 11px;"></i>' : ''}
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                            ${sq.explanation ? `
+                            <div class="mt-1 p-1 px-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 10.5px; color: #92400e;">
+                                <strong>Solution:</strong> ${formatRichExamContent(sq.explanation)}
+                            </div>` : ''}
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        });
+
+        if (container) container.innerHTML = html;
+
+        // Render KaTeX in newly injected container
+        if (window.renderMathInElement && container) {
+            try {
+                renderMathInElement(container, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\[', right: '\\]', display: true },
+                        { left: '\\(', right: '\\)', display: false }
+                    ],
+                    throwOnError: false
+                });
+            } catch (e) {
+                console.warn('KaTeX render error:', e);
+            }
+        }
+
+        updateAiStagingSelectedCount();
+        attachAiStagingHandlers();
+    }
+
+    // Attach Event Handlers to Dynamic Staging Elements
+    function attachAiStagingHandlers() {
+        // Individual checkbox changes
+        document.querySelectorAll('.ai-staging-chk').forEach(chk => {
+            chk.addEventListener('change', updateAiStagingSelectedCount);
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.ai-staging-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.ai-staging-filter-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.classList.add('btn-outline-primary');
+                    b.classList.remove('btn-primary');
+                });
+                this.classList.add('active');
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-primary');
+
+                const filter = this.getAttribute('data-filter');
+                document.querySelectorAll('.ai-staging-card').forEach(card => {
+                    const cardType = card.getAttribute('data-card-type');
+                    if (filter === 'all' || cardType === filter) {
+                        card.classList.remove('d-none');
+                    } else {
+                        card.classList.add('d-none');
+                    }
+                });
+            });
+        });
+
+        // "Select All" Checkbox
+        document.getElementById('ai-staging-select-all')?.addEventListener('change', function () {
+            const checked = this.checked;
+            document.querySelectorAll('.ai-staging-chk').forEach(chk => {
+                chk.checked = checked;
+            });
+            updateAiStagingSelectedCount();
+        });
+
+        // "Load into Manual Builder Form" (Standalone)
+        document.querySelectorAll('.btn-ai-load-standalone').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const idx = parseInt(this.getAttribute('data-idx'), 10);
+                if (!currentAiGeneratedData || !currentAiGeneratedData.standalone_questions || !currentAiGeneratedData.standalone_questions[idx]) return;
+
+                const q = currentAiGeneratedData.standalone_questions[idx];
+
+                // Switch Manual Builder to Standalone mode
+                switchManualMode('standalone');
+
+                // Populate Question Statement
+                if (window.CKEDITOR && CKEDITOR.instances['manual_question_name']) {
+                    CKEDITOR.instances['manual_question_name'].setData(q.name || '');
+                } else {
+                    const el = document.getElementById('manual_question_name');
+                    if (el) el.value = q.name || '';
+                }
+
+                // Populate Options 1-4
+                for (let i = 1; i <= 4; i++) {
+                    const edId = `manual_ans${i}`;
+                    const val = q[`ans${i}`] || '';
+                    if (window.CKEDITOR && CKEDITOR.instances[edId]) {
+                        CKEDITOR.instances[edId].setData(val);
+                    } else {
+                        const el = document.getElementById(edId);
+                        if (el) el.value = val;
+                    }
+                }
+
+                // Handle Option 5 (E)
+                const col5 = document.getElementById('manual-opt-col-5');
+                const btnTog5 = document.getElementById('btn-toggle-manual-opt-5');
+                const btnRem5 = document.getElementById('btn-remove-manual-opt-5');
+
+                if (q.ans5) {
+                    if (col5 && col5.classList.contains('d-none')) {
+                        btnTog5?.click();
+                    }
+                    setTimeout(() => {
+                        if (window.CKEDITOR && CKEDITOR.instances['manual_ans5']) {
+                            CKEDITOR.instances['manual_ans5'].setData(q.ans5);
+                        } else {
+                            const el = document.getElementById('manual_ans5');
+                            if (el) el.value = q.ans5;
+                        }
+                    }, 50);
+                } else {
+                    if (col5 && !col5.classList.contains('d-none')) {
+                        btnRem5?.click();
+                    }
+                }
+
+                // Mark Correct Answer Radio
+                const correctVal = String(q.correct_ans ?? '0');
+                const cRadio = document.querySelector(`input[name="correct_ans"][value="${correctVal}"]`);
+                if (cRadio) {
+                    cRadio.checked = true;
+                    cRadio.dispatchEvent(new Event('change'));
+                }
+
+                // Populate Explanation
+                if (window.CKEDITOR && CKEDITOR.instances['manual_explanation']) {
+                    CKEDITOR.instances['manual_explanation'].setData(q.explanation || '');
+                } else {
+                    const el = document.getElementById('manual_explanation');
+                    if (el) el.value = q.explanation || '';
+                }
+
+                // Populate Difficulty
+                const diffEl = document.getElementById('manual_difficulty_level');
+                if (diffEl && q.difficulty_level) {
+                    diffEl.value = q.difficulty_level;
+                }
+
+                // Update Preview and Close Modal
+                setTimeout(updateManualLivePreview, 150);
+                $('#modal-ai-generator').modal('hide');
+
+                // Smooth scroll to builder
+                document.getElementById('manual-standalone-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // "Load into Directional Builder Form" (Directional Set)
+        document.querySelectorAll('.btn-ai-load-directional').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const sIdx = parseInt(this.getAttribute('data-idx'), 10);
+                if (!currentAiGeneratedData || !currentAiGeneratedData.directional_sets || !currentAiGeneratedData.directional_sets[sIdx]) return;
+
+                const set = currentAiGeneratedData.directional_sets[sIdx];
+                const subQs = Array.isArray(set.sub_questions) ? set.sub_questions : [];
+
+                // Switch Manual Builder to Directional mode
+                switchManualMode('directional');
+
+                // Set Direction Passage & Table
+                let fullPassage = set.direction || '';
+                if (set.direction_table) {
+                    fullPassage += '\n\n' + set.direction_table;
+                }
+
+                if (window.CKEDITOR && CKEDITOR.instances['dir_direction']) {
+                    CKEDITOR.instances['dir_direction'].setData(fullPassage);
+                } else {
+                    const el = document.getElementById('dir_direction');
+                    if (el) el.value = fullPassage;
+                }
+
+                // Set Set ID
+                if (set.group_id) {
+                    const grpInput = document.getElementById('dir_group_id');
+                    if (grpInput) {
+                        grpInput.value = set.group_id;
+                        syncDirectionGroupDisplay();
+                    }
+                }
+
+                // Clear existing sub-questions
+                const list = document.getElementById('directional-sub-questions-list');
+                if (list) {
+                    directionalSubQuestions.forEach(item => {
+                        const editorIds = [
+                            `dir_sub_${item.idx}_name`,
+                            `dir_sub_${item.idx}_ans1`,
+                            `dir_sub_${item.idx}_ans2`,
+                            `dir_sub_${item.idx}_ans3`,
+                            `dir_sub_${item.idx}_ans4`,
+                            `dir_sub_${item.idx}_ans5`,
+                            `dir_sub_${item.idx}_explanation`
+                        ];
+                        editorIds.forEach(id => {
+                            if (window.CKEDITOR && CKEDITOR.instances[id]) {
+                                try { CKEDITOR.instances[id].destroy(); } catch (e) {}
+                            }
+                        });
+                    });
+                    list.innerHTML = '';
+                    directionalSubQuestions = [];
+                }
+
+                // Re-add each sub-question from AI set
+                subQs.forEach((sq, sqIdx) => {
+                    addSubQuestion();
+                    const newSub = directionalSubQuestions[directionalSubQuestions.length - 1];
+                    if (!newSub) return;
+                    const idx = newSub.idx;
+
+                    setTimeout(() => {
+                        // Statement
+                        if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_name`]) {
+                            CKEDITOR.instances[`dir_sub_${idx}_name`].setData(sq.name || '');
+                        }
+
+                        // Options A-D
+                        for (let opt = 1; opt <= 4; opt++) {
+                            const optEdId = `dir_sub_${idx}_ans${opt}`;
+                            const optVal = sq[`ans${opt}`] || '';
+                            if (window.CKEDITOR && CKEDITOR.instances[optEdId]) {
+                                CKEDITOR.instances[optEdId].setData(optVal);
+                            }
+                        }
+
+                        // Option E
+                        if (sq.ans5) {
+                            const btn5 = document.querySelector(`[data-subq-idx="${idx}"].btn-toggle-subq-opt5`);
+                            btn5?.click();
+                            setTimeout(() => {
+                                if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
+                                    CKEDITOR.instances[`dir_sub_${idx}_ans5`].setData(sq.ans5);
+                                }
+                            }, 50);
+                        }
+
+                        // Correct Ans Radio
+                        const cVal = String(sq.correct_ans ?? '0');
+                        const cRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"][value="${cVal}"]`);
+                        if (cRadio) {
+                            cRadio.checked = true;
+                            cRadio.dispatchEvent(new Event('change'));
+                        }
+
+                        // Explanation
+                        if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_explanation`]) {
+                            CKEDITOR.instances[`dir_sub_${idx}_explanation`].setData(sq.explanation || '');
+                        }
+
+                        // Sub Q No
+                        const cardEl = document.getElementById(`dir-subq-card-${idx}`);
+                        if (cardEl) {
+                            const noInput = cardEl.querySelector('.dir-sub-no-input');
+                            if (noInput && sq.sub_question_no) noInput.value = sq.sub_question_no;
+                        }
+
+                        if (sqIdx === subQs.length - 1) {
+                            rebuildDirectionalPreviewTabs();
+                            updateDirectionalLivePreview();
+                        }
+                    }, 120);
+                });
+
+                $('#modal-ai-generator').modal('hide');
+                document.getElementById('manual-directional-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    }
+
+    // Update Staging Selected Questions Count
+    function updateAiStagingSelectedCount() {
+        if (!currentAiGeneratedData) return;
+        const standalone = Array.isArray(currentAiGeneratedData.standalone_questions) ? currentAiGeneratedData.standalone_questions : [];
+        const dirSets = Array.isArray(currentAiGeneratedData.directional_sets) ? currentAiGeneratedData.directional_sets : [];
+
+        let count = 0;
+        document.querySelectorAll('.ai-staging-chk:checked').forEach(chk => {
+            const type = chk.getAttribute('data-type');
+            const idx = parseInt(chk.getAttribute('data-idx'), 10);
+            if (type === 'standalone') {
+                count += 1;
+            } else if (type === 'directional' && dirSets[idx]) {
+                count += (Array.isArray(dirSets[idx].sub_questions) ? dirSets[idx].sub_questions.length : 0);
+            }
+        });
+
+        const span = document.getElementById('ai-staging-selected-count');
+        if (span) span.textContent = count;
+    }
+
+    // Batch Confirm & Save Selected to Question Bank
+    document.getElementById('btn-ai-staging-save-all')?.addEventListener('click', function () {
+        if (!globalClassSelect || !globalClassSelect.value) {
+            alert('Please select a Target Class in the top header before saving questions.');
+            globalClassSelect?.focus();
+            return;
+        }
+        if (!globalSubjectSelect || !globalSubjectSelect.value) {
+            alert('Please select a Target Subject in the top header before saving questions.');
+            globalSubjectSelect?.focus();
+            return;
+        }
+        if (!currentAiGeneratedData) return;
+
+        const standalone = Array.isArray(currentAiGeneratedData.standalone_questions) ? currentAiGeneratedData.standalone_questions : [];
+        const dirSets = Array.isArray(currentAiGeneratedData.directional_sets) ? currentAiGeneratedData.directional_sets : [];
+
+        const questionsToSave = [];
+
+        document.querySelectorAll('.ai-staging-chk:checked').forEach(chk => {
+            const type = chk.getAttribute('data-type');
+            const idx = parseInt(chk.getAttribute('data-idx'), 10);
+
+            if (type === 'standalone' && standalone[idx]) {
+                const q = standalone[idx];
+                questionsToSave.push({
+                    name: q.name,
+                    question_type_id: 1,
+                    ans1: q.ans1,
+                    ans2: q.ans2,
+                    ans3: q.ans3,
+                    ans4: q.ans4,
+                    ans5: q.ans5 || null,
+                    correct_ans: q.correct_ans,
+                    explanation: q.explanation || null,
+                    difficulty_level: q.difficulty_level || 'Medium',
+                    group_id: null,
+                    direction: null,
+                    direction_table: null,
+                    sub_question_no: null
+                });
+            } else if (type === 'directional' && dirSets[idx]) {
+                const set = dirSets[idx];
+                const subQs = Array.isArray(set.sub_questions) ? set.sub_questions : [];
+                subQs.forEach((sq, sIdx) => {
+                    questionsToSave.push({
+                        name: sq.name,
+                        question_type_id: 1,
+                        ans1: sq.ans1,
+                        ans2: sq.ans2,
+                        ans3: sq.ans3,
+                        ans4: sq.ans4,
+                        ans5: sq.ans5 || null,
+                        correct_ans: sq.correct_ans,
+                        explanation: sq.explanation || null,
+                        difficulty_level: sq.difficulty_level || 'Medium',
+                        group_id: set.group_id,
+                        direction: set.direction,
+                        direction_table: set.direction_table || null,
+                        sub_question_no: sq.sub_question_no || (sIdx + 1)
+                    });
+                });
+            }
+        });
+
+        if (questionsToSave.length === 0) {
+            alert('Please select at least one question to save.');
+            return;
+        }
+
+        const btn = this;
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span> Saving to Question Bank...';
+
+        fetch('{{ url("question/bulk-store") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                class_type_id: globalClassSelect.value,
+                subject_id: globalSubjectSelect.value,
+                questions: questionsToSave
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            if (res.success) {
+                alert(`Success! ${res.count || questionsToSave.length} questions saved directly into Question Bank.`);
+                $('#modal-ai-generator').modal('hide');
+                window.location.href = res.redirect || '{{ url("view/question") }}';
+            } else {
+                alert('Failed to save questions: ' + (res.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            alert('Save request error: ' + err.message);
+        });
+    });
 });
 </script>
 @endsection

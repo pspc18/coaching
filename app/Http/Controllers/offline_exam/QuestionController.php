@@ -496,6 +496,76 @@ class QuestionController extends Controller
     }
 
     /**
+     * AI Interactive Question Generator (Prompt + Optional PDF/Image Reference)
+     */
+    public function aiGenerateQuestions(Request $request)
+    {
+        @set_time_limit(180);
+        @ini_set('max_execution_time', 180);
+
+        $filePath = null;
+        try {
+            $request->validate([
+                'prompt' => 'required|string|min:3',
+                'file' => 'nullable|file|mimes:pdf,png,jpg,jpeg,webp|max:20480',
+            ]);
+
+            $customKey = $request->input('api_key');
+            $userPrompt = trim($request->input('prompt'));
+
+            // Handle optional reference file (PDF or image)
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $ext = strtolower($file->getClientOriginalExtension() ?: 'bin');
+                $tempName = 'ref_' . time() . '_' . Str::random(8) . '.' . $ext;
+                $destPath = storage_path('app/temp_ai');
+                if (!file_exists($destPath)) {
+                    mkdir($destPath, 0755, true);
+                }
+                $file->move($destPath, $tempName);
+                $filePath = $destPath . '/' . $tempName;
+            }
+
+            // Retrieve class and subject names if IDs were passed
+            $classTypeId = $request->input('class_type_id');
+            $subjectId = $request->input('subject_id');
+            $className = null;
+            $subjectName = null;
+
+            if (!empty($classTypeId)) {
+                $className = DB::table('class_types')->where('id', $classTypeId)->value('name');
+            }
+            if (!empty($subjectId)) {
+                $subjectName = DB::table('subject')->where('id', $subjectId)->value('name');
+            }
+
+            $context = [
+                'class_name' => $className,
+                'subject_name' => $subjectName,
+                'difficulty' => $request->input('difficulty', 'Mixed'),
+                'options_count' => (int)$request->input('options_count', 4),
+            ];
+
+            $result = $this->aiService->generateQuestionsWithAi($userPrompt, $filePath, $customKey, $context);
+
+            // Clean up temporary file
+            if ($filePath && file_exists($filePath)) {
+                @unlink($filePath);
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            if ($filePath && file_exists($filePath)) {
+                @unlink($filePath);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'AI Generation Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Bulk Store Questions (From AI batch or manual multi-import)
      */
     public function bulkStore(Request $request)

@@ -613,6 +613,223 @@ EOT;
     }
 
     /**
+     * Generate original exam questions and/or directional question sets using AI from prompt and optional file reference (PDF / Image)
+     *
+     * @param string $userPrompt Instructions provided by user
+     * @param string|null $filePath Path to uploaded reference PDF or Image, or null if text-only
+     * @param string|null $customApiKey
+     * @param array $context Additional academic context (class_name, subject_name, difficulty, options_count)
+     * @return array
+     */
+    public function generateQuestionsWithAi(string $userPrompt, ?string $filePath = null, ?string $customApiKey = null, array $context = []): array
+    {
+        $key = $this->getApiKey($customApiKey);
+        if (empty($key)) {
+            return [
+                'success' => false,
+                'message' => 'Google Gemini API key is not configured. Please enter your API key in AI Settings.'
+            ];
+        }
+
+        $mediaParts = [];
+        $extractedDiagrams = [];
+        $referenceDocNote = "";
+
+        if (!empty($filePath) && file_exists($filePath)) {
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            if ($ext === 'pdf') {
+                $pdfBytes = file_get_contents($filePath);
+                if (!empty($pdfBytes)) {
+                    $mediaParts[] = [
+                        'inline_data' => [
+                            'mime_type' => 'application/pdf',
+                            'data' => base64_encode($pdfBytes)
+                        ]
+                    ];
+                    $extractedDiagrams = $this->extractDiagramsFromPdf($filePath);
+                    $referenceDocNote = "A REFERENCE PDF DOCUMENT IS ATTACHED. Carefully analyze its syllabus, structure, question difficulty, patterns, and terminology. Generate questions following this pattern and the user's specific instructions.";
+                }
+            } else {
+                $imgPayload = $this->prepareImagePayload($filePath);
+                if ($imgPayload['success']) {
+                    $mediaParts[] = $imgPayload['data'];
+                    $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. Carefully analyze its contents, style, formulas, and pattern. Generate questions following this pattern and the user's specific instructions.";
+                }
+            }
+        }
+
+        $className = !empty($context['class_name']) ? $context['class_name'] : 'Standard / Competitive Level';
+        $subjectName = !empty($context['subject_name']) ? $context['subject_name'] : 'General Examination';
+        $diffPref = !empty($context['difficulty']) ? $context['difficulty'] : 'Mixed (Easy, Medium, Hard)';
+        $optionsCount = !empty($context['options_count']) ? (int)$context['options_count'] : 4;
+
+        $prompt = <<<EOT
+You are an elite, highly trained Academic Examination Question Creator AI for school boards (CBSE, ICSE, State Boards) and competitive exams (NEET, JEE Main/Advanced, Banking PO/Clerk, SSC CGL/CHSL, UPSC, NDA, Railway, Olympiads).
+
+{$referenceDocNote}
+
+USER INSTRUCTIONS / PROMPT:
+"{$userPrompt}"
+
+ACADEMIC CONTEXT:
+- Target Class / Level: {$className}
+- Subject: {$subjectName}
+- Target Difficulty: {$diffPref}
+- Default Options Count: {$optionsCount} options per MCQ
+
+CORE OBJECTIVE:
+Synthesize high-quality, authentic, examination-grade questions adhering strictly to the user's prompt.
+The user may ask for:
+- Standalone Multiple Choice Questions (e.g. "10 standalone questions")
+- Directional Question Sets with a common passage / caselet / data table and multiple linked sub-questions (e.g. "2 directional sets with 3-3 questions")
+- A combination of both standalone and directional questions
+- Specific topic focus, difficulty breakdown, or following the pattern of the attached reference file
+
+STRICT GUIDELINES:
+1. MATHEMATICAL & SCIENTIFIC FORMULAS (LATEX):
+   - You MUST format ALL mathematical expressions, physical equations, chemical reactions, formulas, fractions, powers, square roots, integrals, matrices, and Greek letters using standard LaTeX syntax enclosed in dollar signs ($...$ for inline).
+   - Examples: $\frac{x^2 + 1}{2x}$, $\sqrt{3x - 5}$, $\int_0^1 x^2 dx$, $\alpha + \beta = -\frac{b}{a}$, $\vec{F} = m\vec{a}$.
+   - Never write plain text math like "x^2" or "sqrt(x)". Always use LaTeX.
+
+2. STANDALONE QUESTIONS:
+   - "name": Clear, self-contained question statement.
+   - "question_type_id": 1 (Objective / MCQ).
+   - "ans1", "ans2", "ans3", "ans4": Clear, distinct, unambiguous option texts (with LaTeX if mathematical).
+   - "ans5": Provide Option E if 5 options are requested (e.g. Banking exams), otherwise null.
+   - Do NOT include letter prefixes like "(A)" or "A." inside the option text.
+   - "correct_ans": Zero-based index string ("0" for ans1/A, "1" for ans2/B, "2" for ans3/C, "3" for ans4/D, "4" for ans5/E).
+   - "correct_option_letter": Corresponding letter ("A", "B", "C", "D", or "E").
+   - "explanation": Comprehensive, pedagogically sound, step-by-step solution / derivation.
+   - "difficulty_level": "Easy", "Medium", or "Hard".
+
+3. DIRECTIONAL QUESTION SETS (PASSAGE / CASE STUDY / DATA INTERPRETATION):
+   - "direction": The full common passage, comprehension story, or problem statement that introduces the context for the set.
+   - "direction_table": If the set is based on a data table or matrix, provide a clean, complete HTML table:
+     <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
+     (If no table is needed, set to null).
+   - "sub_questions": An array of questions that depend on this common direction/passage.
+     Each sub-question must have:
+     - "sub_question_no": 1, 2, 3, etc.
+     - "name": Specific question statement for this sub-question (do NOT repeat the common passage).
+     - "question_type_id": 1.
+     - "ans1", "ans2", "ans3", "ans4", "ans5" (if applicable).
+     - "correct_ans": "0", "1", "2", "3", or "4".
+     - "correct_option_letter": "A", "B", "C", "D", or "E".
+     - "explanation": Detailed solution for this specific sub-question.
+     - "difficulty_level": "Easy", "Medium", or "Hard".
+
+4. SCHEMA INTEGRITY:
+   - Return pure, valid JSON matching the exact schema below.
+   - Do NOT wrap in markdown fences. Output raw JSON only.
+
+SCHEMA:
+{
+  "summary": "Concise summary of generated questions",
+  "topic": "Primary Topic / Chapter Name",
+  "standalone_questions": [
+    {
+      "name": "Question statement with $LaTeX$...",
+      "question_type_id": 1,
+      "ans1": "Option A text",
+      "ans2": "Option B text",
+      "ans3": "Option C text",
+      "ans4": "Option D text",
+      "ans5": null,
+      "correct_ans": "0",
+      "correct_option_letter": "A",
+      "explanation": "Step-by-step explanation...",
+      "difficulty_level": "Medium"
+    }
+  ],
+  "directional_sets": [
+    {
+      "direction": "Common narrative passage or context text...",
+      "direction_table": null,
+      "sub_questions": [
+        {
+          "sub_question_no": 1,
+          "name": "Sub-question 1 statement...",
+          "question_type_id": 1,
+          "ans1": "Option A text",
+          "ans2": "Option B text",
+          "ans3": "Option C text",
+          "ans4": "Option D text",
+          "ans5": null,
+          "correct_ans": "1",
+          "correct_option_letter": "B",
+          "explanation": "Solution for sub-question 1...",
+          "difficulty_level": "Medium"
+        }
+      ]
+    }
+  ]
+}
+EOT;
+
+        $result = $this->callGeminiMultimodal($mediaParts, $prompt, $key, true);
+
+        if ($result['success'] && !empty($result['data'])) {
+            $data = $result['data'];
+
+            // Normalization: Ensure standalone_questions and directional_sets are arrays
+            if (!isset($data['standalone_questions']) || !is_array($data['standalone_questions'])) {
+                $data['standalone_questions'] = [];
+            }
+            if (!isset($data['directional_sets']) || !is_array($data['directional_sets'])) {
+                $data['directional_sets'] = [];
+            }
+
+            // If the model returned flat questions array instead of separate keys, sort them out
+            if (empty($data['standalone_questions']) && empty($data['directional_sets']) && !empty($data['questions']) && is_array($data['questions'])) {
+                $grouped = [];
+                foreach ($data['questions'] as $q) {
+                    if (!empty($q['direction']) || !empty($q['group_id'])) {
+                        $gKey = $q['group_id'] ?: md5($q['direction'] ?? '');
+                        if (!isset($grouped[$gKey])) {
+                            $grouped[$gKey] = [
+                                'direction' => $q['direction'] ?? '',
+                                'direction_table' => $q['direction_table'] ?? null,
+                                'sub_questions' => []
+                            ];
+                        }
+                        $subQ = $q;
+                        unset($subQ['direction'], $subQ['direction_table'], $subQ['group_id']);
+                        $subQ['sub_question_no'] = count($grouped[$gKey]['sub_questions']) + 1;
+                        $grouped[$gKey]['sub_questions'][] = $subQ;
+                    } else {
+                        $data['standalone_questions'][] = $q;
+                    }
+                }
+                $data['directional_sets'] = array_values($grouped);
+            }
+
+            // Assign unique group_ids and sanitize directional sets
+            $timestamp = date('Ymd-His');
+            foreach ($data['directional_sets'] as $sIdx => &$set) {
+                if (empty($set['group_id'])) {
+                    $set['group_id'] = 'DIR-' . $timestamp . '-' . strtoupper(Str::random(4)) . '-' . ($sIdx + 1);
+                }
+                if (!isset($set['sub_questions']) || !is_array($set['sub_questions'])) {
+                    $set['sub_questions'] = [];
+                }
+                foreach ($set['sub_questions'] as $qIdx => &$sq) {
+                    $sq['group_id'] = $set['group_id'];
+                    $sq['sub_question_no'] = !empty($sq['sub_question_no']) ? $sq['sub_question_no'] : ($qIdx + 1);
+                    $sq['direction'] = $set['direction'] ?? null;
+                    $sq['direction_table'] = $set['direction_table'] ?? null;
+                }
+                unset($sq);
+            }
+            unset($set);
+
+            $result['data'] = $data;
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Intelligently focus and slice PDF to the target question/direction pages.
      */
     public function focusPdfPages(string $pdfPath, string $extraInstructions): array
