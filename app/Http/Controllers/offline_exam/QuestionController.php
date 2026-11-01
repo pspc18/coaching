@@ -45,18 +45,48 @@ class QuestionController extends Controller
             $baseQuery = $baseQuery->where('questions.branch_id', Session::get('branch_id'));
         }
 
-        // Compute KPI Summary Stats
+        // Compute KPI Summary Stats in a single aggregated query for maximum performance
+        $statsRaw = (clone $baseQuery)
+            ->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN question_type_id = 1 THEN 1 ELSE 0 END) as mcq,
+                SUM(CASE WHEN question_type_id = 2 THEN 1 ELSE 0 END) as descriptive,
+                SUM(CASE WHEN group_id IS NOT NULL AND group_id != "" THEN 1 ELSE 0 END) as grouped,
+                SUM(CASE WHEN image IS NOT NULL AND image != "" THEN 1 ELSE 0 END) as diagram,
+                SUM(CASE WHEN ai_extracted = 1 THEN 1 ELSE 0 END) as ai_extracted
+            ')->first();
+
         $stats = [
-            'total' => (clone $baseQuery)->count(),
-            'mcq' => (clone $baseQuery)->where('question_type_id', 1)->count(),
-            'descriptive' => (clone $baseQuery)->where('question_type_id', 2)->count(),
-            'grouped' => (clone $baseQuery)->whereNotNull('group_id')->where('group_id', '!=', '')->count(),
-            'diagram' => (clone $baseQuery)->whereNotNull('image')->where('image', '!=', '')->count(),
-            'ai_extracted' => (clone $baseQuery)->where('ai_extracted', 1)->count(),
+            'total' => (int)($statsRaw->total ?? 0),
+            'mcq' => (int)($statsRaw->mcq ?? 0),
+            'descriptive' => (int)($statsRaw->descriptive ?? 0),
+            'grouped' => (int)($statsRaw->grouped ?? 0),
+            'diagram' => (int)($statsRaw->diagram ?? 0),
+            'ai_extracted' => (int)($statsRaw->ai_extracted ?? 0),
         ];
 
+        // Optimized selective columns query
         $data = Question::select(
-            'questions.*',
+            'questions.id',
+            'questions.class_type_id',
+            'questions.subject_id',
+            'questions.question_type_id',
+            'questions.name',
+            'questions.difficulty_level',
+            'questions.ans1',
+            'questions.ans2',
+            'questions.ans3',
+            'questions.ans4',
+            'questions.ans5',
+            'questions.correct_ans',
+            'questions.group_id',
+            'questions.sub_question_no',
+            'questions.direction',
+            'questions.direction_table',
+            'questions.image',
+            'questions.explanation',
+            'questions.ai_extracted',
+            'questions.created_at',
             'subjects.name as subject_name',
             'class_types.name as class_name'
         )
@@ -144,6 +174,7 @@ class QuestionController extends Controller
 
         $perPage = (int) $request->input('per_page', 25);
         if ($perPage < 5) $perPage = 25;
+        if ($perPage > 200) $perPage = 200;
 
         $data = $data->orderBy('questions.id', 'DESC')->paginate($perPage)->appends($request->all());
         $classType = Helper::classType();
@@ -154,7 +185,8 @@ class QuestionController extends Controller
             'search' => $search,
             'stats' => $stats,
             'classType' => $classType,
-            'allSubjects' => $allSubjects
+            'allSubjects' => $allSubjects,
+            'perPage' => $perPage,
         ]);
     }
 

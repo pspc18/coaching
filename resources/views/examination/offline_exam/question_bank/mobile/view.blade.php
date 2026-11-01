@@ -363,6 +363,35 @@
     color: #ffffff;
 }
 
+/* Mobile Pagination Styling */
+.qb-pagination-links .pagination {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.qb-pagination-links .page-link {
+    border-radius: 3px !important;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #002C54 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.qb-pagination-links .page-item.active .page-link {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    border-color: #002C54 !important;
+    color: #ffffff !important;
+}
+.qb-pagination-links .page-item.disabled .page-link {
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+
 /* KaTeX tweaks for mobile */
 .katex {
     font-size: 1.05em !important;
@@ -646,8 +675,8 @@
     </div>
 
     {{-- Mobile Pagination --}}
-    <div class="mt-3 text-center">
-        {{ $data->links() }}
+    <div class="mt-3 text-center qb-pagination-links">
+        {{ $data->appends(request()->all())->links() }}
     </div>
 
 </div>

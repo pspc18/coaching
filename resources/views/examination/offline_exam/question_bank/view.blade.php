@@ -28,6 +28,12 @@
     background: #f8fafc;
 }
 
+/* Prevent common.css .bg-light from poisoning question bank elements */
+.qb-page-container .bg-light {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+
 /* 1. Hero Banner */
 .qb-hero-banner {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
@@ -58,14 +64,14 @@
 }
 .qb-hero-actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
     flex-wrap: wrap;
 }
 .qb-btn-hero {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     padding: 5px 12px;
     height: 32px;
     font-size: 11.5px;
@@ -81,9 +87,11 @@
     background: #ffffff;
     color: #002C54 !important;
     border-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 .qb-btn-hero-light:hover {
     background: #f1f5f9;
+    color: #0f3460 !important;
 }
 .qb-btn-hero-outline {
     background: rgba(255, 255, 255, 0.12);
@@ -111,7 +119,7 @@
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 9px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -127,7 +135,7 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 .qb-kpi-card.active-kpi {
-    background: #eef6ff;
+    background: #f0f7ff;
     border-color: #0284c7;
     box-shadow: 0 0 0 1.5px #0284c7;
 }
@@ -145,19 +153,19 @@
     margin-bottom: 1px;
 }
 .qb-kpi-val {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.1;
 }
 .qb-kpi-icon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 13.5px;
     background: #f1f5f9;
     color: #002C54;
 }
@@ -167,7 +175,7 @@
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 4px;
-    padding: 12px 14px;
+    padding: 12px 14px 6px 14px;
     margin-bottom: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
@@ -194,102 +202,214 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .qb-table-header {
-    background: #002342;
-    color: #ffffff;
-    padding: 8px 14px;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 9px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    border-bottom: 1px solid #001f3f;
 }
 .qb-table-title {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
     margin: 0;
     color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .table-qb {
     margin-bottom: 0;
     font-size: 12px;
     color: #1e293b;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 .table-qb thead th {
-    background: #f1f5f9;
-    color: #475569;
+    background: #f1f5f9 !important;
+    color: #334155 !important;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    border-bottom: 2px solid #cbd5e1;
-    padding: 8px 10px;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: none !important;
+    padding: 10px 12px;
     vertical-align: middle;
 }
 .table-qb tbody td {
-    padding: 10px;
+    padding: 10px 12px;
     vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
 }
-.table-qb tbody tr:hover {
+.table-qb tbody tr:hover td {
     background-color: #f8fafc;
 }
 
 /* Question Statement Styling */
 .qb-statement-box {
-    line-height: 1.5;
+    line-height: 1.55;
     color: #0f172a;
     font-size: 12.5px;
 }
 .qb-diagram-thumb {
-    width: 50px;
-    height: 40px;
+    width: 52px;
+    height: 42px;
     object-fit: cover;
     border-radius: 3px;
     border: 1px solid #cbd5e1;
     cursor: pointer;
-    transition: transform .15s ease;
+    transition: transform .15s ease, box-shadow .15s ease;
 }
 .qb-diagram-thumb:hover {
     transform: scale(1.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Solution Explanation Box */
+.qb-solution-hint {
+    background-color: #fffbeb !important;
+    border: 1px solid #fef3c7 !important;
+    border-left: 3.5px solid #f59e0b !important;
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 11px;
+    margin-top: 6px;
+    color: #92400e !important;
+    line-height: 1.45;
+}
+.qb-solution-hint strong {
+    color: #b45309 !important;
+}
+.qb-solution-hint span {
+    color: #78350f !important;
 }
 
 /* Option Chips */
 .qb-opt-chip {
-    display: inline-block;
-    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2.5px 7px;
     border-radius: 3px;
     font-size: 11px;
-    margin-right: 4px;
-    margin-bottom: 3px;
-    border: 1px solid #e2e8f0;
+    margin: 2px 4px 2px 0;
+    border: 1px solid #cbd5e1;
     background: #ffffff;
-    color: #475569;
-    max-width: 180px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #334155;
+    max-width: 220px;
+    line-height: 1.35;
+    transition: all .15s ease;
+}
+.qb-opt-chip strong {
+    margin-right: 4px;
+    color: #002C54;
+    font-weight: 700;
 }
 .qb-opt-chip.is-correct {
-    background: #dcfce7;
-    border-color: #86efac;
-    color: #166534;
+    background: #ecfdf5 !important;
+    border-color: #10b981 !important;
+    color: #065f46 !important;
     font-weight: 700;
+}
+.qb-opt-chip.is-correct strong {
+    color: #065f46 !important;
 }
 
 /* Action Buttons */
+.qb-actions-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
 .btn-action-qb {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: 11.5px;
+    margin: 0 1px;
+    border: none;
+    transition: all .15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.btn-action-view {
+    background: #0284c7;
+    color: #ffffff !important;
+}
+.btn-action-view:hover {
+    background: #0369a1;
+    transform: translateY(-1px);
+}
+.btn-action-edit {
+    background: #002C54;
+    color: #ffffff !important;
+}
+.btn-action-edit:hover {
+    background: #0f3460;
+    transform: translateY(-1px);
+}
+.btn-action-delete {
+    background: #ef4444;
+    color: #ffffff !important;
+}
+.btn-action-delete:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Pagination Bar */
+.qb-pagination-bar {
+    background: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 10px 16px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.qb-pagination-links .pagination {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.qb-pagination-links .page-link {
+    border-radius: 3px !important;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #002C54 !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    line-height: 1.4;
+    transition: all .15s ease;
+}
+.qb-pagination-links .page-link:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #002C54 !important;
+}
+.qb-pagination-links .page-item.active .page-link {
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    border-color: #002C54 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.25);
+}
+.qb-pagination-links .page-item.disabled .page-link {
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed;
 }
 
 /* KaTeX formula rendering polish */
@@ -443,6 +563,7 @@
                     {{-- Search Keywords & Actions --}}
                     <div class="col-md-2 col-sm-12 mb-2">
                         <label class="qb-filter-label"><i class="fa fa-search text-muted mr-1"></i> Search Keywords</label>
+                        <input type="hidden" name="per_page" id="filter_per_page" value="{{ $perPage ?? 25 }}">
                         <div class="input-group">
                             <input type="text" class="form-control qb-filter-input" id="name" name="name" placeholder="Keyword, topic..." value="{{ $search['name'] ?? '' }}">
                             <div class="input-group-append">
@@ -462,14 +583,23 @@
             <div class="qb-table-header">
                 <div class="qb-table-title">
                     <i class="fa fa-database"></i> Question Bank Records
-                    <span class="badge badge-light ml-2" style="font-size: 11px;">
+                    <span class="badge badge-light ml-2" style="font-size: 11px; background: #ffffff !important; color: #002C54 !important; font-weight: 700;">
                         Showing {{ $data->firstItem() ?? 0 }} - {{ $data->lastItem() ?? 0 }} of {{ $data->total() ?? 0 }}
                     </span>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center text-white small mr-2" style="font-size: 11px;">
+                        <span class="mr-1 opacity-75">Rows:</span>
+                        <select class="form-control form-control-sm qb-per-page-select" style="height: 26px; font-size: 11px; padding: 1px 6px; width: auto; background: rgba(255,255,255,0.18); color: #ffffff; border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; font-weight: 600;">
+                            <option value="10" {{ ($perPage ?? 25) == 10 ? 'selected' : '' }} style="color:#0f172a;">10</option>
+                            <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }} style="color:#0f172a;">25</option>
+                            <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }} style="color:#0f172a;">50</option>
+                            <option value="100" {{ ($perPage ?? 25) == 100 ? 'selected' : '' }} style="color:#0f172a;">100</option>
+                        </select>
+                    </div>
                     @if(request()->hasAny(['class_type_id', 'subject_id', 'question_type_id', 'difficulty_level', 'format_filter', 'name']))
-                        <a href="{{ url('view/question') }}" class="btn btn-xs btn-outline-light mr-1" style="font-size: 10.5px;">
-                            <i class="fa fa-times mr-1"></i> Clear Active Filters
+                        <a href="{{ url('view/question') }}" class="btn btn-xs btn-outline-light" style="font-size: 10.5px; padding: 2px 8px; border-radius: 3px;">
+                            <i class="fa fa-times mr-1"></i> Clear Filters
                         </a>
                     @endif
                 </div>
@@ -479,12 +609,12 @@
                 <table class="table table-qb">
                     <thead>
                         <tr>
-                            <th style="width: 50px;" class="text-center">#</th>
-                            <th style="width: 140px;">Class & Subject</th>
-                            <th style="width: 120px;">Type & Level</th>
-                            <th>Question Statement & Context</th>
-                            <th style="width: 250px;">Options Preview</th>
-                            <th style="width: 90px;" class="text-center">Actions</th>
+                            <th style="width: 45px;" class="text-center">#</th>
+                            <th style="width: 140px;">Class &amp; Subject</th>
+                            <th style="width: 120px;">Type &amp; Level</th>
+                            <th>Question Statement &amp; Context</th>
+                            <th style="width: 260px;">Options Preview</th>
+                            <th style="width: 95px;" class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -509,7 +639,7 @@
                                     <div class="font-weight-bold text-dark" style="font-size: 12px;">
                                         {{ $item->class_name ?? 'Class —' }}
                                     </div>
-                                    <span class="badge badge-light border text-muted mt-1" style="font-size: 10px;">
+                                    <span class="badge border mt-1" style="background: #f1f5f9; color: #334155; font-size: 10px; font-weight: 600; padding: 3px 6px;">
                                         <i class="fa fa-book mr-1 text-primary"></i> {{ $item->subject_name ?? 'General' }}
                                     </span>
                                 </td>
@@ -518,21 +648,21 @@
                                 <td>
                                     <div>
                                         @if($item->question_type_id == 1)
-                                            <span class="badge badge-primary-light border" style="background:#e0f2fe; color:#0369a1; font-size: 10px;">
-                                                <i class="fa fa-check-circle-o mr-1"></i> MCQ
+                                            <span class="badge border" style="background:#e0f2fe; color:#0369a1; font-size: 10px; font-weight: 700; padding: 3px 6px;">
+                                                <i class="fa fa-check-circle mr-1 text-success"></i> MCQ
                                             </span>
                                         @else
-                                            <span class="badge badge-secondary" style="font-size: 10px;">
+                                            <span class="badge badge-secondary" style="font-size: 10px; padding: 3px 6px;">
                                                 Descriptive
                                             </span>
                                         @endif
                                     </div>
-                                    <div class="mt-1">
-                                        <span class="badge badge-{{ $diffClass }}" style="font-size: 9.5px;">
+                                    <div class="mt-1 d-flex align-items-center gap-1">
+                                        <span class="badge badge-{{ $diffClass }}" style="font-size: 9.5px; padding: 2px 5px;">
                                             {{ $diff }}
                                         </span>
                                         @if($isAi)
-                                            <span class="badge badge-light border text-purple" style="font-size: 9.5px; color:#8b5cf6;" title="AI Extracted">
+                                            <span class="badge border" style="background: #f5f3ff; color: #7c3aed; font-size: 9.5px; font-weight: 600; padding: 2px 5px;" title="AI Extracted Question">
                                                 <i class="fa fa-magic"></i> AI
                                             </span>
                                         @endif
@@ -544,7 +674,7 @@
                                     {{-- Direction / Group Chip --}}
                                     @if($isGrouped)
                                         <div class="mb-1">
-                                            <span class="badge badge-info" style="font-size: 10px; background:#0284c7;">
+                                            <span class="badge" style="background:#0284c7; color:#ffffff; font-size: 10px; padding: 3px 6px;">
                                                 <i class="fa fa-sitemap mr-1"></i> Direction Set: {{ $item->group_id }}
                                                 @if(!empty($item->sub_question_no)) (Q{{ $item->sub_question_no }}) @endif
                                             </span>
@@ -554,7 +684,7 @@
                                         </div>
                                     @endif
 
-                                    <div class="d-flex align-items-start gap-2">
+                                    <div class="d-flex align-items-start">
                                         {{-- Diagram Thumbnail --}}
                                         @if($hasImage)
                                             <div class="mr-2 flex-shrink-0">
@@ -568,11 +698,11 @@
                                         </div>
                                     </div>
 
-                                    {{-- Explanation Snippet --}}
+                                    {{-- Explanation / Solution Snippet (Styled Amber Alert) --}}
                                     @if(!empty($item->explanation))
-                                        <div class="small text-muted mt-1 bg-light p-1 rounded border-left border-warning" style="font-size: 11px;">
-                                            <strong class="text-dark"><i class="fa fa-lightbulb-o text-warning mr-1"></i> Sol:</strong>
-                                            <span class="katex-render-target">{!! Str::limit(strip_tags(Helper::cleanHtmlFormat($item->explanation)), 120) !!}</span>
+                                        <div class="qb-solution-hint">
+                                            <strong><i class="fa fa-lightbulb-o mr-1"></i> Sol:</strong>
+                                            <span class="katex-render-target">{!! Helper::cleanHtmlFormat($item->explanation) !!}</span>
                                         </div>
                                     @endif
                                 </td>
@@ -600,7 +730,7 @@
                                                 @endphp
                                                 <span class="qb-opt-chip {{ $isCorr ? 'is-correct' : '' }}" title="Option {{ $letter }}: {{ strip_tags($val ?? '') }}">
                                                     <strong>{{ $letter }}:</strong> 
-                                                    <span class="katex-render-target">{!! Str::limit(strip_tags(Helper::cleanHtmlFormat($val ?? '')), 22) !!}</span>
+                                                    <span class="katex-render-target">{!! Helper::cleanHtmlFormat($val ?? '—') !!}</span>
                                                     @if($isCorr) <i class="fa fa-check text-success ml-1"></i> @endif
                                                 </span>
                                             @endforeach
@@ -612,9 +742,9 @@
 
                                 {{-- 6. Actions --}}
                                 <td class="text-center">
-                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                    <div class="qb-actions-group">
                                         <button type="button" 
-                                                class="btn btn-info btn-xs btn-action-qb questionDetail {{ $permission->view ? '' : 'd-none' }}" 
+                                                class="btn btn-action-qb btn-action-view questionDetail {{ $permission->view ? '' : 'd-none' }}" 
                                                 title="View Details & KaTeX"
                                                 data-id="{{ $item->id }}"
                                                 data-question="{{ htmlspecialchars($item->name ?? '', ENT_QUOTES) }}"
@@ -637,11 +767,11 @@
                                             <i class="fa fa-eye"></i>
                                         </button>
 
-                                        <a href="{{ url('edit/question/' . $item->id) }}" class="btn btn-primary btn-xs btn-action-qb {{ $permission->edit ? '' : 'd-none' }}" title="Edit Question">
+                                        <a href="{{ url('edit/question/' . $item->id) }}" class="btn btn-action-qb btn-action-edit {{ $permission->edit ? '' : 'd-none' }}" title="Edit Question">
                                             <i class="fa fa-pencil"></i>
                                         </a>
 
-                                        <button type="button" class="btn btn-danger btn-xs btn-action-qb deleteData {{ $permission->delete ? '' : 'd-none' }}" data-id="{{ $item->id }}" data-bs-toggle="modal" data-bs-target="#Modal_id" title="Delete Question">
+                                        <button type="button" class="btn btn-action-qb btn-action-delete deleteData {{ $permission->delete ? '' : 'd-none' }}" data-id="{{ $item->id }}" data-bs-toggle="modal" data-bs-target="#Modal_id" title="Delete Question">
                                             <i class="fa fa-trash-o"></i>
                                         </button>
                                     </div>
@@ -652,12 +782,12 @@
                                 <td colspan="6" class="text-center py-5">
                                     <div class="text-muted">
                                         <i class="fa fa-folder-open-o fa-3x mb-2 text-secondary"></i>
-                                        <h5 class="font-weight-bold">No Questions Found</h5>
+                                        <h5 class="font-weight-bold" style="color: #334155;">No Questions Found</h5>
                                         <p class="small text-muted mb-3">No questions matched the selected filters or search keyword.</p>
-                                        <a href="{{ url('view/question') }}" class="btn btn-sm btn-outline-primary mr-1">
+                                        <a href="{{ url('view/question') }}" class="btn btn-sm btn-outline-primary mr-1" style="border-radius: 3px;">
                                             <i class="fa fa-refresh mr-1"></i> Reset Filters
                                         </a>
-                                        <a href="{{ url('add/question') }}" class="btn btn-sm btn-primary">
+                                        <a href="{{ url('add/question') }}" class="btn btn-sm btn-primary" style="background: #002C54; border-color: #002C54; border-radius: 3px;">
                                             <i class="fa fa-plus mr-1"></i> Add New Question
                                         </a>
                                     </div>
@@ -669,12 +799,23 @@
             </div>
 
             {{-- Table Pagination Footer --}}
-            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="small text-muted font-weight-bold">
-                    Showing {{ $data->firstItem() ?? 0 }} to {{ $data->lastItem() ?? 0 }} of {{ $data->total() ?? 0 }} questions
+            <div class="qb-pagination-bar">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small font-weight-bold" style="color: #475569; font-size: 11.5px;">
+                        Showing <strong class="text-dark">{{ $data->firstItem() ?? 0 }}</strong> to <strong class="text-dark">{{ $data->lastItem() ?? 0 }}</strong> of <strong class="text-dark">{{ $data->total() ?? 0 }}</strong> questions
+                    </span>
+                    <div class="d-inline-flex align-items-center ml-2">
+                        <span class="text-muted small mr-1" style="font-size: 11px;">Per Page:</span>
+                        <select class="form-control form-control-sm qb-per-page-select" style="height: 28px; font-size: 11px; padding: 2px 8px; width: auto; border: 1px solid #cbd5e1; border-radius: 3px; font-weight: 600;">
+                            <option value="10" {{ ($perPage ?? 25) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ ($perPage ?? 25) == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    {{ $data->links() }}
+                <div class="qb-pagination-links">
+                    {{ $data->appends(request()->all())->links() }}
                 </div>
             </div>
         </div>
@@ -763,13 +904,13 @@
                 </div>
 
                 {{-- Explanation / Solution --}}
-                <div id="modal_explanation_box" class="mt-3 p-3 rounded bg-light border d-none">
-                    <strong class="text-dark"><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution / Explanation:</strong>
-                    <div id="modal_explanation_text" class="mt-1 small text-muted" style="line-height: 1.6;"></div>
+                <div id="modal_explanation_box" class="mt-3 p-3 rounded border d-none" style="background: #fffbeb !important; border: 1px solid #fef3c7 !important; border-left: 4px solid #f59e0b !important; color: #92400e;">
+                    <strong style="color: #b45309;"><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution / Explanation:</strong>
+                    <div id="modal_explanation_text" class="mt-1 small" style="line-height: 1.6; color: #78350f;"></div>
                 </div>
             </div>
 
-            <div class="modal-footer py-2 px-3 bg-light">
+            <div class="modal-footer py-2 px-3" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -873,6 +1014,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         document.querySelectorAll('.katex-render-target').forEach(el => renderKaTeXIn(el));
     }, 200);
+
+    // Rows Per Page Selector Change
+    $(document).on('change', '.qb-per-page-select', function () {
+        const val = $(this).val();
+        $('#filter_per_page').val(val);
+        $('#qbFilterForm').submit();
+    });
 
     // Delete Button Click
     $(document).on('click', '.deleteData', function () {
