@@ -324,17 +324,18 @@
 .profile-avatar-box {
     position: relative;
     width: 100%;
-    height: 165px;
+    height: 220px;
     border-radius: 4px;
     overflow: hidden;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 .profile-avatar-box img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center top;
     display: block;
 }
 .profile-avatar-actions {
@@ -647,13 +648,10 @@
             <!-- LEFT COLUMN: PHOTO, STATUS, QUICK PORTAL ACCESS (Col-md-3) -->
             <div class="col-md-3 col-lg-3 col-xl-3">
                 <div class="dash-card h-100">
-                    <div class="dash-card-header">
-                        <h3 class="dash-card-title"><i class="fa fa-user-circle text-primary"></i> Student Identity</h3>
-                        <span class="badge badge-primary">{{ $student->admissionNo ?? '-' }}</span>
-                    </div>
                     <div class="dash-card-body p-2">
                         <!-- Student Photo Box with AJAX Upload Trigger -->
                         <div class="profile-avatar-box">
+                            <span class="badge badge-primary position-absolute" style="top:8px; right:8px; z-index:2; font-size:10px; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.3);">#{{ $student->admissionNo ?? '-' }}</span>
                             <img src="{{ $photo }}" id="profileAvatarImg" alt="{{ $studentName }}" onerror="this.src='{{ $defaultPhoto }}'">
                             <div class="profile-avatar-actions">
                                 <button type="button" class="avatar-action-btn" onclick="$('#studentPhotoFileInput').click()" title="Change / Upload Photo">
