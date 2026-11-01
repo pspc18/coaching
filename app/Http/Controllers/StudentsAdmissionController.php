@@ -1780,7 +1780,7 @@ class StudentsAdmissionController extends Controller
                     $grandTotals['total'] += $classTotals[$type->id]['total'];
                 }
 
-                return view('students.report.category_wise_report', compact('classType', 'categories', 'classTotals', 'grandTotals'));
+                return Helper::view('students.report.category_wise_report', compact('classType', 'categories', 'classTotals', 'grandTotals'));
             }
     
             public function streamUpdate(Request $request){
@@ -1823,7 +1823,7 @@ class StudentsAdmissionController extends Controller
                     }
                 }
                 
-                return view('students.admission.stream_update', [
+                return Helper::view('students.admission.stream_update', [
                     'search' => $search,
                     'data' => $data,
                     'list_subject' => $list_subject,
@@ -1846,7 +1846,8 @@ class StudentsAdmissionController extends Controller
                         ->pluck('id')->map(function ($id) { return (int) $id; })->all();
 
                     if (empty($subjectIds)) {
-                        return redirect('stream_update?class_type_id='.$request->class_type_id)
+                        $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . (Helper::isMobile() ? '&layout=mobile' : '');
+                    return redirect($redirectUrl)
                             ->with('error', 'Please select valid subjects for this class.');
                     }
 
@@ -1864,7 +1865,8 @@ class StudentsAdmissionController extends Controller
                         $student->save();
                     }
 
-                    return redirect('stream_update?class_type_id='.$request->class_type_id)
+                    $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . (Helper::isMobile() ? '&layout=mobile' : '');
+                    return redirect($redirectUrl)
                         ->with('message', 'Subjects assigned successfully.');
                 }
             }
@@ -2071,7 +2073,8 @@ class StudentsAdmissionController extends Controller
                 });
 
                 if ($request->ajax() || $request->wantsJson() || $request->input('ajax') == '1') {
-                    $html = view('students.login_credential.table_rows', [
+                    $viewName = Helper::isMobile() ? 'students.login_credential.mobile.card_rows' : 'students.login_credential.table_rows';
+                    $html = view($viewName, [
                         'data' => $paginated,
                         'startIndex' => $startIndex,
                         'setting' => $setting,
@@ -2090,7 +2093,7 @@ class StudentsAdmissionController extends Controller
                     ]);
                 }
 
-                return view('students.login_credential.view', [
+                return Helper::view('students.login_credential.view', [
                     'data' => $paginated,
                     'search' => $search,
                     'classType' => $classType,
@@ -2275,12 +2278,13 @@ class StudentsAdmissionController extends Controller
                 $todayStart = Carbon::now()->startOfDay()->toDateTimeString();
                 $weekStart = Carbon::now()->subDays(7)->toDateTimeString();
                 $monthStart = Carbon::now()->subDays(30)->toDateTimeString();
+                $summaryRow = (clone $logQuery)->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN token_logs.last_login >= ? THEN 1 ELSE 0 END), 0) as today, COALESCE(SUM(CASE WHEN token_logs.last_login >= ? THEN 1 ELSE 0 END), 0) as week, COALESCE(SUM(CASE WHEN token_logs.last_login >= ? THEN 1 ELSE 0 END), 0) as month", [$todayStart, $weekStart, $monthStart])->first();
 
                 $summary = [
-                    'total' => (int) (clone $logQuery)->count(),
-                    'today' => (int) (clone $logQuery)->where('token_logs.last_login', '>=', $todayStart)->count(),
-                    'week'  => (int) (clone $logQuery)->where('token_logs.last_login', '>=', $weekStart)->count(),
-                    'month' => (int) (clone $logQuery)->where('token_logs.last_login', '>=', $monthStart)->count(),
+                    'total' => (int) ($summaryRow->total ?? 0),
+                    'today' => (int) ($summaryRow->today ?? 0),
+                    'week'  => (int) ($summaryRow->week ?? 0),
+                    'month' => (int) ($summaryRow->month ?? 0),
                 ];
 
                 // Fetch logs with ordering
@@ -2291,7 +2295,7 @@ class StudentsAdmissionController extends Controller
 
                 $selectedClassId = (int) ($search['class_type_id'] ?? 0);
 
-                return view('students.student_logs', compact('logs', 'summary', 'classType', 'selectedClassId', 'search'));
+                return Helper::view('students.student_logs', compact('logs', 'summary', 'classType', 'selectedClassId', 'search'));
             }
 
 
@@ -2302,56 +2306,96 @@ class StudentsAdmissionController extends Controller
 
         public function studentUserNameCreate(Request $request)
         {
-            // 1. Blade से आई हुई कॉमा सेपरेटेड IDs को Array में बदलें
+            // 1. Blade se aayi hui comma separated IDs ko array me convert karein
             $studentIds = [];
             if ($request->student_ids) {
-                $studentIds = explode(',', $request->student_ids);
+                $studentIds = is_array($request->student_ids) 
+                    ? $request->student_ids 
+                    : explode(',', $request->student_ids);
             }
 
-            // 2. चेक करें कि स्टूडेंट्स चुने गए हैं या नहीं
+            // 2. Validate student selection
             if (empty($studentIds)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'No students selected for credential generation.'], 422);
+                }
                 return back()->with('error', 'No students selected for credential generation.');
             }
 
-            // 3. फॉर्म से ऑर्डर्स और सेटिंग्स (जैसे name_letters, mobile_digits) प्राप्त करें
-            $usernameOrder = $request->username_order ? explode(',', $request->username_order) : [];
-            $passwordOrder = $request->password_order ? explode(',', $request->password_order) : [];
+            // 3. Settings & generation rules
+            $usernameOrder = !empty($request->username_order) ? explode(',', $request->username_order) : ['name', 'mobile'];
+            $passwordOrder = !empty($request->password_order) ? explode(',', $request->password_order) : ['mobile'];
             $nameLetters = (int) ($request->name_letters ?? 4);
             $mobileDigits = (int) ($request->mobile_digits ?? 4);
+            $passNameLetters = (int) ($request->pass_name_letters ?? $nameLetters);
+            $passMobileDigits = (int) ($request->pass_mobile_digits ?? $mobileDigits);
+            $passwordType = $request->password_type ?? 'rule';
+            $customPassword = trim((string)($request->custom_password ?? ''));
+            $usernameCase = $request->username_case ?? 'lower';
 
-            // 4. डेटाबेस से सिर्फ उन्हीं स्टूडेंट्स को Fetch करें जो सेलेक्ट किये गए थे
+            // 4. Database se selected students fetch karein
             $students = Admission::whereIn('id', $studentIds)
                         ->where('branch_id', Session::get('branch_id'))
                         ->where('session_id', Session::get('session_id'))
                         ->get();
 
-            // 5. पासवर्ड और यूजरनेम जनरेट करने का लूप
+            // 5. Credentials generation loop
+            $updatedCount = 0;
             foreach ($students as $student) {
-                
-                // Username Generate करें
+                // Username Generate
                 $username = '';
                 foreach ($usernameOrder as $key) {
-                    $username .= $this->getFieldValue($student, $key, $nameLetters, $mobileDigits);
+                    $username .= $this->getFieldValue($student, trim($key), $nameLetters, $mobileDigits);
+                }
+                if ($usernameCase === 'upper') {
+                    $username = strtoupper($username);
+                } elseif ($usernameCase === 'lower') {
+                    $username = strtolower($username);
                 }
 
-                // Password Generate करें
+                // Password Generate
                 $password = '';
-                foreach ($passwordOrder as $key) {
-                    $password .= $this->getFieldValue($student, $key, $nameLetters, $mobileDigits);
+                if ($passwordType === 'custom' && $customPassword !== '') {
+                    $password = $customPassword;
+                } else {
+                    foreach ($passwordOrder as $key) {
+                        $password .= $this->getFieldValue($student, trim($key), $passNameLetters, $passMobileDigits);
+                    }
                 }
 
-                // अगर यूजरनेम या पासवर्ड खाली न हो, तो डेटाबेस में सेव करें
+                // Agar username ya password generate hua to save karein
                 if (!empty($username) || !empty($password)) {
-                    $student->userName = $username;
-                    $student->confirm_password = $password;       // Plain text save karne ke liye
-                    $student->password = Hash::make($password);   // Hashed password save karne ke liye
+                    if (!empty($username)) {
+                        $student->userName = $username;
+                    }
+                    if (!empty($password)) {
+                        $student->confirm_password = $password;
+                        $student->password = Hash::make($password);
+                    }
                     $student->save();
+                    $updatedCount++;
                 }
             }
 
             self::clearAdmissionCache(Session::get('branch_id'), Session::get('session_id'));
 
-            return back()->with('success', 'Credentials generated successfully for selected students!');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => "Credentials generated successfully for {$updatedCount} student(s)!",
+                    'count' => $updatedCount
+                ]);
+            }
+
+            $redirectUrl = 'login_credential_reports?' . http_build_query([
+                'class_type_id' => $request->class_type_id ?? '',
+                'credential_status' => $request->credential_status ?? '',
+                'student_status' => $request->student_status ?? 1,
+                'name' => $request->name ?? '',
+                'layout' => Helper::isMobile() ? 'mobile' : '',
+            ]);
+
+            return redirect($redirectUrl)->with('success', "Credentials generated successfully for {$updatedCount} student(s)!");
         }   
 
 
@@ -2360,21 +2404,24 @@ class StudentsAdmissionController extends Controller
         {
             switch ($key) {
                 case 'name':
-                    return substr(strtolower(preg_replace('/\s+/', '', $student->first_name)), 0, $nameLetters);
+                    $firstName = strtolower(preg_replace('/\s+/', '', (string)($student->first_name ?? '')));
+                    return $nameLetters > 0 ? substr($firstName, 0, $nameLetters) : '';
                 case 'mobile':
-                    return substr(preg_replace('/\D/', '', $student->mobile), -$mobileDigits);
+                    $mob = preg_replace('/\D/', '', (string)($student->mobile ?? ''));
+                    return $mobileDigits > 0 ? substr($mob, -$mobileDigits) : '';
                 case 'dob':
                     if (!$student->dob) return '';
                     $dob = date('dmy', strtotime($student->dob)); // e.g. 150805
                     return $dob;
                 case 'admission_no':
-                    return $student->admissionNo;
+                    return preg_replace('/\s+/', '', (string)($student->admissionNo ?? ''));
                 case 'class':
-                    return strtolower(preg_replace('/\s+/', '', $student->class_name));
+                    return strtolower(preg_replace('/\s+/', '', (string)($student->class_name ?? '')));
                 default:
                     return '';
             }
         }
+
          public function imageRotateSave(Request $request)
         {
                     $id = $request->admission_id;
