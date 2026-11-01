@@ -1294,6 +1294,316 @@
     border: none;
     cursor: pointer;
 }
+
+/* ==========================================
+   APP-STYLE DOCS & SIBLINGS POLISH & EMPTY STATES
+   ========================================== */
+.mob-sub-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-sub-bar-left {
+    font-size: 12px;
+    font-weight: 800;
+    color: #002C54;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-badge-counter {
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0284c7;
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+.mob-sub-btn-primary {
+    background: #002C54;
+    color: #ffffff !important;
+    border: 1px solid #001f3f;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-decoration: none !important;
+}
+.mob-sub-btn-primary:active {
+    background: #001f3f;
+    transform: scale(0.97);
+}
+
+/* Native App Empty State */
+.mob-app-empty-state {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 24px 16px;
+    text-align: center;
+    margin: 8px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.mob-empty-glyph {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+.glyph-blue {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+.glyph-sky {
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+.mob-empty-heading {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+.mob-empty-desc {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+    max-width: 280px;
+    margin: 0 auto 12px;
+}
+.mob-empty-action-btn {
+    background: #0284c7;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+.mob-empty-action-btn:active {
+    transform: scale(0.96);
+    background: #0369a1;
+}
+
+/* Document Item Card */
+.mob-doc-tile {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 3.5px solid #0284c7;
+    border-radius: 4px;
+    padding: 9px 10px 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-doc-top {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    margin-bottom: 7px;
+}
+.mob-doc-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+.doc-pdf {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+.doc-img {
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+.doc-generic {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.mob-doc-body {
+    flex: 1;
+    min-width: 0;
+}
+.mob-doc-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.mob-doc-title {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mob-doc-ext {
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+}
+.mob-doc-meta {
+    font-size: 10px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mob-doc-remark {
+    font-size: 10px;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 7px;
+}
+.mob-doc-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
+}
+.mob-doc-act-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155 !important;
+    text-decoration: none !important;
+}
+.mob-doc-act-btn:active {
+    transform: scale(0.96);
+}
+.mob-doc-act-btn.btn-act-view {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+    color: #0284c7 !important;
+}
+.mob-doc-act-btn.btn-act-del {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626 !important;
+}
+
+/* Sibling Item Card */
+.mob-sibling-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 3.5px solid #002C54;
+    border-radius: 4px;
+    padding: 9px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-sib-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.mob-sib-avatar-wrap {
+    width: 42px;
+    height: 48px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #001f3f;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+}
+.mob-sib-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.mob-sib-meta {
+    flex: 1;
+    min-width: 0;
+}
+.mob-sib-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.mob-sib-name {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mob-sib-pills {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.mob-sib-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 5px 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #0284c7 !important;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none !important;
+}
+.mob-sib-link-btn:active {
+    background: #e0f2fe;
+    transform: scale(0.98);
+}
 </style>
 @endsection
 
@@ -1792,25 +2102,21 @@
                             @endif
                         </div>
                         <div class="student-header-info">
-                            <div class="student-name-row">
+                            <div class="student-name-row" style="align-items: flex-start;">
                                 <span class="student-mob-name">{{ $invTitle }}</span>
-                                <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
+                                <div class="text-right" style="line-height: 1.15; flex-shrink: 0;">
+                                    <span class="tx-amount-badge">+₹{{ number_format((float)$invoice->amount, 2) }}</span>
+                                    @if((float)($invoice->discount ?? 0) > 0)
+                                        <div style="font-size: 9.5px; font-weight: 700; color: #d97706; margin-top: 2px;">
+                                            <i class="fa fa-tag"></i> Disc: ₹{{ number_format((float)$invoice->discount, 2) }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="student-pills-wrap">
+                            <div class="student-pills-wrap" style="margin-top: 2px;">
                                 <span class="tx-mode-tag">{{ $invoice->payment_mode ?: 'Cash' }}</span>
                                 <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ $invDate ? $invDate->format('d M Y') : '-' }}</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="student-meta-grid">
-                        <div class="student-meta-item">
-                            <i class="fa fa-money text-success"></i>
-                            <span>Paid: <b class="text-success">₹{{ number_format((float)$invoice->amount, 2) }}</b></span>
-                        </div>
-                        <div class="student-meta-item">
-                            <i class="fa fa-tag text-warning"></i>
-                            <span>Disc: <b>₹{{ number_format((float)($invoice->discount ?? 0), 2) }}</b></span>
                         </div>
                     </div>
 
@@ -1824,9 +2130,12 @@
                     </div>
                 </div>
             @empty
-                <div class="text-center py-4 text-muted bg-white border rounded">
-                    <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
-                    No fee receipts recorded for this session.
+                <div class="mob-app-empty-state">
+                    <div class="mob-empty-glyph glyph-sky">
+                        <i class="fa fa-file-text-o"></i>
+                    </div>
+                    <h5 class="mob-empty-heading">No Fee Receipts</h5>
+                    <p class="mob-empty-desc">No payment receipts or invoice records recorded for this student in the current session.</p>
                 </div>
             @endforelse
         </div>
@@ -2037,21 +2346,16 @@
          PANE 5: DOCUMENTS VAULT
          ========================================== -->
     <div class="mob-pane" id="pane-docs">
-        <!-- Docs Vault Header -->
-        <div class="mob-card" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa fa-folder-open text-warning"></i> Documents Vault
-                    </div>
-                    <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">
-                        {{ collect($getDocuments)->count() }} Verified {{ Str::plural('Document', collect($getDocuments)->count()) }}
-                    </div>
-                </div>
-                <button type="button" class="btn btn-xs btn-primary font-weight-bold" onclick="openDocUploadSheet()" style="height: 28px; padding: 0 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
-                    <i class="fa fa-upload"></i> Add File
-                </button>
+        <!-- Sub Bar -->
+        <div class="mob-sub-bar">
+            <div class="mob-sub-bar-left">
+                <i class="fa fa-folder-open text-primary"></i>
+                <span>Document Vault</span>
+                <span class="mob-badge-counter">{{ collect($getDocuments)->count() }}</span>
             </div>
+            <button type="button" class="mob-sub-btn-primary" onclick="openDocUploadSheet()">
+                <i class="fa fa-upload"></i> Upload Doc
+            </button>
         </div>
 
         @forelse($getDocuments as $document)
@@ -2060,45 +2364,51 @@
                 $isPdf = $ext === 'pdf';
                 $isImg = in_array($ext, ['jpg','jpeg','png','webp'], true);
             @endphp
-            <div class="student-mob-card" style="border-left: 3px solid #0284c7 !important;">
-                <div class="student-card-header">
-                    <div class="student-avatar-box" style="background: {{ $isPdf ? '#fee2e2' : ($isImg ? '#e0f2fe' : '#f1f5f9') }}; color: {{ $isPdf ? '#dc2626' : ($isImg ? '#0284c7' : '#475569') }}; border-color: {{ $isPdf ? '#fca5a5' : ($isImg ? '#bae6fd' : '#cbd5e1') }};">
+            <div class="mob-doc-tile">
+                <div class="mob-doc-top">
+                    <div class="mob-doc-icon {{ $isPdf ? 'doc-pdf' : ($isImg ? 'doc-img' : 'doc-generic') }}">
                         <i class="fa {{ $isPdf ? 'fa-file-pdf-o' : ($isImg ? 'fa-file-image-o' : 'fa-file-text-o') }}"></i>
                     </div>
-                    <div class="student-header-info">
-                        <div class="student-name-row">
-                            <span class="student-mob-name">{{ $document->title ?: 'Document' }}</span>
-                            <span class="tx-mode-tag">{{ strtoupper($ext ?: 'FILE') }}</span>
+                    <div class="mob-doc-body">
+                        <div class="mob-doc-name-row">
+                            <span class="mob-doc-title" title="{{ $document->title }}">{{ $document->title ?: 'Document' }}</span>
+                            <span class="mob-doc-ext">{{ strtoupper($ext ?: 'FILE') }}</span>
                         </div>
-                        <div class="student-pills-wrap">
-                            <span class="student-adm-badge"><i class="fa fa-calendar-o"></i> {{ $document->created_at ? date('d M Y', strtotime($document->created_at)) : '-' }}</span>
-                            <span class="student-status-badge status-badge-active"><i class="fa fa-check"></i> Uploaded</span>
+                        <div class="mob-doc-meta">
+                            <span><i class="fa fa-calendar-o"></i> {{ $document->created_at ? date('d M Y', strtotime($document->created_at)) : '-' }}</span>
+                            <span class="student-status-badge status-badge-active" style="font-size: 8.5px; padding: 1px 5px;"><i class="fa fa-check"></i> Verified</span>
                         </div>
                     </div>
                 </div>
 
                 @if(!empty($document->remark))
-                    <div style="font-size: 10px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 3px; padding: 4px 8px; margin-bottom: 7px;">
+                    <div class="mob-doc-remark">
                         <i class="fa fa-comment-o text-muted mr-1"></i> {{ $document->remark }}
                     </div>
                 @endif
 
-                <div class="student-card-actions">
-                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="mob-btn-action btn-act-edit">
+                <div class="mob-doc-actions">
+                    <a href="{{ asset('schoolimage/student_document/' . $document->file) }}" target="_blank" class="mob-doc-act-btn btn-act-view">
                         <i class="fa fa-eye"></i> View
                     </a>
-                    <button type="button" class="mob-btn-action btn-act-edit" onclick="openDocEditSheet('{{ $document->id }}', '{{ addslashes($document->title) }}', '{{ addslashes($document->remark) }}')">
+                    <button type="button" class="mob-doc-act-btn" onclick="openDocEditSheet('{{ $document->id }}', '{{ addslashes($document->title) }}', '{{ addslashes($document->remark) }}')">
                         <i class="fa fa-pencil"></i> Edit
                     </button>
-                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Delete this document?')" class="mob-btn-action" style="background:#fee2e2; border-color:#fca5a5; color:#dc2626 !important;">
-                        <i class="fa fa-trash"></i> Delete
+                    <a href="{{ url('document_delete/' . $document->id) }}" onclick="return confirm('Delete this document?')" class="mob-doc-act-btn btn-act-del">
+                        <i class="fa fa-trash-o"></i> Delete
                     </a>
                 </div>
             </div>
         @empty
-            <div class="text-center py-4 text-muted bg-white border rounded">
-                <i class="fa fa-file-text-o fa-2x mb-2 text-primary d-block"></i>
-                No documents uploaded yet. Tap "Add File" above to upload.
+            <div class="mob-app-empty-state">
+                <div class="mob-empty-glyph glyph-blue">
+                    <i class="fa fa-folder-open-o"></i>
+                </div>
+                <h5 class="mob-empty-heading">No Documents Uploaded</h5>
+                <p class="mob-empty-desc">Attach Aadhaar, marksheets, transfer certificate, or other student verification documents.</p>
+                <button type="button" class="mob-empty-action-btn" onclick="openDocUploadSheet()">
+                    <i class="fa fa-upload"></i> Upload First Document
+                </button>
             </div>
         @endforelse
     </div>
@@ -2107,48 +2417,56 @@
          PANE 6: SIBLINGS
          ========================================== -->
     <div class="mob-pane" id="pane-family">
-        <!-- Siblings Header -->
-        <div class="mob-card" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 13px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa fa-users text-warning"></i> Sibling Information
-                    </div>
-                    <div style="font-size: 9.5px; color: #94a3b8; margin-top: 2px;">
-                        Family members enrolled in school
-                    </div>
-                </div>
-                <span class="mob-fee-session-pill">{{ collect($siblings)->count() }} {{ Str::plural('Sibling', collect($siblings)->count()) }}</span>
+        <!-- Sub Bar -->
+        <div class="mob-sub-bar">
+            <div class="mob-sub-bar-left">
+                <i class="fa fa-users text-primary"></i>
+                <span>Sibling Information</span>
+                <span class="mob-badge-counter">{{ collect($siblings)->count() }}</span>
             </div>
+            <span style="font-size: 10px; color: #64748b; font-weight: 700;">Enrolled in Institute</span>
         </div>
 
         @forelse($siblings as $sibling)
-            <div class="student-mob-card" style="border-left: 3px solid #0284c7 !important;">
-                <div class="student-card-header">
-                    <div class="student-avatar-box" style="background: #e0f2fe; color: #0284c7;">
-                        <i class="fa fa-user"></i>
+            @php
+                $sibPhoto = !empty($sibling->image) ? $imageBase.'/profile/'.$sibling->image : $defaultPhoto;
+                $sibName = trim(($sibling->first_name ?? '').' '.($sibling->last_name ?? ''));
+                $sibActive = (int)($sibling->status ?? 1) === 1;
+            @endphp
+            <div class="mob-sibling-card">
+                <div class="mob-sib-top">
+                    <div class="mob-sib-avatar-wrap">
+                        <img src="{{ $sibPhoto }}" class="mob-sib-avatar-img" alt="{{ $sibName }}" onerror="this.src='{{ $defaultPhoto }}'">
                     </div>
-                    <div class="student-header-info">
-                        <div class="student-name-row">
-                            <span class="student-mob-name">{{ trim(($sibling->first_name ?? '').' '.($sibling->last_name ?? '')) }}</span>
-                            <span class="student-status-badge status-badge-active">Enrolled</span>
+                    <div class="mob-sib-meta">
+                        <div class="mob-sib-name-row">
+                            <span class="mob-sib-name" title="{{ $sibName }}">{{ $sibName ?: 'Sibling' }}</span>
+                            <span class="mob-badge-pill {{ $sibActive ? 'mob-badge-active' : 'mob-badge-inactive' }}">
+                                <i class="fa {{ $sibActive ? 'fa-check' : 'fa-ban' }}"></i> {{ $sibActive ? 'ACTIVE' : 'INACTIVE' }}
+                            </span>
                         </div>
-                        <div class="student-pills-wrap">
-                            <span class="student-adm-badge">Adm: {{ $sibling->admissionNo ?? '-' }}</span>
+                        <div class="mob-sib-pills">
+                            <span class="student-adm-badge"><i class="fa fa-hashtag"></i> Adm: {{ $sibling->admissionNo ?? '-' }}</span>
                             <span class="student-class-badge"><i class="fa fa-book"></i> {{ $sibling->class_name ?? '-' }}</span>
+                            @if(!empty($sibling->roll_no))
+                                <span class="student-adm-badge">Roll {{ $sibling->roll_no }}</span>
+                            @endif
                         </div>
                     </div>
                 </div>
-                <div class="student-card-actions">
-                    <a href="{{ url('studentDetail/'.$sibling->id.'?layout=mobile') }}" class="mob-btn-action btn-act-edit">
-                        <i class="fa fa-id-card-o"></i> View Sibling Profile
+                <div class="mob-sib-action-row">
+                    <a href="{{ url('studentDetail/'.$sibling->id.'?layout=mobile') }}" class="mob-sib-link-btn">
+                        <i class="fa fa-id-card-o"></i> View Sibling Profile <i class="fa fa-angle-right ml-1"></i>
                     </a>
                 </div>
             </div>
         @empty
-            <div class="text-center py-4 text-muted bg-white border rounded">
-                <i class="fa fa-users fa-2x mb-2 text-primary d-block"></i>
-                No sibling records registered for this student.
+            <div class="mob-app-empty-state">
+                <div class="mob-empty-glyph glyph-sky">
+                    <i class="fa fa-users"></i>
+                </div>
+                <h5 class="mob-empty-heading">No Sibling Records</h5>
+                <p class="mob-empty-desc">No other family members or siblings found matching parent mobile numbers in this institute.</p>
             </div>
         @endforelse
     </div>
