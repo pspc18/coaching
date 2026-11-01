@@ -1302,19 +1302,6 @@
 
     <!-- 1. NATIVE MOBILE HERO CARD -->
     <div class="native-mob-hero">
-        <div class="native-mob-hero-top">
-            <a href="{{ url('admissionView?layout=mobile&from_profile=1') }}" class="native-mob-back" title="Back to Students">
-                <i class="fa fa-arrow-left"></i>
-            </a>
-            <div class="native-mob-title">
-                <i class="fa fa-graduation-cap" style="color:#38bdf8;"></i>
-                <span>Student Dossier</span>
-            </div>
-            <button type="button" class="btn btn-xs mob-badge-pill {{ $isActive ? 'mob-badge-active' : 'mob-badge-inactive' }}" onclick="openStatusSheet()">
-                <i class="fa {{ $isActive ? 'fa-check' : 'fa-ban' }}"></i> {{ $isActive ? 'ACTIVE' : 'INACTIVE' }}
-            </button>
-        </div>
-
         <div class="native-student-row">
             <!-- Avatar with Instant Photo Upload Overlay -->
             <div class="native-avatar-wrap" onclick="openPhotoSheet()">
@@ -1324,7 +1311,12 @@
 
             <!-- Details -->
             <div class="native-student-meta">
-                <div class="native-student-name">{{ $studentName ?: 'Student' }}</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                    <div class="native-student-name" title="{{ $studentName }}">{{ $studentName ?: 'Student' }}</div>
+                    <button type="button" class="btn btn-xs mob-badge-pill {{ $isActive ? 'mob-badge-active' : 'mob-badge-inactive' }}" onclick="openStatusSheet()" style="cursor: pointer; flex-shrink: 0; padding: 2px 7px; font-size: 9.5px; border-radius: 3px; font-weight: 700;">
+                        <i class="fa {{ $isActive ? 'fa-check' : 'fa-ban' }}"></i> {{ $isActive ? 'ACTIVE' : 'INACTIVE' }}
+                    </button>
+                </div>
                 <div class="native-tags-wrap">
                     <span class="mob-badge-pill"><i class="fa fa-hashtag"></i> {{ $student->admissionNo ?? '-' }}</span>
                     @if(!empty($student->roll_no))
