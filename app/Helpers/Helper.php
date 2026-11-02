@@ -2475,8 +2475,11 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
             $text
         );
 
-        // If content does not contain HTML tags, convert newlines to <br>
-        if (!preg_match('/<[a-z][\s\S]*>/i', $text)) {
+        // Replace literal string '\n' (backslash followed by n) with <br> if not a LaTeX keyword
+        $text = preg_replace('/(?<!\\\\)\\\\n(?![a-zA-Z])/', '<br>', $text);
+
+        // If content does not contain table tags, convert newlines to <br>
+        if (strpos($text, "\n") !== false && strpos($text, '<table') === false) {
             $text = nl2br($text);
         }
 

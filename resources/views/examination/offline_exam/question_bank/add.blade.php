@@ -2087,7 +2087,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // 5. Convert markdown italic *italic* to <em>italic</em>
         text = text.replace(/(^|[^\*])\*([^\*\s][^\*]*?)\*(?!\*)/g, '$1<em>$2</em>');
 
-        // 6. Normalize existing <br> tags
+        // 6. Normalize existing <br> tags & literal \n (protecting LaTeX math)
+        text = text.replace(/(?<!\\)\\n(?![a-zA-Z])/g, '<br>');
         text = text.replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>');
 
         // 7. Convert plain newlines (\n) to <br> (skip if preceded by block level tag)
@@ -2110,6 +2111,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let str = String(raw);
         str = str.replace(/<br\s*\/?>/gi, '\n');
         str = str.replace(/&lt;br\s*\/?&gt;/gi, '\n');
+        str = str.replace(/(?<!\\)\\n(?![a-zA-Z])/g, '\n');
         return str;
     }
 
@@ -2120,6 +2122,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (raw === null || raw === undefined) return raw;
         let str = String(raw).trim();
         if (!str) return str;
+        str = str.replace(/(?<!\\)\\n(?![a-zA-Z])/g, '<br>');
         str = str.replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>');
         str = str.replace(/([^>])\r?\n/g, '$1<br>');
         return str.trim();

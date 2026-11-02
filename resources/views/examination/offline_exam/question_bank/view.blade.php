@@ -1103,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!text) return '';
         return String(text)
             .replace(/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6])(?:\s+[^&>]*)?)&gt;/gi, '<$1>')
+            .replace(/(?<!\\)\\n(?![a-zA-Z])/g, '<br>')
             .replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>')
             .replace(/([^>])\r?\n/g, '$1<br>');
     }

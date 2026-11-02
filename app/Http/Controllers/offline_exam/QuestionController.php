@@ -637,25 +637,30 @@ class QuestionController extends Controller
 
         DB::beginTransaction();
         try {
+            $normalizeField = function($val) {
+                if ($val === null || $val === '') return null;
+                $str = (string)$val;
+                // Replace literal '\n' (backslash followed by n) with a real newline if not a LaTeX keyword
+                $str = preg_replace('/(?<!\\\\)\\\\n(?![a-zA-Z])/', "\n", $str);
+                if (strpos($str, '<table') === false && strpos($str, '<br') === false && strpos($str, "\n") !== false) {
+                    $str = nl2br($str);
+                }
+                return trim($str);
+            };
+
             foreach ($questionsData as $q) {
                 if (empty($q['name'])) {
                     continue;
                 }
 
-                $qName = trim($q['name']);
-                if (strpos($qName, '<table') === false && strpos($qName, '<br') === false && strpos($qName, "\n") !== false) {
-                    $qName = nl2br($qName);
-                }
-
-                $direction = isset($q['direction']) ? trim($q['direction']) : null;
-                if (!empty($direction) && strpos($direction, '<br') === false && strpos($direction, "\n") !== false) {
-                    $direction = nl2br($direction);
-                }
-
-                $explanation = isset($q['explanation']) ? trim($q['explanation']) : null;
-                if (!empty($explanation) && strpos($explanation, '<br') === false && strpos($explanation, "\n") !== false) {
-                    $explanation = nl2br($explanation);
-                }
+                $qName = $normalizeField($q['name']);
+                $direction = isset($q['direction']) ? $normalizeField($q['direction']) : null;
+                $explanation = isset($q['explanation']) ? $normalizeField($q['explanation']) : null;
+                $ans1 = isset($q['ans1']) ? $normalizeField($q['ans1']) : null;
+                $ans2 = isset($q['ans2']) ? $normalizeField($q['ans2']) : null;
+                $ans3 = isset($q['ans3']) ? $normalizeField($q['ans3']) : null;
+                $ans4 = isset($q['ans4']) ? $normalizeField($q['ans4']) : null;
+                $ans5 = isset($q['ans5']) ? $normalizeField($q['ans5']) : null;
 
                 $add = new Question;
                 $add->user_id = $userId;
@@ -665,11 +670,11 @@ class QuestionController extends Controller
                 $add->subject_id = $subjectId;
                 $add->name = $qName;
                 $add->question_type_id = isset($q['question_type_id']) ? (int)$q['question_type_id'] : 1;
-                $add->ans1 = $q['ans1'] ?? null;
-                $add->ans2 = $q['ans2'] ?? null;
-                $add->ans3 = $q['ans3'] ?? null;
-                $add->ans4 = $q['ans4'] ?? null;
-                $add->ans5 = $q['ans5'] ?? null;
+                $add->ans1 = $ans1;
+                $add->ans2 = $ans2;
+                $add->ans3 = $ans3;
+                $add->ans4 = $ans4;
+                $add->ans5 = $ans5;
                 $add->group_id = $q['group_id'] ?? null;
                 $add->direction = $direction;
                 $add->direction_table = $q['direction_table'] ?? null;
