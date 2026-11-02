@@ -1566,6 +1566,7 @@ EOT;
                 'success' => true,
                 'is_cleaned' => true,
                 'has_watermark' => $res['has_watermark'] ?? false,
+                'original_image_path' => str_replace('\\', '/', str_replace(public_path() . DIRECTORY_SEPARATOR, '', $imageFullPath)),
                 'image_path' => 'uploads/questions/' . $outFilename,
                 'url' => asset('uploads/questions/' . $outFilename),
                 'message' => 'Watermark removed successfully!'

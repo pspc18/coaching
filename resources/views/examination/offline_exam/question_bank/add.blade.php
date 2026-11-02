@@ -655,7 +655,7 @@ textarea.theme-form-control {
                 </h1>
                 <p class="perf-subtitle">
                     <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
-                    <span>Manual entry with LaTeX math &bull; Single image OCR &bull; Bulk PDF question paper parser via AI Engine</span>
+                    <span>Manual entry with LaTeX math &bull; AI Document, Exam Paper &amp; Image Parser via AI Engine</span>
                 </p>
             </div>
             <div class="perf-hero-actions">
@@ -697,7 +697,7 @@ textarea.theme-form-control {
                     <i class="fa fa-sliders text-warning mr-2"></i> Target Academic Context (Class &amp; Subject)
                 </h3>
                 <span class="text-white small" style="font-size: 10px; opacity: 0.9;">
-                    <i class="fa fa-info-circle mr-1"></i> Used for Manual, Image Scanner, and Bulk PDF Import
+                    <i class="fa fa-info-circle mr-1"></i> Used for Manual and AI Document / Paper Parser
                 </span>
             </div>
             <div class="theme-card-body py-2">
@@ -756,13 +756,9 @@ textarea.theme-form-control {
                 <i class="fa fa-keyboard-o mr-1"></i> 1. Manual Builder
                 <span class="tab-badge">Math &amp; LaTeX</span>
             </button>
-            <button type="button" class="mode-nav-tab" data-target-tab="tab-image">
-                <i class="fa fa-camera mr-1"></i> 2. Image Scanner
-                <span class="tab-badge">Photo / Paste</span>
-            </button>
             <button type="button" class="mode-nav-tab" data-target-tab="tab-pdf">
-                <i class="fa fa-file-pdf-o mr-1"></i> 3. Bulk PDF Parser
-                <span class="tab-badge">Multi-Q</span>
+                <i class="fa fa-file-text-o mr-1"></i> 2. AI Document &amp; Paper Parser
+                <span class="tab-badge">PDF, Images &amp; Multi-Q</span>
             </button>
         </div>
 
@@ -1217,245 +1213,81 @@ textarea.theme-form-control {
             </form>
         </div>
 
-        {{-- =========================================================================
-             TAB 2: AI SINGLE IMAGE SCANNER (PHOTO / SCREENSHOT / PASTE)
-             ========================================================================= --}}
-        <div id="tab-image" class="tab-content-panel d-none">
-            <div class="row">
-                {{-- Left: Image Upload & Preview --}}
-                <div class="col-lg-5">
-                    <div class="theme-card">
-                        <div class="theme-card-header">
-                            <h3 class="card-title">
-                                <i class="fa fa-camera text-warning mr-2"></i> Upload or Paste Question Image
-                            </h3>
-                            <span class="badge badge-light" style="color: #002C54; font-size: 10px;">
-                                <i class="fa fa-clipboard mr-1"></i> Ctrl+V Paste Supported
-                            </span>
-                        </div>
-                        <div class="theme-card-body">
-                            {{-- Dropzone --}}
-                            <div class="ai-dropzone-box" id="ai-image-dropzone">
-                                <input type="file" id="ai-image-file-input" accept="image/*" class="d-none">
-                                <i class="fa fa-cloud-upload ai-dropzone-icon"></i>
-                                <strong class="d-block" style="font-size: 12px; color: #002C54;">
-                                    Drop question screenshot / photo here or Browse
-                                </strong>
-                                <span class="text-muted small" style="font-size: 10.5px;">
-                                    Supports JPG, PNG, WebP or press <strong>Ctrl+V</strong> to paste from clipboard
-                                </span>
-                            </div>
-
-                            {{-- Loaded Image Preview --}}
-                            <div id="ai-image-preview-card" class="mt-2 text-center d-none border rounded p-2 bg-light">
-                                <img id="ai-preview-img" src="" alt="Question Image" class="img-fluid rounded border" style="max-height: 250px;">
-                                <div class="mt-2 d-flex justify-content-center gap-2">
-                                    <button type="button" id="btn-ai-extract-image" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff;">
-                                        <i class="fa fa-magic mr-1"></i> Extract with AI Agent
-                                    </button>
-                                    <button type="button" id="btn-clear-ai-image" class="dash-btn dash-btn-outline" style="color:#dc2626 !important; border-color:#cbd5e1;">
-                                        <i class="fa fa-trash mr-1"></i> Clear
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Optional AI Prompt / Guidance Note --}}
-                            <div class="theme-form-group mt-2">
-                                <label for="ai_single_extra_prompt" class="small text-muted mb-1 font-weight-normal">
-                                    Optional instructions for AI (e.g. "Focus on question 4", "Physics Mechanics"):
-                                </label>
-                                <input type="text" id="ai_single_extra_prompt" class="theme-form-control" placeholder="e.g. Question from Class 11 Chemistry...">
-                            </div>
-
-                            {{-- AI Status Indicator --}}
-                            <div id="ai-single-status" class="alert alert-info py-2 px-3 small d-none" style="font-size: 11px; border-radius: 2px;">
-                                <span class="ai-pulse-spinner mr-2"></span>
-                                <span id="ai-single-status-text">AI Agent is analyzing image with AI Engine...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Right: AI Extracted Question Review Form --}}
-                <div class="col-lg-7">
-                    <div class="theme-card">
-                        <div class="theme-card-header">
-                            <h3 class="card-title">
-                                <i class="fa fa-check-circle-o text-warning mr-2"></i> AI-Extracted Question Review &amp; Edit
-                            </h3>
-                            <span id="ai-single-model-badge" class="badge badge-light d-none" style="color:#002C54; font-size: 10px;">
-                                AI Parsed
-                            </span>
-                        </div>
-                        <div class="theme-card-body">
-                            <div id="ai-single-empty-placeholder" class="text-center py-5 text-muted">
-                                <i class="fa fa-magic" style="font-size: 38px; color: #cbd5e1; margin-bottom: 10px;"></i>
-                                <h5 style="font-size: 13.5px; font-weight: 700; color: #475569;">No Image Analyzed Yet</h5>
-                                <p style="font-size: 11px; max-width: 380px; margin: 0 auto;">
-                                    Upload or paste a screenshot on the left and click <strong>Extract with AI Agent</strong>. The parsed question and 4 options will appear here for your review and instant saving.
-                                </p>
-                            </div>
-
-                            <form id="form-ai-single-save" class="d-none">
-                                <input type="hidden" id="ai_single_image_path">
-                                <div class="theme-form-group">
-                                    <label for="ai_single_q_name">Extracted Question Statement <span class="text-danger">*</span></label>
-                                    <textarea id="ai_single_q_name" rows="3" class="theme-form-control" required></textarea>
-                                </div>
-
-                                {{-- Attached Diagram / Chart Box with Watermark Remover & Recreator --}}
-                                <div class="theme-form-group mb-2 d-none" id="ai-single-diagram-box">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="small text-muted font-weight-bold mb-0" style="font-size: 10.5px;">
-                                            <i class="fa fa-picture-o text-warning mr-1"></i> Attached Diagram / Chart:
-                                        </label>
-                                        <span id="ai-single-wm-badge" class="badge badge-warning-light border small d-none" style="background:#fffbeb; color:#b45309; font-size:9.5px;">
-                                            <i class="fa fa-shield mr-1"></i> Watermark Detected
-                                        </span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2 p-2 rounded border bg-light flex-wrap">
-                                        <img id="ai-single-diagram-img" src="" alt="Diagram" class="img-thumbnail" style="max-height: 70px;">
-                                        <div class="d-flex flex-column gap-1">
-                                            <div class="d-flex gap-1 flex-wrap">
-                                                <button type="button" class="btn btn-xs btn-outline-success" id="btn-ai-single-clean-wm" style="font-size: 10.5px; padding: 2px 8px;">
-                                                    <i class="fa fa-magic mr-1"></i> Clean Watermark
-                                                </button>
-                                                <button type="button" class="btn btn-xs btn-outline-primary" id="btn-ai-single-recreate-chart" style="font-size: 10.5px; padding: 2px 8px;">
-                                                    <i class="fa fa-bar-chart mr-1"></i> Recreate Chart (AI)
-                                                </button>
-                                                <button type="button" class="btn btn-xs btn-link text-danger p-0 ml-1" id="btn-ai-single-remove-img" style="font-size: 10.5px;">
-                                                    <i class="fa fa-trash mr-1"></i> Remove
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
-                                        @php $optIndex = (string)($num - 1); @endphp
-                                        <div class="col-md-6 mb-2">
-                                            <div class="option-input-card" id="ai-opt-card-{{ $num }}">
-                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="option-label-pill mr-2">{{ $letter }}</span>
-                                                        <strong style="font-size: 11px; color: #334155;">Option {{ $letter }}</strong>
-                                                    </div>
-                                                    <label class="correct-radio-label text-success">
-                                                        <input type="radio" name="ai_single_correct" value="{{ $optIndex }}" class="ai-correct-radio mr-1">
-                                                        <span>Correct</span>
-                                                    </label>
-                                                </div>
-                                                <textarea id="ai_single_ans{{ $num }}" rows="2" class="theme-form-control"></textarea>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-
-                                <div class="theme-form-group">
-                                    <label for="ai_single_explanation">AI Explanation / Solution Notes</label>
-                                    <textarea id="ai_single_explanation" rows="2" class="theme-form-control"></textarea>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="theme-form-group">
-                                            <label for="ai_single_difficulty">Difficulty</label>
-                                            <select id="ai_single_difficulty" class="theme-form-control">
-                                                <option value="Easy">Easy</option>
-                                                <option value="Medium" selected>Medium</option>
-                                                <option value="Hard">Hard</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="theme-form-group">
-                                            <label for="ai_single_topic">Detected Topic / Concept</label>
-                                            <input type="text" id="ai_single_topic" class="theme-form-control" placeholder="Concept name">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Tab 2 Real-Time Exam Paper Preview --}}
-                                <div class="preview-exam-card mt-3 mb-2" id="ai-single-preview-card">
-                                    <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
-                                        <span class="font-weight-bold text-dark" style="font-size: 11px;">
-                                            <i class="fa fa-desktop text-primary mr-1"></i> Student View (Exam Paper Preview):
-                                        </span>
-                                        <span class="badge badge-success" id="ai-single-preview-badge">Correct: Option A</span>
-                                    </div>
-                                    <div class="preview-q-name" id="ai-single-preview-name">Question statement preview...</div>
-                                    <div class="text-center mb-2 d-none" id="ai-single-preview-diagram-box">
-                                        <img id="ai-single-preview-diagram" src="" alt="Question Diagram" class="img-fluid rounded border p-1 bg-white" style="max-height: 180px;">
-                                    </div>
-                                    <div class="row">
-                                        @foreach(['A','B','C','D'] as $l)
-                                            <div class="col-6 mb-1">
-                                                <div class="preview-opt-item" id="ai-single-preview-opt-{{ $l }}">
-                                                    <strong>({{ $l }})</strong> <span class="preview-opt-text">—</span>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="preview-q-exp mt-1 p-2 border rounded bg-white small text-muted d-none" id="ai-single-preview-exp"></div>
-                                </div>
-
-                                <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                                    <span class="text-muted small" style="font-size: 10.5px;">
-                                        <i class="fa fa-info-circle mr-1"></i> Saving will add this question under the currently selected Class &amp; Subject.
-                                    </span>
-                                    <button type="button" id="btn-save-ai-single" class="dash-btn dash-btn-emerald" style="height: 32px; padding: 0 16px;">
-                                        <i class="fa fa-check mr-1"></i> Approve &amp; Save Question
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- =========================================================================
-             TAB 3: AI BULK PDF / EXAM PAPER PARSER
+                {{-- =========================================================================
+             TAB 2: AI DOCUMENT & EXAM PAPER PARSER (PDF, IMAGES & MULTI-Q)
              ========================================================================= --}}
         <div id="tab-pdf" class="tab-content-panel d-none">
-            {{-- PDF Upload Banner --}}
+            {{-- Document & Exam Paper Upload Card --}}
             <div class="theme-card">
                 <div class="theme-card-header">
                     <h3 class="card-title">
-                        <i class="fa fa-file-pdf-o text-warning mr-2"></i> Upload PDF Question Paper for AI Bulk Extraction
+                        <i class="fa fa-file-text-o text-warning mr-2"></i> Upload PDF Exam Paper or Question Image / Screenshot for AI Extraction
                     </h3>
                     <span class="badge badge-light" style="color: #002C54; font-size: 10px;">
-                        Extracts All Questions in Seconds
+                        <i class="fa fa-bolt mr-1"></i> Supports PDF &bull; JPG &bull; PNG &bull; WebP &bull; Ctrl+V Paste
                     </span>
                 </div>
                 <div class="theme-card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8 col-lg-9">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-7">
                             <div class="theme-form-group mb-2">
-                                <label for="pdf_upload_input">Select PDF Question Paper or Paper Image / Screenshot <span class="text-danger">*</span> (Up to 20MB)</label>
-                                <input type="file" id="pdf_upload_input" accept="application/pdf,.pdf,image/*" class="theme-form-control" style="height: 34px; padding: 4px;">
-                                <div class="theme-hint">
-                                    Works with PDF exam papers, assignment sheets, or clear screenshots/photos of multiple questions.
+                                <label for="pdf_upload_input" class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                                    Select PDF Exam Paper or Paper Image / Screenshot <span class="text-danger">*</span> (Up to 20MB)
+                                </label>
+                                
+                                {{-- Drag & Drop / Paste Container --}}
+                                <div class="ai-dropzone-box py-3 px-3 border rounded text-center cursor-pointer" id="pdf-doc-dropzone" style="border: 2px dashed #94a3b8; background: #f8fafc; transition: all 0.2s ease; min-height: 95px; display: flex; align-items: center; justify-content: center;">
+                                    <input type="file" id="pdf_upload_input" accept="application/pdf,.pdf,image/png,image/jpeg,image/jpg,image/webp" class="d-none">
+                                    <div id="dropzone-idle-content">
+                                        <i class="fa fa-cloud-upload text-primary mb-1" style="font-size: 28px;"></i>
+                                        <div style="font-size: 12.5px; font-weight: 600; color: #002C54;">
+                                            Drag &amp; drop PDF or question image here, or <span class="text-primary text-decoration-underline" style="cursor: pointer;">Browse</span>
+                                        </div>
+                                        <span class="text-muted small" style="font-size: 10.5px;">
+                                            Works with PDF exam papers, assignment sheets, photos of questions, or press <strong>Ctrl+V</strong> to paste screenshot
+                                        </span>
+                                    </div>
+                                    <div id="dropzone-file-selected" class="d-none align-items-center justify-content-between p-2 rounded bg-white border w-100">
+                                        <div class="d-flex align-items-center gap-2 text-left">
+                                            <div id="file-icon-box">
+                                                <i class="fa fa-file-pdf-o text-danger" style="font-size: 26px;"></i>
+                                            </div>
+                                            <div>
+                                                <strong id="file-name-display" class="d-block text-dark font-weight-bold" style="font-size: 12px; max-width: 380px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></strong>
+                                                <span id="file-size-display" class="text-muted small" style="font-size: 10.5px;"></span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img id="file-image-thumb" src="" alt="Thumbnail" class="img-thumbnail d-none" style="max-height: 44px;">
+                                            <button type="button" id="btn-clear-selected-doc" class="btn btn-xs btn-outline-danger" title="Remove selected file" style="padding: 2px 8px; font-size: 11px;">
+                                                <i class="fa fa-times mr-1"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-4 col-lg-3 text-right">
-                            <button type="button" id="btn-start-pdf-extract" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; height:34px; width:100%; justify-content:center;">
-                                <i class="fa fa-magic mr-1"></i> Extract Questions via AI
-                            </button>
+                        <div class="col-lg-4 col-md-5 d-flex flex-column justify-content-center">
+                            <div class="p-3 rounded mb-2" style="background: #f1f5f9; border: 1px solid #cbd5e1;">
+                                <div class="small text-muted mb-2" style="font-size: 11px; line-height: 1.4;">
+                                    <i class="fa fa-check-circle text-success mr-1"></i> <strong>AI Multimodal Extraction:</strong> Automatically extracts single or bulk questions, LaTeX formulas, tabular data, and keeps diagrams pixel-perfect.
+                                </div>
+                                <button type="button" id="btn-start-pdf-extract" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; height:38px; width:100%; justify-content:center; font-size: 12.5px; font-weight: 600;">
+                                    <i class="fa fa-magic mr-1"></i> Extract Questions via AI
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Optional AI Prompt for PDF --}}
+                    {{-- Optional AI Prompt for Document / Image --}}
                     <div class="row">
                         <div class="col-12">
                             <div class="theme-form-group mb-2">
                                 <label for="pdf_extra_prompt" class="small text-muted mb-1 font-weight-normal">
-                                    <i class="fa fa-info-circle mr-1"></i> Optional instructions for AI (e.g. "Extract pages 1 to 3 only", "Hindi questions only", "Focus on Section B"):
+                                    <i class="fa fa-info-circle mr-1"></i> Optional instructions for AI (e.g. "Extract pages 1 to 3 only", "Extract question 108-110", "Hindi questions only", "Focus on Section B"):
                                 </label>
-                                <input type="text" id="pdf_extra_prompt" class="theme-form-control" placeholder="e.g. Extract pages 1 to 4, Hindi questions only, ignore Section A, include solutions...">
+                                <input type="text" id="pdf_extra_prompt" class="theme-form-control" placeholder="e.g. Extract questions 108-110, Hindi questions only, include step-by-step solutions...">
                             </div>
                         </div>
                     </div>
@@ -1463,7 +1295,7 @@ textarea.theme-form-control {
                     {{-- Progress / Status alert --}}
                     <div id="pdf-extract-status" class="alert alert-info py-2 px-3 small d-none mt-2" style="font-size: 11.5px; border-radius: 2px;">
                         <span class="ai-pulse-spinner mr-2"></span>
-                        <span id="pdf-extract-status-text">Uploading PDF and parsing questions via AI Engine Agent...</span>
+                        <span id="pdf-extract-status-text">AI Agent is analyzing document / image and extracting questions... (may take 10-30 seconds)</span>
                     </div>
                 </div>
             </div>
@@ -3275,416 +3107,135 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(updateManualLivePreview, 250);
     }
 
+        // =========================================================================
+    // TAB 2: AI DOCUMENT & EXAM PAPER PARSER (PDF, IMAGES & MULTI-Q)
     // =========================================================================
-    // TAB 2: AI SINGLE IMAGE SCANNER (PASTE & UPLOAD)
-    // =========================================================================
-    const dropzone = document.getElementById('ai-image-dropzone');
-    const imageFileInput = document.getElementById('ai-image-file-input');
-    const previewImg = document.getElementById('ai-preview-img');
-    const previewCard = document.getElementById('ai-image-preview-card');
-    let loadedImageBlob = null;
-    let loadedImageBase64 = null;
+    const docDropzone = document.getElementById('pdf-doc-dropzone');
+    const docFileInput = document.getElementById('pdf_upload_input');
+    const idleContent = document.getElementById('dropzone-idle-content');
+    const selectedContent = document.getElementById('dropzone-file-selected');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const fileSizeDisplay = document.getElementById('file-size-display');
+    const fileImageThumb = document.getElementById('file-image-thumb');
+    const fileIconBox = document.getElementById('file-icon-box');
+    const btnClearDoc = document.getElementById('btn-clear-selected-doc');
 
-    dropzone?.addEventListener('click', () => imageFileInput.click());
-    dropzone?.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-    dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-    dropzone?.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleImageFile(e.dataTransfer.files[0]);
-        }
-    });
+    let activeParsedFile = null;
 
-    imageFileInput?.addEventListener('change', function () {
-        if (this.files && this.files[0]) {
-            handleImageFile(this.files[0]);
-        }
-    });
+    function formatFileSize(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
 
-    // Clipboard Paste Listener (Ctrl+V) anywhere on screen
-    window.addEventListener('paste', function (e) {
-        // If user is focused on an input or textarea, let them paste normal text
-        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-            // Check if clipboard contains image
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            let hasImage = false;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== -1) {
-                    hasImage = true;
-                    const blob = items[i].getAsFile();
-                    handleImageFile(blob);
-                    // Switch to image tab
-                    document.querySelector('[data-target-tab="tab-image"]')?.click();
-                    break;
+    function setActiveFile(file) {
+        if (!file) return;
+        activeParsedFile = file;
+
+        if (fileNameDisplay) fileNameDisplay.textContent = file.name || 'Pasted Image / Screenshot';
+        if (fileSizeDisplay) fileSizeDisplay.textContent = formatFileSize(file.size);
+
+        const isImg = file.type && file.type.startsWith('image/');
+        if (isImg) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (fileImageThumb) {
+                    fileImageThumb.src = e.target.result;
+                    fileImageThumb.classList.remove('d-none');
                 }
+            };
+            reader.readAsDataURL(file);
+            if (fileIconBox) fileIconBox.innerHTML = '<i class="fa fa-file-image-o text-primary" style="font-size: 26px;"></i>';
+        } else {
+            if (fileImageThumb) {
+                fileImageThumb.src = '';
+                fileImageThumb.classList.add('d-none');
             }
+            if (fileIconBox) fileIconBox.innerHTML = '<i class="fa fa-file-pdf-o text-danger" style="font-size: 26px;"></i>';
+        }
+
+        idleContent?.classList.add('d-none');
+        selectedContent?.classList.remove('d-none');
+        selectedContent?.classList.add('d-flex');
+    }
+
+    function clearActiveFile() {
+        activeParsedFile = null;
+        if (docFileInput) docFileInput.value = '';
+        if (fileImageThumb) fileImageThumb.src = '';
+        selectedContent?.classList.add('d-none');
+        selectedContent?.classList.remove('d-flex');
+        idleContent?.classList.remove('d-none');
+    }
+
+    docDropzone?.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-clear-selected-doc')) return;
+        docFileInput?.click();
+    });
+
+    docFileInput?.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            setActiveFile(this.files[0]);
+        }
+    });
+
+    docDropzone?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        docDropzone.style.borderColor = '#0284c7';
+        docDropzone.style.background = '#e0f2fe';
+    });
+
+    docDropzone?.addEventListener('dragleave', () => {
+        docDropzone.style.borderColor = '#94a3b8';
+        docDropzone.style.background = '#f8fafc';
+    });
+
+    docDropzone?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        docDropzone.style.borderColor = '#94a3b8';
+        docDropzone.style.background = '#f8fafc';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setActiveFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    btnClearDoc?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearActiveFile();
+    });
+
+    // Global Clipboard Paste (Ctrl+V) listener:
+    window.addEventListener('paste', function (e) {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             return;
         }
-
-        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+        if (!items) return;
         for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
                 const blob = items[i].getAsFile();
-                handleImageFile(blob);
-                document.querySelector('[data-target-tab="tab-image"]')?.click();
-                break;
-            }
-        }
-    });
-
-    function handleImageFile(file) {
-        // Automatically optimize/compress image client-side to save API token cost & bandwidth
-        compressImageFile(file, 1600, 0.85, function (compressedBlob, dataUrl) {
-            loadedImageBlob = compressedBlob;
-            loadedImageBase64 = dataUrl;
-            previewImg.src = dataUrl;
-            previewCard.classList.remove('d-none');
-        });
-    }
-
-    // Client-side image compression to save AI API token and bandwidth costs
-    function compressImageFile(file, maxDimension, quality, callback) {
-        if (!file || !file.type.match(/image.*/)) {
-            callback(file, null);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const dataUrl = e.target.result;
-            const img = new Image();
-            img.onload = function () {
-                let width = img.width;
-                let height = img.height;
-
-                // If already small, skip compression
-                if (width <= maxDimension && height <= maxDimension && file.size < 400000) {
-                    callback(file, dataUrl);
-                    return;
+                if (blob) {
+                    const pastedFile = new File([blob], `pasted_screenshot_${Date.now()}.png`, { type: blob.type });
+                    setActiveFile(pastedFile);
+                    // Switch to the document parser tab
+                    document.querySelector('[data-target-tab="tab-pdf"]')?.click();
+                    break;
                 }
-
-                if (width > maxDimension || height > maxDimension) {
-                    if (width > height) {
-                        height = Math.round((height * maxDimension) / width);
-                        width = maxDimension;
-                    } else {
-                        width = Math.round((width * maxDimension) / height);
-                        height = maxDimension;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                canvas.toBlob(function (blob) {
-                    callback(blob || file, compressedDataUrl);
-                }, 'image/jpeg', quality);
-            };
-            img.src = dataUrl;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    document.getElementById('btn-clear-ai-image')?.addEventListener('click', () => {
-        loadedImageBlob = null;
-        loadedImageBase64 = null;
-        if (imageFileInput) imageFileInput.value = '';
-        previewCard.classList.add('d-none');
-    });
-
-    // Single Image AI Extraction Trigger
-    document.getElementById('btn-ai-extract-image')?.addEventListener('click', function () {
-        if (!loadedImageBase64 && !loadedImageBlob) {
-            alert('Please select or paste an image first.');
-            return;
-        }
-
-        const statusEl = document.getElementById('ai-single-status');
-        const statusText = document.getElementById('ai-single-status-text');
-        const extractBtn = this;
-
-        statusEl.classList.remove('d-none');
-        statusText.textContent = 'AI Agent is analyzing image with AI Engine...';
-        extractBtn.disabled = true;
-
-        const formData = new FormData();
-        if (loadedImageBlob) {
-            formData.append('image', loadedImageBlob);
-        } else {
-            formData.append('image_base64', loadedImageBase64);
-        }
-
-        const extraPrompt = document.getElementById('ai_single_extra_prompt')?.value;
-        if (extraPrompt) formData.append('extra_instructions', extraPrompt);
-
-        fetch('{{ url("question/ai-extract-single") }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
-            body: formData
-        })
-        .then(async res => {
-            const text = await res.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                const cleanError = text.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().substring(0, 200);
-                throw new Error(`Server returned HTTP ${res.status}: ${cleanError || 'Invalid non-JSON response'}`);
-            }
-        })
-        .then(data => {
-            extractBtn.disabled = false;
-            statusEl.classList.add('d-none');
-
-            if (data.success && data.data) {
-                populateAiSingleForm(data.data, data.from_cache, data.model_used);
-            } else {
-                alert('AI Extraction Failed: ' + (data.message || 'Unknown error'));
-            }
-        })
-        .catch(err => {
-            extractBtn.disabled = false;
-            statusEl.classList.add('d-none');
-            alert('Network error while calling AI service: ' + err.message);
-        });
-    });
-
-    function populateAiSingleForm(q, fromCache = false, modelUsed = '') {
-        document.getElementById('ai-single-empty-placeholder').classList.add('d-none');
-        const form = document.getElementById('form-ai-single-save');
-        form.classList.remove('d-none');
-
-        document.getElementById('ai_single_q_name').value = cleanTextareaValue(q.name || '');
-        document.getElementById('ai_single_ans1').value = cleanTextareaValue(q.ans1 || '');
-        document.getElementById('ai_single_ans2').value = cleanTextareaValue(q.ans2 || '');
-        document.getElementById('ai_single_ans3').value = cleanTextareaValue(q.ans3 || '');
-        document.getElementById('ai_single_ans4').value = cleanTextareaValue(q.ans4 || '');
-        document.getElementById('ai_single_explanation').value = cleanTextareaValue(q.explanation || '');
-        document.getElementById('ai_single_difficulty').value = q.difficulty_level || 'Medium';
-        document.getElementById('ai_single_topic').value = q.topic || '';
-        document.getElementById('ai_single_image_path').value = q.image_path || '';
-
-        // Diagram / Watermark Controls for AI Single Question
-        const singleDiagBox = document.getElementById('ai-single-diagram-box');
-        const singleDiagImg = document.getElementById('ai-single-diagram-img');
-        const singleWmBadge = document.getElementById('ai-single-wm-badge');
-        if (q.image_path && singleDiagBox && singleDiagImg) {
-            const fullUrl = q.image_path.startsWith('http') ? q.image_path : '{{ asset("") }}' + q.image_path;
-            singleDiagImg.src = fullUrl;
-            singleDiagBox.classList.remove('d-none');
-            if (q.has_watermark && singleWmBadge) {
-                singleWmBadge.classList.remove('d-none');
-            } else if (singleWmBadge) {
-                singleWmBadge.classList.add('d-none');
-            }
-        } else if (singleDiagBox) {
-            singleDiagBox.classList.add('d-none');
-        }
-
-        // Select correct radio and highlight card
-        const correctVal = String(q.correct_ans ?? '0');
-        const targetRadio = document.querySelector(`input[name="ai_single_correct"][value="${correctVal}"]`);
-        if (targetRadio) targetRadio.checked = true;
-        ['1','2','3','4'].forEach((num, idx) => {
-            const card = document.getElementById(`ai-opt-card-${num}`);
-            if (card) card.classList.toggle('correct-selected', String(idx) === correctVal);
-        });
-
-        const badge = document.getElementById('ai-single-model-badge');
-        if (badge) {
-            badge.className = 'badge badge-light';
-            badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'AI Parsed');
-            badge.classList.remove('d-none');
-        }
-
-        updateAiSingleLivePreview();
-        form.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function updateAiSingleLivePreview() {
-        const nameVal = document.getElementById('ai_single_q_name')?.value || '';
-        const a1 = document.getElementById('ai_single_ans1')?.value || '';
-        const a2 = document.getElementById('ai_single_ans2')?.value || '';
-        const a3 = document.getElementById('ai_single_ans3')?.value || '';
-        const a4 = document.getElementById('ai_single_ans4')?.value || '';
-        const expVal = document.getElementById('ai_single_explanation')?.value || '';
-        const radio = document.querySelector('input[name="ai_single_correct"]:checked');
-        const correctVal = radio ? radio.value : '0';
-        const letter = ['A','B','C','D'][parseInt(correctVal, 10)] || 'A';
-
-        const qName = document.getElementById('ai-single-preview-name');
-        if (qName) qName.innerHTML = nameVal.trim() ? formatRichExamContent(nameVal) : '<em>Question statement empty...</em>';
-
-        const optMap = { 'A': a1, 'B': a2, 'C': a3, 'D': a4 };
-        ['A','B','C','D'].forEach((l, oIdx) => {
-            const optEl = document.getElementById(`ai-single-preview-opt-${l}`);
-            if (optEl) {
-                const isCorr = (String(oIdx) === String(correctVal));
-                optEl.className = `preview-opt-item ${isCorr ? 'preview-correct-opt' : ''}`;
-                optEl.innerHTML = `<strong>(${l})</strong> <span class="preview-opt-text">${optMap[l] ? formatRichExamContent(optMap[l]) : '—'}</span>`;
-            }
-        });
-
-        const badge = document.getElementById('ai-single-preview-badge');
-        if (badge) badge.textContent = `Correct: Option ${letter}`;
-
-        const expEl = document.getElementById('ai-single-preview-exp');
-        if (expEl) {
-            if (expVal.trim()) {
-                expEl.innerHTML = `<strong class="text-dark"><i class="fa fa-info-circle mr-1"></i> Solution:</strong> <span>${formatRichExamContent(expVal)}</span>`;
-                expEl.classList.remove('d-none');
-            } else {
-                expEl.classList.add('d-none');
             }
         }
-
-        // Render Diagram Image in Preview
-        const imgPath = document.getElementById('ai_single_image_path')?.value || '';
-        const previewDiagBox = document.getElementById('ai-single-preview-diagram-box');
-        const previewDiagImg = document.getElementById('ai-single-preview-diagram');
-        if (previewDiagBox && previewDiagImg) {
-            if (imgPath) {
-                previewDiagImg.src = imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath;
-                previewDiagBox.classList.remove('d-none');
-            } else {
-                previewDiagBox.classList.add('d-none');
-            }
-        }
-
-        const box = document.getElementById('ai-single-preview-card');
-        if (box) renderKaTeXIn(box);
-    }
-
-    // AI Single Question Watermark & Recreate Controls
-    document.getElementById('btn-ai-single-remove-img')?.addEventListener('click', function () {
-        const pathInput = document.getElementById('ai_single_image_path');
-        if (pathInput) pathInput.value = '';
-        document.getElementById('ai-single-diagram-box')?.classList.add('d-none');
-        updateAiSingleLivePreview();
     });
-
-    document.getElementById('btn-ai-single-clean-wm')?.addEventListener('click', function () {
-        const pathInput = document.getElementById('ai_single_image_path');
-        const imgPath = pathInput ? pathInput.value : '';
-        if (!imgPath) return;
-        handleCleanWatermark(this, imgPath, function (newPath) {
-            if (pathInput) pathInput.value = newPath;
-            const imgEl = document.getElementById('ai-single-diagram-img');
-            if (imgEl) imgEl.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
-            document.getElementById('ai-single-wm-badge')?.classList.add('d-none');
-            updateAiSingleLivePreview();
-        });
-    });
-
-    document.getElementById('btn-ai-single-recreate-chart')?.addEventListener('click', function () {
-        const pathInput = document.getElementById('ai_single_image_path');
-        const imgPath = pathInput ? pathInput.value : '';
-        if (!imgPath) return;
-        handleRecreateChart(this, imgPath, function (newPath) {
-            if (pathInput) pathInput.value = newPath;
-            const imgEl = document.getElementById('ai-single-diagram-img');
-            if (imgEl) imgEl.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
-            document.getElementById('ai-single-wm-badge')?.classList.add('d-none');
-            updateAiSingleLivePreview();
-        });
-    });
-
-    // Dynamic highlight & preview sync on manual radio click in AI Single Question tab
-    document.querySelectorAll('.ai-correct-radio').forEach(r => {
-        r.addEventListener('change', function () {
-            const val = this.value;
-            ['1','2','3','4'].forEach((num, idx) => {
-                const card = document.getElementById(`ai-opt-card-${num}`);
-                if (card) card.classList.toggle('correct-selected', String(idx) === val);
-            });
-            updateAiSingleLivePreview();
-        });
-    });
-
-    document.querySelectorAll('#form-ai-single-save textarea').forEach(el => {
-        el.addEventListener('input', updateAiSingleLivePreview);
-    });
-
-    // Save AI-Extracted Single Question
-    document.getElementById('btn-save-ai-single')?.addEventListener('click', function () {
-        if (!globalClassSelect?.value) {
-            alert('Please select a Target Class in the top parameters bar first.');
-            globalClassSelect.focus();
-            return;
-        }
-        if (!globalSubjectSelect?.value) {
-            alert('Please select a Subject in the top parameters bar first.');
-            globalSubjectSelect.focus();
-            return;
-        }
-
-        const qName = document.getElementById('ai_single_q_name').value.trim();
-        if (!qName) {
-            alert('Question statement cannot be empty.');
-            return;
-        }
-
-        const correctRadio = document.querySelector('input[name="ai_single_correct"]:checked');
-        const payload = {
-            class_type_id: globalClassSelect.value,
-            subject_id: globalSubjectSelect.value,
-            question_type_id: globalTypeSelect.value,
-            name: qName,
-            ans1: document.getElementById('ai_single_ans1').value,
-            ans2: document.getElementById('ai_single_ans2').value,
-            ans3: document.getElementById('ai_single_ans3').value,
-            ans4: document.getElementById('ai_single_ans4').value,
-            correct_ans: correctRadio ? correctRadio.value : '0',
-            explanation: document.getElementById('ai_single_explanation').value,
-            difficulty_level: document.getElementById('ai_single_difficulty').value,
-            image_path: document.getElementById('ai_single_image_path').value,
-            ai_extracted: 1
-        };
-
-        this.disabled = true;
-        this.innerHTML = '<span class="ai-pulse-spinner mr-1"></span> Saving...';
-
-        fetch('{{ url("add/question") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Question saved successfully to Question Bank!');
-                window.location.href = '{{ url("view/question") }}';
-            } else {
-                alert('Failed to save question: ' + (data.message || ''));
-                this.disabled = false;
-                this.innerHTML = '<i class="fa fa-check mr-1"></i> Approve & Save Question';
-            }
-        })
-        .catch(err => {
-            alert('Error: ' + err.message);
-            this.disabled = false;
-            this.innerHTML = '<i class="fa fa-check mr-1"></i> Approve & Save Question';
-        });
-    });
-
-    // =========================================================================
+// =========================================================================
     // TAB 3: AI BULK PDF / EXAM PAPER PARSER
     // =========================================================================
     let extractedQuestionsList = [];
 
     document.getElementById('btn-start-pdf-extract')?.addEventListener('click', function () {
-        const fileInput = document.getElementById('pdf_upload_input');
-        if (!fileInput.files || !fileInput.files[0]) {
-            alert('Please select a PDF file first.');
-            fileInput.focus();
+        const fileToUpload = activeParsedFile || (docFileInput && docFileInput.files && docFileInput.files[0] ? docFileInput.files[0] : null);
+        if (!fileToUpload) {
+            alert('Please select a PDF document or upload/paste an image first.');
+            docDropzone?.focus();
             return;
         }
 
@@ -3693,11 +3244,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const statusText = document.getElementById('pdf-extract-status-text');
 
         statusEl.classList.remove('d-none');
-        statusText.textContent = 'Uploading PDF and parsing questions via AI Engine Agent... (may take 10-30 seconds)';
+        statusText.textContent = 'AI Agent is analyzing document / image and extracting questions... (may take 10-30 seconds)';
         btn.disabled = true;
 
         const formData = new FormData();
-        formData.append('pdf_file', fileInput.files[0]);
+        formData.append('pdf_file', fileToUpload);
 
         const extraPrompt = document.getElementById('pdf_extra_prompt')?.value.trim();
         if (extraPrompt) {
@@ -3722,17 +3273,17 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.disabled = false;
             statusEl.classList.add('d-none');
 
-            if (data.success && data.data && Array.isArray(data.data.questions)) {
+            if (data.success && data.data && Array.isArray(data.data.questions) && data.data.questions.length > 0) {
                 extractedQuestionsList = data.data.questions;
                 renderBulkQuestions(extractedQuestionsList, data.from_cache, data.model_used);
             } else {
-                alert('Bulk Extraction Failed: ' + (data.message || 'No questions could be extracted from document.'));
+                alert('Extraction Alert: ' + (data.message || 'No questions could be extracted from this document/image. Please make sure the questions are clear and legible, or provide specific instructions.'));
             }
         })
         .catch(err => {
             btn.disabled = false;
             statusEl.classList.add('d-none');
-            alert('Error during PDF extraction: ' + err.message);
+            alert('Error during extraction: ' + err.message);
         });
     });
 
@@ -3747,7 +3298,48 @@ document.addEventListener('DOMContentLoaded', function () {
         totalBadge.innerHTML = `<i class="fa fa-magic mr-1"></i> ${questions.length} Questions Extracted`;
         counterText.textContent = `Select All Questions (${questions.length} Selected)`;
 
+        // Validate data completeness across extracted questions
+        let incompleteCount = 0;
+        const qIssues = [];
+
+        questions.forEach((q, idx) => {
+            const isMcq = (String(q.question_type_id ?? '1') === '1');
+            const issues = [];
+            if (!q.name || !q.name.trim()) {
+                issues.push('Missing Statement');
+            }
+            if (isMcq) {
+                if (!q.ans1 && !q.ans2 && !q.ans3 && !q.ans4) {
+                    issues.push('Missing Options');
+                }
+                if (q.correct_ans === null || q.correct_ans === undefined || String(q.correct_ans).trim() === '') {
+                    issues.push('Missing Correct Answer');
+                }
+            }
+            if (issues.length > 0) {
+                incompleteCount++;
+                qIssues[idx] = issues;
+            }
+        });
+
         let html = '';
+        if (incompleteCount > 0) {
+            html += `
+            <div class="col-12 mb-3" id="bulk-validation-alert-banner">
+                <div class="alert alert-warning py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:#fffbeb; border:1px solid #f59e0b; border-left: 5px solid #d97706; border-radius: 4px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-exclamation-triangle text-warning" style="font-size: 20px;"></i>
+                        <div>
+                            <strong class="text-dark" style="font-size: 12.5px;">Data Validation Notice:</strong>
+                            <span class="text-dark small ml-1" style="font-size: 11.5px;">
+                                <strong>${incompleteCount}</strong> question(s) contain missing or incomplete fields (marked with alert badges below). Please review and complete them before importing to Question Bank.
+                            </span>
+                        </div>
+                    </div>
+                    <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 11px;">${incompleteCount} Questions Need Attention</span>
+                </div>
+            </div>`;
+        }
         let lastGroupId = null;
 
         questions.forEach((q, idx) => {
@@ -3791,9 +3383,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="d-block small text-muted mb-2 font-weight-bold"><i class="fa fa-bar-chart mr-1 text-primary"></i> Direction Graph / Diagram:</span>
                             <img src="${dirImg.startsWith('http') ? dirImg : '{{ asset("") }}' + dirImg}" alt="Direction Diagram" class="img-fluid rounded border p-1" id="dir-diagram-img-${idx}" style="max-height: 280px;">
                             <div class="mt-2 d-flex justify-content-center align-items-center gap-2 flex-wrap">
-                                ${q.has_watermark ? `<span class="badge badge-warning-light border small" style="background:#fffbeb; color:#b45309; font-size:10px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
-                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#dir-diagram-img-${idx}" data-img-path="${escapeHtml(dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
+                                ${q.has_watermark ? `<span class="badge badge-warning-light border small wm-status-badge" style="background:#fffbeb; color:#b45309; font-size:10px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
+                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#dir-diagram-img-${idx}" data-img-path="${escapeHtml(dirImg)}" data-orig-path="${escapeHtml(q.original_image_path || dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
                                     <i class="fa fa-magic mr-1"></i> Clean Watermark
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary btn-revert-diagram d-none" data-target-img="#dir-diagram-img-${idx}" data-orig-path="${escapeHtml(q.original_image_path || dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
+                                    <i class="fa fa-undo mr-1"></i> Show Original
                                 </button>
                                 <button type="button" class="btn btn-xs btn-outline-primary btn-recreate-chart" data-target-img="#dir-diagram-img-${idx}" data-img-path="${escapeHtml(dirImg)}" style="font-size: 10.5px; padding: 2px 8px;">
                                     <i class="fa fa-bar-chart mr-1"></i> Recreate Clean Chart (AI)
@@ -3833,6 +3428,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <i class="fa fa-link mr-1"></i> Sub-Q #${escapeHtml(String(subQNo))} (Direction Set)
                             </span>` : `
                             <span class="badge badge-light border" style="font-size: 10px;">Item Q${qNum}</span>`}
+                            ${qIssues[idx] ? `
+                            <span class="badge badge-danger text-white" style="font-size: 9.5px; padding: 2px 6px;">
+                                <i class="fa fa-exclamation-circle mr-1"></i> ${escapeHtml(qIssues[idx].join(', '))}
+                            </span>` : ''}
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center">
@@ -3893,8 +3492,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <img src="${imgPath ? (imgPath.startsWith('http') ? imgPath : '{{ asset("") }}' + imgPath) : ''}" alt="Diagram" class="img-thumbnail" id="bulk-diagram-img-${idx}" style="max-height: 60px;">
                                         <div class="d-flex flex-column gap-1">
                                             <div class="d-flex gap-1 flex-wrap">
-                                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-img-path="${escapeHtml(imgPath)}" style="font-size: 10px; padding: 1px 6px;">
+                                                <button type="button" class="btn btn-xs btn-outline-success btn-clean-diagram" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-img-path="${escapeHtml(imgPath)}" data-orig-path="${escapeHtml(q.original_image_path || imgPath)}" style="font-size: 10px; padding: 1px 6px;">
                                                     <i class="fa fa-magic mr-1"></i> Clean Watermark
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-secondary btn-revert-diagram d-none" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-orig-path="${escapeHtml(q.original_image_path || imgPath)}" style="font-size: 10px; padding: 1px 6px;">
+                                                    <i class="fa fa-undo mr-1"></i> Show Original
                                                 </button>
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-recreate-chart" data-target-img="#bulk-diagram-img-${idx}" data-field-id="bulk-field-image-${idx}" data-index="${idx}" data-img-path="${escapeHtml(imgPath)}" style="font-size: 10px; padding: 1px 6px;">
                                                     <i class="fa fa-bar-chart mr-1"></i> Recreate Chart (AI)
@@ -3903,7 +3505,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                     <i class="fa fa-trash mr-1"></i> Remove
                                                 </button>
                                             </div>
-                                            ${q.has_watermark ? `<span class="badge badge-warning-light small" style="background:#fffbeb; color:#b45309; font-size:9px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
+                                            ${q.has_watermark ? `<span class="badge badge-warning-light small wm-status-badge" style="background:#fffbeb; color:#b45309; font-size:9px;"><i class="fa fa-shield mr-1"></i> Watermark Detected</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -4127,8 +3729,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const idx = this.dataset.index;
                 const imgPath = this.dataset.imgPath;
                 const buttonEl = this;
+                const revertBtn = buttonEl.parentElement?.querySelector('.btn-revert-diagram');
 
-                handleCleanWatermark(buttonEl, imgPath, function (newPath) {
+                handleCleanWatermark(buttonEl, imgPath, function (newPath, origPath) {
                     if (targetImgSel) {
                         const targetImg = document.querySelector(targetImgSel);
                         if (targetImg) targetImg.src = (newPath.startsWith('http') ? newPath : '{{ asset("") }}' + newPath) + '?v=' + Date.now();
@@ -4141,14 +3744,44 @@ document.addEventListener('DOMContentLoaded', function () {
                     const siblingRecreate = buttonEl.parentElement?.querySelector('.btn-recreate-chart');
                     if (siblingRecreate) siblingRecreate.dataset.imgPath = newPath;
 
-                    // Remove watermark badge in this block if present
-                    const parentCard = buttonEl.closest('.direction-diagram-box, .diagram-preview-thumb');
-                    parentCard?.querySelector('.badge-warning-light')?.remove();
+                    if (revertBtn) {
+                        revertBtn.classList.remove('d-none');
+                        if (origPath) revertBtn.dataset.origPath = origPath;
+                    }
 
                     if (idx !== undefined) {
                         updateBulkCardPreview(idx);
                     }
                 });
+            });
+        });
+
+        // Bind Revert to Original Diagram Button
+        container.querySelectorAll('.btn-revert-diagram').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetImgSel = this.dataset.targetImg;
+                const fieldId = this.dataset.fieldId;
+                const idx = this.dataset.index;
+                const origPath = this.dataset.origPath;
+                if (!origPath) return;
+
+                if (targetImgSel) {
+                    const targetImg = document.querySelector(targetImgSel);
+                    if (targetImg) targetImg.src = (origPath.startsWith('http') ? origPath : '{{ asset("") }}' + origPath) + '?v=' + Date.now();
+                }
+                if (fieldId) {
+                    const field = document.getElementById(fieldId);
+                    if (field) field.value = origPath;
+                }
+                const cleanBtn = this.parentElement?.querySelector('.btn-clean-diagram');
+                if (cleanBtn) cleanBtn.dataset.imgPath = origPath;
+                const siblingRecreate = this.parentElement?.querySelector('.btn-recreate-chart');
+                if (siblingRecreate) siblingRecreate.dataset.imgPath = origPath;
+
+                this.classList.add('d-none');
+                if (idx !== undefined) {
+                    updateBulkCardPreview(idx);
+                }
             });
         });
 
@@ -4328,7 +3961,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('No watermark detected in this image. The image is already clean.');
                 }
                 if (typeof onComplete === 'function') {
-                    onComplete(data.image_path);
+                    onComplete(data.image_path, data.original_image_path || imagePath);
                 }
             } else {
                 alert('Watermark clean error: ' + (data.message || 'Unknown error'));
@@ -4374,7 +4007,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     btn.innerHTML = originalHtml;
                 }, 2500);
                 if (typeof onComplete === 'function') {
-                    onComplete(data.image_path);
+                    onComplete(data.image_path, data.original_image_path || imagePath);
                 }
             } else {
                 alert('AI chart recreation failed: ' + (data.message || 'Could not parse chart data from image.'));
@@ -4513,6 +4146,48 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCards = document.querySelectorAll('.bulk-q-checkbox:checked');
         if (selectedCards.length === 0) {
             alert('No questions selected for import.');
+            return;
+        }
+
+        // Strict Validation: Alert user if selected questions have missing or improper data
+        const validationFailures = [];
+        let firstInvalidCard = null;
+
+        selectedCards.forEach(cb => {
+            const idx = cb.dataset.index;
+            const card = document.getElementById(`bulk-card-${idx}`);
+            if (!card) return;
+
+            const qNum = parseInt(idx, 10) + 1;
+            const name = card.querySelector('.bulk-field-name')?.value?.trim();
+            const a1 = card.querySelector('.bulk-field-ans1')?.value?.trim();
+            const a2 = card.querySelector('.bulk-field-ans2')?.value?.trim();
+            const a3 = card.querySelector('.bulk-field-ans3')?.value?.trim();
+            const a4 = card.querySelector('.bulk-field-ans4')?.value?.trim();
+            const correctRadio = card.querySelector('.bulk-field-correct:checked');
+
+            const itemErrors = [];
+            if (!name) {
+                itemErrors.push('Missing question statement');
+            }
+            if (!a1 && !a2 && !a3 && !a4) {
+                itemErrors.push('Missing options');
+            }
+            if (!correctRadio) {
+                itemErrors.push('No correct answer selected');
+            }
+
+            if (itemErrors.length > 0) {
+                validationFailures.push(`• Question #${qNum}: ${itemErrors.join(', ')}`);
+                if (!firstInvalidCard) firstInvalidCard = card;
+            }
+        });
+
+        if (validationFailures.length > 0) {
+            alert(`Cannot import selected questions. Incomplete data detected:\n\n${validationFailures.slice(0, 10).join('\n')}${validationFailures.length > 10 ? '\n...and more' : ''}\n\nPlease fill the missing information or uncheck incomplete questions before importing.`);
+            if (firstInvalidCard) {
+                firstInvalidCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
 

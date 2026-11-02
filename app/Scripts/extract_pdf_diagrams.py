@@ -171,8 +171,9 @@ def extract_diagrams(pdf_path, output_dir):
                 extracted.append({
                     'id': diag_id,
                     'page': page_num,
-                    'image_path': cleaned_rel_path if has_wm else ('uploads/questions/' + filename),
+                    'image_path': 'uploads/questions/' + filename,
                     'original_image_path': 'uploads/questions/' + filename,
+                    'cleaned_image_path': cleaned_rel_path,
                     'has_watermark': has_wm,
                     'filename': filename,
                     'width': base_img.get('width', int(r.width)),
@@ -243,8 +244,9 @@ def extract_diagrams(pdf_path, output_dir):
                     extracted.append({
                         'id': diag_id,
                         'page': page_num,
-                        'image_path': cleaned_rel_path if has_wm else ('uploads/questions/' + filename),
+                        'image_path': 'uploads/questions/' + filename,
                         'original_image_path': 'uploads/questions/' + filename,
+                        'cleaned_image_path': cleaned_rel_path,
                         'has_watermark': has_wm,
                         'filename': filename,
                         'width': pix.width,
