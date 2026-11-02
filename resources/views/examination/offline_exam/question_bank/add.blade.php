@@ -351,6 +351,21 @@ textarea.theme-form-control {
     background: #e2e8f0 !important;
     border-radius: 2px !important;
 }
+
+/* Hide CKEditor Security Warning / Upgrade Notification Banners */
+.cke_notifications_area,
+.cke_notification,
+.cke_notification_warning,
+.cke_notification_message {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 .correct-radio-label {
     margin: 0;
     cursor: pointer;
@@ -1741,6 +1756,24 @@ textarea.theme-form-control {
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 {{-- CKEditor 4 for Rich WYSIWYG Question & Formula Editing --}}
 <script src="https://cdn.ckeditor.com/4.22.1/standard-all/ckeditor.js"></script>
+<script>
+    // Suppress CKEditor 4 security warning banner
+    if (window.CKEDITOR) {
+        CKEDITOR.config.versionCheck = false;
+        CKEDITOR.on('instanceCreated', function (e) {
+            e.editor.on('instanceReady', function () {
+                const editor = e.editor;
+                const origShowNotification = editor.showNotification;
+                editor.showNotification = function (message) {
+                    if (typeof message === 'string' && (message.includes('not secure') || message.includes('upgrade') || message.includes('CKEditor 4'))) {
+                        return null;
+                    }
+                    return origShowNotification ? origShowNotification.apply(this, arguments) : null;
+                };
+            });
+        });
+    }
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1822,6 +1855,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const manualCKConfigs = {
         question: {
             height: 125,
+            versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
             resize_dir: 'vertical',
@@ -1837,6 +1871,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         direction: {
             height: 140,
+            versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
             resize_dir: 'vertical',
@@ -1852,6 +1887,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         option: {
             height: 55,
+            versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
             resize_dir: 'vertical',
@@ -1866,6 +1902,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         explanation: {
             height: 75,
+            versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
             resize_dir: 'vertical',

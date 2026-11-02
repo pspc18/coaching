@@ -273,6 +273,7 @@
     }
 
     // MathJax Config for CKEditor
+    window.CKEDITOR.config.versionCheck = false;
     window.CKEDITOR.config.mathJaxLib = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML';
     window.CKEDITOR.config.extraPlugins = 'mathjax';
     window.CKEDITOR.config.removePlugins = 'elementspath,resize';
