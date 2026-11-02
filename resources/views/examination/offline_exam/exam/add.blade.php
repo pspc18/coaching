@@ -7,16 +7,23 @@
   $previewCode = old('code', $formExam->code ?? $formExam->exam_code ?? ($examCode ?? ('EXAM-' . strtoupper(\Illuminate\Support\Str::random(6)))));
   $previewQuestions = (int) old('number_of_questions', $formExam->number_of_questions ?? 50);
   $previewInstituteName = $instituteName ?? (Helper::getSetting()->name ?? 'ARISE ERP INSTITUTE');
+  $preloadedQuestions = $preloadedQuestions ?? [];
+  $preloadedClassId = $preloadedClassId ?? '';
+  $preloadedSubjectId = $preloadedSubjectId ?? '';
+
   $previewAnswerKey = old('answer_key', $formExam->answer_key ?? []);
-  $previewSubjectId = old('subject_id', $formExam->subject_id ?? '');
-  $previewClassId = old('class_type_id', $formExam->class_type_id ?? '');
+  $previewSubjectId = old('subject_id', $formExam->subject_id ?? $preloadedSubjectId);
+  $previewClassId = old('class_type_id', $formExam->class_type_id ?? $preloadedClassId);
 
   // Determine initial mode
-  $initialQuestions = old('online_questions', $formExam->online_questions ?? []);
+  $initialQuestions = old('online_questions', $formExam->online_questions ?? $preloadedQuestions);
   if (is_string($initialQuestions)) {
       $initialQuestions = json_decode($initialQuestions, true) ?: [];
   }
   $initialMode = old('exam_creation_mode', !empty($initialQuestions) ? 'question_bank' : (!empty($formExam->question_paper_path) ? 'pdf_upload' : 'pdf_upload'));
+  if (!empty($initialQuestions) && empty($previewQuestions)) {
+      $previewQuestions = count($initialQuestions);
+  }
 @endphp
 
 <style>

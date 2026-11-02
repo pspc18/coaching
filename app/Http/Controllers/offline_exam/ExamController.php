@@ -868,14 +868,70 @@ class ExamController extends Controller
         $classType = Helper::ClassType();
         $savedExam = null;
         $subjects = collect([]);
+        $preloadedQuestions = [];
+        $preloadedClassId = null;
+        $preloadedSubjectId = null;
+
         if ($request->filled('exam_id')) {
             $savedExam = Exam::where('branch_id', $branchId)->find($request->exam_id);
             if ($savedExam && !empty($savedExam->class_type_id)) {
                 $subjects = Subject::where('class_type_id', $savedExam->class_type_id)->whereNull('deleted_at')->get();
             }
+        } elseif ($request->filled('question_ids')) {
+            $rawIds = $request->input('question_ids');
+            $qIds = is_array($rawIds) ? $rawIds : explode(',', (string)$rawIds);
+            $qIds = array_map('intval', array_filter($qIds));
+            if (!empty($qIds)) {
+                $fetched = Question::whereIn('id', $qIds)->get()->keyBy('id');
+                $idx = 1;
+                foreach ($qIds as $qid) {
+                    if (!isset($fetched[$qid])) continue;
+                    $q = $fetched[$qid];
+                    if (!$preloadedClassId && !empty($q->class_type_id)) {
+                        $preloadedClassId = $q->class_type_id;
+                    }
+                    if (!$preloadedSubjectId && !empty($q->subject_id)) {
+                        $preloadedSubjectId = $q->subject_id;
+                    }
+                    $c = trim((string)$q->correct_ans);
+                    $mapping = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                    $ans = ($q->question_type_id == 1) ? ($mapping[$c] ?? (in_array(strtoupper($c), ['A','B','C','D','E']) ? strtoupper($c) : 'A')) : (string)$q->correct_ans;
+
+                    $preloadedQuestions[] = [
+                        'id' => $q->id,
+                        'question_number' => $idx,
+                        'name' => $q->name,
+                        'question_type_id' => $q->question_type_id,
+                        'ans1' => $q->ans1,
+                        'ans2' => $q->ans2,
+                        'ans3' => $q->ans3,
+                        'ans4' => $q->ans4,
+                        'ans5' => $q->ans5,
+                        'correct_ans' => $ans,
+                        'correct_letter' => $ans,
+                        'image' => $q->image ? asset($q->image) : null,
+                        'explanation' => $q->explanation,
+                        'difficulty_level' => $q->difficulty_level,
+                        'group_id' => $q->group_id,
+                        'direction' => $q->direction,
+                    ];
+                    $idx++;
+                }
+
+                if ($request->filled('class_type_id')) {
+                    $preloadedClassId = (int)$request->input('class_type_id');
+                }
+                if ($request->filled('subject_id')) {
+                    $preloadedSubjectId = (int)$request->input('subject_id');
+                }
+
+                if ($preloadedClassId) {
+                    $subjects = Subject::where('class_type_id', $preloadedClassId)->whereNull('deleted_at')->get();
+                }
+            }
         }
 
-        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects'));
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId'));
     } 
     
      public function editExam(Request $request, $id){

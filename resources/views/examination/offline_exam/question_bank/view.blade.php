@@ -674,11 +674,30 @@
         {{-- 4. Questions Data Table --}}
         <div class="qb-table-card">
             <div class="qb-table-header">
-                <div class="qb-table-title">
+                <div class="qb-table-title d-flex align-items-center flex-wrap">
                     <i class="fa fa-database"></i> Question Bank Records
                     <span class="badge badge-light ml-2" style="font-size: 11px; background: #ffffff !important; color: #002C54 !important; font-weight: 700;">
                         Showing {{ $data->firstItem() ?? 0 }} - {{ $data->lastItem() ?? 0 }} of {{ $data->total() ?? 0 }}
                     </span>
+
+                    {{-- Selection Action Pill --}}
+                    <div id="qb-selection-summary-pill" class="d-none align-items-center ml-2" style="display: none;">
+                        <span class="badge badge-warning py-1 px-2 font-weight-bold" id="qb-selected-count-badge" style="font-size: 11px; background: #fef08a !important; color: #854d0e !important; border: 1px solid #fde047;">0 Selected</span>
+                        <div class="dropdown d-inline-block ml-1">
+                            <button type="button" class="btn btn-sm btn-light dropdown-toggle font-weight-bold text-dark" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="height: 24px; font-size: 10.5px; padding: 1px 8px; border-radius: 3px; background: #ffffff; color: #002C54 !important;">
+                                <i class="fa fa-graduation-cap text-primary mr-1"></i> Create Exam <span class="caret"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" style="border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 4px; padding: 6px; min-width: 190px;">
+                                <a class="dropdown-item py-2 btn-trigger-create-omr font-weight-bold" href="javascript:void(0)" style="font-size: 11.5px; color: #002C54; border-radius: 3px;">
+                                    <i class="fa fa-file-text-o text-success mr-2"></i> Exam ON OMR Sheet
+                                </a>
+                                <div class="dropdown-divider my-1"></div>
+                                <a class="dropdown-item py-2 btn-trigger-create-online text-muted" href="javascript:void(0)" style="font-size: 11.5px; border-radius: 3px;">
+                                    <i class="fa fa-laptop text-info mr-2"></i> Online Exam <span class="badge badge-secondary ml-1" style="font-size: 8.5px;">CBT</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="d-flex align-items-center text-white small mr-2" style="font-size: 11px;">
@@ -702,6 +721,9 @@
                 <table class="table table-qb">
                     <thead>
                         <tr>
+                            <th style="width: 36px;" class="text-center">
+                                <input type="checkbox" id="qb-select-all" title="Select All on this page" style="transform: scale(1.15); cursor: pointer;">
+                            </th>
                             <th style="width: 45px;" class="text-center">#</th>
                             <th style="width: 140px;">Class &amp; Subject</th>
                             <th style="width: 120px;">Type &amp; Level</th>
@@ -721,7 +743,12 @@
                                 $diff = $item->difficulty_level ?: 'Medium';
                                 $diffClass = $diff === 'Easy' ? 'success' : ($diff === 'Hard' ? 'danger' : 'warning');
                             @endphp
-                            <tr id="q-row-{{ $item->id }}">
+                            <tr id="q-row-{{ $item->id }}" class="qb-table-row">
+                                {{-- 0. Checkbox --}}
+                                <td class="text-center">
+                                    <input type="checkbox" class="qb-row-chk" value="{{ $item->id }}" data-class-id="{{ $item->class_type_id }}" data-class-name="{{ $item->class_name }}" data-subject-id="{{ $item->subject_id }}" data-subject-name="{{ $item->subject_name }}" style="transform: scale(1.15); cursor: pointer;">
+                                </td>
+
                                 {{-- 1. Index / ID --}}
                                 <td class="text-center font-weight-bold text-muted" style="font-size: 11px;">
                                     {{ $rowNum }}
@@ -880,7 +907,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <div class="text-muted">
                                         <i class="fa fa-folder-open-o fa-3x mb-2 text-secondary"></i>
                                         <h5 class="font-weight-bold" style="color: #334155;">No Questions Found</h5>
@@ -1067,6 +1094,152 @@
                     <button type="submit" class="btn btn-danger btn-sm px-3">Delete Question</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+{{-- FLOATING ACTION BAR FOR SELECTED QUESTIONS --}}
+<div id="qb-floating-action-bar" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1050; background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 7px 18px; border-radius: 30px; box-shadow: 0 8px 24px rgba(0, 44, 84, 0.45); display: none; align-items: center; gap: 14px; border: 1.5px solid rgba(255,255,255,0.25);">
+    <div class="d-flex align-items-center gap-2">
+        <i class="fa fa-check-circle text-success" style="font-size: 16px;"></i>
+        <span style="font-size: 12.5px; font-weight: 700;"><span id="qb-float-count">0</span> Questions Selected</span>
+    </div>
+    <div class="btn-group dropup">
+        <button type="button" class="btn btn-sm btn-warning dropdown-toggle font-weight-bold text-dark px-3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border-radius: 20px; height: 30px; font-size: 11.5px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+            <i class="fa fa-pencil-square-o mr-1"></i> Create Exam <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" style="border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 6px; padding: 6px; min-width: 210px;">
+            <a class="dropdown-item py-2 btn-trigger-create-omr font-weight-bold" href="javascript:void(0)" style="font-size: 12px; color: #002C54; border-radius: 4px;">
+                <i class="fa fa-file-text-o text-success mr-2"></i> Exam ON OMR Sheet
+            </a>
+            <div class="dropdown-divider my-1"></div>
+            <a class="dropdown-item py-2 btn-trigger-create-online text-muted" href="javascript:void(0)" style="font-size: 12px; border-radius: 4px;">
+                <i class="fa fa-laptop text-info mr-2"></i> Online Exam <span class="badge badge-secondary ml-1" style="font-size: 8.5px;">CBT</span>
+            </a>
+        </div>
+    </div>
+    <button type="button" id="qb-btn-clear-selection" class="btn btn-sm btn-outline-light py-0 px-2" style="height: 24px; font-size: 10px; border-radius: 12px; opacity: 0.9;">
+        <i class="fa fa-times mr-1"></i> Deselect
+    </button>
+</div>
+
+{{-- MODAL 4: CREATE EXAM ON OMR SHEET --}}
+<div class="modal fade" id="modalCreateOmrExam" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #cbd5e1;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 9px 14px;">
+                <h5 class="modal-title font-weight-bold" style="font-size: 13.5px; color: #ffffff;">
+                    <i class="fa fa-file-text-o text-warning mr-1"></i> Create Exam on OMR Sheet
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formCreateOmrExam" action="{{ url('add/exam') }}" method="POST">
+                @csrf
+                <input type="hidden" name="exam_creation_mode" value="question_bank">
+                <input type="hidden" name="selected_question_ids" id="omr_modal_selected_ids" value="">
+                <input type="hidden" name="action_type" id="omr_modal_action_type" value="save">
+
+                <div class="modal-body p-3" style="font-size: 12px;">
+                    <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center justify-content-between" style="font-size: 11px; border-radius: 2px;">
+                        <span><i class="fa fa-check-circle mr-1 text-success"></i> <strong><span id="omr_modal_qcount_badge">0</span> Questions</strong> selected for this exam.</span>
+                        <span class="badge badge-primary py-1 px-2" style="font-size: 9.5px;">Auto OMR Key</span>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Exam Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" id="omr_modal_exam_name" name="name" required placeholder="e.g. Class 10 - Mathematics Unit Test">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Target Class <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-sm" id="omr_modal_class_id" name="class_type_id" required>
+                                <option value="">-- Select Class --</option>
+                                @if(!empty($classType))
+                                    @foreach($classType as $type)
+                                        <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+
+                        <div class="col-6 mb-2">
+                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Subject</label>
+                            <select class="form-control form-control-sm" id="omr_modal_subject_id" name="subject_id">
+                                <option value="">-- Select Subject --</option>
+                                @if(!empty($allSubjects))
+                                    @foreach($allSubjects as $sub)
+                                        <option value="{{ $sub->id }}">{{ $sub->name ?? '' }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Date of Exam <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control form-control-sm" name="exam_date" value="{{ date('Y-m-d') }}" required>
+                        </div>
+
+                        <div class="col-6 mb-2">
+                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Marks Per Correct</label>
+                            <input type="number" class="form-control form-control-sm" name="marks_per_correct" value="1.0" step="0.5" min="0">
+                        </div>
+                    </div>
+
+                    <div class="p-2 bg-light border rounded mt-2" style="font-size: 10.5px; color: #475569;">
+                        <i class="fa fa-info-circle text-primary mr-1"></i>
+                        Selected questions ke correct answers automatically OMR answer key matrix mein map ho jayenge. Exam create hote hi aap Question Paper &amp; OMR Sheet print kar sakte hain.
+                    </div>
+                </div>
+
+                <div class="modal-footer py-2 px-3 bg-light d-flex align-items-center justify-content-between">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" id="omr_modal_btn_builder" class="btn btn-sm btn-outline-primary font-weight-bold" title="Open full builder with questions pre-loaded">
+                            <i class="fa fa-sliders mr-1"></i> Open in Exam Builder
+                        </button>
+                        <button type="submit" class="btn btn-sm btn-success font-weight-bold px-3">
+                            <i class="fa fa-check mr-1"></i> Create Exam Now
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL 5: ONLINE EXAM CBT --}}
+<div class="modal fade" id="modalCreateOnlineExam" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #cbd5e1;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; padding: 9px 14px;">
+                <h5 class="modal-title font-weight-bold" style="font-size: 13.5px; color: #ffffff;">
+                    <i class="fa fa-laptop mr-1"></i> Online Exam (Computer-Based Test)
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3" style="font-size: 12px;">
+                <div class="alert alert-info py-2 px-3 mb-2" style="font-size: 11px;">
+                    <i class="fa fa-info-circle mr-1"></i> <strong><span id="online_modal_qcount">0</span> Questions</strong> selected for Online Exam.
+                </div>
+                <p class="text-muted mb-3" style="font-size: 11.5px; line-height: 1.5;">
+                    Online mode will configure these questions for the student portal with automatic countdown timer, instant evaluation, and CBT question navigation.
+                </p>
+                <div class="text-center py-2">
+                    <button type="button" id="online_modal_btn_open_builder" class="btn btn-sm btn-primary font-weight-bold px-3">
+                        <i class="fa fa-arrow-right mr-1"></i> Open in Exam Builder (CBT Online Mode)
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1297,6 +1470,162 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             renderKaTeXIn(document.getElementById('myModal'));
         }, 150);
+    });
+
+    // =========================================================================
+    // Question Selection & Exam Creation Logic (OMR Sheet & Online)
+    // =========================================================================
+    const updateSelectionUI = () => {
+        const checkedBoxes = $('.qb-row-chk:checked');
+        const count = checkedBoxes.length;
+        const totalRows = $('.qb-row-chk').length;
+
+        $('#qb-select-all').prop('checked', totalRows > 0 && count === totalRows);
+        $('#qb-select-all').prop('indeterminate', count > 0 && count < totalRows);
+
+        if (count > 0) {
+            $('#qb-selected-count-badge').text(count + ' Selected');
+            $('#qb-selection-summary-pill').removeClass('d-none').css('display', 'inline-flex');
+            $('#qb-float-count').text(count);
+            $('#qb-floating-action-bar').css('display', 'flex').fadeIn(150);
+        } else {
+            $('#qb-selection-summary-pill').addClass('d-none').hide();
+            $('#qb-floating-action-bar').fadeOut(150);
+        }
+    };
+
+    // Select All Checkbox
+    $(document).on('change', '#qb-select-all', function () {
+        const isChecked = $(this).is(':checked');
+        $('.qb-row-chk').prop('checked', isChecked);
+        updateSelectionUI();
+    });
+
+    // Individual Row Checkbox
+    $(document).on('change', '.qb-row-chk', function () {
+        updateSelectionUI();
+    });
+
+    // Clear / Deselect
+    $(document).on('click', '#qb-btn-clear-selection', function () {
+        $('.qb-row-chk, #qb-select-all').prop('checked', false);
+        updateSelectionUI();
+    });
+
+    // Helper: Collect selected questions metadata
+    const getSelectedQuestionsMeta = () => {
+        const ids = [];
+        const classMap = {};
+        const subjectMap = {};
+        let detectedClassName = '';
+        let detectedSubjectName = '';
+
+        $('.qb-row-chk:checked').each(function () {
+            const qid = $(this).val();
+            ids.push(qid);
+
+            const cId = $(this).data('class-id');
+            const cName = $(this).data('class-name');
+            const sId = $(this).data('subject-id');
+            const sName = $(this).data('subject-name');
+
+            if (cId) {
+                classMap[cId] = (classMap[cId] || 0) + 1;
+                if (!detectedClassName && cName) detectedClassName = cName;
+            }
+            if (sId) {
+                subjectMap[sId] = (subjectMap[sId] || 0) + 1;
+                if (!detectedSubjectName && sName) detectedSubjectName = sName;
+            }
+        });
+
+        // Pick most frequent class_type_id & subject_id
+        let bestClassId = '';
+        let maxClassCount = 0;
+        for (const [cid, cnt] of Object.entries(classMap)) {
+            if (cnt > maxClassCount) { maxClassCount = cnt; bestClassId = cid; }
+        }
+
+        let bestSubId = '';
+        let maxSubCount = 0;
+        for (const [sid, cnt] of Object.entries(subjectMap)) {
+            if (cnt > maxSubCount) { maxSubCount = cnt; bestSubId = sid; }
+        }
+
+        return {
+            ids: ids,
+            classId: bestClassId,
+            className: detectedClassName,
+            subjectId: bestSubId,
+            subjectName: detectedSubjectName,
+        };
+    };
+
+    // Action 1: Exam ON OMR Sheet Trigger
+    $(document).on('click', '.btn-trigger-create-omr', function () {
+        const meta = getSelectedQuestionsMeta();
+        if (meta.ids.length === 0) {
+            alert('Please select at least one question first.');
+            return;
+        }
+
+        $('#omr_modal_selected_ids').val(meta.ids.join(','));
+        $('#omr_modal_qcount_badge').text(meta.ids.length);
+
+        if (meta.classId) {
+            $('#omr_modal_class_id').val(meta.classId);
+        }
+        if (meta.subjectId) {
+            $('#omr_modal_subject_id').val(meta.subjectId);
+        }
+
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        const defaultName = (meta.className || 'Class') + ' - ' + (meta.subjectName ? meta.subjectName + ' ' : '') + 'OMR Exam (' + dateStr + ')';
+        $('#omr_modal_exam_name').val(defaultName);
+
+        $('#modalCreateOmrExam').modal('show');
+    });
+
+    // Action: Open in Exam Builder (Mode 2)
+    $(document).on('click', '#omr_modal_btn_builder', function () {
+        const meta = getSelectedQuestionsMeta();
+        if (meta.ids.length === 0) return;
+
+        const classId = $('#omr_modal_class_id').val() || meta.classId || '';
+        const subjectId = $('#omr_modal_subject_id').val() || meta.subjectId || '';
+        const name = encodeURIComponent($('#omr_modal_exam_name').val() || '');
+
+        const url = "{{ url('add/exam') }}?question_ids=" + meta.ids.join(',') + 
+                    "&class_type_id=" + classId + 
+                    "&subject_id=" + subjectId + 
+                    "&name=" + name +
+                    "&mode=question_bank";
+
+        window.location.href = url;
+    });
+
+    // Action 2: Online Exam (CBT) Trigger
+    $(document).on('click', '.btn-trigger-create-online', function () {
+        const meta = getSelectedQuestionsMeta();
+        if (meta.ids.length === 0) {
+            alert('Please select at least one question first.');
+            return;
+        }
+
+        $('#online_modal_qcount').text(meta.ids.length);
+        $('#modalCreateOnlineExam').modal('show');
+    });
+
+    $(document).on('click', '#online_modal_btn_open_builder', function () {
+        const meta = getSelectedQuestionsMeta();
+        if (meta.ids.length === 0) return;
+
+        const url = "{{ url('add/exam') }}?question_ids=" + meta.ids.join(',') + 
+                    "&class_type_id=" + meta.classId + 
+                    "&subject_id=" + meta.subjectId + 
+                    "&is_online=1&mode=question_bank";
+
+        window.location.href = url;
     });
 });
 </script>
