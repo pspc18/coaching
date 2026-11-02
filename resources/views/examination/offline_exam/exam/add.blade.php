@@ -929,13 +929,18 @@ textarea.theme-form-control {
     overflow-y: auto;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
 }
 .printable-exam-paper {
     background: #ffffff;
     box-shadow: 0 4px 18px rgba(0,0,0,0.3);
-    padding: 20px 24px;
+    padding: 20px 24px 30px 24px;
     width: 100%;
     max-width: 760px;
+    min-height: 100%;
+    height: auto;
+    margin: 0 auto 24px auto;
+    box-sizing: border-box;
     font-family: "DejaVu Sans", "Segoe UI", Arial, sans-serif;
     color: #0f172a;
     border-radius: 2px;
