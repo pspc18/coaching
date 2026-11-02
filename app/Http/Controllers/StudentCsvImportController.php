@@ -74,7 +74,7 @@ class StudentCsvImportController extends Controller
                 $cityList = DB::table('citys')->whereNull('deleted_at')->where('state_id', 13)->take(25)->pluck('name')->implode(',');
                 $bloodgroupList = DB::table('blood_groups')->whereNull('deleted_at')->pluck('name')->implode(',');
 
-                return view('students.admission.studentCsvImport', compact(
+                return Helper::view('students.admission.studentCsvImport', compact(
                     'getAdmissionDatatableFields',
                     'gender',
                     'villageList',
