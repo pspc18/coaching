@@ -5,6 +5,8 @@ use Illuminate\Validation\Validator;
 use App\Models\exam\Question;
 use App\Models\exam\Exam;
 use App\Models\exam\AssignExam;
+use App\Models\exam\AssignQuestion;
+use App\Models\Subject;
 use App\Models\Admission;
 use App\Models\Notification;
 use App\Services\FcmDirectService;
@@ -570,6 +572,88 @@ class ExamController extends Controller
         }
     }
     
+    public function getBankQuestions(Request $request)
+    {
+        $sessionId = Session::get('session_id');
+        $branchId = Session::get('branch_id');
+        $classTypeId = $request->input('class_type_id');
+        $subjectId = $request->input('subject_id');
+        $typeId = $request->input('question_type_id');
+        $search = trim($request->input('search', ''));
+
+        $query = Question::whereNull('deleted_at');
+
+        if (Session::get('role_id') > 1) {
+            $query->where('branch_id', $branchId);
+        }
+
+        if (!empty($classTypeId)) {
+            $query->where('class_type_id', $classTypeId);
+        }
+
+        if (!empty($subjectId)) {
+            $query->where('subject_id', $subjectId);
+        }
+
+        if (!empty($typeId)) {
+            $query->where('question_type_id', $typeId);
+        }
+
+        if (!empty($search)) {
+            $kw = '%' . $search . '%';
+            $query->where(function($q) use ($kw) {
+                $q->where('name', 'like', $kw)
+                  ->orWhere('explanation', 'like', $kw)
+                  ->orWhere('direction', 'like', $kw);
+            });
+        }
+
+        $questions = $query->orderBy('id', 'DESC')
+            ->take(200)
+            ->get([
+                'id', 'class_type_id', 'subject_id', 'question_type_id',
+                'name', 'ans1', 'ans2', 'ans3', 'ans4', 'ans5',
+                'correct_ans', 'image', 'explanation', 'difficulty_level',
+                'group_id', 'direction'
+            ]);
+
+        $formatted = $questions->map(function ($q) {
+            $correctLetter = '';
+            if ($q->question_type_id == 1) {
+                $val = trim((string)$q->correct_ans);
+                $mapping = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                $correctLetter = $mapping[$val] ?? (in_array(strtoupper($val), ['A', 'B', 'C', 'D', 'E']) ? strtoupper($val) : 'A');
+            } else {
+                $correctLetter = (string)$q->correct_ans;
+            }
+            return [
+                'id' => $q->id,
+                'class_type_id' => $q->class_type_id,
+                'subject_id' => $q->subject_id,
+                'question_type_id' => $q->question_type_id,
+                'name' => $q->name,
+                'ans1' => $q->ans1,
+                'ans2' => $q->ans2,
+                'ans3' => $q->ans3,
+                'ans4' => $q->ans4,
+                'ans5' => $q->ans5,
+                'correct_ans' => $q->correct_ans,
+                'correct_letter' => $correctLetter,
+                'image' => $q->image ? asset($q->image) : null,
+                'explanation' => $q->explanation,
+                'difficulty_level' => $q->difficulty_level,
+                'group_id' => $q->group_id,
+                'direction' => $q->direction,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'count' => $formatted->count(),
+            'questions' => $formatted
+        ]);
+    }
+
     public function addExam(Request $request)
     {
         $sessionId = Session::get('session_id');
@@ -578,21 +662,27 @@ class ExamController extends Controller
         $instituteName = $setting->name ?? 'Arise ERP Institute';
 
         if ($request->isMethod('post')) {
+            $creationMode = $request->input('exam_creation_mode', 'pdf_upload');
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'class_type_id' => 'required|integer',
+                'subject_id' => 'nullable|integer',
                 'code' => 'nullable|string|max:100',
                 'exam_date' => 'nullable|date',
-                'number_of_questions' => 'required|integer|min:1|max:100',
+                'number_of_questions' => 'nullable|integer|min:1|max:100',
                 'is_online' => 'nullable|boolean',
                 'marks_per_correct' => 'nullable|numeric',
                 'marks_per_incorrect' => 'nullable|numeric',
                 'answer_key' => 'nullable|array',
                 'online_questions' => 'nullable|array',
                 'online_questions_json' => 'nullable|string',
+                'selected_questions_json' => 'nullable|string',
+                'selected_question_ids' => 'nullable',
                 'question_paper' => 'nullable|file|mimes:pdf|max:10240',
                 'description' => 'nullable|string|max:255',
                 'exam_term_id' => 'nullable|integer',
+                'exam_creation_mode' => 'nullable|string',
             ]);
 
             $code = !empty($validated['code']) ? trim($validated['code']) : ($request->input('code') ?: null);
@@ -614,19 +704,80 @@ class ExamController extends Controller
                 $paperPath = 'uploads/question_papers/' . $paperFileName;
             }
 
-            $onlineQuestions = $validated['online_questions'] ?? [];
-            if (empty($onlineQuestions) && $request->filled('online_questions_json')) {
-                $decoded = json_decode($request->input('online_questions_json'), true);
-                if (is_array($decoded)) {
-                    $onlineQuestions = $decoded;
+            $onlineQuestions = [];
+            $derivedAnswerKey = [];
+            $questionIds = [];
+
+            if ($creationMode === 'question_bank') {
+                if ($request->filled('selected_questions_json')) {
+                    $decoded = json_decode($request->input('selected_questions_json'), true);
+                    if (is_array($decoded)) {
+                        $onlineQuestions = $decoded;
+                        $questionIds = array_filter(array_column($onlineQuestions, 'id'));
+                    }
+                } elseif ($request->filled('selected_question_ids')) {
+                    $rawIds = $request->input('selected_question_ids');
+                    $questionIds = is_array($rawIds) ? $rawIds : explode(',', (string)$rawIds);
+                    $questionIds = array_map('intval', array_filter($questionIds));
                 }
+
+                if (!empty($questionIds) && empty($onlineQuestions)) {
+                    $fetchedQuestions = Question::whereIn('id', $questionIds)->get()->keyBy('id');
+                    $index = 1;
+                    foreach ($questionIds as $qid) {
+                        if (!isset($fetchedQuestions[$qid])) continue;
+                        $q = $fetchedQuestions[$qid];
+                        $c = trim((string)$q->correct_ans);
+                        $mapping = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                        $ans = $q->question_type_id == 1 ? ($mapping[$c] ?? (in_array(strtoupper($c), ['A','B','C','D','E']) ? strtoupper($c) : 'A')) : (string)$q->correct_ans;
+
+                        $onlineQuestions[] = [
+                            'id' => $q->id,
+                            'question_number' => $index,
+                            'name' => $q->name,
+                            'question_type_id' => $q->question_type_id,
+                            'ans1' => $q->ans1,
+                            'ans2' => $q->ans2,
+                            'ans3' => $q->ans3,
+                            'ans4' => $q->ans4,
+                            'ans5' => $q->ans5,
+                            'correct_ans' => $ans,
+                            'image' => $q->image,
+                            'explanation' => $q->explanation,
+                            'difficulty_level' => $q->difficulty_level,
+                            'group_id' => $q->group_id,
+                            'direction' => $q->direction,
+                        ];
+                        $index++;
+                    }
+                }
+
+                $qNum = 1;
+                foreach ($onlineQuestions as $oq) {
+                    $ans = $oq['correct_ans'] ?? 'A';
+                    $derivedAnswerKey[(string)$qNum] = $ans;
+                    $qNum++;
+                }
+
+                $numQuestions = count($onlineQuestions);
+                if ($numQuestions === 0) {
+                    $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
+                }
+            } else {
+                $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
             }
 
-            $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
             $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : 1.0;
             $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : 0.0;
             $maxMarks = $numQuestions * $marksPerCorrect;
             $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : date('Y-m-d');
+
+            $submittedKey = $request->answer_key ?? [];
+            if ($creationMode === 'question_bank') {
+                $finalAnswerKey = !empty($submittedKey) ? array_replace($derivedAnswerKey, $submittedKey) : $derivedAnswerKey;
+            } else {
+                $finalAnswerKey = $submittedKey;
+            }
 
             DB::beginTransaction();
             try {
@@ -645,7 +796,7 @@ class ExamController extends Controller
                 $add->marks_per_correct = $marksPerCorrect;
                 $add->marks_per_incorrect = $marksPerIncorrect;
                 $add->exam_maximum_marks = $maxMarks;
-                $add->answer_key = $request->answer_key ?? [];
+                $add->answer_key = $finalAnswerKey;
                 $add->online_questions = $onlineQuestions;
                 if ($paperPath) {
                     $add->question_paper_path = $paperPath;
@@ -673,6 +824,21 @@ class ExamController extends Controller
                 $assignment->deleted_at = null;
                 $assignment->save();
 
+                if (!empty($questionIds)) {
+                    AssignQuestion::where('exam_id', $add->id)->delete();
+                    foreach ($questionIds as $qId) {
+                        $aq = new AssignQuestion;
+                        $aq->user_id = Session::get('id') ?: 1;
+                        $aq->branch_id = $branchId;
+                        $aq->session_id = $sessionId;
+                        $aq->exam_id = $add->id;
+                        $aq->question_id = $qId;
+                        $aq->class_type_id = $request->class_type_id;
+                        $aq->subject_id = $request->subject_id;
+                        $aq->save();
+                    }
+                }
+
                 DB::commit();
 
                 if ($request->input('action_type') === 'fill_marks') {
@@ -681,12 +847,17 @@ class ExamController extends Controller
                 }
 
                 if ($request->input('action_type') === 'print_omr') {
-                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print=1')
+                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print_omr=1')
                         ->with('message', 'Exam created successfully! Printable OMR is loaded below.');
                 }
 
+                if ($request->input('action_type') === 'print_paper') {
+                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print_paper=1')
+                        ->with('message', 'Exam created successfully! Printable Question Paper is loaded below.');
+                }
+
                 return Redirect::to('view/exam')
-                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') & OMR Sheet created successfully.');
+                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') created successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 return Redirect::back()->withInput()->with('error', 'Exam could not be created: ' . $e->getMessage());
@@ -696,11 +867,15 @@ class ExamController extends Controller
         $examCode = 'EXAM-' . strtoupper(Str::random(6));
         $classType = Helper::ClassType();
         $savedExam = null;
+        $subjects = collect([]);
         if ($request->filled('exam_id')) {
             $savedExam = Exam::where('branch_id', $branchId)->find($request->exam_id);
+            if ($savedExam && !empty($savedExam->class_type_id)) {
+                $subjects = Subject::where('class_type_id', $savedExam->class_type_id)->whereNull('deleted_at')->get();
+            }
         }
 
-        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam'));
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects'));
     } 
     
      public function editExam(Request $request, $id){

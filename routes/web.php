@@ -254,6 +254,7 @@ Route::post('exam/result/publish', 'offline_exam\ExamController@publishResult')
 Route::post('exam/result/reset-publication', 'offline_exam\ExamController@resetResultPublication')
     ->name('exam.result.reset-publication');
 Route::match(['get', 'post'], 'add/exam', 'offline_exam\ExamController@addExam');
+Route::get('exam/get-bank-questions', 'offline_exam\ExamController@getBankQuestions');
 Route::post('copy/exam', 'offline_exam\ExamController@copyExam');
 Route::match(['get', 'post'], 'add/examination_schedule', 'offline_exam\ExamScheduleController@addExaminationSchedule');
 Route::match(['get', 'post'], 'get_examination_schedule_data', 'offline_exam\ExamScheduleController@getScheduleData');
