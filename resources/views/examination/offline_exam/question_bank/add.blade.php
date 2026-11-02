@@ -906,7 +906,7 @@ textarea.theme-form-control {
                                     </div>
 
                                     {{-- Options Section (Objective) --}}
-                                    <div id="manual-options-container">
+                                    <div id="manual-options-container" class="{{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'd-none' : '' }}">
                                         <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
                                             <div class="d-flex align-items-center">
                                                 <label class="font-weight-bold text-primary mb-0" style="font-size: 11.5px;">
@@ -947,7 +947,7 @@ textarea.theme-form-control {
                                                                     <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="35" title="Increase Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                                                 </div>
                                                                 <label class="correct-radio-label text-success mb-0">
-                                                                    <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ $isCorrect ? 'checked' : '' }}>
+                                                                    <input type="radio" {{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'disabled' : 'name=correct_ans' }} value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ $isCorrect ? 'checked' : '' }}>
                                                                     <span>Mark Correct</span>
                                                                 </label>
                                                             </div>
@@ -975,7 +975,7 @@ textarea.theme-form-control {
                                                                 <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="35" title="Increase Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                                             </div>
                                                             <label class="correct-radio-label text-success mb-0 mr-2">
-                                                                <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') ? 'checked' : '' }}>
+                                                                <input type="radio" {{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'disabled' : 'name=correct_ans' }} value="4" class="manual-correct-radio mr-1" {{ ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') ? 'checked' : '' }}>
                                                                 <span>Mark Correct</span>
                                                             </label>
                                                             <button type="button" id="btn-remove-manual-opt-5" class="btn btn-xs btn-link text-danger p-0" title="Remove Option E" style="font-size: 11px;">
@@ -985,6 +985,29 @@ textarea.theme-form-control {
                                                     </div>
                                                     <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5', $data->ans5 ?? '') }}</textarea>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Descriptive / Numerical Answer Section --}}
+                                    <div id="manual-descriptive-container" class="{{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? '' : 'd-none' }}">
+                                        <div class="theme-card mb-3" style="background:#ffffff; border: 1px solid #cbd5e1; border-left: 4px solid #002C54; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <div class="p-3">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <label for="manual_descriptive_correct_ans" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                                                        <i class="fa fa-check-circle text-success mr-1"></i> Expected / Correct Answer (Numerical / Subjective Value) <span class="text-danger">*</span>
+                                                    </label>
+                                                    <span class="badge badge-info" style="font-size: 10px; font-weight: 600;">Numerical / Text Match</span>
+                                                </div>
+                                                <div class="input-group my-2">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text font-weight-bold" style="font-size: 11.5px; background: #e0f2fe; color: #002C54; border-color: #cbd5e1;">Answer =</span>
+                                                    </div>
+                                                    <input type="text" id="manual_descriptive_correct_ans" {{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'name=correct_ans' : '' }} class="form-control" style="font-size: 12.5px; font-weight: 700; color: #002C54; border-color: #cbd5e1;" placeholder="e.g. 10, x/10, 2.5, 3/4, etc." value="{{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? old('correct_ans', $data->correct_ans ?? '') : '' }}">
+                                                </div>
+                                                <small class="text-muted" style="font-size: 10.5px; line-height: 1.4; display: block;">
+                                                    <i class="fa fa-info-circle text-primary mr-1"></i> Students' responses in online and offline tests will be evaluated and matched against this expected numerical/text value (e.g. integer <code>10</code>, decimal <code>2.5</code>, or expression <code>x/10</code>).
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -1816,13 +1839,45 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mType) mType.value = globalTypeSelect?.value || '1';
     };
 
-    // Toggle options display if Descriptive is chosen
+    // Toggle options display & answer mode if Objective (MCQ) vs Descriptive is chosen
+    function applyQuestionFormatToggle(isMcq) {
+        const optContainer = document.getElementById('manual-options-container');
+        const descContainer = document.getElementById('manual-descriptive-container');
+        const descInput = document.getElementById('manual_descriptive_correct_ans');
+        const mcqRadios = document.querySelectorAll('.manual-correct-radio');
+
+        if (isMcq) {
+            if (optContainer) optContainer.classList.remove('d-none');
+            if (descContainer) descContainer.classList.add('d-none');
+            if (descInput) {
+                descInput.removeAttribute('name');
+            }
+            mcqRadios.forEach(r => {
+                r.setAttribute('name', 'correct_ans');
+                r.removeAttribute('disabled');
+            });
+        } else {
+            if (optContainer) optContainer.classList.add('d-none');
+            if (descContainer) descContainer.classList.remove('d-none');
+            mcqRadios.forEach(r => {
+                r.removeAttribute('name');
+                r.setAttribute('disabled', 'disabled');
+            });
+            if (descInput) {
+                descInput.setAttribute('name', 'correct_ans');
+                descInput.removeAttribute('disabled');
+            }
+        }
+        updateManualLivePreview();
+    }
+
     globalTypeSelect?.addEventListener('change', function () {
         const isMcq = (this.value === '1');
-        const optContainer = document.getElementById('manual-options-container');
-        if (optContainer) {
-            optContainer.style.display = isMcq ? 'block' : 'none';
-        }
+        applyQuestionFormatToggle(isMcq);
+    });
+
+    document.getElementById('manual_descriptive_correct_ans')?.addEventListener('input', function () {
+        updateManualLivePreview();
     });
 
     // =========================================================================
@@ -2236,22 +2291,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const a4 = getManualFieldVal('manual_ans4').trim();
         const a5 = getManualFieldVal('manual_ans5').trim();
         const explanation = getManualFieldVal('manual_explanation').trim();
+        const isMcq = (globalTypeSelect?.value === '1');
+        const descVal = document.getElementById('manual_descriptive_correct_ans')?.value.trim() || '';
 
         const isOpt5Visible = colOpt5 && !colOpt5.classList.contains('d-none');
-        const correctRadio = document.querySelector('input[name="correct_ans"]:checked');
+        const correctRadio = document.querySelector('input.manual-correct-radio:checked');
         const correctBadge = document.getElementById('manual-preview-correct-badge');
 
         const optLetters = ['A', 'B', 'C', 'D', 'E'];
         const correctIdx = correctRadio ? parseInt(correctRadio.value, 10) : 0;
         if (correctBadge) {
-            correctBadge.textContent = `Correct: Option ${optLetters[correctIdx] || 'A'}`;
+            if (isMcq) {
+                correctBadge.innerHTML = `<i class="fa fa-check mr-1"></i> Correct: Option ${optLetters[correctIdx] || 'A'}`;
+            } else {
+                correctBadge.innerHTML = `<i class="fa fa-check-circle mr-1"></i> Expected Answer: ${escapeHtml(descVal || '—')}`;
+            }
         }
 
-        // Highlight correct option card in form
-        for (let i = 1; i <= 5; i++) {
-            const card = document.getElementById(`manual-opt-card-${i}`);
-            if (card) {
-                card.classList.toggle('correct-selected', (i - 1) === correctIdx);
+        // Highlight correct option card in form (MCQ only)
+        if (isMcq) {
+            for (let i = 1; i <= 5; i++) {
+                const card = document.getElementById(`manual-opt-card-${i}`);
+                if (card) {
+                    card.classList.toggle('correct-selected', (i - 1) === correctIdx);
+                }
             }
         }
 
@@ -2259,8 +2322,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const imgPreviewSrc = document.getElementById('manual-image-preview')?.getAttribute('src');
         const hasImg = imgPreviewSrc && !document.getElementById('manual-image-preview-wrapper')?.classList.contains('d-none');
 
-        if (!qText && !a1 && !a2 && !a3 && !a4 && !a5 && !hasImg) {
-            if (previewEl) previewEl.innerHTML = '<div class="text-muted text-center py-4" style="font-size: 11.5px;"><i class="fa fa-info-circle mr-1"></i> Start typing question statement and options to see real-time KaTeX rendered preview...</div>';
+        if (!qText && !a1 && !a2 && !a3 && !a4 && !a5 && !hasImg && !descVal) {
+            if (previewEl) previewEl.innerHTML = '<div class="text-muted text-center py-4" style="font-size: 11.5px;"><i class="fa fa-info-circle mr-1"></i> Start typing question statement and options or answer to see real-time KaTeX rendered preview...</div>';
             return;
         }
 
@@ -2275,7 +2338,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
         }
 
-        if (globalTypeSelect?.value === '1') {
+        if (isMcq) {
             const options = [
                 { letter: 'A', text: a1, idx: 0 },
                 { letter: 'B', text: a2, idx: 1 },
@@ -2304,6 +2367,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`;
             });
             html += `</div>`;
+        } else {
+            // Descriptive / Subjective Expected Answer display
+            html += `
+            <div class="p-3 rounded mb-3" style="background: #ecfdf5; border: 1.5px solid #10b981;">
+                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #a7f3d0 !important;">
+                    <span class="badge" style="background: #059669; color: #ffffff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 2px;">
+                        <i class="fa fa-check-circle mr-1"></i> Expected / Correct Answer (Numerical / Subjective)
+                    </span>
+                    <span class="small font-weight-bold text-success" style="font-size: 10.5px;">Evaluation Match Key</span>
+                </div>
+                <div class="mt-2 pl-1" style="font-size: 13px; color: #065f46; font-weight: 700;">
+                    ${descVal ? formatRichExamContent(descVal) : '<span class="text-muted font-weight-normal font-italic" style="font-size: 11.5px;">Enter expected numerical or text answer above...</span>'}
+                </div>
+            </div>`;
         }
 
         if (explanation) {
@@ -2435,14 +2512,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const qId = dataObj.id || '';
         const subNo = (dataObj.sub_question_no !== undefined && dataObj.sub_question_no !== null) ? dataObj.sub_question_no : seq;
         const diffLevel = dataObj.difficulty_level || 'Medium';
+        const qTypeId = (dataObj.question_type_id !== undefined && dataObj.question_type_id !== null) ? parseInt(dataObj.question_type_id, 10) : (globalTypeSelect?.value === '2' ? 2 : 1);
+        const isSubMcq = (qTypeId === 1);
         const qName = dataObj.name ? cleanTextareaValue(dataObj.name) : '';
         const ans1 = dataObj.ans1 ? cleanTextareaValue(dataObj.ans1) : '';
         const ans2 = dataObj.ans2 ? cleanTextareaValue(dataObj.ans2) : '';
         const ans3 = dataObj.ans3 ? cleanTextareaValue(dataObj.ans3) : '';
         const ans4 = dataObj.ans4 ? cleanTextareaValue(dataObj.ans4) : '';
         const ans5 = dataObj.ans5 ? cleanTextareaValue(dataObj.ans5) : '';
-        const correctAns = (dataObj.correct_ans !== undefined && dataObj.correct_ans !== null) ? String(dataObj.correct_ans) : '0';
-        const hasOpt5 = !!(ans5 || correctAns === '4');
+        const correctAns = (dataObj.correct_ans !== undefined && dataObj.correct_ans !== null) ? String(dataObj.correct_ans) : (isSubMcq ? '0' : '');
+        const hasOpt5 = !!(ans5 || (isSubMcq && correctAns === '4'));
         const expl = dataObj.explanation ? cleanTextareaValue(dataObj.explanation) : '';
         const imgPath = dataObj.image || dataObj.image_path || '';
         const fullImgSrc = imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '{{ asset("") }}/' + imgPath.replace(/^\/+/, '')) : '';
@@ -2458,6 +2537,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="d-flex align-items-center gap-1">
                         <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">No:</span>
                         <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${escapeHtmlSafe(subNo)}" style="width: 50px; height: 26px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px; background: #ffffff !important; color: #002C54 !important;">
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">Format:</span>
+                        <select name="directional_questions[${idx}][question_type_id]" class="form-control form-control-sm font-weight-bold dir-sub-type-select" data-idx="${idx}" style="width: 110px; height: 26px; font-size: 11px; padding: 2px 4px; background: #ffffff !important; color: #002C54 !important; border: 1px solid #cbd5e1 !important;">
+                            <option value="1" ${isSubMcq ? 'selected' : ''}>Objective (MCQ)</option>
+                            <option value="2" ${!isSubMcq ? 'selected' : ''}>Descriptive</option>
+                        </select>
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">Level:</span>
@@ -2491,8 +2577,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="Enter question statement or formula...">${escapeHtmlSafe(qName)}</textarea>
                 </div>
 
-                {{-- Options Section --}}
-                <div class="mb-2">
+                {{-- MCQ Options Section --}}
+                <div id="dir_sub_${idx}_options_container" class="${isSubMcq ? '' : 'd-none'} mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #cbd5e1 !important;">
                         <span class="font-weight-bold text-primary small" style="font-size: 11.5px;">
                             <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
@@ -2509,7 +2595,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             { num: 4, letter: 'D', val: '3', ans: ans4 },
                         ].map(opt => `
                             <div class="col-md-6 mb-2">
-                                <div class="option-input-card p-2 border rounded ${opt.val === correctAns ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                                <div class="option-input-card p-2 border rounded ${(isSubMcq && opt.val === correctAns) ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                         <div class="d-flex align-items-center">
                                             <span class="option-label-pill mr-2">${opt.letter}</span>
@@ -2521,7 +2607,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                             </div>
                                             <label class="correct-radio-label mb-0" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
-                                                <input type="radio" name="directional_questions[${idx}][correct_ans]" value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${opt.val === correctAns ? 'checked' : ''}>
+                                                <input type="radio" ${isSubMcq ? `name="directional_questions[${idx}][correct_ans]"` : 'disabled'} value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${(isSubMcq && opt.val === correctAns) ? 'checked' : ''}>
                                                 <span>Mark Correct</span>
                                             </label>
                                         </div>
@@ -2533,7 +2619,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         {{-- Option E --}}
                         <div class="col-md-6 mb-2 ${hasOpt5 ? '' : 'd-none'}" id="dir_sub_${idx}_col_5">
-                            <div class="option-input-card p-2 border rounded ${correctAns === '4' ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                            <div class="option-input-card p-2 border rounded ${(isSubMcq && correctAns === '4') ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
                                 <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                     <div class="d-flex align-items-center">
                                         <span class="option-label-pill mr-2">E</span>
@@ -2546,7 +2632,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                         </div>
                                         <label class="correct-radio-label mb-0 mr-2" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
-                                            <input type="radio" name="directional_questions[${idx}][correct_ans]" value="4" class="dir-correct-radio mr-1" data-idx="${idx}" ${correctAns === '4' ? 'checked' : ''}>
+                                            <input type="radio" ${isSubMcq ? `name="directional_questions[${idx}][correct_ans]"` : 'disabled'} value="4" class="dir-correct-radio mr-1" data-idx="${idx}" ${(isSubMcq && correctAns === '4') ? 'checked' : ''}>
                                             <span>Mark Correct</span>
                                         </label>
                                         <button type="button" class="btn btn-xs btn-link text-danger p-0 btn-remove-subq-opt5" data-idx="${idx}" title="Remove Option E" style="font-size: 11px;">
@@ -2556,6 +2642,24 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </div>
                                 <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option E...">${escapeHtmlSafe(ans5)}</textarea>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Descriptive / Numerical Answer Section --}}
+                <div id="dir_sub_${idx}_descriptive_container" class="${isSubMcq ? 'd-none' : ''} mb-2">
+                    <div class="p-2 rounded border" style="background:#ffffff; border: 1px solid #cbd5e1; border-left: 3.5px solid #002C54 !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="font-weight-bold text-primary mb-0 small" style="font-size: 11px;">
+                                <i class="fa fa-check-circle text-success mr-1"></i> Expected / Correct Answer (Numerical / Subjective):
+                            </label>
+                            <span class="badge badge-light border text-muted small" style="font-size: 9.5px;">Numerical / Text</span>
+                        </div>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text font-weight-bold py-0" style="font-size: 11px; background: #e0f2fe; color: #002C54; border-color: #cbd5e1;">Answer =</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm dir-sub-descriptive-ans font-weight-bold" data-idx="${idx}" ${!isSubMcq ? `name="directional_questions[${idx}][correct_ans]"` : ''} value="${!isSubMcq ? escapeHtmlSafe(correctAns) : ''}" placeholder="e.g. 10, x/10, 2.5..." style="font-size: 11.5px; color: #002C54; border-color: #cbd5e1;">
                         </div>
                     </div>
                 </div>
@@ -2841,8 +2945,47 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Listen to changes in correct radio for sub-questions
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('dir-sub-descriptive-ans')) {
+            updateDirectionalLivePreview();
+        }
+    });
+
+    // Listen to changes in correct radio & format for sub-questions
     document.addEventListener('change', function (e) {
+        // Format toggle for sub-questions (MCQ vs Descriptive)
+        if (e.target.classList.contains('dir-sub-type-select')) {
+            const idx = e.target.dataset.idx;
+            const isMcq = (e.target.value === '1');
+            const optContainer = document.getElementById(`dir_sub_${idx}_options_container`);
+            const descContainer = document.getElementById(`dir_sub_${idx}_descriptive_container`);
+            const descInput = descContainer?.querySelector('.dir-sub-descriptive-ans');
+            const radios = document.querySelectorAll(`input.dir-correct-radio[data-idx="${idx}"]`);
+
+            if (isMcq) {
+                if (optContainer) optContainer.classList.remove('d-none');
+                if (descContainer) descContainer.classList.add('d-none');
+                if (descInput) descInput.removeAttribute('name');
+                radios.forEach(r => {
+                    r.setAttribute('name', `directional_questions[${idx}][correct_ans]`);
+                    r.removeAttribute('disabled');
+                });
+            } else {
+                if (optContainer) optContainer.classList.add('d-none');
+                if (descContainer) descContainer.classList.remove('d-none');
+                radios.forEach(r => {
+                    r.removeAttribute('name');
+                    r.setAttribute('disabled', 'disabled');
+                });
+                if (descInput) {
+                    descInput.setAttribute('name', `directional_questions[${idx}][correct_ans]`);
+                    descInput.removeAttribute('disabled');
+                }
+            }
+            updateDirectionalLivePreview();
+            return;
+        }
+
         if (e.target.classList.contains('dir-correct-radio')) {
             const qIdx = e.target.dataset.idx;
             const correctVal = e.target.value;
@@ -3040,6 +3183,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const explanation = getManualFieldVal(`dir_sub_${idx}_explanation`).trim();
 
             const isOpt5Visible = !document.getElementById(`dir_sub_${idx}_col_5`)?.classList.contains('d-none');
+            const subTypeSelect = document.querySelector(`select[name="directional_questions[${idx}][question_type_id]"]`);
+            const isSubMcq = !subTypeSelect || (subTypeSelect.value === '1');
+            const subDescVal = document.querySelector(`.dir-sub-descriptive-ans[data-idx="${idx}"]`)?.value.trim() || '';
             const correctRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"]:checked`);
             const correctIdx = correctRadio ? parseInt(correctRadio.value, 10) : 0;
 
@@ -3052,9 +3198,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span class="font-weight-bold" style="font-size: 12px; color: #002C54;">
                         <i class="fa fa-question-circle text-primary mr-1"></i> Question #${qNoDisplay}
                     </span>
+                    ${isSubMcq ? `
                     <span class="badge badge-success font-weight-bold" style="font-size: 10px; background: #059669; color: #ffffff; padding: 3px 8px; border-radius: 2px;">
                         <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
                     </span>
+                    ` : `
+                    <span class="badge badge-success font-weight-bold" style="font-size: 10px; background: #059669; color: #ffffff; padding: 3px 8px; border-radius: 2px;">
+                        <i class="fa fa-check-circle mr-1"></i> Expected Answer: ${escapeHtml(subDescVal || '—')}
+                    </span>
+                    `}
                 </div>
 
                 ${qText ? `
@@ -3066,38 +3218,45 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="mb-3 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
                     <img src="${subImgSrc}" style="max-height: 130px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
                 </div>` : ''}
+            `;
 
-                <div class="row">`;
+            if (isSubMcq) {
+                const options = [
+                    { letter: 'A', text: a1, idx: 0 },
+                    { letter: 'B', text: a2, idx: 1 },
+                    { letter: 'C', text: a3, idx: 2 },
+                    { letter: 'D', text: a4, idx: 3 },
+                ];
+                if (isOpt5Visible || a5) {
+                    options.push({ letter: 'E', text: a5, idx: 4 });
+                }
 
-            const options = [
-                { letter: 'A', text: a1, idx: 0 },
-                { letter: 'B', text: a2, idx: 1 },
-                { letter: 'C', text: a3, idx: 2 },
-                { letter: 'D', text: a4, idx: 3 },
-            ];
-            if (isOpt5Visible || a5) {
-                options.push({ letter: 'E', text: a5, idx: 4 });
-            }
+                html += `<div class="row">`;
+                options.forEach(opt => {
+                    const isCorrect = (correctIdx === opt.idx);
+                    const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1.5px solid #059669;' : 'background: #f8fafc; border: 1px solid #cbd5e1;';
+                    const badgeStyle = isCorrect ? 'background: #059669; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
+                    const colWidth = (options.length === 5 && opt.letter === 'E') ? 'col-12' : 'col-6';
 
-            options.forEach(opt => {
-                const isCorrect = (correctIdx === opt.idx);
-                const bgStyle = isCorrect ? 'background: #ecfdf5; border: 1.5px solid #059669;' : 'background: #f8fafc; border: 1px solid #cbd5e1;';
-                const badgeStyle = isCorrect ? 'background: #059669; color: #ffffff;' : 'background: #002C54; color: #ffffff;';
-                const colWidth = (options.length === 5 && opt.letter === 'E') ? 'col-12' : 'col-6';
-
-                html += `
-                <div class="${colWidth} mb-2">
-                    <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
-                        <span class="badge mr-2" style="${badgeStyle} font-size: 10.5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
-                        <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#0f172a'}; font-weight: ${isCorrect ? '700' : '500'}; line-height: 1.45;">
-                            ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                    html += `
+                    <div class="${colWidth} mb-2">
+                        <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
+                            <span class="badge mr-2" style="${badgeStyle} font-size: 10.5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
+                            <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#0f172a'}; font-weight: ${isCorrect ? '700' : '500'}; line-height: 1.45;">
+                                ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                            </div>
+                            ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
                         </div>
-                        ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
-                    </div>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `
+                <div class="p-2 px-3 rounded mb-2 d-flex align-items-center justify-content-between" style="background: #ecfdf5; border: 1.5px solid #059669;">
+                    <span class="badge mr-2 font-weight-bold px-2 py-1" style="background: #059669; color: #ffffff; font-size: 10px;">Expected Answer</span>
+                    <strong style="font-size: 12.5px; color: #065f46;">${subDescVal ? formatRichExamContent(subDescVal) : '<span class="text-muted font-italic font-weight-normal">Enter numerical or text answer above...</span>'}</strong>
                 </div>`;
-            });
-
-            html += `</div>`;
+            }
 
             if (explanation) {
                 html += `
@@ -3221,6 +3380,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 return false;
             }
+
+            if (globalTypeSelect?.value === '2') {
+                const descAns = document.getElementById('manual_descriptive_correct_ans')?.value.trim();
+                if (!descAns) {
+                    alert('Please enter the Expected / Correct Answer (Numerical / Subjective value) before saving.');
+                    document.getElementById('manual_descriptive_correct_ans')?.focus();
+                    e.preventDefault();
+                    return false;
+                }
+            }
         }
     });
 
@@ -3233,7 +3402,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             hideOption5();
-            const opt1Radio = document.querySelector('input[name="correct_ans"][value="0"]');
+            const descInput = document.getElementById('manual_descriptive_correct_ans');
+            if (descInput) descInput.value = '';
+            const opt1Radio = document.querySelector('input.manual-correct-radio[value="0"]');
             if (opt1Radio) opt1Radio.checked = true;
             document.getElementById('manual-image-preview-wrapper')?.classList.add('d-none');
             const manualImg = document.getElementById('manual_image');
@@ -3256,6 +3427,9 @@ document.addEventListener('DOMContentLoaded', function () {
             @if(!empty($data->ans5) || old('ans5') || ((string)old('correct_ans', $data->correct_ans ?? '0') === '4'))
                 showOption5();
             @endif
+            if (globalTypeSelect?.value === '2') {
+                applyQuestionFormatToggle(false);
+            }
             setTimeout(updateManualLivePreview, 250);
         }
     };

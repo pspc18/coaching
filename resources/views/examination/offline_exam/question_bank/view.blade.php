@@ -714,7 +714,7 @@
                         @forelse($data as $idx => $item)
                             @php
                                 $rowNum = ($data->firstItem() ?? 1) + $idx;
-                                $correctOpt = (string)($item->correct_ans ?? '0');
+                                $correctOpt = ($item->question_type_id == 2) ? (string)($item->correct_ans ?? '') : (string)($item->correct_ans ?? '0');
                                 $hasImage = !empty($item->image);
                                 $isGrouped = !empty($item->group_id);
                                 $isAi = !empty($item->ai_extracted);
@@ -829,7 +829,15 @@
                                             @endforeach
                                         </div>
                                     @else
-                                        <span class="text-muted small"><em>Descriptive / Subjective</em></span>
+                                        @if(!empty($item->correct_ans))
+                                            <span class="qb-opt-chip is-correct" title="Expected Answer: {{ $item->correct_ans }}" style="background: #ecfdf5; border-color: #10b981;">
+                                                <strong style="color: #065f46;">Ans:</strong> 
+                                                <span class="katex-render-target" style="color: #065f46; font-weight: 700;">{!! Helper::cleanHtmlFormat($item->correct_ans) !!}</span>
+                                                <i class="fa fa-check text-success ml-1"></i>
+                                            </span>
+                                        @else
+                                            <span class="text-muted small"><em>Descriptive / Subjective</em></span>
+                                        @endif
                                     @endif
                                 </td>
 
@@ -993,6 +1001,15 @@
                                 <strong class="badge badge-light border mr-1">E</strong> <span id="modal_ans5"></span>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {{-- Expected Answer (Descriptive) --}}
+                <div id="modal_descriptive_wrap" class="mb-3 d-none">
+                    <span class="small font-weight-bold text-muted text-uppercase mb-2 d-block">Expected / Correct Answer:</span>
+                    <div class="p-3 rounded border" style="background: #ecfdf5; border-color: #86efac !important;">
+                        <span class="badge badge-success mb-1 font-weight-bold" style="font-size: 10px;">Numerical / Subjective Key</span>
+                        <div id="modal_descriptive_text" style="font-size: 13.5px; font-weight: 700; color: #166534;"></div>
                     </div>
                 </div>
 
@@ -1230,8 +1247,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Question Statement
         $('#modal_question_text').html(formatRichExamContent(question));
 
-        // Options
+        // Options vs Descriptive Answer
         if (type.indexOf('Descriptive') === -1) {
+            $('#modal_descriptive_wrap').addClass('d-none');
             $('#modal_ans1').html(formatRichExamContent(a1));
             $('#modal_ans2').html(formatRichExamContent(a2));
             $('#modal_ans3').html(formatRichExamContent(a3));
@@ -1261,6 +1279,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             $('#modal_options_wrap').addClass('d-none');
+            $('#modal_descriptive_text').html(formatRichExamContent(correctAns || '—'));
+            $('#modal_descriptive_wrap').removeClass('d-none');
         }
 
         // Explanation / Solution
