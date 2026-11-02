@@ -41,21 +41,36 @@
 <style>
 /* ==========================================================================
    ARISE ERP - MODERN EXAM BUILDER THEME (HIGH CONTRAST & EQUAL HEIGHT)
-   - Backgrounds: Dark Navy (#002C54 to #0f3460), Page Canvas (#eef2f6), Cards (#ffffff)
+   - Viewport fitting: height: calc(100vh - var(--header-height, 56px) - 12px)
    - Contrast Rule:
      * Dark Backgrounds -> Strictly light text (#ffffff, #f8fafc, #38bdf8, #cbd5e1)
      * Light Backgrounds -> Strictly dark text (#0f172a, #1e293b, #334155, #475569)
-   - Equal-Height Dual-Column Layout on Desktop
+   - Equal-Height Dual-Column Layout with Zero Dead Space
    ========================================================================== */
 
-.omr-page-wrapper {
-    padding: 10px 14px 20px 14px;
+.content-wrapper.exam-page {
+    background: #eef2f6 !important;
+}
+
+.omr-page-layout {
+    height: calc(100vh - var(--header-height, 56px) - 12px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 6px 12px 10px 12px;
     background: #eef2f6;
-    min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 12px;
     color: #0f172a;
     box-sizing: border-box;
+}
+
+@media (max-width: 991px) {
+    .omr-page-layout {
+        height: auto;
+        min-height: calc(100vh - 56px);
+        overflow-y: auto;
+    }
 }
 
 /* 1. Hero Header Banner (Dark Navy -> Light Fonts) */
@@ -63,14 +78,15 @@
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
     border-radius: 4px;
-    padding: 8px 14px;
+    padding: 7px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 8px;
     box-shadow: 0 1px 3px rgba(0, 44, 84, 0.18);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 .perf-hero-text {
     display: flex;
@@ -82,7 +98,7 @@
     letter-spacing: .06em;
     color: #38bdf8;
     font-weight: 700;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -109,7 +125,7 @@
     font-weight: 700;
 }
 .perf-title {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
@@ -194,8 +210,9 @@
 .mode-selector-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 @media (max-width: 1200px) {
     .mode-selector-grid {
@@ -211,12 +228,12 @@
     background: #ffffff;
     border: 1.5px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     cursor: pointer;
     transition: all 0.18s ease;
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 9px;
     position: relative;
     user-select: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -229,7 +246,7 @@
 .mode-option-card.active {
     border-color: #002C54;
     background: #f0f7ff;
-    box-shadow: 0 3px 10px rgba(0, 44, 84, 0.14);
+    box-shadow: 0 3px 8px rgba(0, 44, 84, 0.14);
 }
 .mode-option-card input[type="radio"] {
     position: absolute;
@@ -237,15 +254,15 @@
     pointer-events: none;
 }
 .mode-icon-circle {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: #e2e8f0;
     color: #002C54;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 14px;
     flex-shrink: 0;
     transition: all 0.18s ease;
 }
@@ -254,31 +271,31 @@
     color: #ffffff;
 }
 .mode-card-title {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 2px 0;
+    margin: 0 0 1px 0;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 .mode-option-card.active .mode-card-title {
     color: #002C54;
 }
 .mode-card-desc {
-    font-size: 11px;
+    font-size: 10.5px;
     color: #475569;
     margin: 0;
-    line-height: 1.35;
+    line-height: 1.3;
 }
 .mode-option-card.active .mode-card-desc {
     color: #334155;
 }
 .mode-badge-pill {
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 2px 7px;
+    padding: 1px 6px;
     border-radius: 10px;
     background: #e2e8f0;
     color: #1e293b;
@@ -290,9 +307,11 @@
 
 /* 3. Equal-Height Two-Column Row */
 .exam-builder-row {
+    flex: 1;
+    min-height: 0;
     display: flex;
     align-items: stretch;
-    gap: 14px;
+    gap: 12px;
     margin: 0;
 }
 .exam-builder-col-left {
@@ -300,13 +319,15 @@
     max-width: 42%;
     display: flex;
     flex-direction: column;
+    min-height: 0;
     padding: 0;
 }
 .exam-builder-col-right {
-    flex: 0 0 calc(58% - 14px);
-    max-width: calc(58% - 14px);
+    flex: 0 0 calc(58% - 12px);
+    max-width: calc(58% - 12px);
     display: flex;
     flex-direction: column;
+    min-height: 0;
     padding: 0;
 }
 @media (max-width: 991px) {
@@ -329,43 +350,37 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 680px;
+    min-height: 0;
     overflow: hidden;
-}
-@media (min-width: 992px) {
-    .builder-main-card {
-        height: calc(100vh - 195px);
-        min-height: 680px;
-    }
 }
 
 /* Card Header (Deep Navy -> White Text) */
 .theme-card-header {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
     color: #ffffff !important;
-    padding: 8px 14px;
+    padding: 7px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     flex-shrink: 0;
-    min-height: 42px;
+    min-height: 38px;
 }
 .theme-card-header .card-title {
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     display: flex !important;
     align-items: center !important;
-    gap: 7px !important;
+    gap: 6px !important;
     margin: 0 !important;
     color: #ffffff !important;
     line-height: 1.2 !important;
 }
 .theme-card-header .header-badge {
-    font-size: 10.5px;
+    font-size: 10px;
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.35);
-    padding: 3px 9px;
+    padding: 2px 8px;
     border-radius: 3px;
     color: #ffffff !important;
     font-weight: 700;
@@ -374,8 +389,9 @@
 /* Left Card Scrollable Body */
 .builder-card-body {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: #ffffff;
 }
 
@@ -384,18 +400,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: 5px 9px;
     background: #f1f5f9;
     border-left: 3px solid #002C54;
     border-radius: 2px;
-    margin-bottom: 10px;
-    margin-top: 12px;
+    margin-bottom: 8px;
+    margin-top: 10px;
 }
 .builder-section-header:first-child {
     margin-top: 0;
 }
 .builder-section-header h4 {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     color: #002C54;
     margin: 0;
@@ -406,19 +422,19 @@
 
 /* Pinned Bottom Footer Action on Left Card */
 .builder-card-footer {
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: #f8fafc;
     border-top: 1px solid #cbd5e1;
     flex-shrink: 0;
 }
 .btn-create-exam-main {
     width: 100%;
-    height: 38px;
+    height: 36px;
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff !important;
     border: none;
     border-radius: 4px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: .02em;
     display: flex;
@@ -437,17 +453,17 @@
 
 /* Form Controls (Light Background -> Dark Text) */
 .theme-form-group {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 .theme-form-group label {
     font-size: 11px;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
     display: block;
 }
 .theme-form-control {
-    height: 30px;
+    height: 29px;
     padding: 4px 8px;
     font-size: 11.5px;
     border: 1px solid #cbd5e1 !important;
@@ -476,7 +492,7 @@ textarea.theme-form-control {
     height: auto !important;
 }
 .theme-hint {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #475569;
     margin-top: 2px;
 }
@@ -484,11 +500,11 @@ textarea.theme-form-control {
 /* Quick Question Chips */
 .quick-chip-btn {
     display: inline-block;
-    padding: 3px 9px;
+    padding: 2px 8px;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
     background: #f8fafc;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     color: #1e293b;
     cursor: pointer;
@@ -502,7 +518,7 @@ textarea.theme-form-control {
     border-color: #002C54;
 }
 
-/* Answer Key Matrix */
+/* Answer Key Matrix (Two-Column Responsive Grid) */
 .answer-key-box {
     border: 1px solid #cbd5e1;
     border-radius: 4px;
@@ -512,7 +528,7 @@ textarea.theme-form-control {
 .answer-key-toolbar {
     background: #f8fafc;
     border-bottom: 1px solid #cbd5e1;
-    padding: 6px 10px;
+    padding: 5px 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -523,8 +539,8 @@ textarea.theme-form-control {
     color: #334155;
 }
 .ak-btn-group button {
-    padding: 3px 7px;
-    font-size: 10px;
+    padding: 2px 6px;
+    font-size: 9.5px;
     font-weight: 700;
     border: 1px solid #cbd5e1;
     background: #ffffff;
@@ -539,34 +555,41 @@ textarea.theme-form-control {
     border-color: #002C54;
 }
 .answer-key-list {
-    max-height: 270px;
+    max-height: 380px;
     overflow-y: auto;
-    padding: 4px 8px;
+    padding: 6px 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 10px;
+}
+@media (max-width: 576px) {
+    .answer-key-list {
+        grid-template-columns: 1fr;
+    }
 }
 .ak-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 6px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 3px 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
     font-size: 11px;
 }
-.ak-row:last-child {
-    border-bottom: none;
-}
 .ak-row:hover {
-    background: #f8fafc;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
 }
 .ak-qnum {
     font-weight: 700;
     color: #002C54;
-    width: 38px;
+    width: 32px;
     flex-shrink: 0;
 }
 .ak-options {
     display: flex;
-    gap: 6px;
-    flex: 1;
+    gap: 4px;
     justify-content: flex-end;
 }
 .ak-option-label {
@@ -582,11 +605,11 @@ textarea.theme-form-control {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 22px;
+    width: 24px;
+    height: 20px;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     color: #334155;
     background: #ffffff;
@@ -605,8 +628,8 @@ textarea.theme-form-control {
     border: 1px solid #cbd5e1;
     border-radius: 3px;
     background: #ffffff;
-    padding: 8px 10px;
-    margin-bottom: 8px;
+    padding: 7px 9px;
+    margin-bottom: 7px;
     transition: all 0.15s ease;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
@@ -618,52 +641,52 @@ textarea.theme-form-control {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
+    margin-bottom: 5px;
+    padding-bottom: 3px;
     border-bottom: 1px dashed #e2e8f0;
 }
 .selected-q-badges {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     flex-wrap: wrap;
 }
 .q-badge-num {
     background: #002C54;
     color: #ffffff;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
-    padding: 2px 7px;
+    padding: 2px 6px;
     border-radius: 2px;
 }
 .q-badge-type {
     background: #e0f2fe;
     color: #0369a1;
     border: 1px solid #bae6fd;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 2px;
 }
 .q-badge-ans {
     background: #dcfce7;
     color: #15803d;
     border: 1px solid #bbf7d0;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 2px;
 }
 .selected-q-text {
     font-size: 11.5px;
     color: #0f172a;
     line-height: 1.45;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 .selected-q-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
+    gap: 4px;
     font-size: 11px;
 }
 .opt-pill-preview {
@@ -688,8 +711,8 @@ textarea.theme-form-control {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #334155;
-    padding: 2px 6px;
-    font-size: 10px;
+    padding: 2px 5px;
+    font-size: 9.5px;
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.12s;
@@ -713,11 +736,13 @@ textarea.theme-form-control {
     flex-direction: column;
     height: 100%;
     flex: 1;
+    min-height: 0;
 }
 .builder-right-panel .theme-card-body {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: #ffffff;
 }
 
@@ -726,9 +751,9 @@ textarea.theme-form-control {
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 12px 14px;
+    padding: 10px 12px;
     font-size: 11.5px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 .normal-summary-box .meta-label {
     color: #475569;
@@ -741,60 +766,61 @@ textarea.theme-form-control {
 .workflow-steps-vertical {
     display: flex;
     flex-direction: column;
-    gap: 11px;
+    gap: 9px;
     padding-left: 2px;
 }
 .wf-step-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
 }
 .wf-step-icon {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
     border-radius: 50%;
     background: #002C54;
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     margin-top: 1px;
     box-shadow: 0 1px 3px rgba(0, 44, 84, 0.2);
 }
 .wf-step-content strong {
-    font-size: 12px;
+    font-size: 11.5px;
     color: #0f172a;
     display: block;
     margin-bottom: 1px;
 }
 .wf-step-content p {
-    font-size: 11px;
+    font-size: 10.5px;
     color: #334155;
-    line-height: 1.4;
+    line-height: 1.35;
     margin-bottom: 0;
 }
 .normal-quick-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-top: 12px;
+    gap: 7px;
+    padding-top: 10px;
     border-top: 1px solid #e2e8f0;
     flex-wrap: wrap;
     margin-top: auto;
 }
 .normal-quick-actions .dash-btn {
-    height: 30px;
-    font-size: 11px;
+    height: 28px;
+    font-size: 10.5px;
     border-radius: 3px;
 }
 
 /* Mode 2 & Mode 3 OMR Sheet Viewport */
 .omr-sheet-viewport {
     background: #475569;
-    padding: 16px 12px;
+    padding: 12px 10px;
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     display: flex;
     justify-content: center;
@@ -838,7 +864,7 @@ textarea.theme-form-control {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    padding: 4px 12px !important;
+    padding: 3px 10px !important;
     border-radius: 3px !important;
     font-size: 11px !important;
     font-weight: 600 !important;
@@ -874,8 +900,9 @@ textarea.theme-form-control {
 /* Printable Question Paper Layout */
 .paper-preview-container {
     background: #475569;
-    padding: 14px;
+    padding: 12px;
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     display: flex;
     justify-content: center;
@@ -883,7 +910,7 @@ textarea.theme-form-control {
 .printable-exam-paper {
     background: #ffffff;
     box-shadow: 0 4px 18px rgba(0,0,0,0.3);
-    padding: 24px 30px;
+    padding: 20px 24px;
     width: 100%;
     max-width: 760px;
     font-family: "DejaVu Sans", "Segoe UI", Arial, sans-serif;
@@ -893,11 +920,11 @@ textarea.theme-form-control {
 .exam-paper-header {
     text-align: center;
     border-bottom: 2px solid #002C54;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
 }
 .exam-paper-institute {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: #002C54;
     text-transform: uppercase;
@@ -905,43 +932,43 @@ textarea.theme-form-control {
     margin: 0 0 2px;
 }
 .exam-paper-exam-name {
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 6px;
+    margin: 0 0 5px;
 }
 .exam-paper-meta-table {
     width: 100%;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     color: #1e293b;
     border-collapse: collapse;
 }
 .exam-paper-meta-table td {
-    padding: 2px 6px;
+    padding: 2px 5px;
 }
 .exam-instructions-box {
     background: #f8fafc;
     border: 1px dashed #94a3b8;
-    padding: 6px 10px;
-    font-size: 10.5px;
+    padding: 5px 8px;
+    font-size: 10px;
     color: #334155;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     border-radius: 2px;
 }
 .paper-question-block {
-    margin-bottom: 12px;
-    padding-bottom: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #f1f5f9;
 }
 .paper-question-block:last-child {
     border-bottom: none;
 }
 .paper-q-statement {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 600;
-    line-height: 1.45;
-    margin-bottom: 5px;
+    line-height: 1.4;
+    margin-bottom: 4px;
     color: #0f172a;
 }
 .paper-q-num {
@@ -951,20 +978,20 @@ textarea.theme-form-control {
 }
 .paper-q-marks {
     float: right;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     color: #64748b;
 }
 .paper-q-options-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px 16px;
-    font-size: 11px;
-    padding-left: 10px;
+    gap: 4px 14px;
+    font-size: 10.5px;
+    padding-left: 8px;
 }
 .paper-q-opt {
     color: #1e293b;
-    line-height: 1.4;
+    line-height: 1.35;
 }
 .paper-q-opt-label {
     font-weight: 700;
@@ -972,9 +999,9 @@ textarea.theme-form-control {
     margin-right: 4px;
 }
 .paper-q-diagram {
-    max-height: 140px;
+    max-height: 130px;
     display: block;
-    margin: 6px 0;
+    margin: 5px 0;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
     padding: 2px;
@@ -984,20 +1011,20 @@ textarea.theme-form-control {
 .modal-header-theme {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
     color: #ffffff !important;
-    padding: 10px 14px;
+    padding: 9px 12px;
 }
 .modal-header-theme .modal-title {
     color: #ffffff !important;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
 }
 .modal-filter-bar {
     background: #f8fafc;
     border-bottom: 1px solid #cbd5e1;
-    padding: 8px 12px;
+    padding: 7px 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     flex-wrap: wrap;
 }
 .modal-filter-bar label {
@@ -1005,16 +1032,16 @@ textarea.theme-form-control {
     font-weight: 700;
 }
 .modal-questions-scroll {
-    max-height: 60vh;
+    max-height: 58vh;
     overflow-y: auto;
-    padding: 10px 12px;
+    padding: 8px 10px;
     background: #ffffff;
 }
 .modal-q-item {
     border: 1px solid #cbd5e1;
     border-radius: 3px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+    padding: 7px 9px;
+    margin-bottom: 5px;
     background: #ffffff;
     transition: background 0.1s;
     cursor: pointer;
@@ -1027,7 +1054,7 @@ textarea.theme-form-control {
     border-color: #0284c7;
 }
 
-/* Custom Scrollbars */
+/* Custom Sleek Scrollbars */
 .builder-card-body::-webkit-scrollbar,
 .builder-right-panel .theme-card-body::-webkit-scrollbar,
 .omr-sheet-viewport::-webkit-scrollbar,
@@ -1117,8 +1144,8 @@ textarea.theme-form-control {
 }
 </style>
 
-<div class="content-wrapper">
-    <div class="omr-page-wrapper" id="exam-builder-app">
+<div class="content-wrapper exam-page">
+    <div class="omr-page-layout" id="exam-builder-app">
 
         {{-- 1. Hero Header Banner (High Contrast) --}}
         <div class="perf-hero">
@@ -1164,20 +1191,20 @@ textarea.theme-form-control {
 
         {{-- Alerts --}}
         @if(session('message'))
-            <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 3px;">
+            <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-2 flex-shrink-0" style="font-size: 11.5px; border-radius: 3px;">
                 <i class="fa fa-check-circle mr-1"></i> {{ session('message') }}
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
         @endif
         @if(session('error') || (isset($errors) && $errors->any()))
-            <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 3px;">
+            <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2 flex-shrink-0" style="font-size: 11.5px; border-radius: 3px;">
                 <i class="fa fa-exclamation-triangle mr-1"></i> {{ session('error') ?? (isset($errors) ? $errors->first() : '') }}
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
         @endif
 
         {{-- Form Container --}}
-        <form id="exam-create-form" action="{{ !empty($formExam->id) ? url('edit/exam/' . $formExam->id) : url('add/exam') }}" method="post" enctype="multipart/form-data">
+        <form id="exam-create-form" action="{{ !empty($formExam->id) ? url('edit/exam/' . $formExam->id) : url('add/exam') }}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-grow-1" style="min-height: 0; flex: 1;">
             @csrf
             @if(!empty($formExam->id))
                 <input type="hidden" name="exam_id" value="{{ $formExam->id }}">
@@ -1257,7 +1284,7 @@ textarea.theme-form-control {
                 </label>
             </div>
 
-            {{-- Equal-Height Dual-Column Layout --}}
+            {{-- Equal-Height Dual-Column Row --}}
             <div class="exam-builder-row">
 
                 {{-- Left Column: Parameters & Configuration Master Card --}}
@@ -1455,7 +1482,7 @@ textarea.theme-form-control {
                                         </div>
                                     </div>
                                     <div class="answer-key-list" id="exam-answer-key-grid">
-                                        {{-- Rendered by JS --}}
+                                        {{-- Rendered by JS in responsive 2-column grid --}}
                                     </div>
                                 </div>
                             </div>
@@ -1711,9 +1738,9 @@ textarea.theme-form-control {
                             </div>
                         </div>
 
-                        <div class="tab-content flex-grow-1 d-flex flex-column" style="height: calc(100% - 42px); overflow: hidden;">
+                        <div class="tab-content flex-grow-1 d-flex flex-column" style="height: calc(100% - 38px); min-height: 0; overflow: hidden;">
                             {{-- Tab 1: Printable Question Paper --}}
-                            <div class="tab-pane fade show active flex-grow-1" id="tab-paper-content" role="tabpanel" style="height: 100%; overflow: hidden;">
+                            <div class="tab-pane fade show active flex-grow-1" id="tab-paper-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden;">
                                 <div class="paper-preview-container" style="height: 100%;">
                                     <div class="printable-exam-paper" id="exam-paper-print-area">
                                         {{-- Paper Header --}}
@@ -1755,7 +1782,7 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- Tab 2: Matching OMR Sheet --}}
-                            <div class="tab-pane fade flex-grow-1" id="tab-omr-content" role="tabpanel" style="height: 100%; overflow: hidden;">
+                            <div class="tab-pane fade flex-grow-1" id="tab-omr-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden;">
                                 <div class="omr-sheet-viewport" style="height: 100%;">
                                     <div class="omr-sheet-paper" id="exam-omr-mode2-paper">
                                         {{-- Injected / mirrored from SVG --}}
@@ -1788,7 +1815,7 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- Online Test Preview Flow --}}
-                            <div style="flex: 1; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 14px;">
+                            <div style="flex: 1; min-height: 0; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 12px;">
                                 <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
                                     <div>
                                         <h5 class="font-weight-bold mb-0" id="online-paper-title" style="font-size: 13.5px; color: #0f172a;">{{ $previewName ?: 'Untitled Online Examination' }}</h5>
@@ -2234,17 +2261,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // SVG OMR Sheet Render
+    // SVG OMR Sheet Render (Balanced & Centered Question Columns)
     const renderOMRPreview = () => {
         const count = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
         const labels = ['A', 'B', 'C', 'D'];
         let svg = '';
 
-        for (let block = 0; block < 4; block++) {
+        // Calculate number of 25-question blocks and center them dynamically
+        const totalBlocks = Math.max(1, Math.ceil(count / 25));
+        const blockWidth = 155;
+        const blockGap = 15;
+        const totalGridWidth = totalBlocks * blockWidth + (totalBlocks - 1) * blockGap;
+        const startX = Math.round((800 - totalGridWidth) / 2);
+
+        for (let block = 0; block < totalBlocks; block++) {
             const blockStart = block * 25 + 1;
             if (blockStart > count) continue;
             const blockEnd = Math.min(count, blockStart + 24);
-            const bx = 70 + block * 170;
+            const bx = startX + block * (blockWidth + blockGap);
 
             svg += `<text x="${bx + 77.5}" y="456" text-anchor="middle" font-family="Arial" font-size="8.5" font-weight="700" fill="#002C54">QUESTIONS ${blockStart} - ${blockEnd}</text>`;
             svg += `<rect x="${bx}" y="444" width="155" height="576" fill="none" stroke="#94a3b8" stroke-width="1"/>`;
