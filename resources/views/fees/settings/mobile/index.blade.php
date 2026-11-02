@@ -14,17 +14,18 @@
 <style>
 /* ==========================================================================
    ARISE ERP - NATIVE MOBILE FEES SETTINGS & POLICY CONFIGURATION
-   100% aligned with Arise ERP Mobile Design Guidelines (editSetting & admissionView)
+   100% aligned with Arise ERP Mobile Design Guidelines (editSetting & feesGroup)
+   - Zero double-padding (main already has 6px 8px 16px)
    - Sharp 4px radii, Navy Blue palette (#002C54)
    - Glassmorphic Hero Card with Live Session KPIs
    - Interactive Sticky Step Progress Tracker
    - Touch-optimized Section Cards with Prepended Icons
    - Real-time Receipt Number live generator preview
-   - Pinned Bottom Action Dock with Instant Feedback
+   - Fixed Bottom Action Dock above mobile dock
    ========================================================================== */
 
 .settings-mob-container {
-    padding: 8px 10px 85px 10px;
+    padding: 0 0 65px 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
     font-size: 12px;
@@ -35,7 +36,7 @@
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     border-radius: 4px;
-    padding: 11px 12px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -117,26 +118,25 @@
     margin-top: 1px;
 }
 
-/* 2. Interactive Sticky Step Progress Tracker */
+/* 2. Interactive Step Tracker */
 .mob-tracker-container {
     position: relative;
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 .mob-step-tracker {
     width: 100%;
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    transition: all .2s ease;
+    padding: 6px 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .mob-step-nodes {
     display: flex;
     justify-content: space-between;
     position: relative;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     gap: 4px;
 }
 .mob-step-node {
@@ -148,7 +148,7 @@
     gap: 4px;
     cursor: pointer;
     user-select: none;
-    padding: 3px 5px;
+    padding: 2px 4px;
     border-radius: 3px;
     transition: all .15s ease;
     white-space: nowrap;
@@ -164,15 +164,15 @@
     color: #16a34a;
 }
 .mob-step-dot {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     border-radius: 50%;
     background: #f1f5f9;
     border: 1.5px solid #cbd5e1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 9px;
+    font-size: 8.5px;
     color: #64748b;
     font-weight: 800;
     transition: all .15s ease;
@@ -189,7 +189,7 @@
 }
 .mob-progress-bar-bg {
     width: 100%;
-    height: 4px;
+    height: 3px;
     background: #e2e8f0;
     border-radius: 2px;
     overflow: hidden;
@@ -207,21 +207,20 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-    transition: all 0.25s ease;
 }
 .mob-section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 9px;
-    padding-bottom: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
     border-bottom: 1px solid #f1f5f9;
 }
 .mob-section-title {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
     color: #002C54;
     display: flex;
@@ -231,9 +230,9 @@
 .mob-step-badge {
     background: #002C54;
     color: #ffffff;
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 800;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: .03em;
@@ -244,12 +243,12 @@
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
     border: 1px solid #86efac;
     border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
     text-align: center;
 }
 .mob-showcase-label {
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
     color: #166534;
     text-transform: uppercase;
@@ -260,48 +259,48 @@
     gap: 4px;
 }
 .mob-showcase-number {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
     color: #14532d;
     background: #ffffff;
     border: 1.5px dashed #22c55e;
-    padding: 4px 14px;
+    padding: 3px 12px;
     border-radius: 4px;
     display: inline-block;
-    letter-spacing: .06em;
-    margin: 4px 0 2px 0;
+    letter-spacing: .05em;
+    margin: 3px 0 2px 0;
     font-family: monospace;
 }
 .mob-showcase-sub {
-    font-size: 9.5px;
+    font-size: 9px;
     color: #15803d;
     margin: 0;
 }
 
 /* Form Groups & Inputs */
 .mob-form-group {
-    margin-bottom: 8px;
+    margin-bottom: 7px;
 }
 .mob-form-group:last-child {
     margin-bottom: 0;
 }
 .mob-form-label {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #1e293b;
     display: flex;
     align-items: center;
     gap: 3px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 .mob-req-star {
     color: #ef4444;
     font-weight: 800;
 }
 .mob-form-hint {
-    font-size: 9.5px;
+    font-size: 9px;
     color: #64748b;
-    margin-top: 2px;
+    margin-top: 1px;
     display: block;
 }
 
@@ -314,17 +313,17 @@
 }
 .mob-input-icon {
     position: absolute;
-    left: 9px;
+    left: 8px;
     color: #94a3b8;
-    font-size: 12px;
+    font-size: 11px;
     pointer-events: none;
     z-index: 2;
 }
 .mob-form-input, .mob-form-select, .mob-form-textarea {
     width: 100%;
-    height: 34px;
-    padding: 0 10px 0 30px;
-    font-size: 12px;
+    height: 32px;
+    padding: 0 8px 0 26px;
+    font-size: 11.5px;
     font-weight: 600;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
@@ -335,8 +334,8 @@
     font-family: inherit;
 }
 .mob-form-textarea {
-    height: 64px;
-    padding: 6px 10px;
+    height: 60px;
+    padding: 5px 8px;
     resize: vertical;
 }
 .mob-form-input:focus, .mob-form-select:focus, .mob-form-textarea:focus {
@@ -350,7 +349,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 /* Toggle Switch Card */
@@ -361,8 +360,8 @@
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 7px 10px;
-    margin-bottom: 6px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
 }
 .mob-switch-info {
     display: flex;
@@ -370,21 +369,21 @@
     max-width: 80%;
 }
 .mob-switch-title {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #1e293b;
     line-height: 1.25;
 }
 .mob-switch-desc {
-    font-size: 9px;
+    font-size: 8.5px;
     color: #64748b;
     font-weight: 500;
 }
 .mob-ios-switch {
     position: relative;
     display: inline-block;
-    width: 38px;
-    height: 22px;
+    width: 36px;
+    height: 20px;
     margin-bottom: 0;
     flex-shrink: 0;
 }
@@ -399,13 +398,13 @@
     inset: 0;
     background-color: #cbd5e1;
     transition: .2s;
-    border-radius: 22px;
+    border-radius: 20px;
 }
 .mob-ios-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -424,19 +423,19 @@
 .mob-payment-chips {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    margin-top: 4px;
+    gap: 5px;
+    margin-top: 3px;
 }
 .mob-chip-label {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 8px 10px;
+    gap: 6px;
+    padding: 6px 8px;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #334155;
     margin-bottom: 0;
@@ -449,8 +448,8 @@
     box-shadow: 0 1px 3px rgba(2, 132, 199, 0.15);
 }
 .mob-chip-label input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
     accent-color: #002C54;
 }
 
@@ -459,12 +458,12 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 .mob-layout-card {
     border: 1.5px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
+    padding: 7px 8px;
     background: #f8fafc;
     cursor: pointer;
     text-align: center;
@@ -472,7 +471,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
 }
 .mob-layout-card.selected {
     border-color: #0284c7;
@@ -480,37 +479,37 @@
     box-shadow: 0 1px 4px rgba(2, 132, 199, 0.2);
 }
 .mob-layout-icon {
-    font-size: 16px;
+    font-size: 15px;
     color: #002C54;
 }
 .mob-layout-name {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
     color: #002C54;
 }
 .mob-layout-sub {
     font-size: 8.5px;
     color: #64748b;
-    line-height: 1.2;
+    line-height: 1.15;
 }
 
 /* Color Presets */
 .mob-color-strip {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     overflow-x: auto;
     white-space: nowrap;
-    padding-bottom: 4px;
-    margin-bottom: 8px;
+    padding-bottom: 3px;
+    margin-bottom: 6px;
     -webkit-overflow-scrolling: touch;
 }
 .mob-swatch-btn {
-    padding: 3px 8px;
+    padding: 2px 7px;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 12px;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
     color: #334155;
     cursor: pointer;
@@ -526,28 +525,34 @@
     font-weight: 800;
 }
 
-/* 4. Pinned Bottom Save Dock */
+/* Fixed Bottom Action Dock above mobile nav dock */
 .mob-save-dock {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #ffffff;
-    border-top: 1px solid #cbd5e1;
-    padding: 8px 12px;
-    z-index: 1000;
-    box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.08);
+    bottom: calc(var(--bottom-nav-height, 52px) + var(--safe-bottom, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    z-index: 990;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 5px 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 -2px 10px rgba(0, 44, 84, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 .btn-mob-save {
-    width: 100%;
-    height: 40px;
-    background: #10b981;
+    flex: 1;
+    height: 35px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff;
     border: none;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -556,8 +561,10 @@
     letter-spacing: .02em;
 }
 .btn-mob-save:active {
-    background: #059669;
-    transform: scale(0.99);
+    transform: scale(0.98);
+}
+.mob-form-clearance {
+    height: 50px;
 }
 </style>
 @endsection
@@ -823,7 +830,7 @@
                     </label>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <input type="color" id="themeColorPicker" value="{{ old('receipt_theme_color', $setting->receipt_theme_color ?? '#8b2635') }}" 
-                               style="width: 38px; height: 32px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff; cursor: pointer;">
+                               style="width: 36px; height: 30px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px; background: #fff; cursor: pointer;">
                         <input type="text" class="mob-form-input" id="themeColorText" name="receipt_theme_color" 
                                value="{{ old('receipt_theme_color', $setting->receipt_theme_color ?? '#8b2635') }}" 
                                maxlength="7" style="font-family: monospace; font-weight: 700; text-transform: uppercase;">
@@ -971,7 +978,9 @@
             </div>
         </div>
 
-        {{-- 4. Pinned Bottom Action Dock --}}
+        <div class="mob-form-clearance"></div>
+
+        {{-- Fixed Bottom Action Dock above mobile nav dock --}}
         <div class="mob-save-dock">
             <button type="submit" class="btn-mob-save">
                 <i class="fa fa-check-circle"></i> Save Fee Settings
@@ -1088,7 +1097,6 @@ $(document).ready(function() {
                         alert(xhr.responseJSON.message);
                     }
                 } else {
-                    // Normal redirect fallback
                     form.off('submit').submit();
                 }
             }

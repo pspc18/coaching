@@ -28,7 +28,7 @@
    Native mobile app design matching Arise ERP mobile design system
    ========================================================================== */
 .ledger-mob-container {
-    padding: 8px 10px 80px 10px;
+    padding: 0 0 70px 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
     font-size: 12px;
