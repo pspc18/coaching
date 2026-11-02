@@ -864,8 +864,8 @@ textarea.theme-form-control {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    padding: 3px 10px !important;
-    border-radius: 3px !important;
+    padding: 4px 12px !important;
+    border-radius: 4px !important;
     font-size: 11px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
@@ -875,6 +875,8 @@ textarea.theme-form-control {
     background: rgba(255, 255, 255, 0.16) !important;
     color: #f8fafc !important;
     border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 #qbank-preview-tabs .nav-link i {
     color: #7dd3fc !important;
@@ -895,6 +897,27 @@ textarea.theme-form-control {
 #qbank-preview-tabs .nav-link.active i,
 #qbank-preview-tabs .nav-item.show .nav-link i {
     color: #002C54 !important;
+}
+
+/* Mode 3 Right Panel Tab Panes Explicit Visibility */
+#right-panel-qbank .tab-content {
+    flex: 1;
+    min-height: 0;
+    height: calc(100% - 38px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+#right-panel-qbank .tab-content > .tab-pane {
+    display: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+#right-panel-qbank .tab-content > .tab-pane.active {
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 /* Printable Question Paper Layout */
@@ -1721,14 +1744,14 @@ textarea.theme-form-control {
                         <div class="theme-card-header">
                             <ul class="nav nav-pills" id="qbank-preview-tabs" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="tab-paper-btn" data-toggle="pill" href="#tab-paper-content" role="tab">
+                                    <button type="button" class="nav-link active" id="tab-paper-btn" role="tab" aria-selected="true">
                                         <i class="fa fa-file-text-o"></i> Question Paper Preview
-                                    </a>
+                                    </button>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-omr-btn" data-toggle="pill" href="#tab-omr-content" role="tab">
+                                    <button type="button" class="nav-link" id="tab-omr-btn" role="tab" aria-selected="false">
                                         <i class="fa fa-th"></i> Matching OMR Sheet
-                                    </a>
+                                    </button>
                                 </li>
                             </ul>
                             <div class="d-flex align-items-center gap-2">
@@ -1738,9 +1761,9 @@ textarea.theme-form-control {
                             </div>
                         </div>
 
-                        <div class="tab-content flex-grow-1 d-flex flex-column" style="height: calc(100% - 38px); min-height: 0; overflow: hidden;">
+                        <div class="tab-content flex-grow-1" id="qbank-tab-content" style="height: calc(100% - 38px); min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
                             {{-- Tab 1: Printable Question Paper --}}
-                            <div class="tab-pane fade show active flex-grow-1" id="tab-paper-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden;">
+                            <div class="tab-pane flex-grow-1 active show" id="tab-paper-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
                                 <div class="paper-preview-container" style="height: 100%;">
                                     <div class="printable-exam-paper" id="exam-paper-print-area">
                                         {{-- Paper Header --}}
@@ -1782,7 +1805,7 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- Tab 2: Matching OMR Sheet --}}
-                            <div class="tab-pane fade flex-grow-1" id="tab-omr-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden;">
+                            <div class="tab-pane flex-grow-1" id="tab-omr-content" role="tabpanel" style="height: 100%; min-height: 0; overflow: hidden; display: none;">
                                 <div class="omr-sheet-viewport" style="height: 100%;">
                                     <div class="omr-sheet-paper" id="exam-omr-mode2-paper">
                                         {{-- Injected / mirrored from SVG --}}
@@ -2175,6 +2198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             renderOMRPreview();
         } else if (mode === 'question_bank') {
             renderQBankExam();
+            renderOMRPreview();
         } else if (mode === 'online') {
             renderOnlineExamPreview();
         }
@@ -2263,7 +2287,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // SVG OMR Sheet Render (Balanced & Centered Question Columns)
     const renderOMRPreview = () => {
-        const count = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
+        let count;
+        if (currentMode === 'question_bank' || currentMode === 'online') {
+            count = (Array.isArray(selectedQuestions) && selectedQuestions.length > 0)
+                ? Math.min(100, selectedQuestions.length)
+                : 50;
+        } else {
+            count = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
+        }
         const labels = ['A', 'B', 'C', 'D'];
         let svg = '';
 
@@ -2322,7 +2353,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const mode2OmrPaper = document.getElementById('exam-omr-mode2-paper');
         const omrSvg = document.getElementById('exam-omr-svg');
         if (mode2OmrPaper && omrSvg) {
-            mode2OmrPaper.innerHTML = omrSvg.outerHTML;
+            const clonedSvg = omrSvg.cloneNode(true);
+            clonedSvg.id = 'exam-omr-mode3-svg';
+            mode2OmrPaper.innerHTML = '';
+            mode2OmrPaper.appendChild(clonedSvg);
         }
     };
 
@@ -2743,7 +2777,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Print Handlers (A4 Dedicated New Tab with Max Utilization)
     // -------------------------------------------------------------
     const printOmr = () => {
-        const svgElem = document.getElementById('exam-omr-svg');
+        const svgElem = (currentMode === 'question_bank')
+            ? (document.getElementById('exam-omr-mode3-svg') || document.getElementById('exam-omr-svg'))
+            : document.getElementById('exam-omr-svg');
         if (!svgElem) {
             alert('OMR Sheet preview is not available.');
             return;
@@ -2915,16 +2951,59 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.btn-trigger-print-omr').forEach(btn => btn.addEventListener('click', printOmr));
 
-    // Dual tab label update
-    document.getElementById('tab-paper-btn')?.addEventListener('click', () => {
-        document.getElementById('print-active-label').textContent = 'Print Question Paper';
+    // Dual tab switcher in Mode 3 (Question Paper vs Matching OMR Sheet)
+    const tabPaperBtn = document.getElementById('tab-paper-btn');
+    const tabOmrBtn = document.getElementById('tab-omr-btn');
+    const tabPaperContent = document.getElementById('tab-paper-content');
+    const tabOmrContent = document.getElementById('tab-omr-content');
+    const printActiveLabel = document.getElementById('print-active-label');
+
+    const switchMode3Tab = (targetTab) => {
+        if (targetTab === 'omr') {
+            tabPaperBtn?.classList.remove('active');
+            tabOmrBtn?.classList.add('active');
+            tabPaperBtn?.setAttribute('aria-selected', 'false');
+            tabOmrBtn?.setAttribute('aria-selected', 'true');
+
+            if (tabPaperContent) {
+                tabPaperContent.classList.remove('active', 'show');
+                tabPaperContent.style.setProperty('display', 'none', 'important');
+            }
+            if (tabOmrContent) {
+                tabOmrContent.classList.add('active', 'show');
+                tabOmrContent.style.setProperty('display', 'flex', 'important');
+            }
+            if (printActiveLabel) printActiveLabel.textContent = 'Print OMR Sheet';
+            renderOMRPreview();
+        } else {
+            tabOmrBtn?.classList.remove('active');
+            tabPaperBtn?.classList.add('active');
+            tabOmrBtn?.setAttribute('aria-selected', 'false');
+            tabPaperBtn?.setAttribute('aria-selected', 'true');
+
+            if (tabOmrContent) {
+                tabOmrContent.classList.remove('active', 'show');
+                tabOmrContent.style.setProperty('display', 'none', 'important');
+            }
+            if (tabPaperContent) {
+                tabPaperContent.classList.add('active', 'show');
+                tabPaperContent.style.setProperty('display', 'flex', 'important');
+            }
+            if (printActiveLabel) printActiveLabel.textContent = 'Print Question Paper';
+        }
+    };
+
+    tabPaperBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchMode3Tab('paper');
     });
-    document.getElementById('tab-omr-btn')?.addEventListener('click', () => {
-        document.getElementById('print-active-label').textContent = 'Print OMR Sheet';
+    tabOmrBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchMode3Tab('omr');
     });
 
     document.getElementById('btn-print-active-tab')?.addEventListener('click', function () {
-        const isPaperTab = document.getElementById('tab-paper-btn').classList.contains('active');
+        const isPaperTab = tabPaperBtn?.classList.contains('active');
         if (isPaperTab) {
             printPaper();
         } else {
