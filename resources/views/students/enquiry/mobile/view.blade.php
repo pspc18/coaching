@@ -6,13 +6,14 @@
     $currentSession = Session::get('session_id');
     $currentSessionName = Session::get('session_name') ?? 'Current Session';
     $currentBranchName = Session::get('branch_name') ?? 'Main Branch';
+    $todayDate = date('Y-m-d');
 
     // Calculate Enquiry Summary KPIs
     $totalCount = is_countable($data ?? []) ? count($data ?? []) : 0;
     $admissionCount = 0;
     $activeCount = 0;
     $todayFollowupCount = 0;
-    $todayDate = date('Y-m-d');
+    $overdueFollowupCount = 0;
 
     if (!empty($data)) {
         foreach ($data as $item) {
@@ -27,6 +28,8 @@
             $fDate = !empty($item->latest_followup_date) ? date('Y-m-d', strtotime($item->latest_followup_date)) : '';
             if ($fDate === $todayDate) {
                 $todayFollowupCount++;
+            } elseif (!empty($fDate) && $fDate < $todayDate && !in_array($st, ['admission', 'closed', 'partially closed'])) {
+                $overdueFollowupCount++;
             }
         }
     }
@@ -37,7 +40,8 @@
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - NATIVE MOBILE ENQUIRY MANAGEMENT STYLES
+   ARISE ERP - NATIVE MOBILE ENQUIRY MANAGEMENT (GOLD STANDARD ERP MOBILE)
+   Self-contained, robust CSS matching Arise Mobile App Design System.
    ========================================================================== */
 
 /* 1. Glassmorphic Hero Card */
@@ -111,13 +115,18 @@
 .mob-metric-val.val-active { color: #38bdf8; }
 .mob-metric-val.val-today { color: #fbbf24; }
 
-/* Fast Action Bar */
+/* Fast Action Bar in Hero */
 .mob-actions-bar {
     display: flex;
+    align-items: center;
     gap: 6px;
 }
+.mob-actions-bar form {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+}
 .mob-act-btn {
-    flex: 1;
     height: 32px;
     padding: 0 10px;
     border-radius: 4px;
@@ -131,23 +140,27 @@
     border: none;
     cursor: pointer;
     transition: all .12s ease;
+    box-sizing: border-box;
 }
 .mob-act-btn-add {
     background: #0284c7;
     color: #ffffff !important;
-    flex: 1.5;
+    flex: 2;
 }
 .mob-act-btn-filter {
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.25);
+    flex: 1.2;
     position: relative;
 }
 .mob-act-btn-pdf {
     background: rgba(239, 68, 68, 0.2);
     color: #fca5a5 !important;
     border: 1px solid rgba(239, 68, 68, 0.4);
-    max-width: 44px;
+    width: 36px;
+    padding: 0;
+    flex: none;
 }
 .mob-act-btn:active {
     transform: scale(0.96);
@@ -183,6 +196,7 @@
     left: 9px;
     color: #94a3b8;
     font-size: 11.5px;
+    pointer-events: none;
 }
 .mob-search-input {
     width: 100%;
@@ -195,6 +209,8 @@
     color: #0f172a;
     outline: none;
     font-family: inherit;
+    box-sizing: border-box;
+    -webkit-appearance: none;
 }
 .mob-search-input:focus {
     border-color: #0284c7;
@@ -217,6 +233,7 @@
     padding-bottom: 2px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
 }
 .mob-chips-scroll::-webkit-scrollbar {
     display: none;
@@ -235,6 +252,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 }
 .mob-chip:active {
     transform: scale(0.95);
@@ -260,6 +278,7 @@
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
+    padding-bottom: 70px; /* Offset for floating bottom pagination bar */
 }
 .enquiry-mob-card {
     background: #ffffff;
@@ -301,13 +320,14 @@
 }
 .enquiry-header-info {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
 }
 .enquiry-name-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
+    gap: 6px;
 }
 .enquiry-mob-name {
     font-size: 12.5px;
@@ -317,6 +337,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 .enquiry-pills-wrap {
     display: flex;
@@ -354,6 +375,7 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    flex-shrink: 0;
 }
 .status-pill-active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .status-pill-new { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
@@ -385,11 +407,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 .enquiry-info-right {
     font-weight: 700;
     color: #0f172a;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 .mob-date-badge {
     font-size: 10px;
@@ -407,6 +432,13 @@
     background: #fef3c7;
     color: #b45309;
     border-color: #fde68a;
+    font-weight: 800;
+}
+.mob-date-badge.is-overdue {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fecaca;
+    font-weight: 800;
 }
 .enquiry-note-preview {
     font-size: 10.5px;
@@ -426,15 +458,15 @@
 /* Card Action Strip */
 .enquiry-card-actions {
     display: flex;
-    gap: 4px;
+    gap: 5px;
     border-top: 1px solid #f1f5f9;
     padding-top: 7px;
+    align-items: center;
 }
 .enquiry-act-btn {
-    flex: 1;
-    height: 28px;
-    border-radius: 3px;
-    font-size: 10.5px;
+    height: 30px;
+    border-radius: 4px;
+    font-size: 11px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -446,6 +478,8 @@
     color: #334155;
     cursor: pointer;
     transition: all .1s ease;
+    box-sizing: border-box;
+    padding: 0 6px;
 }
 .enquiry-act-btn:active {
     transform: scale(0.96);
@@ -454,99 +488,102 @@
     background: #ecfdf5;
     border-color: #a7f3d0;
     color: #059669;
-    flex: 0.9;
+    flex: 1;
 }
 .enquiry-act-btn.btn-wa {
     background: #f0fdf4;
     border-color: #86efac;
     color: #16a34a;
-    flex: 0.9;
+    flex: 1;
 }
 .enquiry-act-btn.btn-followup {
     background: #eff6ff;
     border-color: #bfdbfe;
     color: #2563eb;
-    flex: 1.3;
+    flex: 1.5;
 }
-.enquiry-act-btn.btn-detail {
+.enquiry-act-btn.btn-more {
     background: #f8fafc;
+    border-color: #cbd5e1;
     color: #475569;
-    flex: 0.8;
-}
-.enquiry-act-dropdown-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 3px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #64748b;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
+    width: 32px;
+    padding: 0;
+    flex: none;
 }
 
-/* 4. Native Pagination Toolbar */
-.mob-pagination-toolbar {
-    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+/* 4. Compact Fixed Bottom Pagination Bar (Matches Admission View) */
+.mob-pagination-bar {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height, 52px) + var(--safe-bottom, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    z-index: 990;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 24px;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 44, 84, 0.2);
+    margin-bottom: 0;
+    box-shadow: 0 -2px 10px rgba(0, 44, 84, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
-.mob-page-info {
-    font-size: 10px;
-    font-weight: 700;
-    color: #cbd5e1;
+.mob-pagination-info {
+    font-size: 10.5px;
+    color: #64748b;
+    font-weight: 600;
 }
-.mob-page-info strong {
-    color: #ffffff;
+.mob-pagination-info b {
+    color: #002C54;
 }
-.mob-page-nav {
+.mob-pagination-btns {
     display: flex;
     align-items: center;
     gap: 4px;
 }
 .mob-per-page-select {
-    height: 26px;
+    height: 28px;
     padding: 0 4px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
     border-radius: 3px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
     outline: none;
 }
-.mob-per-page-select option {
-    background: #002C54;
-    color: #ffffff;
-}
 .mob-page-btn {
-    width: 26px;
-    height: 26px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    font-size: 10px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    text-decoration: none !important;
+    transition: all .12s ease;
 }
 .mob-page-btn.disabled {
     opacity: 0.35;
+    cursor: not-allowed;
     pointer-events: none;
 }
+.mob-page-btn:not(.disabled):active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: scale(0.94);
+}
 
-/* 5. Mobile Filter & Followup Bottom Sheets */
+/* 5. Mobile Native Bottom Sheets */
 .mob-sheet-backdrop {
     position: fixed;
     inset: 0;
@@ -568,7 +605,7 @@
     left: 0;
     right: 0;
     background: #ffffff;
-    border-radius: 4px 4px 0 0;
+    border-radius: 6px 6px 0 0;
     border-top: 1px solid #002C54;
     z-index: 2051;
     transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -584,11 +621,12 @@
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     padding: 10px 12px;
-    border-radius: 4px 4px 0 0;
+    border-radius: 6px 6px 0 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 .mob-sheet-title {
     font-size: 12.5px;
@@ -596,6 +634,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    color: #ffffff;
 }
 .mob-sheet-close {
     background: rgba(255, 255, 255, 0.12);
@@ -604,18 +643,26 @@
     width: 26px;
     height: 26px;
     border-radius: 3px;
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    line-height: 1;
 }
 .mob-sheet-body {
     padding: 12px;
     overflow-y: auto;
     flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 .mob-form-group {
+    margin-bottom: 9px;
+}
+.mob-form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     margin-bottom: 9px;
 }
 .mob-form-label {
@@ -638,6 +685,7 @@
     color: #0f172a;
     outline: none;
     font-family: inherit;
+    box-sizing: border-box;
 }
 .mob-form-textarea {
     height: 60px;
@@ -654,12 +702,13 @@
     border-top: 1px solid #e2e8f0;
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
 }
 .btn-sheet-apply {
     flex: 2;
     height: 33px;
     background: #0284c7;
-    color: #ffffff;
+    color: #ffffff !important;
     border: none;
     border-radius: 4px;
     font-size: 11.5px;
@@ -669,13 +718,14 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
+    text-decoration: none !important;
 }
 .btn-sheet-reset {
     flex: 1;
     height: 33px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    color: #475569;
+    color: #475569 !important;
     border-radius: 4px;
     font-size: 11.5px;
     font-weight: 700;
@@ -683,6 +733,71 @@
     align-items: center;
     justify-content: center;
     text-decoration: none !important;
+    cursor: pointer;
+}
+.btn-sheet-apply:active, .btn-sheet-reset:active {
+    transform: scale(0.97);
+}
+
+/* Actions Sheet Option List */
+.mob-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 4px 0;
+}
+.mob-action-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .12s ease;
+}
+.mob-action-item:active {
+    background: #e2e8f0;
+}
+.mob-action-item i {
+    width: 18px;
+    font-size: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.mob-action-item.text-danger {
+    color: #dc2626 !important;
+    background: #fff5f5;
+    border-color: #fecaca;
+}
+
+/* Details Table inside Modal */
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.detail-table tr {
+    border-bottom: 1px solid #f1f5f9;
+}
+.detail-table th {
+    padding: 6px 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    width: 38%;
+    text-align: left;
+}
+.detail-table td {
+    padding: 6px 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f172a;
+    text-align: right;
 }
 
 /* Empty State */
@@ -731,30 +846,6 @@
     align-items: center;
     gap: 5px;
 }
-
-/* Details Table inside Modal */
-.detail-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.detail-table tr {
-    border-bottom: 1px solid #f1f5f9;
-}
-.detail-table th {
-    padding: 6px 0;
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #64748b;
-    width: 38%;
-    text-align: left;
-}
-.detail-table td {
-    padding: 6px 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: #0f172a;
-    text-align: right;
-}
 </style>
 @endsection
 
@@ -795,7 +886,7 @@
     <div class="mob-actions-bar">
         @if($permission->add ?? true)
             <a href="{{ url('enquiryAdd') }}" class="mob-act-btn mob-act-btn-add">
-                <i class="fa fa-plus"></i> Add Enquiry
+                <i class="fa fa-plus"></i> + New Enquiry
             </a>
         @endif
         <button type="button" class="mob-act-btn mob-act-btn-filter" id="btnOpenFilterSheet">
@@ -833,6 +924,11 @@
         <button type="button" class="mob-chip" data-filter="today">
             Follow Up Today <span class="mob-chip-count">{{ $todayFollowupCount }}</span>
         </button>
+        @if($overdueFollowupCount > 0)
+            <button type="button" class="mob-chip text-danger" data-filter="overdue">
+                Overdue <span class="mob-chip-count" style="background:rgba(220,38,38,0.15); color:#dc2626;">{{ $overdueFollowupCount }}</span>
+            </button>
+        @endif
         <button type="button" class="mob-chip" data-filter="new">
             New
         </button>
@@ -851,7 +947,6 @@
 {{-- 3. Enquiry Feed List --}}
 <div class="enquiry-feed-list" id="enquiryCardList">
     @if(!empty($data) && count($data) > 0)
-        @php $i = 1; @endphp
         @foreach ($data as $item)
             @php
                 $fullName = trim(($item['first_name'] ?? '') . ' ' . ($item['last_name'] ?? ''));
@@ -863,8 +958,18 @@
                 $statusSlug = strtolower($latestStatus);
                 $adStatus = ($item->ad_status ?? '') == 'Admission' ? 'Admission' : '';
                 
+                $regDateRaw = !empty($item['registration_date']) ? date('Y-m-d', strtotime($item['registration_date'])) : '';
+                $regDateFormatted = !empty($item['registration_date']) ? date('d-M-Y', strtotime($item['registration_date'])) : '-';
+                
+                $followupDateRaw = !empty($item->latest_followup_date) ? date('Y-m-d', strtotime($item->latest_followup_date)) : '';
+                $followupDateFormatted = !empty($item->latest_followup_date) ? date('d-M-Y', strtotime($item->latest_followup_date)) : '-';
+                
+                $isTodayFollowup = ($followupDateRaw === $todayDate);
+                $isOverdueFollowup = (!empty($followupDateRaw) && $followupDateRaw < $todayDate && !in_array($statusSlug, ['admission', 'closed', 'partially closed']));
+
                 $borderClass = match(true) {
                     $adStatus === 'Admission' || $statusSlug === 'admission' => 'border-admission',
+                    $isOverdueFollowup => 'border-missed',
                     in_array($statusSlug, ['active', 'follow up', 'followup']) => 'border-active',
                     $statusSlug === 'new' => 'border-new',
                     $statusSlug === 'missed' => 'border-missed',
@@ -882,30 +987,31 @@
                     default => 'status-pill-active'
                 };
 
-                $regDateFormatted = !empty($item['registration_date']) ? date('d-M-Y', strtotime($item['registration_date'])) : '-';
-                $regDateRaw = !empty($item['registration_date']) ? date('Y-m-d', strtotime($item['registration_date'])) : '';
-                $followupDateFormatted = !empty($item->latest_followup_date) ? date('d-M-Y', strtotime($item->latest_followup_date)) : '-';
-                $followupDateRaw = !empty($item->latest_followup_date) ? date('Y-m-d', strtotime($item->latest_followup_date)) : '';
-                $isTodayFollowup = ($followupDateRaw === $todayDate);
-                
                 $mobileClean = preg_replace('/[^0-9]/', '', $item['mobile'] ?? '');
                 $waMobile = strlen($mobileClean) == 10 ? '91' . $mobileClean : $mobileClean;
+                $latestNoteText = $item->latest_note ?: $item->note;
             @endphp
 
             <div class="enquiry-mob-card {{ $borderClass }}"
                  data-id="{{ $item->id }}"
                  data-name="{{ strtolower($fullName) }}"
+                 data-raw-name="{{ $fullName }}"
                  data-mobile="{{ strtolower($item['mobile'] ?? '') }}"
                  data-father="{{ strtolower($item['father_name'] ?? '') }}"
                  data-mother="{{ strtolower($item['mother_name'] ?? '') }}"
                  data-class="{{ strtolower($item['class_name'] ?? '') }}"
                  data-class-id="{{ $item['class_type_id'] ?? '' }}"
                  data-status="{{ $statusSlug }}"
+                 data-raw-status="{{ $latestStatus }}"
                  data-ad-status="{{ strtolower($adStatus) }}"
                  data-reg-date="{{ $regDateRaw }}"
                  data-followup-date="{{ $followupDateRaw }}"
                  data-is-today="{{ $isTodayFollowup ? '1' : '0' }}"
-                 data-searchable="{{ strtolower($fullName . ' ' . ($item['mobile'] ?? '') . ' ' . ($item['father_name'] ?? '') . ' ' . ($item['mother_name'] ?? '') . ' ' . ($item['class_name'] ?? '') . ' ' . $latestStatus . ' ' . ($item['reference_name'] ?? '') . ' ' . ($item['note'] ?? '')) }}">
+                 data-is-overdue="{{ $isOverdueFollowup ? '1' : '0' }}"
+                 data-edit-url="{{ url('enquiryEdit', $item->id) }}"
+                 data-print-url="{{ url('registrationPrint', $item->id) }}"
+                 data-detail-url="{{ url('studentRegistrationDetail', $item->id) }}"
+                 data-searchable="{{ strtolower($fullName . ' ' . ($item['mobile'] ?? '') . ' ' . ($item['father_name'] ?? '') . ' ' . ($item['mother_name'] ?? '') . ' ' . ($item['class_name'] ?? '') . ' ' . $latestStatus . ' ' . ($item['reference_name'] ?? '') . ' ' . $latestNoteText) }}">
 
                 {{-- Card Header --}}
                 <div class="enquiry-card-header">
@@ -956,14 +1062,18 @@
                     <div class="enquiry-info-row">
                         <div class="enquiry-info-left">
                             <i class="fa fa-phone text-muted"></i>
-                            <a href="tel:{{ $item['mobile'] ?? '' }}" class="text-dark font-weight-bold text-decoration-none">
-                                {{ $item['mobile'] ?? '-' }}
-                            </a>
+                            @if(!empty($item['mobile']))
+                                <a href="tel:{{ $item['mobile'] }}" class="text-dark font-weight-bold text-decoration-none">
+                                    {{ $item['mobile'] }}
+                                </a>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
                         </div>
                         <div class="enquiry-info-right">
                             @if($followupDateFormatted !== '-')
-                                <span class="mob-date-badge {{ $isTodayFollowup ? 'is-today' : '' }}" title="Next Follow-up">
-                                    <i class="fa fa-clock-o {{ $isTodayFollowup ? 'text-warning font-weight-bold' : '' }}"></i>
+                                <span class="mob-date-badge {{ $isTodayFollowup ? 'is-today' : ($isOverdueFollowup ? 'is-overdue' : '') }}" title="Next Follow-up">
+                                    <i class="fa fa-clock-o {{ $isTodayFollowup ? 'text-warning font-weight-bold' : ($isOverdueFollowup ? 'text-danger font-weight-bold' : '') }}"></i>
                                     {{ $followupDateFormatted }}
                                 </span>
                             @else
@@ -972,14 +1082,14 @@
                         </div>
                     </div>
 
-                    @if(!empty($item->latest_note) || !empty($item->note))
+                    @if(!empty($latestNoteText))
                         <div class="enquiry-note-preview">
-                            <i class="fa fa-comment-o mr-1 text-primary"></i>{{ $item->latest_note ?: $item->note }}
+                            <i class="fa fa-comment-o mr-1 text-primary"></i>{{ $latestNoteText }}
                         </div>
                     @endif
                 </div>
 
-                {{-- Card Actions --}}
+                {{-- Card Actions (100% Native Mobile App Styling) --}}
                 <div class="enquiry-card-actions">
                     @if(!empty($item['mobile']))
                         <a href="tel:{{ $item['mobile'] }}" class="enquiry-act-btn btn-call" title="Call Parent">
@@ -1000,36 +1110,12 @@
                         <i class="fa fa-pencil-square-o"></i> Follow Up
                     </button>
 
-                    <button type="button" class="enquiry-act-btn btn-detail btn-open-detail" data-id="{{ $item->id }}" title="View Details">
-                        <i class="fa fa-eye"></i>
+                    <button type="button" class="enquiry-act-btn btn-more btn-open-card-actions"
+                            data-id="{{ $item->id }}"
+                            data-name="{{ $fullName }}"
+                            title="More Options">
+                        <i class="fa fa-ellipsis-v"></i>
                     </button>
-
-                    <div class="dropdown d-inline">
-                        <button type="button" class="enquiry-act-dropdown-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fa fa-ellipsis-v"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" style="font-size:11.5px; border-radius:4px;">
-                            @if($permission->edit ?? true)
-                                <a class="dropdown-item py-1" href="{{ url('enquiryEdit', $item->id) }}">
-                                    <i class="fa fa-edit text-primary mr-2"></i> Edit Enquiry
-                                </a>
-                            @endif
-                            @if($permission->print ?? true)
-                                <a class="dropdown-item py-1" href="{{ url('registrationPrint', $item->id) }}" target="_blank">
-                                    <i class="fa fa-print text-info mr-2"></i> Print Slip
-                                </a>
-                            @endif
-                            <a class="dropdown-item py-1" href="{{ url('studentRegistrationDetail', $item->id) }}">
-                                <i class="fa fa-list-alt text-secondary mr-2"></i> Full Timeline
-                            </a>
-                            @if($permission->delete ?? true)
-                                <div class="dropdown-divider my-1"></div>
-                                <button type="button" class="dropdown-item py-1 text-danger btn-open-delete" data-id="{{ $item->id }}" data-name="{{ $fullName }}">
-                                    <i class="fa fa-trash-o mr-2"></i> Delete Enquiry
-                                </button>
-                            @endif
-                        </div>
-                    </div>
                 </div>
 
             </div>
@@ -1049,12 +1135,12 @@
     </button>
 </div>
 
-{{-- 4. Native Pagination Toolbar --}}
-<div class="mob-pagination-toolbar" id="enquiryPaginationBar">
-    <div class="mob-page-info">
-        Showing <strong id="mobPageStart">1</strong> - <strong id="mobPageEnd">{{ min(25, $totalCount) }}</strong> of <strong id="mobPageTotal">{{ $totalCount }}</strong>
+{{-- 4. Compact Fixed Bottom Pagination Bar (Matches Admission View) --}}
+<div class="mob-pagination-bar" id="enquiryPaginationBar" style="{{ empty($data) || count($data) === 0 ? 'display:none;' : '' }}">
+    <div class="mob-pagination-info">
+        Showing <b id="mobPageStart">1</b> - <b id="mobPageEnd">{{ min(25, $totalCount) }}</b> of <b id="mobPageTotal">{{ $totalCount }}</b>
     </div>
-    <div class="mob-page-nav">
+    <div class="mob-pagination-btns">
         <select class="mob-per-page-select" id="mobPerPageSelect">
             <option value="10">10</option>
             <option value="25" selected>25</option>
@@ -1114,18 +1200,14 @@
             </select>
         </div>
 
-        <div class="row">
-            <div class="col-6 pr-1">
-                <div class="mob-form-group">
-                    <label class="mob-form-label">Reg. From Date</label>
-                    <input type="date" class="mob-form-input" id="sheetFilterFromDate">
-                </div>
+        <div class="mob-form-grid-2">
+            <div>
+                <label class="mob-form-label">Reg. From Date</label>
+                <input type="date" class="mob-form-input" id="sheetFilterFromDate">
             </div>
-            <div class="col-6 pl-1">
-                <div class="mob-form-group">
-                    <label class="mob-form-label">Reg. To Date</label>
-                    <input type="date" class="mob-form-input" id="sheetFilterToDate">
-                </div>
+            <div>
+                <label class="mob-form-label">Reg. To Date</label>
+                <input type="date" class="mob-form-input" id="sheetFilterToDate">
             </div>
         </div>
 
@@ -1152,25 +1234,21 @@
     <form id="quickFollowupForm" method="POST" action="">
         @csrf
         <div class="mob-sheet-body">
-            <div class="p-2 mb-2 rounded" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                <div class="d-flex align-items-center justify-content-between">
-                    <strong class="text-navy" id="followupStudentName" style="font-size:12px; color:#002C54;">-</strong>
-                    <span class="text-muted" id="followupStudentMobile" style="font-size:11px;">-</span>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:8px 10px; border-radius:4px; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <strong style="font-size:12px; color:#002C54;" id="followupStudentName">-</strong>
+                    <span style="font-size:11px; color:#64748b;" id="followupStudentMobile">-</span>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-6 pr-1">
-                    <div class="mob-form-group">
-                        <label class="mob-form-label">Follow Up Date</label>
-                        <input type="date" class="mob-form-input" name="follow_up_date" value="{{ date('Y-m-d') }}" required>
-                    </div>
+            <div class="mob-form-grid-2">
+                <div>
+                    <label class="mob-form-label">Follow Up Date</label>
+                    <input type="date" class="mob-form-input" name="follow_up_date" value="{{ date('Y-m-d') }}" required>
                 </div>
-                <div class="col-6 pl-1">
-                    <div class="mob-form-group">
-                        <label class="mob-form-label text-danger">Next Follow Up *</label>
-                        <input type="date" class="mob-form-input" name="next_follow_up_date" id="followupNextDate" required>
-                    </div>
+                <div>
+                    <label class="mob-form-label text-danger">Next Follow Up *</label>
+                    <input type="date" class="mob-form-input" name="next_follow_up_date" id="followupNextDate" required>
                 </div>
             </div>
 
@@ -1205,7 +1283,7 @@
 
             <div class="mob-form-group">
                 <label class="mob-form-label">Follow-up Note / Remarks</label>
-                <textarea class="mob-form-textarea" name="note" id="followupNoteInput" placeholder="Add details of conversation..."></textarea>
+                <textarea class="mob-form-textarea" name="note" id="followupNoteInput" placeholder="Add conversation details..."></textarea>
             </div>
         </div>
         <div class="mob-sheet-footer">
@@ -1239,7 +1317,7 @@
                 </tr>
                 <tr>
                     <th>Mobile No.</th>
-                    <td><a href="" id="detMobileLink" class="text-primary font-weight-bold">-</a></td>
+                    <td><a href="" id="detMobileLink" class="text-primary font-weight-bold" style="text-decoration:none;">-</a></td>
                 </tr>
                 <tr>
                     <th>Father's Name</th>
@@ -1267,38 +1345,84 @@
                 </tr>
                 <tr>
                     <th>Latest Note</th>
-                    <td id="detNote" class="text-left font-italic">-</td>
+                    <td id="detNote" style="text-align:left; font-style:italic;">-</td>
                 </tr>
             </tbody>
         </table>
     </div>
     <div class="mob-sheet-footer">
-        <a href="" id="detFullTimelineBtn" class="btn-sheet-reset text-center">Full Timeline</a>
+        <a href="" id="detFullTimelineBtn" class="btn-sheet-reset">Full Timeline</a>
         <a href="" id="detEditBtn" class="btn-sheet-apply">Edit Enquiry</a>
     </div>
 </div>
 
-{{-- 8. Delete Confirmation Modal --}}
-<div class="modal fade" id="deleteEnquiryModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width:320px; margin:auto;">
-        <div class="modal-content" style="border-radius:4px; border:1px solid #cbd5e1;">
-            <form action="{{ url('enquiryDelete') }}" method="POST">
-                @csrf
-                <input type="hidden" name="delete_id" id="deleteEnquiryId">
-                <div class="modal-body text-center p-3">
-                    <div style="width:40px; height:40px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:18px; margin:0 auto 10px;">
-                        <i class="fa fa-trash-o"></i>
-                    </div>
-                    <h6 class="font-weight-bold text-dark mb-1" style="font-size:13px;">Delete Enquiry?</h6>
-                    <p class="text-muted mb-0" style="font-size:11px;" id="deleteEnquiryPrompt">Are you sure you want to delete this enquiry record?</p>
-                </div>
-                <div class="modal-footer p-2 bg-light d-flex gap-2">
-                    <button type="button" class="btn btn-secondary btn-sm flex-fill" data-dismiss="modal" style="font-size:11px; border-radius:3px;">Cancel</button>
-                    <button type="submit" class="btn btn-danger btn-sm flex-fill" style="font-size:11px; border-radius:3px;">Delete</button>
-                </div>
-            </form>
+{{-- 8. Card More Actions Bottom Sheet --}}
+<div class="mob-sheet-backdrop" id="actionSheetBackdrop"></div>
+<div class="mob-bottom-sheet" id="actionBottomSheet">
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title">
+            <i class="fa fa-ellipsis-h text-primary"></i> <span id="actionSheetStudentName">Options</span>
+        </div>
+        <button type="button" class="mob-sheet-close" id="btnCloseActionSheet">&times;</button>
+    </div>
+    <div class="mob-sheet-body">
+        <div class="mob-actions-list">
+            <a href="javascript:void(0);" class="mob-action-item" id="actionBtnViewDetail">
+                <i class="fa fa-eye text-primary"></i> View Full Details
+            </a>
+            @if($permission->edit ?? true)
+                <a href="" class="mob-action-item" id="actionBtnEdit">
+                    <i class="fa fa-edit text-info"></i> Edit Enquiry Record
+                </a>
+            @endif
+            @if($permission->print ?? true)
+                <a href="" class="mob-action-item" id="actionBtnPrint" target="_blank">
+                    <i class="fa fa-print text-secondary"></i> Print Enquiry Slip
+                </a>
+            @endif
+            <a href="" class="mob-action-item" id="actionBtnTimeline">
+                <i class="fa fa-history text-primary"></i> Interaction History Timeline
+            </a>
+            @if($permission->delete ?? true)
+                <button type="button" class="mob-action-item text-danger border-0" id="actionBtnDelete" style="width:100%; text-align:left;">
+                    <i class="fa fa-trash-o text-danger"></i> Delete Enquiry
+                </button>
+            @endif
         </div>
     </div>
+    <div class="mob-sheet-footer">
+        <button type="button" class="btn-sheet-reset" id="btnCancelActionSheet" style="flex:1;">Close</button>
+    </div>
+</div>
+
+{{-- 9. Delete Confirmation Bottom Sheet --}}
+<div class="mob-sheet-backdrop" id="deleteSheetBackdrop"></div>
+<div class="mob-bottom-sheet" id="deleteBottomSheet">
+    <div class="mob-sheet-header" style="background: linear-gradient(135deg, #450a0a 0%, #991b1b 100%);">
+        <div class="mob-sheet-title">
+            <i class="fa fa-trash-o text-white"></i> Delete Enquiry
+        </div>
+        <button type="button" class="mob-sheet-close" id="btnCloseDeleteSheet">&times;</button>
+    </div>
+    <form action="{{ url('enquiryDelete') }}" method="POST">
+        @csrf
+        <input type="hidden" name="delete_id" id="deleteEnquiryId">
+        <div class="mob-sheet-body text-center" style="padding: 20px 16px;">
+            <div style="width:44px; height:44px; border-radius:50%; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:20px; margin:0 auto 10px;">
+                <i class="fa fa-trash-o"></i>
+            </div>
+            <h6 style="font-size:13.5px; font-weight:800; color:#1e293b; margin-bottom:4px;">Delete Enquiry Record?</h6>
+            <p style="font-size:11.5px; color:#64748b; margin-bottom:0;" id="deleteEnquiryPrompt">
+                Are you sure you want to permanently delete this enquiry?
+            </p>
+        </div>
+        <div class="mob-sheet-footer">
+            <button type="button" class="btn-sheet-reset" id="btnCancelDelete">Cancel</button>
+            <button type="submit" class="btn-sheet-apply" style="background:#dc2626;">
+                <i class="fa fa-trash mr-1"></i> Confirm Delete
+            </button>
+        </div>
+    </form>
 </div>
 
 @endsection
@@ -1329,7 +1453,6 @@ $(document).ready(function() {
             $('#activeFilterDot').hide();
         }
 
-        let visibleCount = 0;
         let matchedCards = [];
 
         $cards.each(function() {
@@ -1341,6 +1464,7 @@ $(document).ready(function() {
             const cardRegDate = $card.attr('data-reg-date') || '';
             const cardFollowupDate = $card.attr('data-followup-date') || '';
             const isToday = $card.attr('data-is-today') === '1';
+            const isOverdue = $card.attr('data-is-overdue') === '1';
 
             let match = true;
 
@@ -1355,6 +1479,8 @@ $(document).ready(function() {
                     if (cardAdStatus !== 'admission' && cardStatus !== 'admission') match = false;
                 } else if (activeFilterType === 'today') {
                     if (!isToday) match = false;
+                } else if (activeFilterType === 'overdue') {
+                    if (!isOverdue) match = false;
                 } else if (activeFilterType === 'active') {
                     if (!['active', 'new', 'follow up', 'followup', 'in progress'].includes(cardStatus)) match = false;
                 } else {
@@ -1385,7 +1511,6 @@ $(document).ready(function() {
 
             if (match) {
                 matchedCards.push($card);
-                visibleCount++;
             } else {
                 $card.hide();
             }
@@ -1537,8 +1662,7 @@ $(document).ready(function() {
     });
 
     // Detail Sheet
-    $(document).on('click', '.btn-open-detail', function() {
-        const id = $(this).attr('data-id');
+    function showDetails(id) {
         const $card = $(`.enquiry-mob-card[data-id="${id}"]`);
         if (!$card.length) return;
 
@@ -1550,26 +1674,69 @@ $(document).ready(function() {
         $('#detMother').text($card.attr('data-mother') || '-');
         $('#detRegDate').text($card.attr('data-reg-date') || '-');
         $('#detFollowupDate').text($card.attr('data-followup-date') || '-');
-        $('#detStatus').text($card.find('.mob-status-pill').text().trim());
+        $('#detStatus').text($card.find('.mob-status-pill').first().text().trim());
         $('#detReference').text($card.find('.enquiry-ref-badge').text().trim() || '-');
         $('#detNote').text($card.find('.enquiry-note-preview').text().trim() || 'No remarks added yet.');
 
-        $('#detFullTimelineBtn').attr('href', '{{ url("studentRegistrationDetail") }}/' + id);
-        $('#detEditBtn').attr('href', '{{ url("enquiryEdit") }}/' + id);
+        $('#detFullTimelineBtn').attr('href', $card.attr('data-detail-url'));
+        $('#detEditBtn').attr('href', $card.attr('data-edit-url'));
 
         openSheet('#detailBottomSheet', '#detailSheetBackdrop');
+    }
+
+    $(document).on('click', '.btn-open-detail', function() {
+        const id = $(this).attr('data-id');
+        showDetails(id);
     });
     $('#btnCloseDetailSheet, #detailSheetBackdrop').on('click', function() {
         closeSheet('#detailBottomSheet', '#detailSheetBackdrop');
     });
 
-    // Delete Modal
-    $(document).on('click', '.btn-open-delete', function() {
-        const id = $(this).attr('data-id');
-        const name = $(this).attr('data-name');
-        $('#deleteEnquiryId').val(id);
-        $('#deleteEnquiryPrompt').html(`Are you sure you want to delete enquiry for <strong>${name}</strong>?`);
-        $('#deleteEnquiryModal').modal('show');
+    // More Options Action Sheet
+    let activeCardId = null;
+    let activeCardName = '';
+
+    $(document).on('click', '.btn-open-card-actions', function() {
+        activeCardId = $(this).attr('data-id');
+        activeCardName = $(this).attr('data-name');
+        const $card = $(`.enquiry-mob-card[data-id="${activeCardId}"]`);
+        if (!$card.length) return;
+
+        $('#actionSheetStudentName').text(activeCardName);
+        $('#actionBtnEdit').attr('href', $card.attr('data-edit-url'));
+        $('#actionBtnPrint').attr('href', $card.attr('data-print-url'));
+        $('#actionBtnTimeline').attr('href', $card.attr('data-detail-url'));
+
+        openSheet('#actionBottomSheet', '#actionSheetBackdrop');
+    });
+
+    $('#btnCloseActionSheet, #btnCancelActionSheet, #actionSheetBackdrop').on('click', function() {
+        closeSheet('#actionBottomSheet', '#actionSheetBackdrop');
+    });
+
+    $('#actionBtnViewDetail').on('click', function() {
+        closeSheet('#actionBottomSheet', '#actionSheetBackdrop');
+        if (activeCardId) {
+            setTimeout(function() {
+                showDetails(activeCardId);
+            }, 150);
+        }
+    });
+
+    // Delete Bottom Sheet
+    $('#actionBtnDelete').on('click', function() {
+        closeSheet('#actionBottomSheet', '#actionSheetBackdrop');
+        if (activeCardId) {
+            setTimeout(function() {
+                $('#deleteEnquiryId').val(activeCardId);
+                $('#deleteEnquiryPrompt').html(`Are you sure you want to permanently delete enquiry for <strong>${activeCardName}</strong>?`);
+                openSheet('#deleteBottomSheet', '#deleteSheetBackdrop');
+            }, 150);
+        }
+    });
+
+    $('#btnCloseDeleteSheet, #btnCancelDelete, #deleteSheetBackdrop').on('click', function() {
+        closeSheet('#deleteBottomSheet', '#deleteSheetBackdrop');
     });
 
     // Initial Filter Run
