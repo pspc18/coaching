@@ -660,6 +660,7 @@ class ExamController extends Controller
         $branchId = Session::get('branch_id');
         $setting = Helper::getSetting();
         $instituteName = $setting->name ?? 'Arise ERP Institute';
+        $examId = $request->input('exam_id') ?: $request->route('id');
 
         if ($request->isMethod('post')) {
             $creationMode = $request->input('exam_creation_mode', 'pdf_upload');
@@ -683,16 +684,37 @@ class ExamController extends Controller
                 'description' => 'nullable|string|max:255',
                 'exam_term_id' => 'nullable|integer',
                 'exam_creation_mode' => 'nullable|string',
+                'exam_id' => 'nullable|integer',
             ]);
 
-            $code = !empty($validated['code']) ? trim($validated['code']) : ($request->input('code') ?: null);
+            $isEdit = false;
+            $add = null;
+            if (!empty($examId)) {
+                $add = Exam::where('id', $examId)->first();
+                if ($add) {
+                    $isEdit = true;
+                }
+            }
+
+            if (!$add) {
+                $add = new Exam;
+                $add->user_id = Session::get('id') ?: 1;
+                $add->session_id = $sessionId;
+                $add->branch_id = $branchId;
+            }
+
+            $code = !empty($validated['code']) ? trim($validated['code']) : ($request->input('code') ?: ($add->code ?: ($add->exam_code ?: null)));
             if (!$code) {
                 do {
                     $code = 'EXAM-' . strtoupper(Str::random(6));
-                } while (Exam::where('code', $code)->orWhere('exam_code', $code)->exists());
+                } while (Exam::when($isEdit, function($q) use ($add) {
+                    $q->where('id', '!=', $add->id);
+                })->where(function($q) use ($code) {
+                    $q->where('code', $code)->orWhere('exam_code', $code);
+                })->exists());
             }
 
-            $paperPath = null;
+            $paperPath = $isEdit ? $add->question_paper_path : null;
             if ($request->hasFile('question_paper')) {
                 $paperUploadDir = public_path('uploads/question_papers');
                 if (!file_exists($paperUploadDir)) {
@@ -761,30 +783,27 @@ class ExamController extends Controller
 
                 $numQuestions = count($onlineQuestions);
                 if ($numQuestions === 0) {
-                    $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
+                    $numQuestions = (int) ($validated['number_of_questions'] ?? ($isEdit ? ($add->number_of_questions ?? 50) : 50));
                 }
             } else {
-                $numQuestions = (int) ($validated['number_of_questions'] ?? 50);
+                $numQuestions = (int) ($validated['number_of_questions'] ?? ($isEdit ? ($add->number_of_questions ?? 50) : 50));
             }
+            $numQuestions = max(1, $numQuestions);
 
-            $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : 1.0;
-            $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : 0.0;
+            $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : ($isEdit && isset($add->marks_per_correct) ? (float)$add->marks_per_correct : 1.0);
+            $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : ($isEdit && isset($add->marks_per_incorrect) ? (float)$add->marks_per_incorrect : 0.0);
             $maxMarks = $numQuestions * $marksPerCorrect;
-            $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : date('Y-m-d');
+            $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : ($isEdit && !empty($add->exam_date) ? (is_object($add->exam_date) ? $add->exam_date->format('Y-m-d') : $add->exam_date) : date('Y-m-d'));
 
             $submittedKey = $request->answer_key ?? [];
             if ($creationMode === 'question_bank') {
                 $finalAnswerKey = !empty($submittedKey) ? array_replace($derivedAnswerKey, $submittedKey) : $derivedAnswerKey;
             } else {
-                $finalAnswerKey = $submittedKey;
+                $finalAnswerKey = !empty($submittedKey) ? $submittedKey : ($isEdit && !empty($add->answer_key) ? $add->answer_key : []);
             }
 
             DB::beginTransaction();
             try {
-                $add = new Exam;
-                $add->user_id = Session::get('id') ?: 1;
-                $add->session_id = $sessionId;
-                $add->branch_id = $branchId;
                 $add->name = trim($request->name);
                 $add->code = $code;
                 $add->exam_code = $code;
@@ -797,11 +816,17 @@ class ExamController extends Controller
                 $add->marks_per_incorrect = $marksPerIncorrect;
                 $add->exam_maximum_marks = $maxMarks;
                 $add->answer_key = $finalAnswerKey;
-                $add->online_questions = $onlineQuestions;
+                if ($creationMode === 'question_bank') {
+                    $add->online_questions = $onlineQuestions;
+                } elseif (!$isEdit) {
+                    $add->online_questions = null;
+                }
                 if ($paperPath) {
                     $add->question_paper_path = $paperPath;
                 }
-                $add->result_status = 'not_scheduled';
+                if (!$isEdit) {
+                    $add->result_status = 'not_scheduled';
+                }
                 $add->description = $request->description;
                 $add->save();
 
@@ -813,11 +838,16 @@ class ExamController extends Controller
                     ->first();
 
                 if (!$assignment) {
-                    $assignment = new AssignExam;
+                    $existingAssignment = AssignExam::where('exam_id', $add->id)
+                        ->where('session_id', $sessionId)
+                        ->where('branch_id', $branchId)
+                        ->first();
+                    $assignment = $existingAssignment ?: new AssignExam;
                 }
 
                 $assignment->exam_id = $add->id;
                 $assignment->class_type_id = $request->class_type_id;
+                $assignment->exam_date = $examDate;
                 $assignment->session_id = $sessionId;
                 $assignment->branch_id = $branchId;
                 $assignment->user_id = Session::get('id') ?: 1;
@@ -841,41 +871,105 @@ class ExamController extends Controller
 
                 DB::commit();
 
+                $actionWord = $isEdit ? 'updated' : 'created';
+
                 if ($request->input('action_type') === 'fill_marks') {
                     return Redirect::to('fill_marks?class_type_id=' . $request->class_type_id . '&exam_id=' . $add->id)
-                        ->with('message', 'Exam "' . $add->name . '" created successfully. You can now fill marks.');
+                        ->with('message', 'Exam "' . $add->name . '" ' . $actionWord . ' successfully. You can now fill marks.');
                 }
 
                 if ($request->input('action_type') === 'print_omr') {
-                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print_omr=1')
-                        ->with('message', 'Exam created successfully! Printable OMR is loaded below.');
+                    $printUrl = $isEdit ? ('edit/exam/' . $add->id . '?print_omr=1') : ('add/exam?exam_id=' . $add->id . '&print_omr=1');
+                    return Redirect::to($printUrl)
+                        ->with('message', 'Exam ' . $actionWord . ' successfully! Printable OMR is loaded below.');
                 }
 
                 if ($request->input('action_type') === 'print_paper') {
-                    return Redirect::to('add/exam?exam_id=' . $add->id . '&print_paper=1')
-                        ->with('message', 'Exam created successfully! Printable Question Paper is loaded below.');
+                    $printUrl = $isEdit ? ('edit/exam/' . $add->id . '?print_paper=1') : ('add/exam?exam_id=' . $add->id . '&print_paper=1');
+                    return Redirect::to($printUrl)
+                        ->with('message', 'Exam ' . $actionWord . ' successfully! Printable Question Paper is loaded below.');
                 }
 
                 return Redirect::to('view/exam')
-                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') created successfully.');
+                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') ' . $actionWord . ' successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
-                return Redirect::back()->withInput()->with('error', 'Exam could not be created: ' . $e->getMessage());
+                return Redirect::back()->withInput()->with('error', 'Exam could not be ' . ($isEdit ? 'updated' : 'created') . ': ' . $e->getMessage());
             }
         }
 
-        $examCode = 'EXAM-' . strtoupper(Str::random(6));
-        $classType = Helper::ClassType();
         $savedExam = null;
         $subjects = collect([]);
         $preloadedQuestions = [];
         $preloadedClassId = null;
         $preloadedSubjectId = null;
 
-        if ($request->filled('exam_id')) {
-            $savedExam = Exam::where('branch_id', $branchId)->find($request->exam_id);
-            if ($savedExam && !empty($savedExam->class_type_id)) {
-                $subjects = Subject::where('class_type_id', $savedExam->class_type_id)->whereNull('deleted_at')->get();
+        if (!empty($examId)) {
+            $savedExam = Exam::where('id', $examId)->first();
+            if ($savedExam) {
+                $preloadedClassId = $savedExam->class_type_id;
+                $preloadedSubjectId = $savedExam->subject_id ?? null;
+
+                if (!empty($savedExam->class_type_id)) {
+                    $subjects = Subject::where('class_type_id', $savedExam->class_type_id)->whereNull('deleted_at')->get();
+                }
+
+                // Preload questions from savedExam->online_questions
+                if (!empty($savedExam->online_questions)) {
+                    $rawOq = $savedExam->online_questions;
+                    if (is_string($rawOq)) {
+                        $rawOq = json_decode($rawOq, true) ?: [];
+                    }
+                    if (is_array($rawOq)) {
+                        $preloadedQuestions = $rawOq;
+                        if (empty($preloadedSubjectId) && !empty($preloadedQuestions[0]['subject_id'])) {
+                            $preloadedSubjectId = $preloadedQuestions[0]['subject_id'];
+                        }
+                    }
+                }
+
+                // If online_questions is empty, check assign_questions
+                if (empty($preloadedQuestions)) {
+                    $assignedQIds = AssignQuestion::where('exam_id', $savedExam->id)
+                        ->whereNull('deleted_at')
+                        ->pluck('question_id')
+                        ->toArray();
+
+                    if (!empty($assignedQIds)) {
+                        $fetched = Question::whereIn('id', $assignedQIds)->get()->keyBy('id');
+                        $idx = 1;
+                        foreach ($assignedQIds as $qid) {
+                            if (!isset($fetched[$qid])) continue;
+                            $q = $fetched[$qid];
+                            if (!$preloadedSubjectId && !empty($q->subject_id)) {
+                                $preloadedSubjectId = $q->subject_id;
+                            }
+                            $c = trim((string)$q->correct_ans);
+                            $mapping = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                            $ans = ($q->question_type_id == 1) ? ($mapping[$c] ?? (in_array(strtoupper($c), ['A','B','C','D','E']) ? strtoupper($c) : 'A')) : (string)$q->correct_ans;
+
+                            $preloadedQuestions[] = [
+                                'id' => $q->id,
+                                'question_number' => $idx,
+                                'name' => $q->name,
+                                'question_type_id' => $q->question_type_id,
+                                'ans1' => $q->ans1,
+                                'ans2' => $q->ans2,
+                                'ans3' => $q->ans3,
+                                'ans4' => $q->ans4,
+                                'ans5' => $q->ans5,
+                                'correct_ans' => $ans,
+                                'correct_letter' => $ans,
+                                'image' => $q->image ? asset($q->image) : null,
+                                'explanation' => $q->explanation,
+                                'difficulty_level' => $q->difficulty_level,
+                                'group_id' => $q->group_id,
+                                'direction' => $q->direction,
+                            ];
+                            $idx++;
+                        }
+                    }
+                }
             }
         } elseif ($request->filled('question_ids')) {
             $rawIds = $request->input('question_ids');
@@ -931,32 +1025,15 @@ class ExamController extends Controller
             }
         }
 
+        $examCode = $savedExam ? ($savedExam->code ?: ($savedExam->exam_code ?: ('EXAM-' . strtoupper(Str::random(6))))) : ('EXAM-' . strtoupper(Str::random(6)));
+        $classType = Helper::ClassType();
+
         return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId'));
     } 
     
-     public function editExam(Request $request, $id){
-         $data = Exam::find($id);
-         
-        
-            if($request->isMethod('post')){
-                $request->validate([
-
-         'name'  => 'required',
-   
-         ]);
-
-	     $data->user_id = Session::get('id');
-	     $data->session_id = Session::get('session_id');
-         $data->branch_id = Session::get('branch_id');	     
-		 $data->name =$request->name;
-		 $data->class_type_id =$request->class_type_id;
-		 $data->exam_term_id =$request->exam_term_id;
-	     $data->save();
-
-            return redirect::to('view/exam')->with('message', 'Exam Updated Successfully.');
-        }
-
-        return view('examination.offline_exam.exam.edit',['data'=>$data]);
+    public function editExam(Request $request, $id){
+        $request->merge(['exam_id' => $id]);
+        return $this->addExam($request);
     } 
     
     public function assignExam(Request $request, $id){

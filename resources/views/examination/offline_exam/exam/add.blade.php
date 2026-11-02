@@ -3,7 +3,7 @@
 @section('content')
 @php
   $formExam = $savedExam ?? null;
-  $previewName = old('name', $formExam->name ?? 'Sample Examination');
+  $previewName = old('name', $formExam->name ?? (request('name') ?? ''));
   $previewCode = old('code', $formExam->code ?? $formExam->exam_code ?? ($examCode ?? ('EXAM-' . strtoupper(\Illuminate\Support\Str::random(6)))));
   $previewQuestions = (int) old('number_of_questions', $formExam->number_of_questions ?? 50);
   $previewInstituteName = $instituteName ?? (Helper::getSetting()->name ?? 'ARISE ERP INSTITUTE');
@@ -12,6 +12,9 @@
   $preloadedSubjectId = $preloadedSubjectId ?? '';
 
   $previewAnswerKey = old('answer_key', $formExam->answer_key ?? []);
+  if (is_string($previewAnswerKey)) {
+      $previewAnswerKey = json_decode($previewAnswerKey, true) ?: [];
+  }
   $previewSubjectId = old('subject_id', $formExam->subject_id ?? $preloadedSubjectId);
   $previewClassId = old('class_type_id', $formExam->class_type_id ?? $preloadedClassId);
 
@@ -837,8 +840,15 @@ textarea.theme-form-control {
                 <span class="perf-kicker">
                     <i class="fa fa-graduation-cap"></i> Examination & OMR Sheet System
                 </span>
+                <div class="perf-breadcrumb mb-1" style="font-size: 11px;">
+                    <a href="{{ url('/') }}" class="text-white-50">Dashboard</a>
+                    <span class="text-white-50 mx-1">/</span>
+                    <a href="{{ url('view/exam') }}" class="text-white-50">Examinations</a>
+                    <span class="text-white-50 mx-1">/</span>
+                    <span class="text-white font-weight-bold">{{ !empty($formExam) ? 'Edit Exam' : 'Create Offline Exam' }}</span>
+                </div>
                 <h1 class="perf-title">
-                    <i class="fa fa-pencil-square-o"></i> Offline Exam & OMR Sheet Creator
+                    <i class="fa fa-pencil-square-o"></i> {{ !empty($formExam) ? 'Edit Examination & OMR Sheet' : 'Offline Exam & OMR Sheet Creator' }}
                 </h1>
                 <p class="perf-subtitle">
                     <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
@@ -885,8 +895,11 @@ textarea.theme-form-control {
         @endif
 
         {{-- Form Container --}}
-        <form id="exam-create-form" action="{{ url('add/exam') }}" method="post" enctype="multipart/form-data">
+        <form id="exam-create-form" action="{{ !empty($formExam->id) ? url('edit/exam/' . $formExam->id) : url('add/exam') }}" method="post" enctype="multipart/form-data">
             @csrf
+            @if(!empty($formExam->id))
+                <input type="hidden" name="exam_id" value="{{ $formExam->id }}">
+            @endif
             <input type="hidden" name="action_type" id="form-action-type" value="save">
             <input type="hidden" name="selected_questions_json" id="selected_questions_json" value="{{ json_encode($initialQuestions, JSON_UNESCAPED_UNICODE) }}">
 
@@ -1155,16 +1168,16 @@ textarea.theme-form-control {
                     {{-- Form Actions Bar --}}
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <button type="button" id="btn-submit-save" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; flex:1; justify-content:center; height:32px;">
-                            <i class="fa fa-save"></i> Save Exam
+                            <i class="fa fa-save"></i> {{ !empty($formExam) ? 'Update Exam' : 'Save Exam' }}
                         </button>
                         <button type="button" id="btn-submit-print-omr" class="dash-btn dash-btn-light" style="border: 1px solid #cbd5e1; height:32px;">
-                            <i class="fa fa-print"></i> Save & Print OMR
+                            <i class="fa fa-print"></i> {{ !empty($formExam) ? 'Update & Print OMR' : 'Save & Print OMR' }}
                         </button>
                         <button type="button" id="btn-submit-print-paper" class="dash-btn dash-btn-sky" style="height:32px; {{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
-                            <i class="fa fa-file-text-o"></i> Save & Print Paper
+                            <i class="fa fa-file-text-o"></i> {{ !empty($formExam) ? 'Update & Print Paper' : 'Save & Print Paper' }}
                         </button>
                         <button type="button" id="btn-submit-marks" class="dash-btn dash-btn-emerald" style="height:32px;">
-                            <i class="fa fa-pencil"></i> Save & Fill Marks
+                            <i class="fa fa-pencil"></i> {{ !empty($formExam) ? 'Update & Fill Marks' : 'Save & Fill Marks' }}
                         </button>
                     </div>
 
