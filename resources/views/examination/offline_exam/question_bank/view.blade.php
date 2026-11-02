@@ -185,12 +185,107 @@
     color: #334155;
     margin-bottom: 3px;
     display: block;
+    white-space: nowrap;
 }
 .qb-filter-input, .qb-filter-card .select2-container--bootstrap4 .select2-selection {
     height: 32px !important;
     font-size: 12px !important;
     border-radius: 3px !important;
     border: 1px solid #cbd5e1 !important;
+    color: #0f172a;
+}
+.qb-filter-card .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    line-height: 30px !important;
+    font-size: 12px !important;
+    color: #0f172a;
+    padding-left: 8px;
+}
+.qb-filter-card .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+    height: 30px !important;
+}
+
+/* Compact Search & Action Group (Theme Matched) */
+.qb-search-action-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.qb-search-input-box {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+.qb-search-input-box .qb-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 11.5px;
+    pointer-events: none;
+    z-index: 3;
+}
+.qb-search-input-box .qb-search-input {
+    padding-left: 28px !important;
+    height: 32px !important;
+    font-size: 12px !important;
+    border-radius: 3px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.qb-search-input-box .qb-search-input:focus {
+    border-color: #002C54 !important;
+    box-shadow: 0 0 0 2px rgba(0, 44, 84, 0.12) !important;
+    background: #ffffff !important;
+}
+.btn-qb-search {
+    height: 32px;
+    padding: 0 11px;
+    background: #002C54 !important;
+    border: 1px solid #002C54 !important;
+    color: #ffffff !important;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.btn-qb-search:hover {
+    background: #0f3460 !important;
+    border-color: #0f3460 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.btn-qb-reset {
+    height: 32px;
+    padding: 0 10px;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.btn-qb-reset:hover {
+    background: #e2e8f0 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 /* 4. Questions Table Card */
@@ -440,12 +535,6 @@
                 <a href="{{ url('add/question') }}" class="qb-btn-hero qb-btn-hero-light {{ $permission->add ? '' : 'd-none' }}">
                     <i class="fa fa-plus text-primary"></i> Add Question
                 </a>
-                <a href="{{ url('examination_dashboard') }}" class="qb-btn-hero qb-btn-hero-outline">
-                    <i class="fa fa-arrow-left"></i> Exam Dashboard
-                </a>
-                <a href="{{ url('view/question') }}" class="qb-btn-hero qb-btn-hero-outline" title="Clear all filters">
-                    <i class="fa fa-refresh"></i> Reset
-                </a>
             </div>
         </div>
 
@@ -498,7 +587,7 @@
                 <div class="row align-items-end">
                     
                     {{-- Class --}}
-                    <div class="col-md-2 col-sm-6 mb-2">
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 mb-2">
                         <label class="qb-filter-label"><i class="fa fa-graduation-cap text-muted mr-1"></i> Class</label>
                         <select class="form-control qb-filter-input select2" id="class_type_id" name="class_type_id">
                             <option value="">All Classes</option>
@@ -513,7 +602,7 @@
                     </div>
 
                     {{-- Subject --}}
-                    <div class="col-md-2 col-sm-6 mb-2">
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 mb-2">
                         <label class="qb-filter-label"><i class="fa fa-book text-muted mr-1"></i> Subject</label>
                         <select class="form-control qb-filter-input select2" id="subject_id" name="subject_id">
                             <option value="">All Subjects</option>
@@ -528,7 +617,7 @@
                     </div>
 
                     {{-- Question Type --}}
-                    <div class="col-md-2 col-sm-6 mb-2">
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 mb-2">
                         <label class="qb-filter-label"><i class="fa fa-check-square-o text-muted mr-1"></i> Question Type</label>
                         <select class="form-control qb-filter-input" id="question_type_id" name="question_type_id">
                             <option value="">All Types</option>
@@ -538,7 +627,7 @@
                     </div>
 
                     {{-- Difficulty Level --}}
-                    <div class="col-md-2 col-sm-6 mb-2">
+                    <div class="col-xl-1 col-lg-2 col-md-4 col-sm-6 mb-2">
                         <label class="qb-filter-label"><i class="fa fa-tachometer text-muted mr-1"></i> Difficulty</label>
                         <select class="form-control qb-filter-input" id="difficulty_level" name="difficulty_level">
                             <option value="">All Difficulties</option>
@@ -549,28 +638,32 @@
                     </div>
 
                     {{-- Format / Nature --}}
-                    <div class="col-md-2 col-sm-6 mb-2">
-                        <label class="qb-filter-label"><i class="fa fa-filter text-muted mr-1"></i> Format / Nature</label>
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 mb-2">
+                        <label class="qb-filter-label"><i class="fa fa-filter text-muted mr-1"></i> Format</label>
                         <select class="form-control qb-filter-input" id="format_filter" name="format_filter">
                             <option value="">All Questions</option>
-                            <option value="grouped" {{ (($search['format_filter'] ?? '') == 'grouped') ? 'selected' : '' }}>Direction / Grouped Sets</option>
+                            <option value="grouped" {{ (($search['format_filter'] ?? '') == 'grouped') ? 'selected' : '' }}>Direction Sets</option>
                             <option value="standalone" {{ (($search['format_filter'] ?? '') == 'standalone') ? 'selected' : '' }}>Standalone Only</option>
-                            <option value="diagram" {{ (($search['format_filter'] ?? '') == 'diagram') ? 'selected' : '' }}>With Diagrams / Graphs</option>
+                            <option value="diagram" {{ (($search['format_filter'] ?? '') == 'diagram') ? 'selected' : '' }}>With Diagrams</option>
                             <option value="ai_extracted" {{ (($search['format_filter'] ?? '') == 'ai_extracted') ? 'selected' : '' }}>AI Extracted</option>
                         </select>
                     </div>
 
-                    {{-- Search Keywords & Actions --}}
-                    <div class="col-md-2 col-sm-12 mb-2">
-                        <label class="qb-filter-label"><i class="fa fa-search text-muted mr-1"></i> Search Keywords</label>
+                    {{-- Search Keywords & Actions (Compact & Theme-Matched) --}}
+                    <div class="col-xl-3 col-lg-12 col-md-8 col-sm-12 mb-2">
+                        <label class="qb-filter-label"><i class="fa fa-search text-muted mr-1"></i> Search Question</label>
                         <input type="hidden" name="per_page" id="filter_per_page" value="{{ $perPage ?? 25 }}">
-                        <div class="input-group">
-                            <input type="text" class="form-control qb-filter-input" id="name" name="name" placeholder="Keyword, topic..." value="{{ $search['name'] ?? '' }}">
-                            <div class="input-group-append">
-                                <button type="submit" class="btn btn-primary btn-sm px-3" title="Filter Questions">
-                                    <i class="fa fa-search"></i>
-                                </button>
+                        <div class="qb-search-action-wrap">
+                            <div class="qb-search-input-box">
+                                <i class="fa fa-search qb-search-icon"></i>
+                                <input type="text" class="form-control qb-filter-input qb-search-input" id="name" name="name" placeholder="Search keywords..." value="{{ $search['name'] ?? '' }}">
                             </div>
+                            <button type="submit" class="btn btn-qb-search" title="Search / Apply Filter">
+                                <i class="fa fa-search mr-1"></i> Filter
+                            </button>
+                            <a href="{{ url('view/question') }}" class="btn btn-qb-reset" title="Reset all filters">
+                                <i class="fa fa-refresh mr-1"></i> Reset
+                            </a>
                         </div>
                     </div>
 
