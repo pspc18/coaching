@@ -873,25 +873,13 @@ class ExamController extends Controller
 
                 $actionWord = $isEdit ? 'updated' : 'created';
 
-                if ($request->input('action_type') === 'fill_marks') {
-                    return Redirect::to('fill_marks?class_type_id=' . $request->class_type_id . '&exam_id=' . $add->id)
-                        ->with('message', 'Exam "' . $add->name . '" ' . $actionWord . ' successfully. You can now fill marks.');
-                }
-
-                if ($request->input('action_type') === 'print_omr') {
-                    $printUrl = $isEdit ? ('edit/exam/' . $add->id . '?print_omr=1') : ('add/exam?exam_id=' . $add->id . '&print_omr=1');
-                    return Redirect::to($printUrl)
-                        ->with('message', 'Exam ' . $actionWord . ' successfully! Printable OMR is loaded below.');
-                }
-
-                if ($request->input('action_type') === 'print_paper') {
-                    $printUrl = $isEdit ? ('edit/exam/' . $add->id . '?print_paper=1') : ('add/exam?exam_id=' . $add->id . '&print_paper=1');
-                    return Redirect::to($printUrl)
-                        ->with('message', 'Exam ' . $actionWord . ' successfully! Printable Question Paper is loaded below.');
+                if ($isEdit) {
+                    return Redirect::to('edit/exam/' . $add->id)
+                        ->with('message', 'Exam "' . $add->name . '" updated successfully.');
                 }
 
                 return Redirect::to('view/exam')
-                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') ' . $actionWord . ' successfully.');
+                    ->with('message', 'Exam "' . $add->name . '" (' . $add->code . ') created successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 return Redirect::back()->withInput()->with('error', 'Exam could not be ' . ($isEdit ? 'updated' : 'created') . ': ' . $e->getMessage());

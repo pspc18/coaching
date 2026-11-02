@@ -1167,17 +1167,8 @@ textarea.theme-form-control {
 
                     {{-- Form Actions Bar --}}
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <button type="button" id="btn-submit-save" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; flex:1; justify-content:center; height:32px;">
-                            <i class="fa fa-save"></i> {{ !empty($formExam) ? 'Update Exam' : 'Save Exam' }}
-                        </button>
-                        <button type="button" id="btn-submit-print-omr" class="dash-btn dash-btn-light" style="border: 1px solid #cbd5e1; height:32px;">
-                            <i class="fa fa-print"></i> {{ !empty($formExam) ? 'Update & Print OMR' : 'Save & Print OMR' }}
-                        </button>
-                        <button type="button" id="btn-submit-print-paper" class="dash-btn dash-btn-sky" style="height:32px; {{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
-                            <i class="fa fa-file-text-o"></i> {{ !empty($formExam) ? 'Update & Print Paper' : 'Save & Print Paper' }}
-                        </button>
-                        <button type="button" id="btn-submit-marks" class="dash-btn dash-btn-emerald" style="height:32px;">
-                            <i class="fa fa-pencil"></i> {{ !empty($formExam) ? 'Update & Fill Marks' : 'Save & Fill Marks' }}
+                        <button type="button" id="btn-submit-save" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; width: 100%; justify-content:center; height:36px; font-size:12px; font-weight:700; box-shadow: 0 2px 4px rgba(0, 44, 84, 0.2);">
+                            <i class="fa fa-{{ !empty($formExam) ? 'save' : 'plus-circle' }} mr-1"></i> {{ !empty($formExam) ? 'Update Exam' : 'Create Exam' }}
                         </button>
                     </div>
 
