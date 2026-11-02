@@ -280,6 +280,69 @@
     color: #ffffff !important;
     font-weight: 700;
 }
+
+/* Mode 2 Preview Tabs Header (High-contrast Theme & Zero Bullets) */
+#qbank-preview-tabs {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border: none !important;
+}
+#qbank-preview-tabs li,
+#qbank-preview-tabs .nav-item {
+    list-style: none !important;
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+#qbank-preview-tabs li::before,
+#qbank-preview-tabs li::marker,
+#qbank-preview-tabs .nav-item::before,
+#qbank-preview-tabs .nav-item::marker {
+    display: none !important;
+    content: "" !important;
+}
+#qbank-preview-tabs .nav-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 12px !important;
+    border-radius: 3px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+    /* Inactive State: Light slate/white text on dark navy card header */
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+#qbank-preview-tabs .nav-link i {
+    color: #7dd3fc !important;
+}
+#qbank-preview-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+}
+/* Active State: Pure White Background Pill with Deep Navy Text (#002C54) */
+#qbank-preview-tabs .nav-link.active,
+#qbank-preview-tabs .nav-item.show .nav-link {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    font-weight: 800 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+}
+#qbank-preview-tabs .nav-link.active i,
+#qbank-preview-tabs .nav-item.show .nav-link i {
+    color: #002C54 !important;
+}
 .theme-card-body {
     padding: 12px;
 }
@@ -1187,18 +1250,18 @@ textarea.theme-form-control {
                             <div class="theme-card-header">
                                 <ul class="nav nav-pills" id="qbank-preview-tabs" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link active py-1 px-3" id="tab-paper-btn" data-toggle="pill" href="#tab-paper-content" role="tab" style="font-size: 11px; font-weight: 700; color: #ffffff;">
-                                            <i class="fa fa-file-text-o mr-1"></i> Question Paper Preview
+                                        <a class="nav-link active" id="tab-paper-btn" data-toggle="pill" href="#tab-paper-content" role="tab">
+                                            <i class="fa fa-file-text-o"></i> Question Paper Preview
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link py-1 px-3" id="tab-omr-btn" data-toggle="pill" href="#tab-omr-content" role="tab" style="font-size: 11px; font-weight: 700; color: #ffffff;">
-                                            <i class="fa fa-th mr-1"></i> Matching OMR Sheet
+                                        <a class="nav-link" id="tab-omr-btn" data-toggle="pill" href="#tab-omr-content" role="tab">
+                                            <i class="fa fa-th"></i> Matching OMR Sheet
                                         </a>
                                     </li>
                                 </ul>
                                 <div class="d-flex align-items-center gap-2">
-                                    <button type="button" id="btn-print-active-tab" class="dash-btn dash-btn-light py-0 px-2" style="height: 22px; font-size: 10px;">
+                                    <button type="button" id="btn-print-active-tab" class="dash-btn dash-btn-light py-0 px-2" style="height: 24px; font-size: 10.5px; font-weight: 700;">
                                         <i class="fa fa-print"></i> <span id="print-active-label">Print Question Paper</span>
                                     </button>
                                 </div>
@@ -1640,7 +1703,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (pTitle) pTitle.textContent = nameVal;
         if (pClass) pClass.textContent = classText;
         if (pSub) pSub.textContent = subText;
-        if (pDate) pDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+        if (pDate) pDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '{{ date('d M Y') }}';
         if (pTotalQ) pTotalQ.textContent = qCount;
         if (pMaxMarks) pMaxMarks.textContent = (qCount * marksCorrect).toFixed(1);
         if (pCorr) pCorr.textContent = marksCorrect;
@@ -2012,20 +2075,485 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -------------------------------------------------------------
-    // Print Handlers
+    // Print Handlers (A4 Dedicated New Tab with Max Utilization)
     // -------------------------------------------------------------
     const printOmr = () => {
-        document.body.classList.add('printing-omr');
-        document.body.classList.remove('printing-paper');
-        window.print();
-        setTimeout(() => document.body.classList.remove('printing-omr'), 500);
+        const svgElem = document.getElementById('exam-omr-svg');
+        if (!svgElem) {
+            alert('OMR Sheet preview is not available.');
+            return;
+        }
+
+        const examName = (document.getElementById('exam_name')?.value || 'Examination').trim();
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            // Fallback for pop-up blocker
+            document.body.classList.add('printing-omr');
+            document.body.classList.remove('printing-paper');
+            window.print();
+            setTimeout(() => document.body.classList.remove('printing-omr'), 500);
+            return;
+        }
+
+        const svgClone = svgElem.cloneNode(true);
+        svgClone.setAttribute('width', '100%');
+        svgClone.setAttribute('height', '100%');
+        svgClone.style.maxWidth = '100%';
+        svgClone.style.maxHeight = '287mm';
+        svgClone.style.display = 'block';
+        svgClone.style.margin = '0 auto';
+
+        const omrDoc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${examName} - A4 OMR Sheet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 4mm 5mm 5mm 5mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: Arial, "Helvetica Neue", sans-serif;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        @media screen {
+            body {
+                background: #475569;
+                padding: 16px 10px 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .screen-toolbar {
+                position: sticky;
+                top: 10px;
+                z-index: 1000;
+                background: #002C54;
+                color: #ffffff;
+                padding: 8px 18px;
+                border-radius: 4px;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 16px;
+                font-size: 13px;
+            }
+            .screen-toolbar .btn-print-action {
+                background: #0284c7;
+                color: #ffffff;
+                border: none;
+                padding: 6px 14px;
+                border-radius: 3px;
+                font-weight: 700;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background 0.15s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .screen-toolbar .btn-print-action:hover {
+                background: #0369a1;
+            }
+            .screen-toolbar .btn-close-action {
+                background: rgba(255,255,255,0.18);
+                color: #ffffff;
+                border: 1px solid rgba(255,255,255,0.3);
+                padding: 6px 12px;
+                border-radius: 3px;
+                font-weight: 600;
+                font-size: 12px;
+                cursor: pointer;
+            }
+            .screen-toolbar .btn-close-action:hover {
+                background: rgba(255,255,255,0.3);
+            }
+            .a4-omr-wrapper {
+                background: #ffffff;
+                width: 202mm;
+                height: 288mm;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1mm;
+                box-sizing: border-box;
+            }
+        }
+        @media print {
+            .screen-toolbar {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .a4-omr-wrapper {
+                width: 100% !important;
+                height: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+        .a4-omr-wrapper svg {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: 287mm !important;
+            display: block !important;
+            margin: 0 auto !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-toolbar">
+        <span><strong><i class="fa fa-th"></i> A4 OMR Sheet View</strong> — ${examName}</span>
+        <button class="btn-print-action" onclick="window.print();"><i class="fa fa-print"></i> Print / Save as PDF</button>
+        <button class="btn-close-action" onclick="window.close();">Close Tab</button>
+    </div>
+    <div class="a4-omr-wrapper">
+        ${svgClone.outerHTML}
+    </div>
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.print();
+            }, 350);
+        });
+    <\/script>
+</body>
+</html>`;
+
+        printWindow.document.open();
+        printWindow.document.write(omrDoc);
+        printWindow.document.close();
     };
 
     const printPaper = () => {
-        document.body.classList.add('printing-paper');
-        document.body.classList.remove('printing-omr');
-        window.print();
-        setTimeout(() => document.body.classList.remove('printing-paper'), 500);
+        const questionsFlow = document.getElementById('exam-paper-questions-flow');
+        if (!questionsFlow || selectedQuestions.length === 0) {
+            alert('Please add at least one question from the Question Bank before printing the question paper.');
+            return;
+        }
+
+        const examTitle = (document.getElementById('exam_name')?.value || 'Examination').trim();
+        const instName = `{{ mb_strtoupper($previewInstituteName) }}`;
+        const className = document.getElementById('paper-preview-class')?.textContent || '--';
+        const subjectName = document.getElementById('paper-preview-subject')?.textContent || 'All Subjects';
+        const examDate = document.getElementById('paper-preview-date')?.textContent || `{{ date('d M Y') }}`;
+        const examCode = document.getElementById('exam_code')?.value || `{{ $previewCode }}`;
+        const totalQ = document.getElementById('paper-preview-total-q')?.textContent || selectedQuestions.length;
+        const maxMarks = document.getElementById('paper-preview-max-marks')?.textContent || '0';
+        const correctMarks = document.getElementById('paper-correct-marks-label')?.textContent || '1.0';
+        const negativeMarks = document.getElementById('paper-negative-marks-label')?.textContent || '0';
+
+        const printWin = window.open('', '_blank');
+        if (!printWin) {
+            // Fallback for pop-up blocker
+            document.body.classList.add('printing-paper');
+            document.body.classList.remove('printing-omr');
+            window.print();
+            setTimeout(() => document.body.classList.remove('printing-paper'), 500);
+            return;
+        }
+
+        const flowHtml = questionsFlow.innerHTML;
+
+        const paperDoc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${examTitle} - A4 Question Paper</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 8mm 10mm 10mm 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: "DejaVu Sans", "Segoe UI", Arial, Helvetica, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.45;
+            width: 100%;
+        }
+        @media screen {
+            body {
+                background: #475569;
+                padding: 16px 10px 40px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .screen-toolbar {
+                position: sticky;
+                top: 10px;
+                z-index: 1000;
+                background: #002C54;
+                color: #ffffff;
+                padding: 8px 18px;
+                border-radius: 4px;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 16px;
+                font-size: 13px;
+            }
+            .screen-toolbar .btn-print-action {
+                background: #0284c7;
+                color: #ffffff;
+                border: none;
+                padding: 6px 14px;
+                border-radius: 3px;
+                font-weight: 700;
+                font-size: 12px;
+                cursor: pointer;
+                transition: background 0.15s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .screen-toolbar .btn-print-action:hover {
+                background: #0369a1;
+            }
+            .screen-toolbar .btn-close-action {
+                background: rgba(255,255,255,0.18);
+                color: #ffffff;
+                border: 1px solid rgba(255,255,255,0.3);
+                padding: 6px 12px;
+                border-radius: 3px;
+                font-weight: 600;
+                font-size: 12px;
+                cursor: pointer;
+            }
+            .screen-toolbar .btn-close-action:hover {
+                background: rgba(255,255,255,0.3);
+            }
+            .a4-paper-sheet {
+                background: #ffffff;
+                width: 210mm;
+                min-height: 297mm;
+                padding: 12mm 14mm;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+                box-sizing: border-box;
+            }
+        }
+        @media print {
+            .screen-toolbar {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .a4-paper-sheet {
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
+        }
+        .exam-paper-header {
+            text-align: center;
+            border-bottom: 2px solid #002C54;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+        .exam-paper-institute {
+            font-size: 15pt;
+            font-weight: 800;
+            color: #002C54;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            margin: 0 0 2px;
+        }
+        .exam-paper-exam-name {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 6px;
+        }
+        .exam-paper-meta-table {
+            width: 100%;
+            font-size: 9.5pt;
+            font-weight: 600;
+            color: #1e293b;
+            border-collapse: collapse;
+        }
+        .exam-paper-meta-table td {
+            padding: 2px 4px;
+        }
+        .exam-instructions-box {
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            padding: 5px 10px;
+            font-size: 8.5pt;
+            color: #334155;
+            margin-bottom: 10px;
+            border-radius: 3px;
+        }
+        .exam-instructions-box strong {
+            color: #002C54;
+        }
+        .exam-instructions-box ul {
+            margin: 2px 0 0;
+            padding-left: 18px;
+        }
+        .paper-question-block {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .paper-question-block:last-child {
+            border-bottom: none;
+        }
+        .paper-q-statement {
+            font-size: 10pt;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+        .paper-q-num {
+            font-weight: 800;
+            color: #002C54;
+            margin-right: 4px;
+        }
+        .paper-q-marks {
+            float: right;
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #64748b;
+        }
+        .paper-q-options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px 16px;
+            font-size: 9.5pt;
+            padding-left: 12px;
+        }
+        .paper-q-opt {
+            color: #1e293b;
+            line-height: 1.35;
+        }
+        .paper-q-opt-label {
+            font-weight: 700;
+            color: #002C54;
+            margin-right: 4px;
+        }
+        .paper-q-diagram {
+            max-height: 130px;
+            display: block;
+            margin: 5px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+            padding: 2px;
+        }
+        .katex {
+            font-size: 1.05em;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-toolbar">
+        <span><strong><i class="fa fa-file-text-o"></i> A4 Question Paper View</strong> — ${examTitle}</span>
+        <button class="btn-print-action" onclick="window.print();"><i class="fa fa-print"></i> Print / Save as PDF</button>
+        <button class="btn-close-action" onclick="window.close();">Close Tab</button>
+    </div>
+    <div class="a4-paper-sheet">
+        <div class="exam-paper-header">
+            <h2 class="exam-paper-institute">${instName}</h2>
+            <h3 class="exam-paper-exam-name">${examTitle}</h3>
+            <table class="exam-paper-meta-table">
+                <tr>
+                    <td style="text-align: left; width: 33%;"><strong>Class:</strong> ${className}</td>
+                    <td style="text-align: center; width: 34%;"><strong>Subject:</strong> ${subjectName}</td>
+                    <td style="text-align: right; width: 33%;"><strong>Date:</strong> ${examDate}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;"><strong>Code:</strong> ${examCode}</td>
+                    <td style="text-align: center;"><strong>Total Questions:</strong> ${totalQ}</td>
+                    <td style="text-align: right;"><strong>Max. Marks:</strong> ${maxMarks}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="exam-instructions-box">
+            <strong>General Instructions:</strong>
+            <ul>
+                <li>All questions are compulsory. Fill answers in the accompanying OMR answer sheet.</li>
+                <li>Each correct answer carries <strong>${correctMarks}</strong> mark(s). Negative marking: <strong>${negativeMarks}</strong>.</li>
+                <li>Use blue or black ball point pen only to darken the bubbles on the OMR sheet.</li>
+            </ul>
+        </div>
+        <div class="paper-questions-list">
+            ${flowHtml}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"><\/script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.querySelector('.paper-questions-list'), {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\\\(', right: '\\\\)', display: false},
+                        {left: '\\\\[', right: '\\\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.print();
+            }, 450);
+        });
+    <\/script>
+</body>
+</html>`;
+
+        printWin.document.open();
+        printWin.document.write(paperDoc);
+        printWin.document.close();
     };
 
     document.querySelectorAll('.btn-trigger-print-omr').forEach(btn => btn.addEventListener('click', printOmr));
