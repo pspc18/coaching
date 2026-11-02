@@ -771,7 +771,7 @@
                                             <i class="fa fa-pencil"></i>
                                         </a>
 
-                                        <button type="button" class="btn btn-action-qb btn-action-delete deleteData {{ $permission->delete ? '' : 'd-none' }}" data-id="{{ $item->id }}" data-bs-toggle="modal" data-bs-target="#Modal_id" title="Delete Question">
+                                        <button type="button" class="btn btn-action-qb btn-action-delete deleteData {{ $permission->delete ? '' : 'd-none' }}" data-id="{{ $item->id }}" data-toggle="modal" data-target="#Modal_id" data-bs-toggle="modal" data-bs-target="#Modal_id" title="Delete Question">
                                             <i class="fa fa-trash-o"></i>
                                         </button>
                                     </div>
@@ -831,7 +831,7 @@
                 <h5 class="modal-title font-weight-bold" style="font-size: 13.5px;">
                     <i class="fa fa-info-circle mr-1"></i> Question Details & Preview
                 </h5>
-                <button type="button" class="btn-close btn-close-white text-white close" data-bs-dismiss="modal" aria-label="Close" style="background: none; border: none; font-size: 20px;">
+                <button type="button" class="btn-close btn-close-white text-white close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="background: none; border: none; font-size: 20px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -911,7 +911,7 @@
             </div>
 
             <div class="modal-footer py-2 px-3" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -923,7 +923,7 @@
         <div class="modal-content border-0 shadow-lg bg-dark text-white" style="border-radius: 4px;">
             <div class="modal-header border-0 pb-0">
                 <h6 class="modal-title"><i class="fa fa-picture-o mr-1"></i> Diagram Preview</h6>
-                <button type="button" class="btn-close btn-close-white text-white close" data-bs-dismiss="modal" style="background:none; border:none; font-size:20px;">
+                <button type="button" class="btn-close btn-close-white text-white close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="background:none; border:none; font-size:20px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -940,7 +940,7 @@
         <div class="modal-content card-outline card-orange">
             <div class="modal-header bg-danger text-white py-2">
                 <h5 class="modal-title" style="font-size: 14px;"><i class="fa fa-trash-o mr-1"></i> Delete Confirmation</h5>
-                <button type="button" class="btn-close text-white close" data-bs-dismiss="modal" style="background:none; border:none; font-size:20px;">
+                <button type="button" class="btn-close text-white close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="background:none; border:none; font-size:20px;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -953,7 +953,7 @@
                     <p class="small text-muted mb-0">This action cannot be undone. The question will be permanently removed from the question bank.</p>
                 </div>
                 <div class="modal-footer py-2 bg-light">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger btn-sm px-3">Delete Question</button>
                 </div>
             </form>
@@ -1022,9 +1022,17 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#qbFilterForm').submit();
     });
 
+    // Universal Modal Dismiss / Close Handler (Bootstrap 4 & 5 support)
+    $(document).on('click', '[data-dismiss="modal"], [data-bs-dismiss="modal"], .btn-close, .modal .close', function () {
+        $(this).closest('.modal').modal('hide');
+    });
+
     // Delete Button Click
-    $(document).on('click', '.deleteData', function () {
-        $('#delete_id').val($(this).data('id'));
+    $(document).on('click', '.deleteData', function (e) {
+        e.preventDefault();
+        const qId = $(this).data('id');
+        $('#delete_id').val(qId);
+        $('#Modal_id').modal('show');
     });
 
     // Lightbox Diagram Click
