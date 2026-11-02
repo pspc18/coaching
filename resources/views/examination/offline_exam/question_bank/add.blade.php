@@ -659,18 +659,18 @@ textarea.theme-form-control {
                 </p>
             </div>
             <div class="perf-hero-actions">
-                <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff; border: 1px solid #60a5fa;" title="Generate Questions using AI Prompt & Pattern Engine">
+                <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#modal-ai-generator" style="background: #ffffff !important; color: #002C54 !important; border: 1px solid #ffffff !important; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.15);" title="Generate Questions using AI Prompt & Pattern Engine">
                     <i class="fa fa-magic text-warning mr-1"></i> AI Question Generator
                 </button>
-                <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" title="View all questions in Question Bank">
+                <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="View all questions in Question Bank">
                     <i class="fa fa-list mr-1"></i> Question Bank
                 </a>
-                <button type="button" class="dash-btn {{ $hasAiKey ? 'dash-btn-light' : 'dash-btn-emerald' }}" data-toggle="modal" data-target="#aiSettingsModal" title="Configure Google Gemini API Key">
-                    <i class="fa fa-magic mr-1"></i> AI Settings
+                <button type="button" class="dash-btn dash-btn-outline" data-toggle="modal" data-target="#aiSettingsModal" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="Configure Google Gemini API Key">
+                    <i class="fa fa-sliders mr-1"></i> AI Settings
                     @if($hasAiKey)
-                        <span class="badge badge-success ml-1" style="font-size: 9px;"><i class="fa fa-check mr-1"></i> Connected</span>
+                        <span class="badge badge-success ml-1" style="font-size: 9px; padding: 2px 6px;"><i class="fa fa-check mr-1"></i> Connected</span>
                     @else
-                        <span class="badge badge-warning ml-1" style="font-size: 9px;">Configure Key</span>
+                        <span class="badge badge-warning ml-1" style="font-size: 9px; padding: 2px 6px;">Configure Key</span>
                     @endif
                 </button>
             </div>
@@ -753,15 +753,15 @@ textarea.theme-form-control {
         {{-- 3. Ingestion Mode Switcher Tabs --}}
         <div class="mode-nav-tabs">
             <button type="button" class="mode-nav-tab active" data-target-tab="tab-manual">
-                <i class="fa fa-keyboard-o mr-2"></i> 1. Manual Builder
+                <i class="fa fa-keyboard-o mr-1"></i> 1. Manual Builder
                 <span class="tab-badge">Math &amp; LaTeX</span>
             </button>
             <button type="button" class="mode-nav-tab" data-target-tab="tab-image">
-                <i class="fa fa-camera mr-2"></i> 2. AI Single Image Scanner
+                <i class="fa fa-camera mr-1"></i> 2. Image Scanner
                 <span class="tab-badge">Photo / Paste</span>
             </button>
             <button type="button" class="mode-nav-tab" data-target-tab="tab-pdf">
-                <i class="fa fa-file-pdf-o mr-2"></i> 3. AI Bulk PDF / Paper Parser
+                <i class="fa fa-file-pdf-o mr-1"></i> 3. Bulk PDF Parser
                 <span class="tab-badge">Multi-Q</span>
             </button>
         </div>
@@ -780,30 +780,30 @@ textarea.theme-form-control {
 
                 {{-- Mode Switcher Card: Standalone vs Directional Set --}}
                 <div class="theme-card mb-2" style="background: #ffffff; border: 1px solid #cbd5e1;">
-                    <div class="p-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
-                                <i class="fa fa-sliders text-primary mr-1"></i> Question Format Mode:
+                    <div class="p-2 px-3 d-flex align-items-center justify-content-between flex-wrap" style="gap: 8px;">
+                        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <span class="font-weight-bold" style="font-size: 11px; color: #002C54; white-space: nowrap;">
+                                <i class="fa fa-sliders text-primary mr-1"></i> Mode:
                             </span>
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-sm btn-outline-primary active manual-mode-pill" id="lbl-mode-standalone" style="font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 2px; cursor: pointer;">
+                                <label class="btn btn-sm btn-outline-primary active manual-mode-pill" id="lbl-mode-standalone" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Single independent question with options">
                                     <input type="radio" name="manual_mode_toggle" id="mode-standalone" value="standalone" checked autocomplete="off">
-                                    <i class="fa fa-file-text-o mr-1"></i> Standalone Question
+                                    <i class="fa fa-file-text-o mr-1"></i> Standalone
                                 </label>
-                                <label class="btn btn-sm btn-outline-primary manual-mode-pill" id="lbl-mode-directional" style="font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 2px; cursor: pointer;">
+                                <label class="btn btn-sm btn-outline-primary manual-mode-pill" id="lbl-mode-directional" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Common passage & linked sub-questions">
                                     <input type="radio" name="manual_mode_toggle" id="mode-directional" value="directional" autocomplete="off">
-                                    <i class="fa fa-sitemap mr-1"></i> Directional Set (Passage &amp; Sub-Questions)
+                                    <i class="fa fa-sitemap mr-1"></i> Directional Set
                                 </label>
                             </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="small text-muted d-none d-lg-block" id="manual-mode-description" style="font-size: 11px;">
-                                <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.
-                            </div>
-                            <button type="button" class="btn btn-sm btn-ai-pulse-glow" id="btn-open-ai-generator" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%); color: #ffffff; border: 1px solid #3b82f6; font-weight: 700; font-size: 11.5px; padding: 5px 14px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25); cursor: pointer; transition: all .2s ease;">
-                                <i class="fa fa-magic text-warning mr-1"></i> Generate Question with AI
-                                <span class="badge ml-1" style="background: rgba(255,255,255,0.22); font-size: 9.5px; color: #ffffff; padding: 2px 6px; border-radius: 2px; font-weight: 600;">Prompt &bull; PDF / Img</span>
+                            <button type="button" class="btn btn-sm btn-ai-pulse-glow" id="btn-open-ai-generator" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff !important; border: 1px solid #3b82f6; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);" title="Generate Questions using AI Prompt & Pattern Engine">
+                                <i class="fa fa-magic text-warning mr-1"></i> Generate with AI
+                                <span class="badge ml-1" style="background: rgba(255,255,255,0.22); font-size: 9px; color: #ffffff; padding: 1px 5px; border-radius: 2px; font-weight: 600;">Prompt/File</span>
                             </button>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                            <div class="small text-muted d-none d-md-block" id="manual-mode-description" style="font-size: 10.5px; white-space: nowrap;">
+                                <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone:</span> Single independent question with options.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -818,8 +818,8 @@ textarea.theme-form-control {
                                     <h3 class="card-title">
                                         <i class="fa fa-pencil text-warning mr-2"></i> Question Statement &amp; Answers
                                     </h3>
-                                    <span class="badge badge-light" style="font-size: 10.5px; color: #002C54; font-weight: 700;">
-                                        Format: LaTeX Math Supported ($...$)
+                                    <span class="badge" style="font-size: 10px; background: #ffffff !important; color: #002C54 !important; font-weight: 700; padding: 3px 8px;">
+                                        LaTeX Math ($...$)
                                     </span>
                                 </div>
                                 <div class="theme-card-body">
@@ -2469,7 +2469,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('lbl-mode-directional')?.classList.add('active');
             document.getElementById('lbl-mode-standalone')?.classList.remove('active');
             if (modeDesc) {
-                modeDesc.innerHTML = '<span class="text-info font-weight-bold"><i class="fa fa-sitemap mr-1"></i> Directional Set Mode:</span> Common passage &amp; multiple linked sub-questions sharing one Group ID.';
+                modeDesc.innerHTML = '<span class="text-info font-weight-bold"><i class="fa fa-sitemap mr-1"></i> Directional Set:</span> Common passage &amp; linked sub-questions.';
             }
 
             initDirectionalEngine();
@@ -2483,7 +2483,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('lbl-mode-standalone')?.classList.add('active');
             document.getElementById('lbl-mode-directional')?.classList.remove('active');
             if (modeDesc) {
-                modeDesc.innerHTML = '<span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone Mode:</span> Single independent question with 4-5 options.';
+                modeDesc.innerHTML = '<span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone:</span> Single independent question with options.';
             }
 
             initManualCKEditors();
