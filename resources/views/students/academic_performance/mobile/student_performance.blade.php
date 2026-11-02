@@ -14,14 +14,14 @@
     $topPerformers = ($gradeArray['grade_1'] ?? 0) + ($gradeArray['grade_2'] ?? 0);
     $needsImprovement = ($gradeArray['grade_4'] ?? 0) + ($gradeArray['grade_5'] ?? 0);
     
-    // Calculate Grade Distribution Percentages
+    // Grade split percentages
     $g1Pct = $studentCount > 0 ? round((($gradeArray['grade_1'] ?? 0) / $studentCount) * 100, 1) : 0;
     $g2Pct = $studentCount > 0 ? round((($gradeArray['grade_2'] ?? 0) / $studentCount) * 100, 1) : 0;
     $g3Pct = $studentCount > 0 ? round((($gradeArray['grade_3'] ?? 0) / $studentCount) * 100, 1) : 0;
     $g4Pct = $studentCount > 0 ? round((($gradeArray['grade_4'] ?? 0) / $studentCount) * 100, 1) : 0;
     $g5Pct = $studentCount > 0 ? round((($gradeArray['grade_5'] ?? 0) / $studentCount) * 100, 1) : 0;
 
-    // Topper Map (Top 3 ranks)
+    // Topper Rankings (Top 3)
     $scoredStudents = collect($students)->map(function($st) use ($studentMetrics) {
         $st->temp_score = (float)($studentMetrics[$st->id]['grade_percentage'] ?? 0);
         return $st;
@@ -38,63 +38,29 @@
         $topperMap[$scoredStudents[2]->id] = 3;
     }
 
-    // Categorize students by Tab for instant, clean rendering
-    $studentsG1 = [];
-    $studentsG2 = [];
-    $studentsG3 = [];
-    $studentsNeedsHelp = [];
-    $studentsLowAtt = [];
+    // Count low attendance (<75%)
     $lowAttCount = 0;
-
     foreach ($students as $st) {
         $m = $studentMetrics[$st->id] ?? [];
-        $gLabel = $m['grade_label'] ?? 'Grade 5';
         $attStr = $m['attendance'] ?? 'N/A';
         $attVal = floatval(str_replace('%', '', $attStr));
-        $isLowAtt = ($attStr !== 'N/A' && $attVal < 75);
-
-        if ($isLowAtt) {
+        if ($attStr !== 'N/A' && $attVal < 75) {
             $lowAttCount++;
-            $studentsLowAtt[] = $st;
-        }
-
-        if (strpos($gLabel, '1') !== false) {
-            $studentsG1[] = $st;
-        } elseif (strpos($gLabel, '2') !== false) {
-            $studentsG2[] = $st;
-        } elseif (strpos($gLabel, '3') !== false) {
-            $studentsG3[] = $st;
-        } else {
-            // Grade 4 or 5
-            $studentsNeedsHelp[] = $st;
         }
     }
 
     $imageBase = rtrim((string) env('IMAGE_SHOW_PATH'), '/');
-    $defaultPhoto = $imageBase ? $imageBase . '/default/user_image.jpg' : asset('assets/school/images/user.png');
+    $hasFilter = (!empty($search['class_type_id']) || !empty($search['admissionNo']) || !empty($search['name']));
 @endphp
 
-@section('title', 'Student Performance - Mobile')
+@section('title', 'Student Performance')
 
 @section('styles')
 <style>
 /* ==============================================================================
-   ARISE ERP - NATIVE MOBILE STUDENT ACADEMIC PERFORMANCE (TABBED VIEW)
-   Strictly adheres to Arise ERP Mobile Design System (Plus Jakarta Sans & 4px radius)
+   ARISE ERP - NATIVE MOBILE STUDENT ACADEMIC PERFORMANCE
+   100% Matching Arise ERP Mobile Design System (enquiryView & duesList standard)
    ============================================================================== */
-
-:root {
-    --perf-navy-900: #001428;
-    --perf-navy-800: #002C54;
-    --perf-navy-700: #0a3d6f;
-    --perf-sky: #0284c7;
-    --perf-emerald: #10b981;
-    --perf-amber: #f59e0b;
-    --perf-rose: #f43f5e;
-    --perf-purple: #8b5cf6;
-    --perf-card-border: #cbd5e1;
-    --perf-bg-soft: #f8fafc;
-}
 
 .mob-perf-container {
     padding: 0 0 70px 0;
@@ -106,138 +72,146 @@
     box-sizing: border-box;
 }
 
-/* 1. Hero Header Banner */
-.mob-perf-hero {
-    background: linear-gradient(135deg, #001428 0%, #002C54 55%, #08335c 100%);
-    border: 1px solid rgba(56, 189, 248, 0.28);
-    border-radius: 4px;
-    padding: 8px 10px;
+/* 1. Hero Card */
+.mob-hero-card {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
-    box-shadow: 0 3px 12px rgba(0, 20, 40, 0.22);
+    border-radius: 4px;
+    padding: 10px 12px;
     margin-bottom: 8px;
-    position: relative;
-    overflow: hidden;
-}
-.mob-perf-hero::after {
-    content: '';
-    position: absolute;
-    right: -25px;
-    bottom: -25px;
-    width: 90px;
-    height: 90px;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
-    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 .mob-hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
-}
-.mob-hero-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-.mob-hero-back {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    color: #ffffff !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    text-decoration: none !important;
-    flex-shrink: 0;
-}
-.mob-hero-back:active {
-    background: rgba(255, 255, 255, 0.25);
-}
-.mob-hero-title-box {
-    min-width: 0;
-}
-.mob-hero-kicker {
-    font-size: 8.5px;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: #38bdf8;
-    font-weight: 700;
-    display: block;
-    line-height: 1;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
 }
 .mob-hero-title {
     font-size: 13.5px;
     font-weight: 800;
-    color: #ffffff;
-    margin: 0;
     line-height: 1.2;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-session-pill {
+    font-size: 9.5px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+    max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.mob-hero-btn-toggle {
-    height: 26px;
-    padding: 0 8px;
+
+/* 4 Metrics Glance Grid */
+.mob-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
+}
+.mob-metric-box {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: background .15s ease, transform .12s ease;
+}
+.mob-metric-box:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.18);
+}
+.mob-metric-tag {
+    font-size: 8px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    margin-bottom: 1px;
+}
+.mob-metric-val {
+    font-size: 14px;
+    font-weight: 800;
     color: #ffffff;
-    font-size: 10.5px;
+    line-height: 1.1;
+}
+.mob-metric-val.val-att { color: #4ade80; }
+.mob-metric-val.val-top { color: #38bdf8; }
+.mob-metric-val.val-help { color: #fbbf24; }
+
+/* Hero Action Bar */
+.mob-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-act-btn {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
+    text-decoration: none !important;
+    border: none;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: all .15s ease;
+    transition: all .12s ease;
+    box-sizing: border-box;
+    width: 100%;
 }
-.mob-hero-btn-toggle.has-filter {
-    background: #0284c7;
-    border-color: #38bdf8;
+.mob-act-btn:active {
+    transform: scale(0.96);
 }
-
-/* Hero Quick Stats */
-.mob-hero-stats-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
+.mob-act-btn-filter {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    position: relative;
 }
-.mob-hero-chip {
-    padding: 2px 6px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 10px;
-    color: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.mob-hero-chip b {
-    font-weight: 800;
-    color: #38bdf8;
+.filter-active-dot {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 6px #38bdf8;
 }
 
-/* 2. Collapsible Filter Drawer */
+/* 2. Filter Drawer */
 .mob-filter-box {
     display: none;
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 .mob-filter-box.show {
     display: block;
     animation: fadeIn .18s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 .mob-filter-grid {
     display: grid;
@@ -272,7 +246,7 @@
 .mob-filter-actions {
     display: flex;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 .mob-btn-apply {
     flex: 1;
@@ -304,244 +278,198 @@
     justify-content: center;
 }
 
-/* 3. KPI Quick-Trigger Strip (Clickable to switch tab) */
-.mob-kpi-scroll {
+/* 3. Compact Search & Horizontal Filter Chips (Arise Gold Standard) */
+.mob-search-toolbar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.mob-search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.mob-search-input-wrap i.search-icon {
+    position: absolute;
+    left: 9px;
+    color: #94a3b8;
+    font-size: 11.5px;
+    pointer-events: none;
+}
+.mob-search-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 28px 0 28px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+}
+.mob-search-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+.mob-search-clear {
+    position: absolute;
+    right: 8px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+    display: none;
+}
+
+/* Horizontal Chips Slider */
+.mob-chips-scroll {
     display: flex;
     gap: 5px;
     overflow-x: auto;
     padding-bottom: 2px;
-    margin-bottom: 8px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
-.mob-kpi-scroll::-webkit-scrollbar {
+.mob-chips-scroll::-webkit-scrollbar {
     display: none;
 }
-.mob-kpi-card {
-    flex: 0 0 auto;
-    min-width: 90px;
-    padding: 6px 8px;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    cursor: pointer;
-    transition: all .15s ease;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-.mob-kpi-card:active {
-    transform: scale(0.97);
-}
-.mob-kpi-card.is-active {
-    border-color: #002C54;
-    background: #e0f2fe;
-    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);
-}
-.mob-kpi-lbl {
-    font-size: 9px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: .03em;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-.mob-kpi-val {
-    font-size: 14px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.2;
-    margin-top: 2px;
-}
-.mob-kpi-card.kpi-g1 { border-left: 3px solid #10b981; }
-.mob-kpi-card.kpi-g2 { border-left: 3px solid #2563eb; }
-.mob-kpi-card.kpi-g3 { border-left: 3px solid #0284c7; }
-.mob-kpi-card.kpi-help { border-left: 3px solid #f59e0b; }
-.mob-kpi-card.kpi-low { border-left: 3px solid #dc2626; }
-.mob-kpi-card.kpi-all { border-left: 3px solid #002C54; }
-
-/* 4. Native Segmented Tab Bar */
-.mob-tab-bar-wrap {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: #f1f5f9;
-    padding-top: 2px;
-    padding-bottom: 6px;
-    margin-bottom: 2px;
-}
-.mob-seg-bar {
-    display: flex;
-    background: #e2e8f0;
-    padding: 2px;
-    border-radius: 4px;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-.mob-seg-bar::-webkit-scrollbar {
-    display: none;
-}
-.mob-seg-btn {
-    flex: 0 0 auto;
-    min-width: 82px;
-    padding: 6px 8px;
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #475569;
-    border: none;
-    background: transparent;
+.mob-chip {
+    padding: 3px 8px;
     border-radius: 3px;
-    cursor: pointer;
-    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
     white-space: nowrap;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all .12s ease;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 4px;
-    transition: all .15s ease;
+    flex-shrink: 0;
 }
-.mob-seg-btn.active {
+.mob-chip:active {
+    transform: scale(0.95);
+}
+.mob-chip.active {
     background: #002C54;
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.25);
+    border-color: #002C54;
 }
-.mob-seg-pill {
-    display: inline-block;
-    padding: 0 4px;
+.mob-chip-count {
     font-size: 8.5px;
-    font-weight: 800;
-    border-radius: 3px;
+    padding: 1px 4px;
+    border-radius: 2px;
     background: rgba(0, 0, 0, 0.08);
 }
-.mob-seg-btn.active .mob-seg-pill {
+.mob-chip.active .mob-chip-count {
     background: rgba(255, 255, 255, 0.22);
     color: #ffffff;
 }
 
-/* 5. Prompt Placeholder (Visible until a tab is clicked) */
+/* 4. Tab Prompt Placeholder (Shown until a tab is clicked) */
 .mob-prompt-card {
     background: #ffffff;
-    border: 1px dashed #94a3b8;
+    border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 24px 16px;
+    padding: 20px 14px;
     text-align: center;
-    margin-top: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .mob-prompt-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: #e0f2fe;
     color: #0284c7;
-    font-size: 20px;
+    font-size: 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 .mob-prompt-title {
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 800;
     color: #002C54;
-    margin: 0 0 4px 0;
+    margin: 0 0 3px 0;
 }
 .mob-prompt-desc {
     font-size: 11px;
     color: #64748b;
     line-height: 1.4;
-    margin: 0 0 14px 0;
+    margin: 0 0 12px 0;
 }
 .mob-prompt-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
 }
-.mob-prompt-pill-btn {
-    padding: 8px 10px;
+.mob-prompt-pill {
+    padding: 7px 8px;
     border-radius: 4px;
     border: 1px solid #cbd5e1;
     background: #f8fafc;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #1e293b;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    transition: all .15s ease;
+    transition: all .12s ease;
 }
-.mob-prompt-pill-btn:active {
+.mob-prompt-pill:active {
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
 }
-.mob-prompt-pill-btn span.badge-cnt {
-    font-size: 9px;
+.mob-prompt-pill span.badge-cnt {
+    font-size: 8.5px;
     padding: 1px 5px;
-    border-radius: 3px;
+    border-radius: 2px;
     background: #e2e8f0;
     color: #0f172a;
 }
-.mob-prompt-pill-btn:active span.badge-cnt {
+.mob-prompt-pill:active span.badge-cnt {
     background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
 }
 
-/* 6. Tab Content Panes (Strictly shown only on click) */
-.mob-pane {
-    display: none;
-}
-.mob-pane.active {
-    display: block;
-    animation: fadeIn .18s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(3px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Pane Header Bar */
-.mob-pane-header {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+/* 5. Feed List Header & Controls */
+.mob-feed-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    margin-bottom: 6px;
+    padding: 0 2px;
 }
-.mob-pane-header-title {
-    font-size: 12px;
+.mob-feed-count {
+    font-size: 11px;
     font-weight: 800;
     color: #002C54;
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-width: 0;
+    gap: 5px;
 }
-.mob-pane-header-title span.title-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.mob-pane-badge-count {
+.mob-feed-badge {
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 9.5px;
+    font-weight: 700;
     padding: 1px 6px;
     border-radius: 3px;
-    background: #002C54;
-    color: #ffffff;
-    font-size: 9.5px;
-    font-weight: 800;
 }
-.mob-pane-close-btn {
-    padding: 3px 7px;
+.mob-btn-close-tab {
+    padding: 2px 7px;
     border-radius: 3px;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
@@ -552,128 +480,88 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    flex-shrink: 0;
 }
-.mob-pane-close-btn:active {
+.mob-btn-close-tab:active {
     background: #fee2e2;
     color: #dc2626;
     border-color: #fca5a5;
 }
 
-/* In-Tab Live Search Input */
-.mob-in-tab-search-box {
-    margin-bottom: 8px;
-    position: relative;
-}
-.mob-in-tab-search-box input {
-    width: 100%;
-    height: 32px;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    padding: 0 28px 0 28px;
-    font-size: 11.5px;
-    background: #ffffff;
-    color: #0f172a;
-}
-.mob-in-tab-search-box input:focus {
-    border-color: #0284c7;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
-}
-.mob-in-tab-search-box i.search-icon {
-    position: absolute;
-    left: 9px;
-    top: 9px;
-    font-size: 12px;
-    color: #94a3b8;
-}
-.mob-in-tab-search-box i.clear-icon {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    font-size: 13px;
-    color: #94a3b8;
-    cursor: pointer;
-    display: none;
-    padding: 2px;
-}
-
-/* 7. Student Performance Cards */
-.mob-student-list {
+/* 6. Student Cards Feed List (Matching Admission Mobile View) */
+.student-feed-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
-.mob-student-card {
+.student-mob-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 9px 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    overflow: hidden;
-    transition: all .15s ease;
+    border-left: 3.5px solid #94a3b8;
+    transition: transform .1s ease, border-color .1s ease;
 }
-.mob-student-card:active {
-    background: #f8fafc;
-}
-.mob-student-card.is-topper-1 { border-left: 3px solid #f59e0b; }
-.mob-student-card.is-topper-2 { border-left: 3px solid #94a3b8; }
-.mob-student-card.is-topper-3 { border-left: 3px solid #b45309; }
+.student-mob-card.border-g1 { border-left-color: #10b981; }
+.student-mob-card.border-g2 { border-left-color: #2563eb; }
+.student-mob-card.border-g3 { border-left-color: #0284c7; }
+.student-mob-card.border-help { border-left-color: #f59e0b; }
+.student-mob-card.border-low { border-left-color: #dc2626; }
 
-.mob-st-main {
+/* Student Card Header */
+.student-card-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
     margin-bottom: 6px;
 }
-
-/* Student Avatar */
-.mob-st-avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
+.student-card-profile-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
 }
-.mob-st-avatar {
-    width: 38px;
-    height: 38px;
+.student-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
     border-radius: 4px;
     object-fit: cover;
     border: 1px solid #cbd5e1;
-    background: #f1f5f9;
+    background: #f8fafc;
+    flex-shrink: 0;
 }
-.mob-st-avatar-fallback {
-    width: 38px;
-    height: 38px;
+.student-avatar-fallback {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
     border-radius: 4px;
-    background: linear-gradient(135deg, #001428 0%, #002C54 100%);
+    background: #002C54;
     color: #ffffff;
+    font-size: 14px;
     font-weight: 800;
-    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    position: relative;
 }
-.mob-st-topper-badge {
+.topper-rank-crown {
     position: absolute;
     top: -5px;
     right: -5px;
     font-size: 11px;
     line-height: 1;
 }
-
-/* Student Info Box */
-.mob-st-info {
-    flex: 1;
+.student-primary-info {
     min-width: 0;
+    flex: 1;
 }
-.mob-st-name-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
-}
-.mob-st-name {
+.student-name-text {
     font-size: 12.5px;
     font-weight: 800;
     color: #0f172a;
@@ -682,173 +570,180 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.mob-st-meta-row {
-    font-size: 10.5px;
-    color: #475569;
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.student-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
 }
-.mob-st-father {
-    font-size: 10px;
-    color: #64748b;
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.student-adm-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+}
+.student-class-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #e0f2fe;
+    color: #0284c7;
+    padding: 1px 5px;
+    border-radius: 2px;
 }
 
-/* Grade & Performance Badges */
-.mob-st-grade-box {
+/* Grade Badge on Right */
+.student-grade-badge-wrap {
     text-align: right;
     flex-shrink: 0;
 }
-.mob-grade-pill {
+.mob-grade-badge {
     display: inline-block;
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 2px;
     line-height: 1.2;
 }
-.mob-grade-pill.g1 { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-.mob-grade-pill.g2 { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-.mob-grade-pill.g3 { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-.mob-grade-pill.g4 { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.mob-grade-pill.g5 { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-.mob-st-score {
+.mob-grade-badge.badge-g1 { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.mob-grade-badge.badge-g2 { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.mob-grade-badge.badge-g3 { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.mob-grade-badge.badge-g4 { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.mob-grade-badge.badge-g5 { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.student-score-num {
     font-size: 11px;
     font-weight: 800;
     color: #0f172a;
-    margin-top: 2px;
+    margin-top: 1px;
+}
+
+/* Student Card Details Meta Grid */
+.student-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    font-size: 10.5px;
+    color: #334155;
+    margin-bottom: 6px;
+}
+.student-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.student-meta-item > i {
+    width: 13px;
+    font-size: 10.5px;
+    color: #64748b;
+    flex-shrink: 0;
+    text-align: center;
+}
+.student-phone-link {
+    color: #0f172a;
+    font-weight: 700;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+}
+.student-wa-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 3px;
+    background: #22c55e;
+    color: #ffffff !important;
+    margin-left: 4px;
+    text-decoration: none !important;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.student-wa-btn:active {
+    transform: scale(0.92);
+    background: #16a34a;
+}
+.student-wa-btn i {
+    font-size: 11.5px !important;
+    color: #ffffff !important;
 }
 
 /* Mini Progress Bar */
-.mob-st-progress-row {
+.student-progress-wrap {
     margin-bottom: 6px;
 }
-.mob-st-progress-bar {
-    height: 4px;
+.student-progress-bar {
+    height: 3px;
     background: #e2e8f0;
     border-radius: 2px;
     overflow: hidden;
 }
-.mob-st-progress-fill {
+.student-progress-fill {
     height: 100%;
     border-radius: 2px;
-    transition: width .3s ease;
 }
-.mob-st-progress-fill.high { background: #10b981; }
-.mob-st-progress-fill.mid { background: #0284c7; }
-.mob-st-progress-fill.low { background: #f59e0b; }
-.mob-st-progress-fill.poor { background: #ef4444; }
+.student-progress-fill.high { background: #10b981; }
+.student-progress-fill.mid { background: #0284c7; }
+.student-progress-fill.low { background: #f59e0b; }
+.student-progress-fill.poor { background: #ef4444; }
 
-/* Attendance & Actions Toolbar */
-.mob-st-action-bar {
+/* Student Card Actions Row */
+.student-card-actions {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    padding-top: 5px;
-    border-top: 1px dashed #e2e8f0;
+    gap: 5px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
 }
-.mob-st-att-badge {
-    font-size: 10px;
+.mob-btn-action {
+    flex: 1;
+    height: 29px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 11px;
     font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.mob-st-att-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-}
-.mob-st-att-badge.good { color: #15803d; }
-.mob-st-att-badge.good .mob-st-att-dot { background: #15803d; }
-.mob-st-att-badge.low { color: #be123c; }
-.mob-st-att-badge.low .mob-st-att-dot { background: #be123c; }
-.mob-st-att-badge.na { color: #64748b; }
-.mob-st-att-badge.na .mob-st-att-dot { background: #94a3b8; }
-
-.mob-st-btn-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.mob-btn-card-action {
-    height: 24px;
-    padding: 0 7px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+    text-align: center;
     text-decoration: none !important;
-    border: none;
-    cursor: pointer;
-}
-.mob-btn-card-action.btn-analytics {
-    background: #002C54;
-    color: #ffffff !important;
-}
-.mob-btn-card-action.btn-snapshot {
-    background: #f1f5f9;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1;
-}
-.mob-icon-circle-btn {
-    width: 24px;
-    height: 24px;
-    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    text-decoration: none !important;
-    border: 1px solid #cbd5e1;
+    gap: 4px;
+    border: 1px solid transparent;
+}
+.mob-btn-action:active {
+    transform: scale(0.96);
+}
+.btn-act-profile {
+    background: #002C54;
+    color: #ffffff !important;
+}
+.btn-act-snapshot {
     background: #f8fafc;
-    color: #334155;
+    border-color: #cbd5e1;
+    color: #334155 !important;
 }
-.mob-icon-circle-btn.whatsapp {
-    background: #dcfce7;
-    border-color: #86efac;
-    color: #15803d;
-}
-
-/* Empty State Card inside Pane */
-.mob-pane-empty-card {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 24px 16px;
-    text-align: center;
-    color: #64748b;
-}
-.mob-pane-empty-icon {
-    font-size: 24px;
-    color: #94a3b8;
-    margin-bottom: 6px;
-}
-.mob-pane-empty-text {
-    font-size: 11.5px;
-    font-weight: 600;
-    margin: 0;
+.btn-act-phone {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0284c7 !important;
+    flex: 0 0 29px;
 }
 
-/* 8. Analytics Pane Visuals */
+/* 7. Analytics Card (Grade Distribution & Toppers) */
 .mob-analytics-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px;
+    padding: 10px 12px;
     margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
-.mob-analytics-card-title {
+.mob-analytics-title {
     font-size: 11.5px;
     font-weight: 800;
     color: #002C54;
@@ -867,7 +762,6 @@
 }
 .mob-grade-seg {
     height: 100%;
-    transition: width .3s ease;
 }
 .mob-grade-seg.seg-g1 { background: #16a34a; }
 .mob-grade-seg.seg-g2 { background: #2563eb; }
@@ -889,6 +783,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    cursor: pointer;
 }
 .mob-grade-legend-box span.dot {
     width: 6px;
@@ -898,7 +793,34 @@
     margin-right: 4px;
 }
 
-/* 9. Quick Student Snapshot Modal */
+/* Empty State Card */
+.mob-empty-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 24px 16px;
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+.mob-empty-icon {
+    font-size: 24px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+.mob-empty-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 2px 0;
+}
+.mob-empty-desc {
+    font-size: 10.5px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* 8. Quick Student Snapshot Modal */
 .mob-modal-overlay {
     display: none;
     position: fixed;
@@ -995,38 +917,48 @@
 @section('content')
 <div class="mob-perf-container">
 
-    {{-- 1. HERO HEADER BANNER --}}
-    <div class="mob-perf-hero">
+    {{-- 1. HERO CARD (Standard Arise ERP Mobile) --}}
+    <div class="mob-hero-card">
         <div class="mob-hero-top">
-            <div class="mob-hero-left">
-                <a href="{{ url('home?layout=mobile') }}" class="mob-hero-back" title="Go to Home">
-                    <i class="fa fa-arrow-left"></i>
-                </a>
-                <div class="mob-hero-title-box">
-                    <span class="mob-hero-kicker">Academic Evaluation</span>
-                    <h1 class="mob-hero-title">Student Performance</h1>
-                </div>
+            <div class="mob-hero-title">
+                <i class="fa fa-line-chart text-warning"></i> Student Performance
             </div>
-            <button type="button" class="mob-hero-btn-toggle {{ (!empty($search['class_type_id']) || !empty($search['admissionNo']) || !empty($search['name'])) ? 'has-filter' : '' }}" id="btnToggleFilterDrawer">
-                <i class="fa fa-filter"></i> <span>Filter</span>
-            </button>
+            <span class="mob-session-pill">{{ $selectedClass->name ?? 'All Classes' }}</span>
         </div>
 
-        <div class="mob-hero-stats-row">
-            <span class="mob-hero-chip">
-                <i class="fa fa-th-large"></i> {{ $selectedClass->name ?? 'All Classes' }}
-            </span>
-            <span class="mob-hero-chip">
-                <i class="fa fa-users"></i> <b>{{ $studentCount }}</b> Students
-            </span>
-            <span class="mob-hero-chip">
-                <i class="fa fa-calendar-check-o"></i> Avg Att: <b>{{ $averageAttendance !== null ? $averageAttendance . '%' : 'N/A' }}</b>
-            </span>
+        {{-- 4 Metrics Glance Grid (Clickable to switch tab) --}}
+        <div class="mob-metrics-grid">
+            <div class="mob-metric-box" onclick="selectTab('all')">
+                <span class="mob-metric-tag">Total Students</span>
+                <span class="mob-metric-val">{{ $studentCount }}</span>
+            </div>
+            <div class="mob-metric-box" onclick="selectTab('low_att')">
+                <span class="mob-metric-tag">Avg Attendance</span>
+                <span class="mob-metric-val val-att">{{ $averageAttendance !== null ? $averageAttendance . '%' : 'N/A' }}</span>
+            </div>
+            <div class="mob-metric-box" onclick="selectTab('g1')">
+                <span class="mob-metric-tag">Top Tier (G1/2)</span>
+                <span class="mob-metric-val val-top">{{ $topPerformers }}</span>
+            </div>
+            <div class="mob-metric-box" onclick="selectTab('needs_help')">
+                <span class="mob-metric-tag">Needs Help (G4/5)</span>
+                <span class="mob-metric-val val-help">{{ $needsImprovement }}</span>
+            </div>
+        </div>
+
+        {{-- Action Bar in Hero --}}
+        <div class="mob-actions-bar">
+            <button type="button" class="mob-act-btn mob-act-btn-filter" id="btnToggleFilter">
+                <i class="fa fa-filter"></i> Search &amp; Filter Class
+                @if($hasFilter)
+                    <span class="filter-active-dot"></span>
+                @endif
+            </button>
         </div>
     </div>
 
     {{-- 2. COLLAPSIBLE FILTER DRAWER --}}
-    <div class="mob-filter-box {{ (!empty($search['class_type_id']) || !empty($search['admissionNo']) || !empty($search['name'])) ? 'show' : '' }}" id="mobFilterDrawer">
+    <div class="mob-filter-box {{ $hasFilter ? 'show' : '' }}" id="mobFilterBox">
         <form action="{{ url('student_performance') }}" method="POST" id="mobPerfFilterForm">
             @csrf
             <input type="hidden" name="layout" value="mobile">
@@ -1050,16 +982,16 @@
                 </div>
 
                 <div class="mob-form-group">
-                    <label class="mob-form-label">Search Keyword</label>
-                    <input type="text" name="name" class="mob-form-control" placeholder="Student name, father name, mobile..." value="{{ $search['name'] ?? '' }}">
+                    <label class="mob-form-label">Keyword</label>
+                    <input type="text" name="name" class="mob-form-control" placeholder="Student name, mobile, father name..." value="{{ $search['name'] ?? '' }}">
                 </div>
             </div>
 
             <div class="mob-filter-actions">
                 <button type="submit" class="mob-btn-apply">
-                    <i class="fa fa-search"></i> Search Students
+                    <i class="fa fa-search mr-1"></i> Apply Filter
                 </button>
-                @if(!empty($search['class_type_id']) || !empty($search['admissionNo']) || !empty($search['name']))
+                @if($hasFilter)
                     <a href="{{ url('student_performance?layout=mobile') }}" class="mob-btn-reset">
                         <i class="fa fa-refresh mr-1"></i> Reset
                     </a>
@@ -1068,358 +1000,164 @@
         </form>
     </div>
 
-    {{-- 3. QUICK KPI SUMMARY STRIP (Tap any card to activate that tab) --}}
-    <div class="mob-kpi-scroll">
-        <div class="mob-kpi-card kpi-g1" onclick="switchMobTab('pane-grade-1')">
-            <span class="mob-kpi-lbl">🥇 Grade 1</span>
-            <span class="mob-kpi-val text-success">{{ $gradeArray['grade_1'] ?? 0 }}</span>
+    {{-- 3. SEARCH & HORIZONTAL FILTER CHIPS (Arise Gold Standard Toolbar) --}}
+    <div class="mob-search-toolbar">
+        <div class="mob-search-input-wrap">
+            <i class="fa fa-search search-icon"></i>
+            <input type="text" id="quickSearchInput" class="mob-search-input" placeholder="Search student name, adm no, father, mobile...">
+            <i class="fa fa-times-circle mob-search-clear" id="quickSearchClear"></i>
         </div>
-        <div class="mob-kpi-card kpi-g2" onclick="switchMobTab('pane-grade-2')">
-            <span class="mob-kpi-lbl">🥈 Grade 2</span>
-            <span class="mob-kpi-val text-primary">{{ $gradeArray['grade_2'] ?? 0 }}</span>
-        </div>
-        <div class="mob-kpi-card kpi-g3" onclick="switchMobTab('pane-grade-3')">
-            <span class="mob-kpi-lbl">🔷 Grade 3</span>
-            <span class="mob-kpi-val text-info">{{ $gradeArray['grade_3'] ?? 0 }}</span>
-        </div>
-        <div class="mob-kpi-card kpi-help" onclick="switchMobTab('pane-needs-help')">
-            <span class="mob-kpi-lbl">⚠️ Needs Help</span>
-            <span class="mob-kpi-val text-warning">{{ $needsImprovement }}</span>
-        </div>
-        <div class="mob-kpi-card kpi-low" onclick="switchMobTab('pane-low-att')">
-            <span class="mob-kpi-lbl">📉 Low Att.</span>
-            <span class="mob-kpi-val text-danger">{{ $lowAttCount }}</span>
-        </div>
-        <div class="mob-kpi-card kpi-all" onclick="switchMobTab('pane-all')">
-            <span class="mob-kpi-lbl">👥 All Students</span>
-            <span class="mob-kpi-val">{{ $studentCount }}</span>
-        </div>
-    </div>
 
-    {{-- 4. NATIVE SEGMENTED TAB BAR --}}
-    <div class="mob-tab-bar-wrap">
-        <div class="mob-seg-bar" id="mobSegmentedBar">
-            <button type="button" class="mob-seg-btn" data-tab="pane-grade-1" onclick="switchMobTab('pane-grade-1')">
-                🥇 Grade 1 <span class="mob-seg-pill">{{ $gradeArray['grade_1'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-grade-2" onclick="switchMobTab('pane-grade-2')">
-                🥈 Grade 2 <span class="mob-seg-pill">{{ $gradeArray['grade_2'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-grade-3" onclick="switchMobTab('pane-grade-3')">
-                🔷 Grade 3 <span class="mob-seg-pill">{{ $gradeArray['grade_3'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-needs-help" onclick="switchMobTab('pane-needs-help')">
-                ⚠️ Needs Help <span class="mob-seg-pill">{{ $needsImprovement }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-low-att" onclick="switchMobTab('pane-low-att')">
-                📉 Low Att. <span class="mob-seg-pill">{{ $lowAttCount }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-all" onclick="switchMobTab('pane-all')">
-                👥 All <span class="mob-seg-pill">{{ $studentCount }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-tab="pane-analytics" onclick="switchMobTab('pane-analytics')">
+        <div class="mob-chips-scroll" id="mobFilterChipsScroll">
+            <div class="mob-chip" data-tab="g1" onclick="selectTab('g1')">
+                🥇 Grade 1 <span class="mob-chip-count">{{ $gradeArray['grade_1'] ?? 0 }}</span>
+            </div>
+            <div class="mob-chip" data-tab="g2" onclick="selectTab('g2')">
+                🥈 Grade 2 <span class="mob-chip-count">{{ $gradeArray['grade_2'] ?? 0 }}</span>
+            </div>
+            <div class="mob-chip" data-tab="g3" onclick="selectTab('g3')">
+                🔷 Grade 3 <span class="mob-chip-count">{{ $gradeArray['grade_3'] ?? 0 }}</span>
+            </div>
+            <div class="mob-chip" data-tab="needs_help" onclick="selectTab('needs_help')">
+                ⚠️ Needs Help <span class="mob-chip-count">{{ $needsImprovement }}</span>
+            </div>
+            <div class="mob-chip" data-tab="low_att" onclick="selectTab('low_att')">
+                📉 Low Att. <span class="mob-chip-count">{{ $lowAttCount }}</span>
+            </div>
+            <div class="mob-chip" data-tab="all" onclick="selectTab('all')">
+                👥 All <span class="mob-chip-count">{{ $studentCount }}</span>
+            </div>
+            <div class="mob-chip" data-tab="analytics" onclick="selectTab('analytics')">
                 📊 Analytics
-            </button>
+            </div>
         </div>
     </div>
 
-    {{-- 5. INITIAL PROMPT PLACEHOLDER (Content only shows when a tab is clicked) --}}
-    <div class="mob-prompt-card" id="tabPromptPlaceholder">
+    {{-- 4. TAB PROMPT CARD (Visible initially until a tab is clicked) --}}
+    <div class="mob-prompt-card" id="tabPromptCard">
         <div class="mob-prompt-icon">
-            <i class="fa fa-hand-pointer-o"></i>
+            <i class="fa fa-hand-o-up"></i>
         </div>
-        <h3 class="mob-prompt-title">Select a Performance Category</h3>
+        <h4 class="mob-prompt-title">Select a Category / Tab</h4>
         <p class="mob-prompt-desc">
-            Upar diye gaye kisi bhi tab ya category card par tap karein. Tab click hone par hi respective students ka data show hoga.
+            Upar diye gaye kisi bhi tab ya filter chip par tap karein, us category ke students ka data show hoga.
         </p>
-
         <div class="mob-prompt-grid">
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-grade-1')">
+            <div class="mob-prompt-pill" onclick="selectTab('g1')">
                 <span>🥇 Grade 1 (91-100%)</span>
                 <span class="badge-cnt">{{ $gradeArray['grade_1'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-grade-2')">
+            </div>
+            <div class="mob-prompt-pill" onclick="selectTab('g2')">
                 <span>🥈 Grade 2 (81-90%)</span>
                 <span class="badge-cnt">{{ $gradeArray['grade_2'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-grade-3')">
+            </div>
+            <div class="mob-prompt-pill" onclick="selectTab('g3')">
                 <span>🔷 Grade 3 (71-80%)</span>
                 <span class="badge-cnt">{{ $gradeArray['grade_3'] ?? 0 }}</span>
-            </button>
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-needs-help')">
-                <span>⚠️ Needs Help (G4/G5)</span>
+            </div>
+            <div class="mob-prompt-pill" onclick="selectTab('needs_help')">
+                <span>⚠️ Needs Help (G4/5)</span>
                 <span class="badge-cnt">{{ $needsImprovement }}</span>
-            </button>
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-low-att')">
+            </div>
+            <div class="mob-prompt-pill" onclick="selectTab('low_att')">
                 <span>📉 Low Att. (&lt;75%)</span>
                 <span class="badge-cnt">{{ $lowAttCount }}</span>
-            </button>
-            <button type="button" class="mob-prompt-pill-btn" onclick="switchMobTab('pane-all')">
+            </div>
+            <div class="mob-prompt-pill" onclick="selectTab('all')">
                 <span>👥 All Students</span>
                 <span class="badge-cnt">{{ $studentCount }}</span>
-            </button>
+            </div>
         </div>
     </div>
 
-    {{-- 6. TAB CONTENT PANES --}}
+    {{-- 5. FEED CONTENT SECTION (Only displayed after tab click) --}}
+    <div id="mobFeedSection" style="display: none;">
 
-    {{-- TAB 1: GRADE 1 STUDENTS --}}
-    <div class="mob-pane" id="pane-grade-1">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-trophy text-warning"></i>
-                <span class="title-text">Grade 1 Students (91% - 100%)</span>
-                <span class="mob-pane-badge-count">{{ count($studentsG1) }}</span>
+        {{-- Feed Header --}}
+        <div class="mob-feed-header">
+            <div class="mob-feed-count">
+                <i class="fa fa-list mr-1"></i> <span id="feedHeaderTitle">Students List</span>
+                <span class="mob-feed-badge" id="feedHeaderCount">0</span>
             </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
+            <button type="button" class="mob-btn-close-tab" onclick="clearTabSelection()">
                 <i class="fa fa-times"></i> Close Tab
             </button>
         </div>
 
-        @if(count($studentsG1) > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search in Grade 1..." oninput="filterTabCards(this, 'pane-grade-1')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($studentsG1 as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-info-circle"></i></div>
-                <p class="mob-pane-empty-text">No students currently in Grade 1 (91% - 100%).</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 2: GRADE 2 STUDENTS --}}
-    <div class="mob-pane" id="pane-grade-2">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-star text-primary"></i>
-                <span class="title-text">Grade 2 Students (81% - 90.99%)</span>
-                <span class="mob-pane-badge-count">{{ count($studentsG2) }}</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        @if(count($studentsG2) > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search in Grade 2..." oninput="filterTabCards(this, 'pane-grade-2')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($studentsG2 as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-info-circle"></i></div>
-                <p class="mob-pane-empty-text">No students currently in Grade 2 (81% - 90.99%).</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 3: GRADE 3 STUDENTS --}}
-    <div class="mob-pane" id="pane-grade-3">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-bookmark text-info"></i>
-                <span class="title-text">Grade 3 Students (71% - 80.99%)</span>
-                <span class="mob-pane-badge-count">{{ count($studentsG3) }}</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        @if(count($studentsG3) > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search in Grade 3..." oninput="filterTabCards(this, 'pane-grade-3')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($studentsG3 as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-info-circle"></i></div>
-                <p class="mob-pane-empty-text">No students currently in Grade 3 (71% - 80.99%).</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 4: NEEDS HELP (GRADE 4 & 5) --}}
-    <div class="mob-pane" id="pane-needs-help">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-exclamation-triangle text-warning"></i>
-                <span class="title-text">Needs Help (Grade 4 &amp; 5)</span>
-                <span class="mob-pane-badge-count" style="background: #d97706;">{{ count($studentsNeedsHelp) }}</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        @if(count($studentsNeedsHelp) > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search in Needs Help..." oninput="filterTabCards(this, 'pane-needs-help')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($studentsNeedsHelp as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-check-circle text-success"></i></div>
-                <p class="mob-pane-empty-text">Great news! No students currently require remediation in Grade 4/5.</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 5: LOW ATTENDANCE (<75%) --}}
-    <div class="mob-pane" id="pane-low-att">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-calendar-times-o text-danger"></i>
-                <span class="title-text">Low Attendance (&lt; 75%)</span>
-                <span class="mob-pane-badge-count" style="background: #dc2626;">{{ count($studentsLowAtt) }}</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        @if(count($studentsLowAtt) > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search in Low Attendance..." oninput="filterTabCards(this, 'pane-low-att')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($studentsLowAtt as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-check-circle text-success"></i></div>
-                <p class="mob-pane-empty-text">Excellent! All evaluated students have attendance 75% or higher.</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 6: ALL STUDENTS --}}
-    <div class="mob-pane" id="pane-all">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-users text-primary"></i>
-                <span class="title-text">All Students Performance</span>
-                <span class="mob-pane-badge-count">{{ $studentCount }}</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        @if($studentCount > 0)
-            <div class="mob-in-tab-search-box">
-                <i class="fa fa-search search-icon"></i>
-                <input type="search" placeholder="Search all students (Name, Adm, Father)..." oninput="filterTabCards(this, 'pane-all')">
-            </div>
-            <div class="mob-student-list">
-                @foreach($students as $st)
-                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                @endforeach
-            </div>
-        @else
-            <div class="mob-pane-empty-card">
-                <div class="mob-pane-empty-icon"><i class="fa fa-users text-muted"></i></div>
-                <p class="mob-pane-empty-text">No students found matching current filter criteria.</p>
-            </div>
-        @endif
-    </div>
-
-    {{-- TAB 7: VISUAL ANALYTICS & OVERVIEW --}}
-    <div class="mob-pane" id="pane-analytics">
-        <div class="mob-pane-header">
-            <div class="mob-pane-header-title">
-                <i class="fa fa-line-chart text-primary"></i>
-                <span class="title-text">Academic Analytics &amp; KPIs</span>
-            </div>
-            <button type="button" class="mob-pane-close-btn" onclick="closeMobTab()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
-        </div>
-
-        {{-- Grade Distribution Card --}}
-        <div class="mob-analytics-card">
-            <h4 class="mob-analytics-card-title">
-                <i class="fa fa-pie-chart text-primary"></i> Grade Split Breakdown
-            </h4>
-
-            @if($studentCount > 0)
-                <div class="mob-grade-bar-split">
-                    @if($g1Pct > 0)<div class="mob-grade-seg seg-g1" style="width: {{ $g1Pct }}%;" title="Grade 1: {{ $g1Pct }}%"></div>@endif
-                    @if($g2Pct > 0)<div class="mob-grade-seg seg-g2" style="width: {{ $g2Pct }}%;" title="Grade 2: {{ $g2Pct }}%"></div>@endif
-                    @if($g3Pct > 0)<div class="mob-grade-seg seg-g3" style="width: {{ $g3Pct }}%;" title="Grade 3: {{ $g3Pct }}%"></div>@endif
-                    @if($g4Pct > 0)<div class="mob-grade-seg seg-g4" style="width: {{ $g4Pct }}%;" title="Grade 4: {{ $g4Pct }}%"></div>@endif
-                    @if($g5Pct > 0)<div class="mob-grade-seg seg-g5" style="width: {{ $g5Pct }}%;" title="Grade 5: {{ $g5Pct }}%"></div>@endif
-                </div>
-
-                <div class="mob-grade-legend-grid">
-                    <div class="mob-grade-legend-box" onclick="switchMobTab('pane-grade-1')">
-                        <span><span class="dot" style="background:#16a34a;"></span> Grade 1</span>
-                        <b>{{ $g1Pct }}% ({{ $gradeArray['grade_1'] ?? 0 }})</b>
+        {{-- Analytics Panel (Only shown when analytics tab is active) --}}
+        <div id="analyticsPanel" style="display: none;">
+            {{-- Grade Distribution --}}
+            <div class="mob-analytics-card">
+                <h4 class="mob-analytics-title">
+                    <i class="fa fa-pie-chart text-primary"></i> Grade Split Breakdown
+                </h4>
+                @if($studentCount > 0)
+                    <div class="mob-grade-bar-split">
+                        @if($g1Pct > 0)<div class="mob-grade-seg seg-g1" style="width: {{ $g1Pct }}%;"></div>@endif
+                        @if($g2Pct > 0)<div class="mob-grade-seg seg-g2" style="width: {{ $g2Pct }}%;"></div>@endif
+                        @if($g3Pct > 0)<div class="mob-grade-seg seg-g3" style="width: {{ $g3Pct }}%;"></div>@endif
+                        @if($g4Pct > 0)<div class="mob-grade-seg seg-g4" style="width: {{ $g4Pct }}%;"></div>@endif
+                        @if($g5Pct > 0)<div class="mob-grade-seg seg-g5" style="width: {{ $g5Pct }}%;"></div>@endif
                     </div>
-                    <div class="mob-grade-legend-box" onclick="switchMobTab('pane-grade-2')">
-                        <span><span class="dot" style="background:#2563eb;"></span> Grade 2</span>
-                        <b>{{ $g2Pct }}% ({{ $gradeArray['grade_2'] ?? 0 }})</b>
+                    <div class="mob-grade-legend-grid">
+                        <div class="mob-grade-legend-box" onclick="selectTab('g1')">
+                            <span><span class="dot" style="background:#16a34a;"></span> Grade 1</span>
+                            <b>{{ $g1Pct }}% ({{ $gradeArray['grade_1'] ?? 0 }})</b>
+                        </div>
+                        <div class="mob-grade-legend-box" onclick="selectTab('g2')">
+                            <span><span class="dot" style="background:#2563eb;"></span> Grade 2</span>
+                            <b>{{ $g2Pct }}% ({{ $gradeArray['grade_2'] ?? 0 }})</b>
+                        </div>
+                        <div class="mob-grade-legend-box" onclick="selectTab('g3')">
+                            <span><span class="dot" style="background:#0891b2;"></span> Grade 3</span>
+                            <b>{{ $g3Pct }}% ({{ $gradeArray['grade_3'] ?? 0 }})</b>
+                        </div>
+                        <div class="mob-grade-legend-box" onclick="selectTab('needs_help')">
+                            <span><span class="dot" style="background:#d97706;"></span> Grade 4 &amp; 5</span>
+                            <b>{{ round($g4Pct + $g5Pct, 1) }}% ({{ $needsImprovement }})</b>
+                        </div>
                     </div>
-                    <div class="mob-grade-legend-box" onclick="switchMobTab('pane-grade-3')">
-                        <span><span class="dot" style="background:#0891b2;"></span> Grade 3</span>
-                        <b>{{ $g3Pct }}% ({{ $gradeArray['grade_3'] ?? 0 }})</b>
+                @else
+                    <p style="font-size: 11px; color: #64748b; margin: 0;">No student data available.</p>
+                @endif
+            </div>
+
+            {{-- Top 3 Leaderboard --}}
+            <div class="mob-analytics-card">
+                <h4 class="mob-analytics-title">
+                    <i class="fa fa-trophy text-warning"></i> Class Toppers (Top 3)
+                </h4>
+                @if($scoredStudents->filter(fn($s) => $s->temp_score > 0)->count() > 0)
+                    <div class="student-feed-list">
+                        @foreach($scoredStudents->filter(fn($s) => $s->temp_score > 0)->take(3) as $st)
+                            @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
+                        @endforeach
                     </div>
-                    <div class="mob-grade-legend-box" onclick="switchMobTab('pane-needs-help')">
-                        <span><span class="dot" style="background:#d97706;"></span> Grade 4 &amp; 5</span>
-                        <b>{{ round($g4Pct + $g5Pct, 1) }}% ({{ $needsImprovement }})</b>
-                    </div>
-                </div>
-            @else
-                <p class="text-muted" style="font-size: 11px; margin: 0;">No student data available to compute grade distribution.</p>
-            @endif
+                @else
+                    <p style="font-size: 11px; color: #64748b; margin: 0;">No scored exams recorded yet for class ranking.</p>
+                @endif
+            </div>
         </div>
 
-        {{-- Top Performers Leaderboard Card --}}
-        <div class="mob-analytics-card">
-            <h4 class="mob-analytics-card-title">
-                <i class="fa fa-trophy text-warning"></i> Class Toppers (Top 3)
-            </h4>
-
-            @if($scoredStudents->filter(fn($s) => $s->temp_score > 0)->count() > 0)
-                <div class="mob-student-list">
-                    @foreach($scoredStudents->filter(fn($s) => $s->temp_score > 0)->take(3) as $st)
-                        @include('students.academic_performance.mobile.partials.student_card', ['student' => $st])
-                    @endforeach
-                </div>
-            @else
-                <p class="text-muted" style="font-size: 11px; margin: 0;">No scored exams recorded yet for class ranking.</p>
-            @endif
+        {{-- Student Cards Feed List (Filtered by active tab and search input) --}}
+        <div class="student-feed-list" id="studentCardsFeed">
+            @foreach($students as $student)
+                @include('students.academic_performance.mobile.partials.student_card', ['student' => $student])
+            @endforeach
         </div>
+
+        {{-- Empty State Card (When no students match active tab or search query) --}}
+        <div class="mob-empty-card" id="feedEmptyState" style="display: none;">
+            <div class="mob-empty-icon"><i class="fa fa-users"></i></div>
+            <h5 class="mob-empty-title">No Students Found</h5>
+            <p class="mob-empty-desc">Is category ya search criteria ke anusar koi student record uplabdh nahi hai.</p>
+        </div>
+
     </div>
 
 </div>
 
-{{-- 7. QUICK STUDENT SNAPSHOT MODAL --}}
+{{-- 8. QUICK STUDENT SNAPSHOT MODAL --}}
 <div class="mob-modal-overlay" id="mobSnapshotModal" onclick="closeMobSnapshot(event)">
     <div class="mob-modal-card" onclick="event.stopPropagation()">
         <div class="mob-modal-header">
@@ -1429,16 +1167,16 @@
         <div class="mob-modal-body">
             <div class="mob-modal-student-row">
                 <div class="mob-modal-avatar" id="modalAvatar">S</div>
-                <div style="min-width:0;">
-                    <h4 style="margin: 0; font-size: 13.5px; font-weight: 800; color: #002C54;" id="modalName">Student Name</h4>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;" id="modalSub">ADM: 1001 &bull; Class 10th</div>
-                    <div style="font-size: 10.5px; color: #475569; margin-top: 1px;" id="modalFather">Father: -</div>
+                <div style="min-width:0; flex:1;">
+                    <div style="font-size: 13.5px; font-weight: 800; color: #002C54; line-height: 1.2;" id="modalName">Student Name</div>
+                    <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;" id="modalSub">ADM: 1001 &bull; Class 10th</div>
+                    <div style="font-size: 10px; color: #475569; margin-top: 1px;" id="modalFather">Father: -</div>
                 </div>
             </div>
 
             <div class="mob-modal-grid">
                 <div class="mob-modal-stat-box">
-                    <div class="mob-modal-stat-lbl">Grade</div>
+                    <div class="mob-modal-stat-lbl">Academic Grade</div>
                     <div class="mob-modal-stat-val text-primary" id="modalGrade">Grade 1</div>
                 </div>
                 <div class="mob-modal-stat-box">
@@ -1446,26 +1184,26 @@
                     <div class="mob-modal-stat-val text-success" id="modalScore">95.0%</div>
                 </div>
                 <div class="mob-modal-stat-box">
-                    <div class="mob-modal-stat-lbl">Attendance</div>
+                    <div class="mob-modal-stat-lbl">Attendance Rate</div>
                     <div class="mob-modal-stat-val" id="modalAtt">88.5%</div>
                 </div>
                 <div class="mob-modal-stat-box">
-                    <div class="mob-modal-stat-lbl">Topper Rank</div>
+                    <div class="mob-modal-stat-lbl">Class Standing</div>
                     <div class="mob-modal-stat-val text-warning" id="modalRank">-</div>
                 </div>
             </div>
 
             <div id="modalContactWrap" style="background:#f1f5f9; padding:6px 10px; border-radius:3px; font-size:11px; color:#334155; display:flex; align-items:center; justify-content:space-between;">
                 <span><i class="fa fa-phone text-primary mr-1"></i> <b id="modalMobile">-</b></span>
-                <a href="#" id="modalWhatsappBtn" target="_blank" class="mob-icon-circle-btn whatsapp" style="width:auto; padding:2px 8px; font-weight:700;">
+                <a href="#" id="modalWhatsappBtn" target="_blank" class="student-wa-btn" style="width:auto; padding:2px 8px; font-weight:700; font-size:10px;">
                     <i class="fa fa-whatsapp mr-1"></i> WhatsApp
                 </a>
             </div>
         </div>
         <div class="mob-modal-footer">
-            <button type="button" class="mob-btn-card-action btn-snapshot" onclick="closeMobSnapshotDirect()">Close</button>
-            <a href="#" id="modalFullAnalyticsBtn" class="mob-btn-card-action btn-analytics">
-                <i class="fa fa-external-link mr-1"></i> Full Analytics
+            <button type="button" class="mob-btn-action btn-act-snapshot" onclick="closeMobSnapshotDirect()">Close</button>
+            <a href="#" id="modalFullAnalyticsBtn" class="mob-btn-action btn-act-profile">
+                <i class="fa fa-external-link mr-1"></i> View Analytics
             </a>
         </div>
     </div>
@@ -1473,122 +1211,176 @@
 
 @section('scripts')
 <script>
+var activeTab = null;
+var tabLabels = {
+    'g1': '🥇 Grade 1 Students (91% - 100%)',
+    'g2': '🥈 Grade 2 Students (81% - 90%)',
+    'g3': '🔷 Grade 3 Students (71% - 80%)',
+    'needs_help': '⚠️ Needs Help (Grade 4 & 5)',
+    'low_att': '📉 Low Attendance (< 75%)',
+    'all': '👥 All Students Performance',
+    'analytics': '📊 Academic Analytics &amp; KPIs'
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Toggle Filter Drawer
-    var btnToggle = document.getElementById('btnToggleFilterDrawer');
-    var filterBox = document.getElementById('mobFilterDrawer');
+    var btnToggle = document.getElementById('btnToggleFilter');
+    var filterBox = document.getElementById('mobFilterBox');
     if (btnToggle && filterBox) {
         btnToggle.addEventListener('click', function() {
             filterBox.classList.toggle('show');
-            btnToggle.classList.toggle('has-filter', filterBox.classList.contains('show'));
         });
     }
 
-    // 2. Check URL for direct tab selection (?tab=grade_1, ?tab=all, etc.)
+    // 2. Search Input Handlers
+    var searchInput = document.getElementById('quickSearchInput');
+    var searchClear = document.getElementById('quickSearchClear');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var val = this.value.trim();
+            if (searchClear) searchClear.style.display = val.length > 0 ? 'inline-block' : 'none';
+            
+            // If user searches while no tab is open, automatically open 'all' tab
+            if (!activeTab && val.length > 0) {
+                selectTab('all', false);
+            }
+            applyCardFiltering();
+        });
+    }
+    if (searchClear) {
+        searchClear.addEventListener('click', function() {
+            if (searchInput) {
+                searchInput.value = '';
+                searchClear.style.display = 'none';
+                applyCardFiltering();
+            }
+        });
+    }
+
+    // 3. Direct URL Tab Parameter (?tab=g1, ?tab=all, etc.)
     var urlParams = new URLSearchParams(window.location.search);
     var requestedTab = urlParams.get('tab');
     if (requestedTab) {
-        var paneMap = {
-            'grade_1': 'pane-grade-1',
-            'grade_2': 'pane-grade-2',
-            'grade_3': 'pane-grade-3',
-            'needs_help': 'pane-needs-help',
-            'low_att': 'pane-low-att',
-            'all': 'pane-all',
-            'analytics': 'pane-analytics'
-        };
-        var targetPane = paneMap[requestedTab] || requestedTab;
-        if (document.getElementById(targetPane)) {
-            switchMobTab(targetPane);
-        }
+        var mapped = requestedTab.replace('grade_', 'g');
+        selectTab(mapped);
     }
 });
 
-// 3. Tab Switching Function: Content ONLY shows when tab is clicked
-function switchMobTab(targetPaneId) {
-    var placeholder = document.getElementById('tabPromptPlaceholder');
-    var tabBtns = document.querySelectorAll('.mob-seg-btn');
-    var kpiCards = document.querySelectorAll('.mob-kpi-card');
-    var panes = document.querySelectorAll('.mob-pane');
-    var targetPane = document.getElementById(targetPaneId);
+// Select Tab: Strict On-Click Display
+function selectTab(tabKey, scroll) {
+    if (scroll === undefined) scroll = true;
+    activeTab = tabKey;
 
-    if (!targetPane) return;
+    // Update chips visual state
+    var chips = document.querySelectorAll('.mob-chip');
+    chips.forEach(function(chip) {
+        var isThis = chip.getAttribute('data-tab') === tabKey;
+        chip.classList.toggle('active', isThis);
+        if (isThis && scroll) {
+            chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    });
 
-    // Hide initial placeholder
-    if (placeholder) {
-        placeholder.style.display = 'none';
+    // Hide prompt card, reveal feed section
+    var promptCard = document.getElementById('tabPromptCard');
+    var feedSection = document.getElementById('mobFeedSection');
+    var analyticsPanel = document.getElementById('analyticsPanel');
+    var cardsFeed = document.getElementById('studentCardsFeed');
+
+    if (promptCard) promptCard.style.display = 'none';
+    if (feedSection) feedSection.style.display = 'block';
+
+    // Update Feed Header Title
+    var titleEl = document.getElementById('feedHeaderTitle');
+    if (titleEl) {
+        titleEl.innerHTML = tabLabels[tabKey] || 'Students List';
     }
 
-    // Deactivate all tabs and panes
-    tabBtns.forEach(function(b) { b.classList.remove('active'); });
-    kpiCards.forEach(function(c) { c.classList.remove('is-active'); });
-    panes.forEach(function(p) { p.classList.remove('active'); });
-
-    // Activate selected button in segmented bar
-    var activeBtn = document.querySelector('.mob-seg-btn[data-tab="' + targetPaneId + '"]');
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    // Toggle analytics vs student cards feed
+    if (tabKey === 'analytics') {
+        if (analyticsPanel) analyticsPanel.style.display = 'block';
+        if (cardsFeed) cardsFeed.style.display = 'none';
+        var cntEl = document.getElementById('feedHeaderCount');
+        if (cntEl) cntEl.textContent = 'Summary';
+        var emptyEl = document.getElementById('feedEmptyState');
+        if (emptyEl) emptyEl.style.display = 'none';
+    } else {
+        if (analyticsPanel) analyticsPanel.style.display = 'none';
+        if (cardsFeed) cardsFeed.style.display = 'flex';
+        applyCardFiltering();
     }
 
-    // Activate corresponding KPI card if applicable
-    var kpiClassMap = {
-        'pane-grade-1': 'kpi-g1',
-        'pane-grade-2': 'kpi-g2',
-        'pane-grade-3': 'kpi-g3',
-        'pane-needs-help': 'kpi-help',
-        'pane-low-att': 'kpi-low',
-        'pane-all': 'kpi-all'
-    };
-    if (kpiClassMap[targetPaneId]) {
-        var activeKpi = document.querySelector('.' + kpiClassMap[targetPaneId]);
-        if (activeKpi) activeKpi.classList.add('is-active');
-    }
-
-    // Show target pane
-    targetPane.classList.add('active');
-
-    // Smooth scroll down slightly to the pane
-    var barWrap = document.querySelector('.mob-tab-bar-wrap');
-    if (barWrap) {
-        barWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) {
+        feedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
-// 4. Close Active Tab (Return to clean prompt state)
-function closeMobTab() {
-    var placeholder = document.getElementById('tabPromptPlaceholder');
-    var tabBtns = document.querySelectorAll('.mob-seg-btn');
-    var kpiCards = document.querySelectorAll('.mob-kpi-card');
-    var panes = document.querySelectorAll('.mob-pane');
+// Clear Tab Selection: Returns to clean prompt state
+function clearTabSelection() {
+    activeTab = null;
 
-    tabBtns.forEach(function(b) { b.classList.remove('active'); });
-    kpiCards.forEach(function(c) { c.classList.remove('is-active'); });
-    panes.forEach(function(p) { p.classList.remove('active'); });
+    var chips = document.querySelectorAll('.mob-chip');
+    chips.forEach(function(chip) { chip.classList.remove('active'); });
 
-    if (placeholder) {
-        placeholder.style.display = 'block';
-    }
+    var promptCard = document.getElementById('tabPromptCard');
+    var feedSection = document.getElementById('mobFeedSection');
+
+    if (promptCard) promptCard.style.display = 'block';
+    if (feedSection) feedSection.style.display = 'none';
+
+    var searchInput = document.getElementById('quickSearchInput');
+    if (searchInput) searchInput.value = '';
+    var searchClear = document.getElementById('quickSearchClear');
+    if (searchClear) searchClear.style.display = 'none';
 }
 
-// 5. In-Tab Live Search Filter
-function filterTabCards(inputEl, paneId) {
-    var query = (inputEl.value || '').toLowerCase().trim();
-    var pane = document.getElementById(paneId);
-    if (!pane) return;
+// Filter Student Cards based on active tab and quick search query
+function applyCardFiltering() {
+    if (!activeTab || activeTab === 'analytics') return;
 
-    var cards = pane.querySelectorAll('.mob-student-card');
+    var query = (document.getElementById('quickSearchInput').value || '').toLowerCase().trim();
+    var cards = document.querySelectorAll('#studentCardsFeed .student-mob-card');
+    var visibleCount = 0;
+
     cards.forEach(function(card) {
+        var cardGrade = card.getAttribute('data-grade-cat') || ''; // 'g1', 'g2', 'g3', 'needs_help'
+        var isLowAtt = card.getAttribute('data-low-att') === '1';
         var text = (card.getAttribute('data-search') || '').toLowerCase();
-        if (query === '' || text.indexOf(query) !== -1) {
-            card.style.display = '';
+
+        // 1. Tab check
+        var tabMatches = false;
+        if (activeTab === 'all') {
+            tabMatches = true;
+        } else if (activeTab === 'low_att') {
+            tabMatches = isLowAtt;
+        } else if (activeTab === cardGrade) {
+            tabMatches = true;
+        }
+
+        // 2. Search query check
+        var searchMatches = true;
+        if (query.length > 0 && text.indexOf(query) === -1) {
+            searchMatches = false;
+        }
+
+        if (tabMatches && searchMatches) {
+            card.style.display = 'block';
+            visibleCount++;
         } else {
             card.style.display = 'none';
         }
     });
+
+    var countEl = document.getElementById('feedHeaderCount');
+    if (countEl) countEl.textContent = visibleCount;
+
+    var emptyEl = document.getElementById('feedEmptyState');
+    if (emptyEl) {
+        emptyEl.style.display = (visibleCount === 0) ? 'block' : 'none';
+    }
 }
 
-// 6. Quick Snapshot Modal Logic
+// Snapshot Modal Helpers
 function openMobSnapshot(id, name, adm, cls, father, grade, score, att, rank, mobile) {
     var modal = document.getElementById('mobSnapshotModal');
     if (!modal) return;
