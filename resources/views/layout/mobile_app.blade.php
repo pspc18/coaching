@@ -1278,12 +1278,14 @@ $(document).ready(function() {
             if (target.closest && (
                 target.closest('#mobileDrawer') ||
                 target.closest('.modal') ||
+                target.closest('.mob-bottom-sheet') ||
+                target.closest('.mob-sheet-scroll-body') ||
                 target.closest('.dropdown-menu') ||
                 target.closest('input, textarea, select, button, [contenteditable="true"]')
             )) {
                 return true;
             }
-            if ($('#mobileDrawer').hasClass('show') || $('.modal.show, .modal.in').length > 0) {
+            if ($('#mobileDrawer').hasClass('show') || $('.modal.show, .modal.in, .mob-bottom-sheet.show').length > 0 || $('body').hasClass('sheet-open')) {
                 return true;
             }
             return false;

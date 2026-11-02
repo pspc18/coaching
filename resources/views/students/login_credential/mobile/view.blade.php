@@ -592,8 +592,6 @@
    ========================================================================== */
 body.sheet-open {
     overflow: hidden !important;
-    height: 100vh !important;
-    touch-action: none;
 }
 
 .mob-sheet-backdrop {
@@ -631,22 +629,27 @@ body.sheet-open {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+    touch-action: pan-y;
 }
 .mob-bottom-sheet.show {
     transform: translateY(0);
 }
 
 #mobGenerateSheet {
-    height: 85vh;
-    max-height: 85vh;
+    height: 88vh;
+    height: 88dvh;
+    max-height: 90vh;
+    max-height: 90dvh;
 }
 
 #mobFilterSheet {
-    max-height: 80vh;
+    max-height: 85vh;
+    max-height: 85dvh;
 }
 
 #mobDownloadSheet {
-    max-height: 60vh;
+    max-height: 65vh;
+    max-height: 65dvh;
 }
 
 .mob-sheet-drag-handle {
@@ -694,20 +697,37 @@ body.sheet-open {
     line-height: 1;
 }
 
-/* SCROLL CONTAINER: Forced momentum scrolling with touch-action */
+/* SCROLL CONTAINER: Guaranteed smooth momentum scrolling with touch-action */
 .mob-sheet-scroll-body {
-    padding: 12px 14px 28px;
-    overflow-y: scroll !important;
+    padding: 12px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overscroll-behavior: contain;
-    touch-action: pan-y;
+    max-height: 100% !important;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y !important;
+}
+
+/* Custom Sleek Scrollbar */
+.mob-sheet-scroll-body::-webkit-scrollbar {
+    width: 5px;
+}
+.mob-sheet-scroll-body::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.mob-sheet-scroll-body::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+}
+.mob-sheet-scroll-body::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }
 
 .mob-sheet-sticky-foot {
     flex-shrink: 0;
-    padding: 9px 14px;
+    padding: 9px 14px calc(9px + env(safe-area-inset-bottom, 0px));
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     display: flex;
@@ -1935,7 +1955,7 @@ function clearAllSelections() {
     updateSelection();
 }
 
-// Open Modal for Single Student
+// Open Modal for Single Student (Reset / Edit Password)
 function openSingleGenerate(btn) {
     var $btn = $(btn);
     var id = $btn.attr('data-id');
@@ -1945,6 +1965,8 @@ function openSingleGenerate(btn) {
     var mob = $btn.attr('data-mobile') || '';
     var adm = $btn.attr('data-adm') || '';
     var dob = $btn.attr('data-dob') || '';
+    var currentPassword = $btn.attr('data-password') || '';
+    var currentUsername = $btn.attr('data-username') || '';
 
     // Uncheck other checkboxes, check this one
     $('.student-check').prop('checked', false);
@@ -1969,13 +1991,26 @@ function openSingleGenerate(btn) {
     $('#hiddenStudentIds').val(id);
     $('#mobBtnCount').text('1');
 
+    if ($btn.hasClass('btn-edit-pass') || currentPassword) {
+        $('.mob-sheet-title').html('<i class="fa fa-key text-warning mr-1"></i> Reset / Edit Password');
+        $('#mobBtnSubmitGen').html('<i class="fa fa-check mr-1"></i> <span>Save &amp; Update Password</span>');
+        if (currentPassword) {
+            $('#mobCustomPassword').val(currentPassword);
+        }
+    } else {
+        $('.mob-sheet-title').html('<i class="fa fa-magic text-warning mr-1"></i> Generate Credentials');
+        $('#mobBtnSubmitGen').html('<i class="fa fa-magic mr-1"></i> <span>Confirm &amp; Generate (<b id="mobBtnCount">1</b>)</span>');
+    }
+
     updateLivePreview();
 
-    closeAllSheets();
+    $('.mob-bottom-sheet').not('#mobGenerateSheet').removeClass('show');
     $('body').addClass('sheet-open');
     $('#mobSheetBackdrop').addClass('show');
     $('#mobGenerateSheet').addClass('show');
-    $('#mobGenerateSheet .mob-sheet-scroll-body').scrollTop(0);
+    setTimeout(function() {
+        $('#mobGenerateSheet .mob-sheet-scroll-body').scrollTop(0);
+    }, 50);
 }
 
 // Open Modal for Bulk Generation
@@ -2013,13 +2048,18 @@ function openGenerateModal() {
     $('#hiddenStudentIds').val(selectedIds.join(','));
     $('#mobBtnCount').text(selectedIds.length);
 
+    $('.mob-sheet-title').html('<i class="fa fa-magic text-warning mr-1"></i> Generate Credentials');
+    $('#mobBtnSubmitGen').html('<i class="fa fa-magic mr-1"></i> <span>Confirm &amp; Generate (<b id="mobBtnCount">' + selectedIds.length + '</b>)</span>');
+
     updateLivePreview();
 
-    closeAllSheets();
+    $('.mob-bottom-sheet').not('#mobGenerateSheet').removeClass('show');
     $('body').addClass('sheet-open');
     $('#mobSheetBackdrop').addClass('show');
     $('#mobGenerateSheet').addClass('show');
-    $('#mobGenerateSheet .mob-sheet-scroll-body').scrollTop(0);
+    setTimeout(function() {
+        $('#mobGenerateSheet .mob-sheet-scroll-body').scrollTop(0);
+    }, 50);
 }
 
 // AJAX Form Submission for Instant Generation without Page Reload
