@@ -508,7 +508,7 @@ class StudentPerformanceController extends Controller
 
         $averageAttendance = $data->count() > 0 ? number_format($totalAttendance / $data->count(), 2) : null;
 
-         return view('students.academic_performance.student_performance',[
+         return Helper::view('students.academic_performance.student_performance',[
              'students' => $data,
              'search' => $search,
              'studentMetrics' => $studentMetrics,
