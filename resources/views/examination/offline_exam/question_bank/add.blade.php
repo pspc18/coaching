@@ -655,7 +655,7 @@ textarea.theme-form-control {
                 </h1>
                 <p class="perf-subtitle">
                     <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
-                    <span>Manual entry with LaTeX math &bull; Single image OCR &bull; Bulk PDF question paper parser via Google Gemini AI</span>
+                    <span>Manual entry with LaTeX math &bull; Single image OCR &bull; Bulk PDF question paper parser via AI Engine</span>
                 </p>
             </div>
             <div class="perf-hero-actions">
@@ -665,7 +665,7 @@ textarea.theme-form-control {
                 <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="View all questions in Question Bank">
                     <i class="fa fa-list mr-1"></i> Question Bank
                 </a>
-                <button type="button" class="dash-btn dash-btn-outline" data-toggle="modal" data-target="#aiSettingsModal" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="Configure Google Gemini API Key">
+                <button type="button" class="dash-btn dash-btn-outline" data-toggle="modal" data-target="#aiSettingsModal" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="Configure AI API Key">
                     <i class="fa fa-sliders mr-1"></i> AI Settings
                     @if($hasAiKey)
                         <span class="badge badge-success ml-1" style="font-size: 9px; padding: 2px 6px;"><i class="fa fa-check mr-1"></i> Connected</span>
@@ -1270,7 +1270,7 @@ textarea.theme-form-control {
                             {{-- AI Status Indicator --}}
                             <div id="ai-single-status" class="alert alert-info py-2 px-3 small d-none" style="font-size: 11px; border-radius: 2px;">
                                 <span class="ai-pulse-spinner mr-2"></span>
-                                <span id="ai-single-status-text">AI Agent is analyzing image with Google Gemini...</span>
+                                <span id="ai-single-status-text">AI Agent is analyzing image with AI Engine...</span>
                             </div>
                         </div>
                     </div>
@@ -1284,7 +1284,7 @@ textarea.theme-form-control {
                                 <i class="fa fa-check-circle-o text-warning mr-2"></i> AI-Extracted Question Review &amp; Edit
                             </h3>
                             <span id="ai-single-model-badge" class="badge badge-light d-none" style="color:#002C54; font-size: 10px;">
-                                Gemini AI Parsed
+                                AI Parsed
                             </span>
                         </div>
                         <div class="theme-card-body">
@@ -1463,7 +1463,7 @@ textarea.theme-form-control {
                     {{-- Progress / Status alert --}}
                     <div id="pdf-extract-status" class="alert alert-info py-2 px-3 small d-none mt-2" style="font-size: 11.5px; border-radius: 2px;">
                         <span class="ai-pulse-spinner mr-2"></span>
-                        <span id="pdf-extract-status-text">Uploading PDF and parsing questions via Google Gemini AI Agent...</span>
+                        <span id="pdf-extract-status-text">Uploading PDF and parsing questions via AI Engine Agent...</span>
                     </div>
                 </div>
             </div>
@@ -1504,14 +1504,14 @@ textarea.theme-form-control {
 </div>
 
 {{-- =========================================================================
-     AI SETTINGS MODAL: GOOGLE GEMINI API KEY CONFIGURATION
+     AI SETTINGS MODAL: AI API KEY CONFIGURATION
      ========================================================================= --}}
 <div class="modal fade" id="aiSettingsModal" tabindex="-1" role="dialog" aria-labelledby="aiSettingsModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius: 2px; overflow: hidden; border: 1px solid #002C54;">
             <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 16px;">
                 <h5 class="modal-title font-weight-bold" id="aiSettingsModalTitle" style="font-size: 13.5px;">
-                    <i class="fa fa-magic mr-2 text-warning"></i> Google Gemini AI Agent Settings
+                    <i class="fa fa-magic mr-2 text-warning"></i> AI Engine Agent Settings
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1519,11 +1519,11 @@ textarea.theme-form-control {
             </div>
             <div class="modal-body p-3" style="font-size: 12px; background: #ffffff;">
                 <p class="text-muted mb-2" style="font-size: 11px;">
-                    Arise ERP uses Google Gemini Multimodal AI to extract text, equations, formulas, options and answers directly from single photos or multi-page PDF papers.
+                    Arise ERP uses Advanced Multimodal AI to extract text, equations, formulas, options and answers directly from single photos or multi-page PDF papers.
                 </p>
 
                 <div class="theme-form-group">
-                    <label for="modal_gemini_api_key">Google Gemini API Key <span class="text-danger">*</span></label>
+                    <label for="modal_gemini_api_key">AI API Key <span class="text-danger">*</span></label>
                     <div class="input-group">
                         <input type="password" id="modal_gemini_api_key" class="theme-form-control" placeholder="AIzaSy..." value="{{ $geminiApiKey ?? '' }}" style="height: 34px;">
                         <div class="input-group-append">
@@ -1533,7 +1533,7 @@ textarea.theme-form-control {
                         </div>
                     </div>
                     <div class="theme-hint mt-1">
-                        Don't have a key? Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary font-weight-bold">Google AI Studio <i class="fa fa-external-link ml-1"></i></a>
+                        Don't have a key? Get a free API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-primary font-weight-bold">AI Developer Portal <i class="fa fa-external-link ml-1"></i></a>
                     </div>
                 </div>
 
@@ -1643,7 +1643,7 @@ textarea.theme-form-control {
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px; padding: 4px 8px;">
-                        <i class="fa fa-check-circle mr-1"></i> Gemini AI Active
+                        <i class="fa fa-check-circle mr-1"></i> AI Engine Active
                     </span>
                     <button type="button" class="close text-white ml-2" data-dismiss="modal" aria-label="Close" style="opacity: 0.85; font-size: 22px;">
                         <span aria-hidden="true">&times;</span>
@@ -3343,7 +3343,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Client-side image compression to save Gemini API token and bandwidth costs
+    // Client-side image compression to save AI API token and bandwidth costs
     function compressImageFile(file, maxDimension, quality, callback) {
         if (!file || !file.type.match(/image.*/)) {
             callback(file, null);
@@ -3409,7 +3409,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const extractBtn = this;
 
         statusEl.classList.remove('d-none');
-        statusText.textContent = 'AI Agent is analyzing image with Google Gemini...';
+        statusText.textContent = 'AI Agent is analyzing image with AI Engine...';
         extractBtn.disabled = true;
 
         const formData = new FormData();
@@ -3497,7 +3497,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const badge = document.getElementById('ai-single-model-badge');
         if (badge) {
             badge.className = 'badge badge-light';
-            badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'Gemini AI Parsed');
+            badge.innerHTML = '<i class="fa fa-magic mr-1"></i> ' + (modelUsed || 'AI Parsed');
             badge.classList.remove('d-none');
         }
 
@@ -3693,7 +3693,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const statusText = document.getElementById('pdf-extract-status-text');
 
         statusEl.classList.remove('d-none');
-        statusText.textContent = 'Uploading PDF and parsing questions via Google Gemini AI Agent... (may take 10-30 seconds)';
+        statusText.textContent = 'Uploading PDF and parsing questions via AI Engine Agent... (may take 10-30 seconds)';
         btn.disabled = true;
 
         const formData = new FormData();
@@ -4616,13 +4616,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-test-gemini-key')?.addEventListener('click', function () {
         const key = document.getElementById('modal_gemini_api_key').value.trim();
         if (!key) {
-            alert('Please enter a Google Gemini API Key first.');
+            alert('Please enter an AI API Key first.');
             return;
         }
 
         const statusEl = document.getElementById('modal-key-status');
         statusEl.className = 'alert alert-info py-2 px-3 small';
-        statusEl.innerHTML = '<span class="ai-pulse-spinner mr-2"></span> Testing connection with Google Gemini API...';
+        statusEl.innerHTML = '<span class="ai-pulse-spinner mr-2"></span> Testing connection with AI Engine...';
         statusEl.classList.remove('d-none');
 
         fetch('{{ url("question/save-ai-key") }}', {
@@ -4654,7 +4654,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-save-gemini-key')?.addEventListener('click', function () {
         const key = document.getElementById('modal_gemini_api_key').value.trim();
         if (!key) {
-            alert('Please enter a Google Gemini API Key.');
+            alert('Please enter an AI API Key.');
             return;
         }
 

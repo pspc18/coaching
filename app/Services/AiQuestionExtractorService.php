@@ -179,13 +179,13 @@ class AiQuestionExtractorService
                 $errorMsg = $listResponse->json('error.message') ?? $listResponse->body();
                 return [
                     'success' => false,
-                    'message' => 'Gemini API Error: ' . $errorMsg
+                    'message' => 'AI Engine Error: ' . $errorMsg
                 ];
             }
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Failed to reach Google Gemini API: ' . $e->getMessage()
+                'message' => 'Failed to reach AI Engine: ' . $e->getMessage()
             ];
         }
 
@@ -219,7 +219,7 @@ class AiQuestionExtractorService
                     return [
                         'success' => true,
                         'model_used' => $model,
-                        'message' => "Google Gemini API connected successfully! Active model: {$model}"
+                        'message' => "AI Engine connected successfully!"
                     ];
                 }
 
@@ -238,7 +238,7 @@ class AiQuestionExtractorService
         return [
             'success' => true,
             'model_used' => $firstAvailable,
-            'message' => "Google Gemini API key is valid and connected! (Model: {$firstAvailable})"
+            'message' => "AI API key is valid and connected!"
         ];
     }
 
@@ -251,7 +251,7 @@ class AiQuestionExtractorService
         if (empty($key)) {
             return [
                 'success' => false,
-                'message' => 'Google Gemini API key is not configured. Please enter your API key in AI Settings.'
+                'message' => 'AI API key is not configured. Please enter your API key in AI Settings.'
             ];
         }
 
@@ -321,7 +321,7 @@ EOT;
         if (empty($key)) {
             return [
                 'success' => false,
-                'message' => 'Google Gemini API key is not configured. Please enter your API key in AI Settings.'
+                'message' => 'AI API key is not configured. Please enter your API key in AI Settings.'
             ];
         }
 
@@ -627,7 +627,7 @@ EOT;
         if (empty($key)) {
             return [
                 'success' => false,
-                'message' => 'Google Gemini API key is not configured. Please enter your API key in AI Settings.'
+                'message' => 'AI API key is not configured. Please enter your API key in AI Settings.'
             ];
         }
 
@@ -1439,7 +1439,7 @@ PROMPT_TEMPLATE;
         if (empty($key)) {
             return [
                 'success' => false,
-                'message' => 'No working Gemini API Key found.'
+                'message' => 'No working AI API Key found.'
             ];
         }
 
