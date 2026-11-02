@@ -323,7 +323,7 @@ class FeesController extends Controller
                         }
                     }
 
-                    return view('fees.fees_collect.add', [
+                    return Helper::view('fees.fees_collect.add', [
                         'data' => $allstudents, 
                         'search' => $search,
                         'targetStudentId' => $targetStudentId,
@@ -354,7 +354,7 @@ class FeesController extends Controller
                     }
                 }
 
-                return view('fees.fees_collect.add', [
+                return Helper::view('fees.fees_collect.add', [
                     'data' => $initialStudents, 
                     'search' => $search,
                     'targetStudentId' => $targetStudentId,
@@ -1630,7 +1630,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 $permission = Helper::permissioncheck(11);
                 $getSetting = Helper::getSetting();
 
-                return view('fees.ledger.view', [
+                return Helper::view('fees.ledger.view', [
                     'data'         => $data,
                     'search'       => $search,
                     'totalCount'   => $totalCount,
@@ -2168,7 +2168,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                     ]);
                 }
 
-                return view('fees.dues.duesList', [
+                return Helper::view('fees.dues.duesList', [
                     'data'        => $studentArray,
                     'search'      => $search,
                     'feesSetting' => $feesSetting,
@@ -2616,7 +2616,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 $allUsers = Helper::getAllUsers();
                 $classType = Helper::classType();
 
-                return view('fees.reports.CA', [
+                return Helper::view('fees.reports.CA', [
                     'data'         => $data,
                     'search'       => $search,
                     'totalCount'   => $totalCount,
@@ -2833,7 +2833,7 @@ public function sendReceiptOnWhatsapp(Request $request)
                 $classType = Helper::classType();
                 $paymentModes = Helper::getPaymentMode();
 
-                return view('fees.fees_cheque', [
+                return Helper::view('fees.fees_cheque', [
                     'data'         => $data,
                     'search'       => $search,
                     'totalCount'   => $totalCount,
@@ -2871,7 +2871,7 @@ public function sendReceiptOnWhatsapp(Request $request)
             ? explode(',', $setting->allowed_payment_modes) 
             : ['1', '2', '3', '4'];
 
-        return view('fees.settings.index', [
+        return Helper::view('fees.settings.index', [
             'setting'           => $setting,
             'currentCounter'    => $currentCounter,
             'nextCounter'       => $nextCounter,
