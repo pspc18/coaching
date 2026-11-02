@@ -157,6 +157,7 @@ class DashboardController extends Controller
                 }
 
                 $rows->push([
+                    'id' => (int) $student->id,
                     'class_name' => (string) ($student->class_name ?? ''),
                     'class_order' => (int) ($student->class_order ?? 99999),
                     'admission_no' => (string) ($student->admissionNo ?? ''),
@@ -282,6 +283,7 @@ class DashboardController extends Controller
                 }
 
                 $rows->push([
+                    'id' => (int) $student->id,
                     'class_name' => (string) ($student->class_name ?? ''),
                     'class_order' => (int) ($student->class_order ?? 99999),
                     'admission_no' => (string) ($student->admissionNo ?? ''),

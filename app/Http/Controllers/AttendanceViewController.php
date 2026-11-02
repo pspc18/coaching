@@ -859,7 +859,7 @@ public function monthlyReport(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    return view('attendance.monthlyReport', compact(
+    return Helper::view('attendance.monthlyReport', compact(
         'users',
         'staffRoles',
         'selectedRoleId',
