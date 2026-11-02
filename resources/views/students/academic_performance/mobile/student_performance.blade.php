@@ -63,7 +63,7 @@
    ============================================================================== */
 
 .mob-perf-container {
-    padding: 0 0 70px 0;
+    padding: 6px 0 80px 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
     font-size: 12px;
@@ -72,12 +72,13 @@
     box-sizing: border-box;
 }
 
-/* 1. Hero Card */
+/* 1. Hero Card - Perfect Clearance from Fixed Top Bar */
 .mob-hero-card {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
     border-radius: 4px;
     padding: 10px 12px;
+    margin-top: 2px;
     margin-bottom: 8px;
     box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -87,6 +88,7 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
+    min-height: 24px;
 }
 .mob-hero-title {
     font-size: 13.5px;
@@ -111,7 +113,7 @@
     text-overflow: ellipsis;
 }
 
-/* 4 Metrics Glance Grid */
+/* 4 Metrics Glance Grid (Clickable Tab Shortcuts) */
 .mob-metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -340,9 +342,9 @@
     display: none;
 }
 .mob-chip {
-    padding: 3px 8px;
+    padding: 4px 9px;
     border-radius: 3px;
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
     white-space: nowrap;
     border: 1px solid #e2e8f0;
@@ -362,6 +364,7 @@
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
+    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);
 }
 .mob-chip-count {
     font-size: 8.5px;
@@ -374,77 +377,7 @@
     color: #ffffff;
 }
 
-/* 4. Tab Prompt Placeholder (Shown until a tab is clicked) */
-.mob-prompt-card {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 20px 14px;
-    text-align: center;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-}
-.mob-prompt-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #e0f2fe;
-    color: #0284c7;
-    font-size: 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-}
-.mob-prompt-title {
-    font-size: 13px;
-    font-weight: 800;
-    color: #002C54;
-    margin: 0 0 3px 0;
-}
-.mob-prompt-desc {
-    font-size: 11px;
-    color: #64748b;
-    line-height: 1.4;
-    margin: 0 0 12px 0;
-}
-.mob-prompt-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-}
-.mob-prompt-pill {
-    padding: 7px 8px;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: all .12s ease;
-}
-.mob-prompt-pill:active {
-    background: #002C54;
-    color: #ffffff;
-    border-color: #002C54;
-}
-.mob-prompt-pill span.badge-cnt {
-    font-size: 8.5px;
-    padding: 1px 5px;
-    border-radius: 2px;
-    background: #e2e8f0;
-    color: #0f172a;
-}
-.mob-prompt-pill:active span.badge-cnt {
-    background: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-}
-
-/* 5. Feed List Header & Controls */
+/* 4. Feed List Header & Controls */
 .mob-feed-header {
     display: flex;
     align-items: center;
@@ -468,26 +401,8 @@
     padding: 1px 6px;
     border-radius: 3px;
 }
-.mob-btn-close-tab {
-    padding: 2px 7px;
-    border-radius: 3px;
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}
-.mob-btn-close-tab:active {
-    background: #fee2e2;
-    color: #dc2626;
-    border-color: #fca5a5;
-}
 
-/* 6. Student Cards Feed List (Matching Admission Mobile View) */
+/* 5. Student Cards Feed List (Matching Admission Mobile View) */
 .student-feed-list {
     display: flex;
     flex-direction: column;
@@ -734,7 +649,7 @@
     flex: 0 0 29px;
 }
 
-/* 7. Analytics Card (Grade Distribution & Toppers) */
+/* 6. Analytics Card (Grade Distribution & Toppers) */
 .mob-analytics-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -820,7 +735,7 @@
     margin: 0;
 }
 
-/* 8. Quick Student Snapshot Modal */
+/* 7. Quick Student Snapshot Modal */
 .mob-modal-overlay {
     display: none;
     position: fixed;
@@ -923,7 +838,7 @@
             <div class="mob-hero-title">
                 <i class="fa fa-line-chart text-warning"></i> Student Performance
             </div>
-            <span class="mob-session-pill">{{ $selectedClass->name ?? 'All Classes' }}</span>
+            <span class="mob-session-pill"><i class="fa fa-th-large mr-1"></i> {{ $selectedClass->name ?? 'All Classes' }}</span>
         </div>
 
         {{-- 4 Metrics Glance Grid (Clickable to switch tab) --}}
@@ -1009,6 +924,9 @@
         </div>
 
         <div class="mob-chips-scroll" id="mobFilterChipsScroll">
+            <div class="mob-chip active" data-tab="all" onclick="selectTab('all')">
+                👥 All Students <span class="mob-chip-count">{{ $studentCount }}</span>
+            </div>
             <div class="mob-chip" data-tab="g1" onclick="selectTab('g1')">
                 🥇 Grade 1 <span class="mob-chip-count">{{ $gradeArray['grade_1'] ?? 0 }}</span>
             </div>
@@ -1024,67 +942,24 @@
             <div class="mob-chip" data-tab="low_att" onclick="selectTab('low_att')">
                 📉 Low Att. <span class="mob-chip-count">{{ $lowAttCount }}</span>
             </div>
-            <div class="mob-chip" data-tab="all" onclick="selectTab('all')">
-                👥 All <span class="mob-chip-count">{{ $studentCount }}</span>
-            </div>
             <div class="mob-chip" data-tab="analytics" onclick="selectTab('analytics')">
                 📊 Analytics
             </div>
         </div>
     </div>
 
-    {{-- 4. TAB PROMPT CARD (Visible initially until a tab is clicked) --}}
-    <div class="mob-prompt-card" id="tabPromptCard">
-        <div class="mob-prompt-icon">
-            <i class="fa fa-hand-o-up"></i>
-        </div>
-        <h4 class="mob-prompt-title">Select a Category / Tab</h4>
-        <p class="mob-prompt-desc">
-            Upar diye gaye kisi bhi tab ya filter chip par tap karein, us category ke students ka data show hoga.
-        </p>
-        <div class="mob-prompt-grid">
-            <div class="mob-prompt-pill" onclick="selectTab('g1')">
-                <span>🥇 Grade 1 (91-100%)</span>
-                <span class="badge-cnt">{{ $gradeArray['grade_1'] ?? 0 }}</span>
-            </div>
-            <div class="mob-prompt-pill" onclick="selectTab('g2')">
-                <span>🥈 Grade 2 (81-90%)</span>
-                <span class="badge-cnt">{{ $gradeArray['grade_2'] ?? 0 }}</span>
-            </div>
-            <div class="mob-prompt-pill" onclick="selectTab('g3')">
-                <span>🔷 Grade 3 (71-80%)</span>
-                <span class="badge-cnt">{{ $gradeArray['grade_3'] ?? 0 }}</span>
-            </div>
-            <div class="mob-prompt-pill" onclick="selectTab('needs_help')">
-                <span>⚠️ Needs Help (G4/5)</span>
-                <span class="badge-cnt">{{ $needsImprovement }}</span>
-            </div>
-            <div class="mob-prompt-pill" onclick="selectTab('low_att')">
-                <span>📉 Low Att. (&lt;75%)</span>
-                <span class="badge-cnt">{{ $lowAttCount }}</span>
-            </div>
-            <div class="mob-prompt-pill" onclick="selectTab('all')">
-                <span>👥 All Students</span>
-                <span class="badge-cnt">{{ $studentCount }}</span>
-            </div>
-        </div>
-    </div>
-
-    {{-- 5. FEED CONTENT SECTION (Only displayed after tab click) --}}
-    <div id="mobFeedSection" style="display: none;">
+    {{-- 4. FEED CONTENT SECTION --}}
+    <div id="mobFeedSection">
 
         {{-- Feed Header --}}
         <div class="mob-feed-header">
             <div class="mob-feed-count">
-                <i class="fa fa-list mr-1"></i> <span id="feedHeaderTitle">Students List</span>
-                <span class="mob-feed-badge" id="feedHeaderCount">0</span>
+                <i class="fa fa-users text-primary mr-1"></i> <span id="feedHeaderTitle">All Students Performance</span>
+                <span class="mob-feed-badge" id="feedHeaderCount">{{ $studentCount }}</span>
             </div>
-            <button type="button" class="mob-btn-close-tab" onclick="clearTabSelection()">
-                <i class="fa fa-times"></i> Close Tab
-            </button>
         </div>
 
-        {{-- Analytics Panel (Only shown when analytics tab is active) --}}
+        {{-- Analytics Panel (Shown when analytics tab is clicked) --}}
         <div id="analyticsPanel" style="display: none;">
             {{-- Grade Distribution --}}
             <div class="mob-analytics-card">
@@ -1211,14 +1086,14 @@
 
 @section('scripts')
 <script>
-var activeTab = null;
+var activeTab = 'all';
 var tabLabels = {
+    'all': '👥 All Students Performance',
     'g1': '🥇 Grade 1 Students (91% - 100%)',
     'g2': '🥈 Grade 2 Students (81% - 90%)',
     'g3': '🔷 Grade 3 Students (71% - 80%)',
     'needs_help': '⚠️ Needs Help (Grade 4 & 5)',
     'low_att': '📉 Low Attendance (< 75%)',
-    'all': '👥 All Students Performance',
     'analytics': '📊 Academic Analytics &amp; KPIs'
 };
 
@@ -1239,11 +1114,6 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', function() {
             var val = this.value.trim();
             if (searchClear) searchClear.style.display = val.length > 0 ? 'inline-block' : 'none';
-            
-            // If user searches while no tab is open, automatically open 'all' tab
-            if (!activeTab && val.length > 0) {
-                selectTab('all', false);
-            }
             applyCardFiltering();
         });
     }
@@ -1262,13 +1132,16 @@ document.addEventListener('DOMContentLoaded', function() {
     var requestedTab = urlParams.get('tab');
     if (requestedTab) {
         var mapped = requestedTab.replace('grade_', 'g');
-        selectTab(mapped);
+        selectTab(mapped, false);
+    } else {
+        // Initial state: show all students
+        applyCardFiltering();
     }
 });
 
-// Select Tab: Strict On-Click Display
+// Select Tab: Strict On-Click Filtering
 function selectTab(tabKey, scroll) {
-    if (scroll === undefined) scroll = true;
+    if (scroll === undefined) scroll = false;
     activeTab = tabKey;
 
     // Update chips visual state
@@ -1281,14 +1154,8 @@ function selectTab(tabKey, scroll) {
         }
     });
 
-    // Hide prompt card, reveal feed section
-    var promptCard = document.getElementById('tabPromptCard');
-    var feedSection = document.getElementById('mobFeedSection');
     var analyticsPanel = document.getElementById('analyticsPanel');
     var cardsFeed = document.getElementById('studentCardsFeed');
-
-    if (promptCard) promptCard.style.display = 'none';
-    if (feedSection) feedSection.style.display = 'block';
 
     // Update Feed Header Title
     var titleEl = document.getElementById('feedHeaderTitle');
@@ -1311,27 +1178,9 @@ function selectTab(tabKey, scroll) {
     }
 
     if (scroll) {
-        feedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var toolbar = document.querySelector('.mob-search-toolbar');
+        if (toolbar) toolbar.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-}
-
-// Clear Tab Selection: Returns to clean prompt state
-function clearTabSelection() {
-    activeTab = null;
-
-    var chips = document.querySelectorAll('.mob-chip');
-    chips.forEach(function(chip) { chip.classList.remove('active'); });
-
-    var promptCard = document.getElementById('tabPromptCard');
-    var feedSection = document.getElementById('mobFeedSection');
-
-    if (promptCard) promptCard.style.display = 'block';
-    if (feedSection) feedSection.style.display = 'none';
-
-    var searchInput = document.getElementById('quickSearchInput');
-    if (searchInput) searchInput.value = '';
-    var searchClear = document.getElementById('quickSearchClear');
-    if (searchClear) searchClear.style.display = 'none';
 }
 
 // Filter Student Cards based on active tab and quick search query
