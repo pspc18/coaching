@@ -663,7 +663,8 @@ class ExamController extends Controller
         $examId = $request->input('exam_id') ?: $request->route('id');
 
         if ($request->isMethod('post')) {
-            $creationMode = $request->input('exam_creation_mode', 'pdf_upload');
+            $creationMode = $request->input('exam_creation_mode', 'normal');
+            $isOnline = ($creationMode === 'online') || (bool)$request->input('is_online', false);
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -671,7 +672,9 @@ class ExamController extends Controller
                 'subject_id' => 'nullable|integer',
                 'code' => 'nullable|string|max:100',
                 'exam_date' => 'nullable|date',
-                'number_of_questions' => 'nullable|integer|min:1|max:100',
+                'number_of_questions' => 'nullable|integer|min:0|max:100',
+                'exam_maximum_marks' => 'nullable|numeric|min:0',
+                'duration' => 'nullable|integer|min:1',
                 'is_online' => 'nullable|boolean',
                 'marks_per_correct' => 'nullable|numeric',
                 'marks_per_incorrect' => 'nullable|numeric',
@@ -730,7 +733,7 @@ class ExamController extends Controller
             $derivedAnswerKey = [];
             $questionIds = [];
 
-            if ($creationMode === 'question_bank') {
+            if (in_array($creationMode, ['question_bank', 'online'])) {
                 $rawJson = $request->input('selected_questions_json');
                 if (!empty($rawJson)) {
                     $decoded = is_string($rawJson) ? json_decode($rawJson, true) : (is_array($rawJson) ? $rawJson : null);
@@ -802,24 +805,31 @@ class ExamController extends Controller
 
                 $numQuestions = count($onlineQuestions);
                 if ($numQuestions === 0) {
-                    $numQuestions = (int) ($validated['number_of_questions'] ?? ($isEdit ? ($add->number_of_questions ?? 50) : 50));
+                    $numQuestions = (int) ($validated['number_of_questions'] ?? ($isEdit ? ($add->number_of_questions ?? 0) : 0));
                 }
-            } else {
+                $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : ($isEdit && isset($add->marks_per_correct) ? (float)$add->marks_per_correct : 1.0);
+                $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : ($isEdit && isset($add->marks_per_incorrect) ? (float)$add->marks_per_incorrect : 0.0);
+                $maxMarks = $numQuestions * $marksPerCorrect;
+                $finalAnswerKey = $derivedAnswerKey;
+            } elseif ($creationMode === 'pdf_upload') {
                 $numQuestions = (int) ($validated['number_of_questions'] ?? ($isEdit ? ($add->number_of_questions ?? 50) : 50));
-            }
-            $numQuestions = max(1, $numQuestions);
-
-            $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : ($isEdit && isset($add->marks_per_correct) ? (float)$add->marks_per_correct : 1.0);
-            $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : ($isEdit && isset($add->marks_per_incorrect) ? (float)$add->marks_per_incorrect : 0.0);
-            $maxMarks = $numQuestions * $marksPerCorrect;
-            $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : ($isEdit && !empty($add->exam_date) ? (is_object($add->exam_date) ? $add->exam_date->format('Y-m-d') : $add->exam_date) : date('Y-m-d'));
-
-            $submittedKey = $request->answer_key ?? [];
-            if ($creationMode === 'question_bank') {
-                $finalAnswerKey = !empty($submittedKey) ? array_replace($derivedAnswerKey, $submittedKey) : $derivedAnswerKey;
-            } else {
+                $numQuestions = max(1, $numQuestions);
+                $marksPerCorrect = isset($validated['marks_per_correct']) ? (float)$validated['marks_per_correct'] : ($isEdit && isset($add->marks_per_correct) ? (float)$add->marks_per_correct : 1.0);
+                $marksPerIncorrect = isset($validated['marks_per_incorrect']) ? (float)$validated['marks_per_incorrect'] : ($isEdit && isset($add->marks_per_incorrect) ? (float)$add->marks_per_incorrect : 0.0);
+                $maxMarks = $numQuestions * $marksPerCorrect;
+                $submittedKey = $request->answer_key ?? [];
                 $finalAnswerKey = !empty($submittedKey) ? $submittedKey : ($isEdit && !empty($add->answer_key) ? $add->answer_key : []);
+            } else {
+                // Mode 1: Normal Offline Exam
+                $creationMode = 'normal';
+                $numQuestions = max(0, (int) ($request->input('number_of_questions', $isEdit ? ($add->number_of_questions ?? 0) : 0)));
+                $maxMarks = (float) ($request->input('exam_maximum_marks', $validated['exam_maximum_marks'] ?? ($isEdit ? ($add->exam_maximum_marks ?? 100) : 100)));
+                $marksPerCorrect = 1.0;
+                $marksPerIncorrect = 0.0;
+                $finalAnswerKey = [];
             }
+
+            $examDate = !empty($validated['exam_date']) ? $validated['exam_date'] : ($isEdit && !empty($add->exam_date) ? (is_object($add->exam_date) ? $add->exam_date->format('Y-m-d') : $add->exam_date) : date('Y-m-d'));
 
             DB::beginTransaction();
             try {
@@ -827,21 +837,26 @@ class ExamController extends Controller
                 $add->code = $code;
                 $add->exam_code = $code;
                 $add->class_type_id = $request->class_type_id;
+                $add->subject_id = $request->subject_id;
                 $add->exam_term_id = $request->exam_term_id;
                 $add->exam_date = $examDate;
                 $add->number_of_questions = $numQuestions;
-                $add->is_online = (bool) ($request->is_online ?? false);
+                $add->is_online = $isOnline ? 1 : 0;
+                $add->exam_creation_mode = $creationMode;
                 $add->marks_per_correct = $marksPerCorrect;
                 $add->marks_per_incorrect = $marksPerIncorrect;
                 $add->exam_maximum_marks = $maxMarks;
                 $add->answer_key = $finalAnswerKey;
-                if ($creationMode === 'question_bank') {
+                if (in_array($creationMode, ['question_bank', 'online'])) {
                     $add->online_questions = $onlineQuestions;
-                } elseif (!$isEdit) {
+                } else {
                     $add->online_questions = null;
                 }
                 if ($paperPath) {
                     $add->question_paper_path = $paperPath;
+                }
+                if ($request->filled('duration')) {
+                    $add->duration = (int)$request->input('duration', 60);
                 }
                 if (!$isEdit) {
                     $add->result_status = 'not_scheduled';
@@ -873,7 +888,7 @@ class ExamController extends Controller
                 $assignment->deleted_at = null;
                 $assignment->save();
 
-                if ($creationMode === 'question_bank') {
+                if (in_array($creationMode, ['question_bank', 'online'])) {
                     AssignQuestion::where('exam_id', $add->id)->delete();
                     foreach ($questionIds as $qId) {
                         $aq = new AssignQuestion;
@@ -886,6 +901,8 @@ class ExamController extends Controller
                         $aq->subject_id = $request->subject_id;
                         $aq->save();
                     }
+                } elseif (in_array($creationMode, ['normal', 'pdf_upload'])) {
+                    AssignQuestion::where('exam_id', $add->id)->delete();
                 }
 
                 DB::commit();

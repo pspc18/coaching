@@ -23,7 +23,16 @@
   if (is_string($initialQuestions)) {
       $initialQuestions = json_decode($initialQuestions, true) ?: [];
   }
-  $initialMode = old('exam_creation_mode', !empty($initialQuestions) ? 'question_bank' : (!empty($formExam->question_paper_path) ? 'pdf_upload' : 'pdf_upload'));
+  $initialMode = old('exam_creation_mode', $formExam->exam_creation_mode ?? (
+      !empty($formExam->is_online) ? 'online' : (
+          !empty($initialQuestions) ? 'question_bank' : (
+              !empty($formExam->question_paper_path) ? 'pdf_upload' : 'normal'
+          )
+      )
+  ));
+  if (request()->filled('question_ids') && empty($formExam)) {
+      $initialMode = 'question_bank';
+  }
   if (!empty($initialQuestions) && empty($previewQuestions)) {
       $previewQuestions = count($initialQuestions);
   }
@@ -163,12 +172,51 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Mode Selection Cards */
+/* Mode Selection Cards - 4 Modes Grid */
 .mode-selector-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+}
+@media (max-width: 1200px) {
+    .mode-selector-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .mode-selector-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.workflow-steps-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 2px;
+}
+.wf-step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.wf-step-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 50%;
+    background: #002C54;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    margin-top: 2px;
+}
+.wf-step-content strong {
+    font-size: 11.5px;
+    color: #0f172a;
+    display: block;
 }
 .mode-option-card {
     background: #ffffff;
@@ -897,11 +945,29 @@ textarea.theme-form-control {
                 <input type="hidden" name="exam_id" value="{{ $formExam->id }}">
             @endif
             <input type="hidden" name="action_type" id="form-action-type" value="save">
+            <input type="hidden" name="is_online" id="exam-is-online" value="{{ ($initialMode === 'online' || !empty($formExam->is_online)) ? '1' : '0' }}">
             <input type="hidden" name="selected_questions_json" id="selected_questions_json" value="{{ json_encode($initialQuestions, JSON_UNESCAPED_UNICODE) }}">
 
-            {{-- 2-Mode Selector Cards --}}
+            {{-- 4-Mode Selector Cards --}}
             <div class="mode-selector-grid">
-                {{-- Mode 1 Card --}}
+                {{-- Mode 1: Normal Offline Exam --}}
+                <label class="mode-option-card {{ $initialMode === 'normal' ? 'active' : '' }}" id="card-mode-normal">
+                    <input type="radio" name="exam_creation_mode" value="normal" {{ $initialMode === 'normal' ? 'checked' : '' }}>
+                    <div class="mode-icon-circle">
+                        <i class="fa fa-file-text-o"></i>
+                    </div>
+                    <div>
+                        <div class="mode-card-title">
+                            <span>Mode 1: Normal Exam</span>
+                            <span class="mode-badge-pill badge-primary">Excel / Manual</span>
+                        </div>
+                        <p class="mode-card-desc">
+                            Exam Name, Date, Class & optional PDF paper. Marks Excel ya Manual entry se upload honge.
+                        </p>
+                    </div>
+                </label>
+
+                {{-- Mode 2: PDF Paper + OMR --}}
                 <label class="mode-option-card {{ $initialMode === 'pdf_upload' ? 'active' : '' }}" id="card-mode-pdf">
                     <input type="radio" name="exam_creation_mode" value="pdf_upload" {{ $initialMode === 'pdf_upload' ? 'checked' : '' }}>
                     <div class="mode-icon-circle">
@@ -909,16 +975,16 @@ textarea.theme-form-control {
                     </div>
                     <div>
                         <div class="mode-card-title">
-                            <span>Mode 1: Upload Question Paper (PDF) + OMR</span>
-                            <span class="mode-badge-pill">Quick Offline</span>
+                            <span>Mode 2: PDF + OMR</span>
+                            <span class="mode-badge-pill badge-danger">Print OMR</span>
                         </div>
                         <p class="mode-card-desc">
-                            Total questions count dalo, Question Paper PDF upload karo, answer key set karo aur students ke liye Printable OMR Sheet generate karo.
+                            Total questions count dalo, PDF paper attach karo, answer key set karo aur Printable OMR Sheet generate karo.
                         </p>
                     </div>
                 </label>
 
-                {{-- Mode 2 Card --}}
+                {{-- Mode 3: Question Bank + OMR with Questions --}}
                 <label class="mode-option-card {{ $initialMode === 'question_bank' ? 'active' : '' }}" id="card-mode-qbank">
                     <input type="radio" name="exam_creation_mode" value="question_bank" {{ $initialMode === 'question_bank' ? 'checked' : '' }}>
                     <div class="mode-icon-circle">
@@ -926,11 +992,28 @@ textarea.theme-form-control {
                     </div>
                     <div>
                         <div class="mode-card-title">
-                            <span>Mode 2: Question Bank + OMR with Questions</span>
-                            <span class="mode-badge-pill">Complete Paper</span>
+                            <span>Mode 3: Q-Bank + OMR</span>
+                            <span class="mode-badge-pill badge-success">Paper + OMR</span>
                         </div>
                         <p class="mode-card-desc">
-                            Question Bank se questions (MCQ/Descriptive with LaTeX Math) select karo, automatic answer key sync karo aur Question Paper + OMR Sheet dono print karo.
+                            Question Bank se questions select karo, automatic answer key sync karo aur Question Paper + OMR Sheet print karo.
+                        </p>
+                    </div>
+                </label>
+
+                {{-- Mode 4: Online Exam (CBT Panel) --}}
+                <label class="mode-option-card {{ $initialMode === 'online' ? 'active' : '' }}" id="card-mode-online">
+                    <input type="radio" name="exam_creation_mode" value="online" {{ $initialMode === 'online' ? 'checked' : '' }}>
+                    <div class="mode-icon-circle">
+                        <i class="fa fa-laptop"></i>
+                    </div>
+                    <div>
+                        <div class="mode-card-title">
+                            <span>Mode 4: Online Exam</span>
+                            <span class="mode-badge-pill badge-info">No OMR (CBT)</span>
+                        </div>
+                        <p class="mode-card-desc">
+                            Question Bank se questions browse & add karo. Student online exam panel par test denge. OMR Sheet nahi hogi.
                         </p>
                     </div>
                 </label>
@@ -1013,12 +1096,37 @@ textarea.theme-form-control {
                                 </div>
                             </div>
 
-                            <div class="row">
+                            {{-- Mode 1 Only: Maximum Marks Input --}}
+                            <div class="row" id="pane-mode-normal-marks" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
+                                <div class="col-md-6">
+                                    <div class="theme-form-group">
+                                        <label for="exam-max-marks">Maximum Marks <span class="text-danger">*</span></label>
+                                        <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ old('exam_maximum_marks', $formExam->exam_maximum_marks ?? 100) }}" min="1" max="9999" step="0.5">
+                                        <div class="theme-hint">Total maximum marks for traditional offline exam</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="theme-form-group">
+                                        <label for="normal-question-paper">Question Paper <span class="badge badge-secondary" style="font-size: 8.5px;">Optional PDF</span></label>
+                                        <input type="file" id="normal-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
+                                        @if(!empty($formExam->question_paper_path))
+                                            <div class="mt-1 small">
+                                                <a href="{{ asset($formExam->question_paper_path) }}" target="_blank" class="text-primary font-weight-bold">
+                                                    <i class="fa fa-file-pdf-o text-danger mr-1"></i> View Attached PDF
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Mode 2, 3 & 4 Scoring: Marks Per Question & Negative Marking --}}
+                            <div class="row" id="pane-mode-omr-scoring" style="{{ $initialMode === 'normal' ? 'display: none;' : '' }}">
                                 {{-- Correct Marks --}}
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
                                         <label for="marks-per-correct">Marks for Correct <span class="text-danger">*</span></label>
-                                        <input type="number" id="marks-per-correct" name="marks_per_correct" class="theme-form-control" value="{{ old('marks_per_correct', $formExam->marks_per_correct ?? 1) }}" min="0" max="999" step="0.01" required>
+                                        <input type="number" id="marks-per-correct" name="marks_per_correct" class="theme-form-control" value="{{ old('marks_per_correct', $formExam->marks_per_correct ?? 1) }}" min="0" max="999" step="0.01">
                                     </div>
                                 </div>
 
@@ -1028,6 +1136,15 @@ textarea.theme-form-control {
                                         <label for="marks-per-incorrect">Negative Marks</label>
                                         <input type="number" id="marks-per-incorrect" name="marks_per_incorrect" class="theme-form-control" value="{{ old('marks_per_incorrect', $formExam->marks_per_incorrect ?? 0) }}" min="-999" max="0" step="0.01">
                                         <div class="theme-hint">Use 0 for none, or -1, -0.25</div>
+                                    </div>
+                                </div>
+
+                                {{-- Mode 4 Online Only: Test Duration in Minutes --}}
+                                <div class="col-12" id="pane-mode-online-duration" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
+                                    <div class="theme-form-group">
+                                        <label for="exam-duration-input"><i class="fa fa-clock-o text-info mr-1"></i> Online Exam Duration (Minutes) <span class="text-danger">*</span></label>
+                                        <input type="number" id="exam-duration-input" name="duration" class="theme-form-control" value="{{ old('duration', $formExam->duration ?? 60) }}" min="1" max="1440" step="1">
+                                        <div class="theme-hint">Total test countdown time given to student in online panel (e.g. 60, 90, 180 min)</div>
                                     </div>
                                 </div>
                             </div>
@@ -1111,8 +1228,8 @@ textarea.theme-form-control {
                         </div>
                     </div>
 
-                    {{-- Pane 2: Mode 2 (Question Bank Questions) --}}
-                    <div id="pane-mode-question-bank" style="{{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
+                    {{-- Pane: Mode 3 (Question Bank OMR) & Mode 4 (Online Exam CBT) --}}
+                    <div id="pane-mode-question-bank" style="{{ in_array($initialMode, ['question_bank', 'online']) ? '' : 'display: none;' }}">
                         <div class="theme-card">
                             <div class="theme-card-header">
                                 <h3 class="card-title">
@@ -1141,8 +1258,8 @@ textarea.theme-form-control {
                                     {{-- Rendered by JS --}}
                                 </div>
 
-                                {{-- Auto-derived Answer Key Review (Collapsible) --}}
-                                <div class="mt-2 border-top pt-2">
+                                {{-- Mode 3 Only: Auto-derived Answer Key Review (Collapsible) --}}
+                                <div class="mt-2 border-top pt-2" id="qbank-derived-answer-key-box" style="{{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
                                     <a class="d-flex align-items-center justify-content-between text-decoration-none" data-toggle="collapse" href="#qbank-answer-key-collapse" role="button">
                                         <span class="small font-weight-bold text-primary" style="font-size: 11px;">
                                             <i class="fa fa-key mr-1"></i> View Auto-Derived Answer Key (<span id="qbank-key-count">0</span>)
@@ -1155,6 +1272,13 @@ textarea.theme-form-control {
                                                 {{-- Derived answer key rows --}}
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {{-- Mode 4 Only: Online CBT Notice --}}
+                                <div class="mt-2 border-top pt-2" id="online-exam-notice-box" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
+                                    <div class="p-2 bg-light border rounded small text-muted">
+                                        <i class="fa fa-info-circle text-info mr-1"></i> <strong>Online CBT Mode:</strong> Questions selected here will appear on the Student Online Examination Portal for students to answer digitally.
                                     </div>
                                 </div>
                             </div>
@@ -1170,10 +1294,106 @@ textarea.theme-form-control {
 
                 </div>
 
-                {{-- Right Column: Live Previews (OMR Sheet & Question Paper) --}}
+                {{-- Right Column: Live Previews (Normal Overview, OMR Sheet, Question Paper, Online CBT) --}}
                 <div class="col-lg-7 col-xl-7">
 
-                    {{-- Mode 1 Right Panel: OMR Sheet Live Preview --}}
+                    {{-- Mode 1 Right Panel: Normal Offline Exam Overview & Workflow --}}
+                    <div id="right-panel-normal" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
+                        <div class="theme-card">
+                            <div class="theme-card-header">
+                                <h3 class="card-title">
+                                    <i class="fa fa-file-text-o text-warning"></i> Standard Offline Examination Overview
+                                </h3>
+                                <span class="header-badge" id="normal-badge-status">Traditional Offline</span>
+                            </div>
+                            <div class="theme-card-body p-3">
+                                {{-- Parameters Summary Table --}}
+                                <div class="p-3 mb-3 bg-light border rounded" style="font-size: 11.5px;">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                        <span class="text-muted font-weight-bold"><i class="fa fa-pencil-square-o mr-1"></i> Exam Name:</span>
+                                        <strong class="text-dark" id="normal-summary-name">{{ $previewName ?: 'Untitled Examination' }}</strong>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <span class="text-muted font-weight-bold">Target Class:</span> <span id="normal-summary-class" class="text-dark font-weight-bold">--</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="text-muted font-weight-bold">Subject:</span> <span id="normal-summary-subject" class="text-dark font-weight-bold">All Subjects</span>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <span class="text-muted font-weight-bold">Exam Date:</span> <span id="normal-summary-date" class="text-dark font-weight-bold">{{ date('d M Y') }}</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="text-muted font-weight-bold">Max Marks:</span> <span id="normal-summary-max-marks" class="badge badge-success px-2 font-weight-bold" style="font-size: 11px;">100</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                                        <span class="text-muted font-weight-bold">Question Paper (PDF):</span>
+                                        <span id="normal-summary-paper" class="badge badge-secondary">Optional Attached</span>
+                                    </div>
+                                </div>
+
+                                {{-- 4-Step Process Guide --}}
+                                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 12px;">
+                                    <i class="fa fa-map-signs text-primary mr-1"></i> Examination Lifecycle & Workflow:
+                                </h6>
+                                <div class="workflow-steps-vertical mb-3">
+                                    <div class="wf-step-item">
+                                        <div class="wf-step-icon"><i class="fa fa-check"></i></div>
+                                        <div class="wf-step-content">
+                                            <strong>Step 1: Exam Created & Scheduled</strong>
+                                            <p class="small text-muted mb-0">Exam basic parameters saved for the assigned class. Optional question paper PDF can be downloaded anytime.</p>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step-item">
+                                        <div class="wf-step-icon"><i class="fa fa-users"></i></div>
+                                        <div class="wf-step-content">
+                                            <strong>Step 2: Conduct Offline Classroom Exam</strong>
+                                            <p class="small text-muted mb-0">Print/distribute question papers to students in classroom and evaluate their written copies.</p>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step-item">
+                                        <div class="wf-step-icon"><i class="fa fa-upload"></i></div>
+                                        <div class="wf-step-content">
+                                            <strong>Step 3: Upload Student Marks</strong>
+                                            <p class="small text-muted mb-0">Marks can be entered in two fast ways:
+                                                <span class="d-block mt-1">
+                                                    &bull; <strong>Option A: Excel Sheet Upload</strong> — Download student sample template, fill numbers, and import.
+                                                </span>
+                                                <span class="d-block">
+                                                    &bull; <strong>Option B: Manual Marks Entry</strong> — Fill marks online student-by-student in table.
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="wf-step-item">
+                                        <div class="wf-step-icon"><i class="fa fa-trophy"></i></div>
+                                        <div class="wf-step-content">
+                                            <strong>Step 4: Result Declaration & Report Cards</strong>
+                                            <p class="small text-muted mb-0">Declare result, generate student marksheets and export performance analytics.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Quick Links --}}
+                                <div class="d-flex align-items-center gap-2 pt-2 border-top flex-wrap">
+                                    <a href="{{ url('fill-marks-by-excel') }}" class="dash-btn dash-btn-light" style="font-size: 11px;">
+                                        <i class="fa fa-file-excel-o text-success mr-1"></i> Excel Marks Upload
+                                    </a>
+                                    <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-light" style="font-size: 11px;">
+                                        <i class="fa fa-pencil text-primary mr-1"></i> Manual Marks Entry
+                                    </a>
+                                    <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" style="font-size: 11px; background: #e2e8f0; color: #002C54 !important;">
+                                        <i class="fa fa-list mr-1"></i> View All Examinations
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Mode 2 Right Panel: OMR Sheet Live Preview --}}
                     <div id="right-panel-omr" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
                         <div class="theme-card">
                             <div class="theme-card-header">
@@ -1321,6 +1541,58 @@ textarea.theme-form-control {
                                             <div class="omr-sheet-paper" id="exam-omr-mode2-paper">
                                                 {{-- Injected / mirrored from SVG --}}
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Mode 4 Right Panel: Online Exam (CBT Panel) Live Preview --}}
+                    <div id="right-panel-online" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
+                        <div class="theme-card">
+                            <div class="theme-card-header">
+                                <h3 class="card-title">
+                                    <i class="fa fa-laptop text-info"></i> Online Examination (CBT) Panel Preview
+                                </h3>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="header-badge" id="online-preview-count">0 Questions</span>
+                                    <span class="header-badge bg-info text-white" id="online-preview-duration">60 Mins</span>
+                                </div>
+                            </div>
+
+                            <div class="theme-card-body p-3">
+                                {{-- Online Notice Banner --}}
+                                <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" style="font-size: 11px; border-left: 4px solid #0284c7;">
+                                    <i class="fa fa-info-circle fa-lg text-info"></i>
+                                    <div>
+                                        <strong>Online Computer-Based Test (CBT):</strong>
+                                        Students will take this examination digitally on the online examination portal. <u>No physical OMR sheet is generated</u> for this exam mode.
+                                    </div>
+                                </div>
+
+                                {{-- Online Test Preview Flow --}}
+                                <div class="paper-preview-container" style="max-height: 540px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 14px;">
+                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
+                                        <div>
+                                            <h5 class="font-weight-bold mb-0 text-dark" id="online-paper-title" style="font-size: 13.5px;">{{ $previewName ?: 'Untitled Online Examination' }}</h5>
+                                            <div class="small text-muted mt-1">
+                                                <span id="online-paper-class">Class: --</span> &bull; 
+                                                <span id="online-paper-subject">Subject: All Subjects</span> &bull; 
+                                                <span id="online-paper-date">Date: {{ date('d M Y') }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="badge badge-success px-2 py-1 font-weight-bold" id="online-preview-max-marks">0 Marks</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Question flow rendered by JS --}}
+                                    <div id="online-paper-questions-flow">
+                                        <div class="text-center py-5 text-muted">
+                                            <i class="fa fa-laptop fa-2x mb-2 text-info"></i>
+                                            <p class="mb-0 font-weight-bold">No questions added yet for Online Exam.</p>
+                                            <p class="small text-muted">Click "Browse Question Bank" on the left to add questions to this online exam.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1513,47 +1785,156 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // -------------------------------------------------------------
-    // Mode Switcher Logic
+    // Mode Switcher Logic (4 Modes: normal, pdf_upload, question_bank, online)
     // -------------------------------------------------------------
+    const updateNormalSummary = () => {
+        const nameVal = (nameInput?.value || 'Untitled Examination').trim();
+        const classText = classSelect?.options[classSelect.selectedIndex]?.text || '--';
+        const subText = subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'All Subjects';
+        const dateVal = dateInput?.value || '';
+        const maxMarks = document.getElementById('exam-max-marks')?.value || '100';
+
+        const sTitle = document.getElementById('normal-summary-name');
+        const sClass = document.getElementById('normal-summary-class');
+        const sSub = document.getElementById('normal-summary-subject');
+        const sDate = document.getElementById('normal-summary-date');
+        const sMarks = document.getElementById('normal-summary-max-marks');
+
+        if (sTitle) sTitle.textContent = nameVal;
+        if (sClass) sClass.textContent = classText;
+        if (sSub) sSub.textContent = subText;
+        if (sDate) sDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '{{ date('d M Y') }}';
+        if (sMarks) sMarks.textContent = maxMarks;
+    };
+
+    const renderOnlineExamPreview = () => {
+        const count = selectedQuestions.length;
+        const marksCorrect = parseFloat(marksCorrectInput?.value || 1.0) || 1.0;
+        const durationVal = document.getElementById('exam-duration-input')?.value || '60';
+
+        const countBadge = document.getElementById('online-preview-count');
+        const marksBadge = document.getElementById('online-preview-max-marks');
+        const durBadge = document.getElementById('online-preview-duration');
+
+        if (countBadge) countBadge.textContent = `${count} Questions`;
+        if (marksBadge) marksBadge.textContent = `${(count * marksCorrect).toFixed(1)} Marks`;
+        if (durBadge) durBadge.textContent = `${durationVal} Mins`;
+
+        const pTitle = document.getElementById('online-paper-title');
+        const pClass = document.getElementById('online-paper-class');
+        const pSub = document.getElementById('online-paper-subject');
+        const pDate = document.getElementById('online-paper-date');
+        const dateVal = dateInput?.value || '';
+
+        if (pTitle) pTitle.textContent = (nameInput?.value || 'Untitled Online Examination').trim();
+        if (pClass) pClass.textContent = 'Class: ' + (classSelect?.options[classSelect.selectedIndex]?.text || '--');
+        if (pSub) pSub.textContent = 'Subject: ' + (subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'All Subjects');
+        if (pDate) pDate.textContent = 'Date: ' + (dateVal ? new Date(dateVal).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '{{ date('d M Y') }}');
+
+        const flowEl = document.getElementById('online-paper-questions-flow');
+        if (!flowEl) return;
+
+        if (count === 0) {
+            flowEl.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="fa fa-laptop fa-2x mb-2 text-info"></i>
+                    <p class="mb-0 font-weight-bold">No questions added yet for Online Exam.</p>
+                    <p class="small text-muted">Click "Browse Question Bank" on the left to add questions to this online exam.</p>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        selectedQuestions.forEach((q, idx) => {
+            const qNum = idx + 1;
+            const isMcq = (parseInt(q.question_type_id, 10) === 1);
+            const correctLetter = q.correct_letter || (isMcq ? (['A','B','C','D','E'][parseInt(q.correct_ans, 10)] || q.correct_ans || 'A') : (q.correct_ans || ''));
+
+            html += `
+            <div class="paper-question-block">
+                <div class="paper-q-statement">
+                    <span class="paper-q-num">Q${qNum}.</span>
+                    <span class="paper-q-marks">[${marksCorrect} Mark]</span>
+                    <span class="math-content">${q.name || ''}</span>
+                </div>
+                ${q.image ? `<img src="${q.image}" class="paper-q-diagram" alt="Diagram">` : ''}
+                ${isMcq ? `
+                    <div class="paper-q-options-grid">
+                        <div class="paper-q-opt"><span class="paper-q-opt-label">(A)</span> <span class="math-content">${q.ans1 || ''}</span></div>
+                        <div class="paper-q-opt"><span class="paper-q-opt-label">(B)</span> <span class="math-content">${q.ans2 || ''}</span></div>
+                        <div class="paper-q-opt"><span class="paper-q-opt-label">(C)</span> <span class="math-content">${q.ans3 || ''}</span></div>
+                        <div class="paper-q-opt"><span class="paper-q-opt-label">(D)</span> <span class="math-content">${q.ans4 || ''}</span></div>
+                    </div>
+                ` : `
+                    <div class="small text-muted font-italic mt-1">
+                        Descriptive / Numerical Answer: <span class="text-success font-weight-bold">${q.correct_ans || ''}</span>
+                    </div>
+                `}
+            </div>`;
+        });
+
+        flowEl.innerHTML = html;
+        renderMath(flowEl);
+    };
+
     const switchMode = (mode) => {
         currentMode = mode;
-        const cardPdf = document.getElementById('card-mode-pdf');
-        const cardQBank = document.getElementById('card-mode-qbank');
 
-        if (mode === 'pdf_upload') {
-            if (cardPdf) {
-                cardPdf.classList.add('active');
-                const inp = cardPdf.querySelector('input');
-                if (inp) inp.checked = true;
+        // 1. Radio & Cards Active State
+        ['normal', 'pdf_upload', 'question_bank', 'online'].forEach(m => {
+            const cardId = 'card-mode-' + (m === 'pdf_upload' ? 'pdf' : (m === 'question_bank' ? 'qbank' : m));
+            const card = document.getElementById(cardId);
+            if (card) {
+                const isMatch = (m === mode);
+                card.classList.toggle('active', isMatch);
+                const inp = card.querySelector('input[type="radio"]');
+                if (inp) inp.checked = isMatch;
             }
-            if (cardQBank) cardQBank.classList.remove('active');
+        });
 
-            if (panePdf) panePdf.style.display = 'block';
-            if (paneQBank) paneQBank.style.display = 'none';
+        // 2. Set is_online hidden input
+        const isOnlineInput = document.getElementById('exam-is-online');
+        if (isOnlineInput) {
+            isOnlineInput.value = (mode === 'online') ? '1' : '0';
+        }
 
-            if (rightPanelOmr) rightPanelOmr.style.display = 'block';
-            if (rightPanelQBank) rightPanelQBank.style.display = 'none';
+        // 3. Left Column Panes
+        const paneNormalMarks = document.getElementById('pane-mode-normal-marks');
+        const paneOmrScoring = document.getElementById('pane-mode-omr-scoring');
+        const paneOnlineDuration = document.getElementById('pane-mode-online-duration');
+        const panePdf = document.getElementById('pane-mode-pdf-upload');
+        const paneQBank = document.getElementById('pane-mode-question-bank');
+        const qbankDerivedKeyBox = document.getElementById('qbank-derived-answer-key-box');
+        const onlineNoticeBox = document.getElementById('online-exam-notice-box');
 
-            if (btnSubmitPaper) btnSubmitPaper.style.display = 'none';
+        if (paneNormalMarks) paneNormalMarks.style.display = (mode === 'normal') ? 'flex' : 'none';
+        if (paneOmrScoring) paneOmrScoring.style.display = (mode === 'normal') ? 'none' : 'flex';
+        if (paneOnlineDuration) paneOnlineDuration.style.display = (mode === 'online') ? 'block' : 'none';
+        if (panePdf) panePdf.style.display = (mode === 'pdf_upload') ? 'block' : 'none';
+        if (paneQBank) paneQBank.style.display = (mode === 'question_bank' || mode === 'online') ? 'block' : 'none';
+        if (qbankDerivedKeyBox) qbankDerivedKeyBox.style.display = (mode === 'question_bank') ? 'block' : 'none';
+        if (onlineNoticeBox) onlineNoticeBox.style.display = (mode === 'online') ? 'block' : 'none';
 
+        // 4. Right Column Previews
+        const rightNormal = document.getElementById('right-panel-normal');
+        const rightOmr = document.getElementById('right-panel-omr');
+        const rightQBank = document.getElementById('right-panel-qbank');
+        const rightOnline = document.getElementById('right-panel-online');
+
+        if (rightNormal) rightNormal.style.display = (mode === 'normal') ? 'block' : 'none';
+        if (rightOmr) rightOmr.style.display = (mode === 'pdf_upload') ? 'block' : 'none';
+        if (rightQBank) rightQBank.style.display = (mode === 'question_bank') ? 'block' : 'none';
+        if (rightOnline) rightOnline.style.display = (mode === 'online') ? 'block' : 'none';
+
+        // 5. Trigger Respective Renders
+        if (mode === 'normal') {
+            updateNormalSummary();
+        } else if (mode === 'pdf_upload') {
             renderOMRPreview();
-        } else {
-            if (cardQBank) {
-                cardQBank.classList.add('active');
-                const inp = cardQBank.querySelector('input');
-                if (inp) inp.checked = true;
-            }
-            if (cardPdf) cardPdf.classList.remove('active');
-
-            if (panePdf) panePdf.style.display = 'none';
-            if (paneQBank) paneQBank.style.display = 'block';
-
-            if (rightPanelOmr) rightPanelOmr.style.display = 'none';
-            if (rightPanelQBank) rightPanelQBank.style.display = 'block';
-
-            if (btnSubmitPaper) btnSubmitPaper.style.display = 'inline-flex';
-
+        } else if (mode === 'question_bank') {
             renderQBankExam();
+        } else if (mode === 'online') {
+            renderOnlineExamPreview();
         }
     };
 
@@ -1699,6 +2080,8 @@ document.addEventListener('DOMContentLoaded', function () {
     nameInput?.addEventListener('input', () => {
         renderOMRPreview();
         updatePaperHeader();
+        updateNormalSummary();
+        renderOnlineExamPreview();
     });
     countInput?.addEventListener('input', renderOMRPreview);
 
@@ -1736,9 +2119,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (qbankOmrLabel) qbankOmrLabel.textContent = qCount;
     };
 
-    marksCorrectInput?.addEventListener('input', updatePaperHeader);
-    marksIncorrectInput?.addEventListener('input', updatePaperHeader);
-    dateInput?.addEventListener('change', updatePaperHeader);
+    marksCorrectInput?.addEventListener('input', () => { updatePaperHeader(); renderOnlineExamPreview(); });
+    marksIncorrectInput?.addEventListener('input', () => { updatePaperHeader(); renderOnlineExamPreview(); });
+    dateInput?.addEventListener('change', () => { updatePaperHeader(); updateNormalSummary(); renderOnlineExamPreview(); });
+    document.getElementById('exam-max-marks')?.addEventListener('input', updateNormalSummary);
+    document.getElementById('exam-duration-input')?.addEventListener('input', renderOnlineExamPreview);
 
     // Dynamic Class to Subject Loading
     classSelect?.addEventListener('change', function () {
@@ -1911,6 +2296,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updatePaperHeader();
         renderOMRPreview();
+        if (currentMode === 'online') {
+            renderOnlineExamPreview();
+        }
     };
 
     // -------------------------------------------------------------

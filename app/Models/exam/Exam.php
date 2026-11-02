@@ -25,6 +25,8 @@ class Exam extends Model
         'marks_per_correct' => 'decimal:2',
         'marks_per_incorrect' => 'decimal:2',
         'result_declaration_at' => 'datetime',
+        'duration' => 'integer',
+        'exam_creation_mode' => 'string',
     ];
 
     public function Subject()
