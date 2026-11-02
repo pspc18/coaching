@@ -290,7 +290,7 @@ class StudentPerformanceController extends Controller
          $otherList = [];
          $otherPerformanceMatrix = [];
 
-         return view('students.academic_performance.student_particular_performance', [
+         return Helper::view('students.academic_performance.student_particular_performance', [
              'data'                  => $data,
              'class'                 => $class,
              'attendance'            => $attendance,
