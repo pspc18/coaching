@@ -568,6 +568,8 @@ class QuestionController extends Controller
     {
         @set_time_limit(180);
         @ini_set('max_execution_time', 180);
+        @ini_set('display_errors', '0');
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
         $filePath = null;
         try {
@@ -620,10 +622,17 @@ class QuestionController extends Controller
                 @unlink($filePath);
             }
 
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
+            }
+
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             if ($filePath && file_exists($filePath)) {
                 @unlink($filePath);
+            }
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
             }
             return response()->json([
                 'success' => false,
@@ -637,6 +646,9 @@ class QuestionController extends Controller
      */
     public function bulkStore(Request $request)
     {
+        @ini_set('display_errors', '0');
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
         $request->validate([
             'class_type_id' => 'required',
             'subject_id' => 'required',
@@ -721,14 +733,21 @@ class QuestionController extends Controller
 
             DB::commit();
 
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
+            }
+
             return response()->json([
                 'success' => true,
                 'count' => $savedCount,
                 'message' => "Successfully imported {$savedCount} questions into Question Bank!",
                 'redirect' => url('view/question')
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            while (ob_get_level() > 0) {
+                @ob_end_clean();
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save bulk questions: ' . $e->getMessage()

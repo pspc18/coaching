@@ -1826,7 +1826,24 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!classId) return;
 
         fetch(`{{ url('subjectGetData') }}/${classId}`)
-            .then(res => res.json())
+            .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
                     globalSubjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
@@ -4253,7 +4270,24 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'X-CSRF-TOKEN': csrfToken },
             body: formData
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             if (data.success && data.file_path) {
                 if (imgField) imgField.value = data.file_path;
@@ -4290,7 +4324,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ image_path: imagePath })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -4340,7 +4391,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ image_path: imagePath, api_key: customKey })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -4602,7 +4670,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 questions: preparedQuestions
             })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             if (data.success) {
                 alert(`Success! ${data.count} questions have been added to your Question Bank.`);
@@ -4655,7 +4740,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ api_key: key })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             if (data.success) {
                 statusEl.className = 'alert alert-success py-2 px-3 small';
@@ -4693,7 +4795,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ api_key: key })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(data => {
             if (data.success) {
                 statusEl.className = 'alert alert-success py-2 px-3 small';
@@ -4943,7 +5062,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: formData
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(res => {
             clearInterval(stepInterval);
             if (res.success && res.data) {
@@ -4959,7 +5095,7 @@ document.addEventListener('DOMContentLoaded', function () {
             clearInterval(stepInterval);
             loadingView?.classList.add('d-none');
             inputView?.classList.remove('d-none');
-            alert('AI Generation request error: ' + err.message);
+            alert('AI Generation error: ' + err.message);
         });
     });
 
@@ -5695,7 +5831,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 questions: questionsToSave
             })
         })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            let json = null;
+            try {
+                const jsonStart = rawText.indexOf('{');
+                if (jsonStart !== -1) {
+                    json = JSON.parse(rawText.substring(jsonStart));
+                } else {
+                    json = JSON.parse(rawText);
+                }
+            } catch (e) {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = rawText;
+                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
+                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
+            }
+            return json;
+        })
         .then(res => {
             btn.disabled = false;
             btn.innerHTML = origHtml;

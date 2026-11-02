@@ -1,6 +1,10 @@
 <?php
 
 namespace {
+    // Suppress PHP 8.4 deprecation notices and prevent stray error output before HTTP headers
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+    @ini_set('display_errors', '0');
+
     if (!function_exists('mb_strwidth')) {
         function mb_strwidth($string, $encoding = 'UTF-8') {
             return function_exists('mb_strlen') ? mb_strlen((string) $string, $encoding) : strlen((string) $string);
