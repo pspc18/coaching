@@ -651,20 +651,36 @@ textarea.theme-form-control {
                     <i class="fa fa-graduation-cap mr-1"></i> Examination &amp; Question Bank System
                 </span>
                 <h1 class="perf-title">
-                    <i class="fa fa-plus-circle mr-2"></i> Create &amp; AI Ingestion Engine
+                    @if(!empty($isEdit))
+                        <i class="fa fa-pencil-square mr-2"></i> Edit Question #{{ $data->id }}
+                        @if(!empty($data->group_id))
+                            <span class="badge badge-info ml-2" style="font-size: 11px; vertical-align: middle;">Set: {{ $data->group_id }}</span>
+                        @endif
+                    @else
+                        <i class="fa fa-plus-circle mr-2"></i> Create &amp; AI Ingestion Engine
+                    @endif
                 </h1>
                 <p class="perf-subtitle">
-                    <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
-                    <span>Manual entry with LaTeX math &bull; AI Document, Exam Paper &amp; Image Parser via AI Engine</span>
+                    @if(!empty($isEdit))
+                        <span>Updating Question Record #{{ $data->id }}</span> &bull;
+                        <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
+                        <span>LaTeX math &bull; Live Preview &bull; Rich Options</span>
+                    @else
+                        <span>Session: {{ Session::get('session_name') ?? date('Y') }}</span> &bull;
+                        <span>Manual entry with LaTeX math &bull; AI Document, Exam Paper &amp; Image Parser via AI Engine</span>
+                    @endif
                 </p>
             </div>
             <div class="perf-hero-actions">
+                @if(empty($isEdit))
                 <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#modal-ai-generator" style="background: #ffffff !important; color: #002C54 !important; border: 1px solid #ffffff !important; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.15);" title="Generate Questions using AI Prompt & Pattern Engine">
                     <i class="fa fa-magic text-warning mr-1"></i> AI Question Generator
                 </button>
-                <a href="{{ url('view/question') }}" class="dash-btn dash-btn-outline" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="View all questions in Question Bank">
+                @endif
+                <a href="{{ url('view/question') . (!empty($data->group_id) ? '?group_filter=' . urlencode($data->group_id) : '') }}" class="dash-btn dash-btn-outline" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="View all questions in Question Bank">
                     <i class="fa fa-list mr-1"></i> Question Bank
                 </a>
+                @if(empty($isEdit))
                 <button type="button" class="dash-btn dash-btn-outline" data-toggle="modal" data-target="#aiSettingsModal" style="background: rgba(255, 255, 255, 0.15) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.35) !important;" title="Configure AI API Key">
                     <i class="fa fa-sliders mr-1"></i> AI Settings
                     @if($hasAiKey)
@@ -673,6 +689,7 @@ textarea.theme-form-control {
                         <span class="badge badge-warning ml-1" style="font-size: 9px; padding: 2px 6px;">Configure Key</span>
                     @endif
                 </button>
+                @endif
             </div>
         </div>
 
@@ -683,9 +700,9 @@ textarea.theme-form-control {
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
         @endif
-        @if(session('error') || $errors->any())
+        @if(session('error') || (!empty($errors) && $errors->any()))
             <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 2px;">
-                <i class="fa fa-exclamation-triangle mr-1"></i> {{ session('error') ?? $errors->first() }}
+                <i class="fa fa-exclamation-triangle mr-1"></i> {{ session('error') ?? (!empty($errors) ? $errors->first() : '') }}
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
         @endif
@@ -710,7 +727,7 @@ textarea.theme-form-control {
                                 <option value="">-- Select Class --</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $type)
-                                        <option value="{{ $type->id }}" {{ old('class_type_id') == $type->id ? 'selected' : '' }}>
+                                        <option value="{{ $type->id }}" {{ old('class_type_id', $data->class_type_id ?? '') == $type->id ? 'selected' : '' }}>
                                             {{ $type->name ?? '' }}
                                         </option>
                                     @endforeach
@@ -727,7 +744,7 @@ textarea.theme-form-control {
                                 <option value="">-- Select Subject --</option>
                                 @if(!empty($allSubjects))
                                     @foreach($allSubjects as $subj)
-                                        <option value="{{ $subj->id }}" data-class="{{ $subj->class_type_id ?? '' }}" {{ old('subject_id') == $subj->id ? 'selected' : '' }}>
+                                        <option value="{{ $subj->id }}" data-class="{{ $subj->class_type_id ?? '' }}" {{ old('subject_id', $data->subject_id ?? '') == $subj->id ? 'selected' : '' }}>
                                             {{ $subj->name ?? '' }}
                                         </option>
                                     @endforeach
@@ -741,8 +758,8 @@ textarea.theme-form-control {
                         <div class="theme-form-group mb-1">
                             <label for="global_question_type_id">Question Format <span class="text-danger">*</span></label>
                             <select id="global_question_type_id" class="theme-form-control">
-                                <option value="1" {{ old('question_type_id', '1') == '1' ? 'selected' : '' }}>Objective (MCQ - 4 Options)</option>
-                                <option value="2" {{ old('question_type_id') == '2' ? 'selected' : '' }}>Descriptive / Subjective</option>
+                                <option value="1" {{ old('question_type_id', $data->question_type_id ?? '1') == '1' ? 'selected' : '' }}>Objective (MCQ - 4 Options)</option>
+                                <option value="2" {{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'selected' : '' }}>Descriptive / Subjective</option>
                             </select>
                         </div>
                     </div>
@@ -753,26 +770,31 @@ textarea.theme-form-control {
         {{-- 3. Ingestion Mode Switcher Tabs --}}
         <div class="mode-nav-tabs">
             <button type="button" class="mode-nav-tab active" data-target-tab="tab-manual">
-                <i class="fa fa-keyboard-o mr-1"></i> 1. Manual Builder
+                <i class="fa fa-keyboard-o mr-1"></i> {{ !empty($isEdit) ? '1. Question Editor' : '1. Manual Builder' }}
                 <span class="tab-badge">Math &amp; LaTeX</span>
             </button>
+            @if(empty($isEdit))
             <button type="button" class="mode-nav-tab" data-target-tab="tab-pdf">
                 <i class="fa fa-file-text-o mr-1"></i> 2. AI Document &amp; Paper Parser
                 <span class="tab-badge">PDF, Images &amp; Multi-Q</span>
             </button>
+            @endif
         </div>
 
         {{-- =========================================================================
              TAB 1: MANUAL QUESTION BUILDER (STANDALONE & DIRECTIONAL SET MODES)
              ========================================================================= --}}
         <div id="tab-manual" class="tab-content-panel">
-            <form id="form-manual-question" action="{{ url('add/question') }}" method="post" enctype="multipart/form-data">
+            <form id="form-manual-question" action="{{ !empty($isEdit) ? url('edit/question/' . $data->id) : url('add/question') }}" method="post" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="class_type_id" id="manual_class_type_id">
-                <input type="hidden" name="subject_id" id="manual_subject_id">
-                <input type="hidden" name="question_type_id" id="manual_question_type_id" value="1">
+                <input type="hidden" name="class_type_id" id="manual_class_type_id" value="{{ old('class_type_id', $data->class_type_id ?? '') }}">
+                <input type="hidden" name="subject_id" id="manual_subject_id" value="{{ old('subject_id', $data->subject_id ?? '') }}">
+                <input type="hidden" name="question_type_id" id="manual_question_type_id" value="{{ old('question_type_id', $data->question_type_id ?? '1') }}">
                 <input type="hidden" name="submit_action" id="manual_submit_action" value="save">
-                <input type="hidden" name="manual_mode" id="manual_mode" value="standalone">
+                @php
+                    $isDirMode = (!empty($data->group_id) || old('manual_mode') === 'directional');
+                @endphp
+                <input type="hidden" name="manual_mode" id="manual_mode" value="{{ old('manual_mode', ($isDirMode ? 'directional' : 'standalone')) }}">
 
                 {{-- Mode Switcher Card: Standalone vs Directional Set --}}
                 <div class="theme-card mb-2" style="background: #ffffff; border: 1px solid #cbd5e1;">
@@ -782,30 +804,36 @@ textarea.theme-form-control {
                                 <i class="fa fa-sliders text-primary mr-1"></i> Mode:
                             </span>
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-sm btn-outline-primary active manual-mode-pill" id="lbl-mode-standalone" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Single independent question with options">
-                                    <input type="radio" name="manual_mode_toggle" id="mode-standalone" value="standalone" checked autocomplete="off">
+                                <label class="btn btn-sm btn-outline-primary {{ !$isDirMode ? 'active' : '' }} manual-mode-pill" id="lbl-mode-standalone" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Single independent question with options">
+                                    <input type="radio" name="manual_mode_toggle" id="mode-standalone" value="standalone" {{ !$isDirMode ? 'checked' : '' }} autocomplete="off">
                                     <i class="fa fa-file-text-o mr-1"></i> Standalone
                                 </label>
-                                <label class="btn btn-sm btn-outline-primary manual-mode-pill" id="lbl-mode-directional" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Common passage & linked sub-questions">
-                                    <input type="radio" name="manual_mode_toggle" id="mode-directional" value="directional" autocomplete="off">
+                                <label class="btn btn-sm btn-outline-primary {{ $isDirMode ? 'active' : '' }} manual-mode-pill" id="lbl-mode-directional" style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap;" title="Common passage & linked sub-questions">
+                                    <input type="radio" name="manual_mode_toggle" id="mode-directional" value="directional" {{ $isDirMode ? 'checked' : '' }} autocomplete="off">
                                     <i class="fa fa-sitemap mr-1"></i> Directional Set
                                 </label>
                             </div>
+                            @if(empty($isEdit))
                             <button type="button" class="btn btn-sm btn-ai-pulse-glow" id="btn-open-ai-generator" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff !important; border: 1px solid #3b82f6; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);" title="Generate Questions using AI Prompt & Pattern Engine">
                                 <i class="fa fa-magic text-warning mr-1"></i> Generate with AI
                                 <span class="badge ml-1" style="background: rgba(255,255,255,0.22); font-size: 9px; color: #ffffff; padding: 1px 5px; border-radius: 2px; font-weight: 600;">Prompt/File</span>
                             </button>
+                            @endif
                         </div>
                         <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
                             <div class="small text-muted d-none d-md-block" id="manual-mode-description" style="font-size: 10.5px; white-space: nowrap;">
-                                <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone:</span> Single independent question with options.
+                                @if($isDirMode)
+                                    <span class="text-info font-weight-bold"><i class="fa fa-sitemap mr-1"></i> Directional Set:</span> Common passage &amp; linked sub-questions.
+                                @else
+                                    <span class="text-primary font-weight-bold"><i class="fa fa-info-circle mr-1"></i> Standalone:</span> Single independent question with options.
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- SECTION A: STANDALONE QUESTION BUILDER --}}
-                <div id="manual-standalone-wrap">
+                <div id="manual-standalone-wrap" class="{{ $isDirMode ? 'd-none' : '' }}">
                     <div class="row">
                         {{-- Left Column: Statement & Options --}}
                         <div class="col-lg-8">
@@ -859,7 +887,7 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_question_name" data-reset="125" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." required>{{ old('name') }}</textarea>
+                                        <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." {{ $isDirMode ? '' : 'required' }}>{{ old('name', $data->name ?? '') }}</textarea>
                                     </div>
 
                                     {{-- Options Section (Objective) --}}
@@ -886,9 +914,13 @@ textarea.theme-form-control {
 
                                         <div class="row" id="manual-options-row">
                                             @foreach(['1' => 'A', '2' => 'B', '3' => 'C', '4' => 'D'] as $num => $letter)
-                                                 @php $optIndex = (string)($num - 1); @endphp
+                                                 @php 
+                                                     $optIndex = (string)($num - 1); 
+                                                     $optVal = old('ans'.$num, $data->{'ans'.$num} ?? '');
+                                                     $isCorrect = ((string)old('correct_ans', $data->correct_ans ?? '0') === $optIndex);
+                                                 @endphp
                                                 <div class="col-md-6 mb-2">
-                                                    <div class="option-input-card" id="manual-opt-card-{{ $num }}">
+                                                    <div class="option-input-card {{ $isCorrect ? 'correct-selected' : '' }}" id="manual-opt-card-{{ $num }}">
                                                         <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
                                                             <div class="d-flex align-items-center">
                                                                 <span class="option-label-pill mr-2">{{ $letter }}</span>
@@ -900,19 +932,22 @@ textarea.theme-form-control {
                                                                     <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans{{ $num }}" data-delta="35" title="Increase Option {{ $letter }} Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                                                 </div>
                                                                 <label class="correct-radio-label text-success mb-0">
-                                                                    <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ old('correct_ans', '0') == $optIndex ? 'checked' : '' }}>
+                                                                    <input type="radio" name="correct_ans" value="{{ $optIndex }}" class="manual-correct-radio mr-1" {{ $isCorrect ? 'checked' : '' }}>
                                                                     <span>Mark Correct</span>
                                                                 </label>
                                                             </div>
                                                         </div>
-                                                        <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ old('ans'.$num) }}</textarea>
+                                                        <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ $optVal }}</textarea>
                                                     </div>
                                                 </div>
                                             @endforeach
 
                                             {{-- 5th Option (Option E) --}}
-                                            <div class="col-md-6 mb-2 {{ old('ans5') ? '' : 'd-none' }}" id="manual-opt-col-5">
-                                                <div class="option-input-card" id="manual-opt-card-5">
+                                            @php
+                                                $hasOpt5 = (!empty($data->ans5) || old('ans5') || ((string)old('correct_ans', $data->correct_ans ?? '0') === '4'));
+                                            @endphp
+                                            <div class="col-md-6 mb-2 {{ $hasOpt5 ? '' : 'd-none' }}" id="manual-opt-col-5">
+                                                <div class="option-input-card {{ ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') ? 'correct-selected' : '' }}" id="manual-opt-card-5">
                                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
                                                         <div class="d-flex align-items-center">
                                                             <span class="option-label-pill mr-2">E</span>
@@ -925,7 +960,7 @@ textarea.theme-form-control {
                                                                 <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="manual_ans5" data-delta="35" title="Increase Option E Height" style="font-size: 9px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                                             </div>
                                                             <label class="correct-radio-label text-success mb-0 mr-2">
-                                                                <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ old('correct_ans') == '4' ? 'checked' : '' }}>
+                                                                <input type="radio" name="correct_ans" value="4" class="manual-correct-radio mr-1" {{ ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') ? 'checked' : '' }}>
                                                                 <span>Mark Correct</span>
                                                             </label>
                                                             <button type="button" id="btn-remove-manual-opt-5" class="btn btn-xs btn-link text-danger p-0" title="Remove Option E" style="font-size: 11px;">
@@ -933,7 +968,7 @@ textarea.theme-form-control {
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5') }}</textarea>
+                                                    <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5', $data->ans5 ?? '') }}</textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -952,7 +987,7 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_explanation" data-reset="75" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation') }}</textarea>
+                                        <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation', $data->explanation ?? '') }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -975,9 +1010,9 @@ textarea.theme-form-control {
                                         </label>
                                         <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
                                             <input type="file" id="manual_image" name="image" accept="image/*" class="form-control-file" style="font-size: 11px;">
-                                            <input type="hidden" id="manual_image_path" name="image_path">
-                                            <div id="manual-image-preview-wrapper" class="mt-2 text-center d-none">
-                                                <img id="manual-image-preview" src="" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
+                                            <input type="hidden" id="manual_image_path" name="image_path" value="{{ $data->image ?? '' }}">
+                                            <div id="manual-image-preview-wrapper" class="mt-2 text-center {{ !empty($data->image) ? '' : 'd-none' }}">
+                                                <img id="manual-image-preview" src="{{ !empty($data->image) ? asset($data->image) : '' }}" alt="Diagram Preview" class="img-fluid border rounded bg-white p-1" style="max-height: 130px;">
                                                 <div class="mt-1">
                                                     <button type="button" id="btn-remove-manual-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
                                                         <i class="fa fa-trash mr-1"></i> Remove Image
@@ -993,9 +1028,10 @@ textarea.theme-form-control {
                                             <i class="fa fa-tachometer text-muted mr-1"></i> Difficulty Level
                                         </label>
                                         <select id="manual_difficulty" name="difficulty_level" class="theme-form-control" style="height: 33px; font-size: 12px;">
-                                            <option value="Easy">Easy (Fundamental)</option>
-                                            <option value="Medium" selected>Medium (Standard)</option>
-                                            <option value="Hard">Hard (Advanced / Olympiad)</option>
+                                            @php $curDiff = old('difficulty_level', $data->difficulty_level ?? 'Medium'); @endphp
+                                            <option value="Easy" {{ $curDiff === 'Easy' ? 'selected' : '' }}>Easy (Fundamental)</option>
+                                            <option value="Medium" {{ $curDiff === 'Medium' ? 'selected' : '' }}>Medium (Standard)</option>
+                                            <option value="Hard" {{ $curDiff === 'Hard' ? 'selected' : '' }}>Hard (Advanced / Olympiad)</option>
                                         </select>
                                     </div>
 
@@ -1014,15 +1050,24 @@ textarea.theme-form-control {
 
                                     {{-- Action Buttons --}}
                                     <div class="d-flex flex-column gap-2 mt-3">
-                                        <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
-                                            <i class="fa fa-save mr-1"></i> Save Question to Bank
-                                        </button>
-                                        <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
-                                            <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
-                                        </button>
-                                        <button type="reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
-                                            <i class="fa fa-undo mr-1"></i> Reset
-                                        </button>
+                                        @if(!empty($isEdit))
+                                            <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                                <i class="fa fa-save mr-1"></i> Update Question #{{ $data->id }}
+                                            </button>
+                                            <a href="{{ url('view/question') }}" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px; text-decoration:none;">
+                                                <i class="fa fa-arrow-left mr-1"></i> Cancel &amp; Back to Question Bank
+                                            </a>
+                                        @else
+                                            <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                                <i class="fa fa-save mr-1"></i> Save Question to Bank
+                                            </button>
+                                            <button type="button" id="btn-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                                                <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another
+                                            </button>
+                                            <button type="reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
+                                                <i class="fa fa-undo mr-1"></i> Reset
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -1031,7 +1076,7 @@ textarea.theme-form-control {
                 </div>
 
                 {{-- SECTION B: DIRECTIONAL TYPE QUESTION SET BUILDER --}}
-                <div id="manual-directional-wrap" class="d-none">
+                <div id="manual-directional-wrap" class="{{ !$isDirMode ? 'd-none' : '' }}">
                     <div class="row">
                         {{-- Left Column: Common Direction / Passage & Dynamic Sub-Questions --}}
                         <div class="col-lg-8">
@@ -1043,7 +1088,7 @@ textarea.theme-form-control {
                                     </h3>
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="text-white small font-weight-bold" style="font-size: 11px;">Set ID:</span>
-                                        <input type="text" name="group_id" id="dir_group_id" class="form-control form-control-sm text-monospace font-weight-bold text-center" style="width: 170px; height: 26px; font-size: 11px; background:#ffffff; color:#002C54; border: 1px solid #cbd5e1; border-radius: 2px;" placeholder="DIR-XXXXXX" value="DIR-{{ date('Ymd-His') }}">
+                                        <input type="text" name="group_id" id="dir_group_id" class="form-control form-control-sm text-monospace font-weight-bold text-center" style="width: 170px; height: 26px; font-size: 11px; background:#ffffff; color:#002C54; border: 1px solid #cbd5e1; border-radius: 2px;" placeholder="DIR-XXXXXX" value="{{ old('group_id', $data->group_id ?? ('DIR-' . date('Ymd-His'))) }}">
                                         <button type="button" id="btn-refresh-dir-group-id" class="btn btn-xs btn-light border py-0 px-2" title="Generate New Set ID" style="height: 26px; border-radius: 2px;"><i class="fa fa-refresh"></i></button>
                                     </div>
                                 </div>
@@ -1088,7 +1133,7 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_direction" data-reset="140" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="dir_direction" name="direction" rows="4" class="theme-form-control active-math-target" placeholder="Enter common instructions or comprehension passage (e.g. Directions (Q.1 - Q.5): Read the following passage carefully and answer the questions given below...)..."></textarea>
+                                        <textarea id="dir_direction" name="direction" rows="4" class="theme-form-control active-math-target" placeholder="Enter common instructions or comprehension passage (e.g. Directions (Q.1 - Q.5): Read the following passage carefully and answer the questions given below...)...">{{ old('direction', $data->direction ?? '') }}</textarea>
                                     </div>
 
                                     {{-- Common Diagram & Data Table Row --}}
@@ -1100,9 +1145,9 @@ textarea.theme-form-control {
                                                     <i class="fa fa-picture-o text-primary mr-1"></i> Common Passage Diagram / Graph <span class="text-muted font-weight-normal">(Optional)</span>
                                                 </label>
                                                 <input type="file" id="dir_image" name="direction_image" accept="image/*" class="form-control-file" style="font-size: 11px;">
-                                                <input type="hidden" id="dir_image_path" name="direction_image_path">
-                                                <div id="dir-image-preview-wrapper" class="mt-2 text-center d-none">
-                                                    <img id="dir-image-preview" src="" alt="Direction Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 120px;">
+                                                <input type="hidden" id="dir_image_path" name="direction_image_path" value="{{ (!empty($data->group_id) && !empty($data->image)) ? $data->image : '' }}">
+                                                <div id="dir-image-preview-wrapper" class="mt-2 text-center {{ (!empty($data->group_id) && !empty($data->image)) ? '' : 'd-none' }}">
+                                                    <img id="dir-image-preview" src="{{ (!empty($data->group_id) && !empty($data->image)) ? asset($data->image) : '' }}" alt="Direction Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 120px;">
                                                     <div class="mt-1">
                                                         <button type="button" id="btn-remove-dir-img" class="btn btn-xs btn-outline-danger" style="font-size: 10px;">
                                                             <i class="fa fa-trash mr-1"></i> Remove Image
@@ -1123,7 +1168,7 @@ textarea.theme-form-control {
                                                         <i class="fa fa-plus-square mr-1"></i> Sample Table
                                                     </button>
                                                 </div>
-                                                <textarea id="dir_direction_table" name="direction_table" rows="3" class="form-control form-control-sm" style="font-size: 11px; font-family: monospace;" placeholder="Paste HTML &lt;table&gt;...&lt;/table&gt; or click Sample Table..."></textarea>
+                                                <textarea id="dir_direction_table" name="direction_table" rows="3" class="form-control form-control-sm" style="font-size: 11px; font-family: monospace;" placeholder="Paste HTML &lt;table&gt;...&lt;/table&gt; or click Sample Table...">{{ old('direction_table', $data->direction_table ?? '') }}</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -1195,15 +1240,24 @@ textarea.theme-form-control {
 
                                     {{-- Action Buttons --}}
                                     <div class="d-flex flex-column gap-2 mt-3">
-                                        <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
-                                            <i class="fa fa-save mr-1"></i> Save Directional Set to Bank
-                                        </button>
-                                        <button type="button" id="btn-dir-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
-                                            <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another Set
-                                        </button>
-                                        <button type="button" id="btn-dir-reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
-                                            <i class="fa fa-undo mr-1"></i> Reset Set
-                                        </button>
+                                        @if(!empty($isEdit))
+                                            <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                                <i class="fa fa-save mr-1"></i> Update Directional Set [{{ $data->group_id }}]
+                                            </button>
+                                            <a href="{{ url('view/question?group_filter=' . urlencode($data->group_id ?? '')) }}" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px; text-decoration:none;">
+                                                <i class="fa fa-arrow-left mr-1"></i> Cancel &amp; Back to Question Bank
+                                            </a>
+                                        @else
+                                            <button type="submit" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; justify-content:center; height:36px; font-weight:700; border-radius:3px; box-shadow: 0 2px 4px rgba(0,44,84,0.18);">
+                                                <i class="fa fa-save mr-1"></i> Save Directional Set to Bank
+                                            </button>
+                                            <button type="button" id="btn-dir-save-and-add" class="dash-btn dash-btn-emerald" style="justify-content:center; height:36px; font-weight:700; border-radius:3px; background:#10b981; color:#ffffff; border:none; box-shadow: 0 2px 4px rgba(16,185,129,0.2);">
+                                                <i class="fa fa-plus-circle mr-1"></i> Save &amp; Add Another Set
+                                            </button>
+                                            <button type="button" id="btn-dir-reset" class="dash-btn" style="justify-content:center; color:#475569 !important; background:#f8fafc; border:1px solid #cbd5e1; height:32px; font-weight:600; border-radius:3px;">
+                                                <i class="fa fa-undo mr-1"></i> Reset Set
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -2332,10 +2386,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    function escapeHtmlSafe(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
     // Sub-Question HTML Builder
-    function buildSubQuestionCardHtml(idx, seq) {
+    function buildSubQuestionCardHtml(idx, seq, dataObj) {
+        dataObj = dataObj || {};
+        const qId = dataObj.id || '';
+        const subNo = (dataObj.sub_question_no !== undefined && dataObj.sub_question_no !== null) ? dataObj.sub_question_no : seq;
+        const diffLevel = dataObj.difficulty_level || 'Medium';
+        const qName = dataObj.name ? cleanTextareaValue(dataObj.name) : '';
+        const ans1 = dataObj.ans1 ? cleanTextareaValue(dataObj.ans1) : '';
+        const ans2 = dataObj.ans2 ? cleanTextareaValue(dataObj.ans2) : '';
+        const ans3 = dataObj.ans3 ? cleanTextareaValue(dataObj.ans3) : '';
+        const ans4 = dataObj.ans4 ? cleanTextareaValue(dataObj.ans4) : '';
+        const ans5 = dataObj.ans5 ? cleanTextareaValue(dataObj.ans5) : '';
+        const correctAns = (dataObj.correct_ans !== undefined && dataObj.correct_ans !== null) ? String(dataObj.correct_ans) : '0';
+        const hasOpt5 = !!(ans5 || correctAns === '4');
+        const expl = dataObj.explanation ? cleanTextareaValue(dataObj.explanation) : '';
+        const imgPath = dataObj.image || dataObj.image_path || '';
+        const fullImgSrc = imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '{{ asset("") }}/' + imgPath.replace(/^\/+/, '')) : '';
+
         return `
         <div class="sub-question-card mb-3" id="dir-subq-card-${idx}" data-idx="${idx}">
+            <input type="hidden" name="directional_questions[${idx}][id]" value="${escapeHtmlSafe(qId)}">
             <div class="subq-card-header d-flex align-items-center justify-content-between py-2 px-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="badge font-weight-bold px-2 py-1" style="background: #002C54; color: #ffffff; font-size: 11px; border-radius: 2px;">
@@ -2343,14 +2420,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     </span>
                     <div class="d-flex align-items-center gap-1">
                         <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">No:</span>
-                        <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${seq}" style="width: 50px; height: 26px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px; background: #ffffff !important; color: #002C54 !important;">
+                        <input type="text" name="directional_questions[${idx}][sub_question_no]" class="form-control form-control-sm text-center font-weight-bold dir-sub-no-input" value="${escapeHtmlSafe(subNo)}" style="width: 50px; height: 26px; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 2px; background: #ffffff !important; color: #002C54 !important;">
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">Level:</span>
                         <select name="directional_questions[${idx}][difficulty_level]" class="form-control form-control-sm font-weight-bold" style="width: 88px; height: 26px; font-size: 11px; padding: 2px 4px; background: #ffffff !important; color: #002C54 !important; border: 1px solid #cbd5e1 !important;">
-                            <option value="Easy">Easy</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="Hard">Hard</option>
+                            <option value="Easy" ${diffLevel === 'Easy' ? 'selected' : ''}>Easy</option>
+                            <option value="Medium" ${diffLevel === 'Medium' ? 'selected' : ''}>Medium</option>
+                            <option value="Hard" ${diffLevel === 'Hard' ? 'selected' : ''}>Hard</option>
                         </select>
                     </div>
                 </div>
@@ -2374,7 +2451,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_sub_${idx}_name" data-reset="90" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                         </div>
                     </div>
-                    <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="Enter question statement or formula..."></textarea>
+                    <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="Enter question statement or formula...">${escapeHtmlSafe(qName)}</textarea>
                 </div>
 
                 {{-- Options Section --}}
@@ -2383,19 +2460,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="font-weight-bold text-primary small" style="font-size: 11.5px;">
                             <i class="fa fa-list-ul mr-1"></i> Multiple Choice Options &amp; Correct Answer:
                         </span>
-                        <button type="button" class="btn btn-xs btn-outline-primary btn-toggle-subq-opt5 font-weight-bold" data-idx="${idx}" style="font-size: 10px; padding: 2px 8px;">
+                        <button type="button" class="btn btn-xs btn-outline-primary btn-toggle-subq-opt5 font-weight-bold" data-idx="${idx}" style="font-size: 10px; padding: 2px 8px; ${hasOpt5 ? 'display:none;' : ''}">
                             <i class="fa fa-plus mr-1"></i> Add 5th Option (E)
                         </button>
                     </div>
                     <div class="row">
                         ${[
-                            { num: 1, letter: 'A', val: '0' },
-                            { num: 2, letter: 'B', val: '1' },
-                            { num: 3, letter: 'C', val: '2' },
-                            { num: 4, letter: 'D', val: '3' },
+                            { num: 1, letter: 'A', val: '0', ans: ans1 },
+                            { num: 2, letter: 'B', val: '1', ans: ans2 },
+                            { num: 3, letter: 'C', val: '2', ans: ans3 },
+                            { num: 4, letter: 'D', val: '3', ans: ans4 },
                         ].map(opt => `
                             <div class="col-md-6 mb-2">
-                                <div class="option-input-card p-2 border rounded ${opt.val === '0' ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                                <div class="option-input-card p-2 border rounded ${opt.val === correctAns ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                         <div class="d-flex align-items-center">
                                             <span class="option-label-pill mr-2">${opt.letter}</span>
@@ -2407,19 +2484,19 @@ document.addEventListener('DOMContentLoaded', function () {
                                                 <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans${opt.num}" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                             </div>
                                             <label class="correct-radio-label mb-0" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
-                                                <input type="radio" name="directional_questions[${idx}][correct_ans]" value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${opt.val === '0' ? 'checked' : ''}>
+                                                <input type="radio" name="directional_questions[${idx}][correct_ans]" value="${opt.val}" class="dir-correct-radio mr-1" data-idx="${idx}" ${opt.val === correctAns ? 'checked' : ''}>
                                                 <span>Mark Correct</span>
                                             </label>
                                         </div>
                                     </div>
-                                    <textarea name="directional_questions[${idx}][ans${opt.num}]" id="dir_sub_${idx}_ans${opt.num}" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option ${opt.letter}..."></textarea>
+                                    <textarea name="directional_questions[${idx}][ans${opt.num}]" id="dir_sub_${idx}_ans${opt.num}" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option ${opt.letter}...">${escapeHtmlSafe(opt.ans)}</textarea>
                                 </div>
                             </div>
                         `).join('')}
 
                         {{-- Option E --}}
-                        <div class="col-md-6 mb-2 d-none" id="dir_sub_${idx}_col_5">
-                            <div class="option-input-card p-2 border rounded" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
+                        <div class="col-md-6 mb-2 ${hasOpt5 ? '' : 'd-none'}" id="dir_sub_${idx}_col_5">
+                            <div class="option-input-card p-2 border rounded ${correctAns === '4' ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
                                 <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                     <div class="d-flex align-items-center">
                                         <span class="option-label-pill mr-2">E</span>
@@ -2432,7 +2509,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                             <button type="button" class="btn btn-xs btn-light border btn-adjust-height py-0 px-1" data-target="dir_sub_${idx}_ans5" data-delta="30" title="Increase Height" style="font-size: 9px; line-height: 1.2; background: #ffffff; color: #334155;"><i class="fa fa-plus"></i></button>
                                         </div>
                                         <label class="correct-radio-label mb-0 mr-2" style="font-size: 11px; cursor: pointer; color: #059669 !important; font-weight: 700;">
-                                            <input type="radio" name="directional_questions[${idx}][correct_ans]" value="4" class="dir-correct-radio mr-1" data-idx="${idx}">
+                                            <input type="radio" name="directional_questions[${idx}][correct_ans]" value="4" class="dir-correct-radio mr-1" data-idx="${idx}" ${correctAns === '4' ? 'checked' : ''}>
                                             <span>Mark Correct</span>
                                         </label>
                                         <button type="button" class="btn btn-xs btn-link text-danger p-0 btn-remove-subq-opt5" data-idx="${idx}" title="Remove Option E" style="font-size: 11px;">
@@ -2440,7 +2517,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         </button>
                                     </div>
                                 </div>
-                                <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option E..."></textarea>
+                                <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option E...">${escapeHtmlSafe(ans5)}</textarea>
                             </div>
                         </div>
                     </div>
@@ -2459,7 +2536,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_explanation" data-delta="30" title="Increase Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                 </div>
                             </div>
-                            <textarea id="dir_sub_${idx}_explanation" name="directional_questions[${idx}][explanation]" rows="2" class="theme-form-control active-math-target dir-subq-field" placeholder="Step-by-step reasoning or formula notes..."></textarea>
+                            <textarea id="dir_sub_${idx}_explanation" name="directional_questions[${idx}][explanation]" rows="2" class="theme-form-control active-math-target dir-subq-field" placeholder="Step-by-step reasoning or formula notes...">${escapeHtmlSafe(expl)}</textarea>
                         </div>
                     </div>
                     <div class="col-md-5 mb-2">
@@ -2468,9 +2545,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         </label>
                         <div class="p-2 rounded border" style="background: #f8fafc; border: 1px dashed #cbd5e1 !important;">
                             <input type="file" id="dir_sub_${idx}_image" name="directional_questions[${idx}][image]" accept="image/*" class="form-control-file dir-subq-img-input" data-idx="${idx}" style="font-size: 11px;">
-                            <input type="hidden" id="dir_sub_${idx}_image_path" name="directional_questions[${idx}][image_path]">
-                            <div id="dir_sub_${idx}_img_preview_wrap" class="mt-2 text-center d-none">
-                                <img id="dir_sub_${idx}_img_preview" src="" alt="Sub-Q Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 90px;">
+                            <input type="hidden" id="dir_sub_${idx}_image_path" name="directional_questions[${idx}][image_path]" value="${escapeHtmlSafe(imgPath)}">
+                            <div id="dir_sub_${idx}_img_preview_wrap" class="mt-2 text-center ${imgPath ? '' : 'd-none'}">
+                                <img id="dir_sub_${idx}_img_preview" src="${escapeHtmlSafe(fullImgSrc)}" alt="Sub-Q Diagram" class="img-fluid border rounded bg-white p-1" style="max-height: 90px;">
                                 <div class="mt-1">
                                     <button type="button" class="btn btn-xs btn-outline-danger btn-remove-subq-img" data-idx="${idx}" style="font-size: 10px;">
                                         <i class="fa fa-trash mr-1"></i> Remove
@@ -2504,6 +2581,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     const ed = CKEDITOR.replace(optId, manualCKConfigs.option);
                     attachCKEvents(ed);
+                } catch (e) { console.warn(e); }
+            }
+        }
+
+        // Option E (if visible)
+        const col5 = document.getElementById(`dir_sub_${idx}_col_5`);
+        if (col5 && !col5.classList.contains('d-none')) {
+            const opt5Id = `dir_sub_${idx}_ans5`;
+            if (document.getElementById(opt5Id) && !CKEDITOR.instances[opt5Id]) {
+                try {
+                    const ed5 = CKEDITOR.replace(opt5Id, manualCKConfigs.option);
+                    attachCKEvents(ed5);
                 } catch (e) { console.warn(e); }
             }
         }
@@ -2805,29 +2894,52 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.warn(e); }
         }
 
-        // 2. Clear and inject default 2 sub-questions
+        // 2. Clear and inject sub-questions (pre-filled if in edit mode, or default 2 if new)
         const list = document.getElementById('directional-sub-questions-list');
         if (list && directionalSubQuestions.length === 0) {
             list.innerHTML = '';
-            // Sub-Q 1
-            const idx0 = nextSubQIndex++;
-            directionalSubQuestions.push({ idx: idx0, seq: 1 });
-            list.innerHTML += buildSubQuestionCardHtml(idx0, 1);
+            if (isEditMode && initialDirectionalQuestions && initialDirectionalQuestions.length > 0) {
+                initialDirectionalQuestions.forEach((sq, sIdx) => {
+                    const idx = nextSubQIndex++;
+                    const seq = sIdx + 1;
+                    directionalSubQuestions.push({ idx: idx, seq: seq, id: sq.id });
+                    list.innerHTML += buildSubQuestionCardHtml(idx, seq, sq);
+                });
 
-            // Sub-Q 2
-            const idx1 = nextSubQIndex++;
-            directionalSubQuestions.push({ idx: idx1, seq: 2 });
-            list.innerHTML += buildSubQuestionCardHtml(idx1, 2);
+                setTimeout(() => {
+                    let foundActiveIdx = null;
+                    directionalSubQuestions.forEach(item => {
+                        initSubQuestionCKEditors(item.idx);
+                        if (currentQuestionId && item.id == currentQuestionId) {
+                            foundActiveIdx = item.idx;
+                        }
+                    });
+                    activeDirSubqIdx = (foundActiveIdx !== null) ? foundActiveIdx : (directionalSubQuestions[0]?.idx ?? 0);
+                    updateDirectionalSubqCounts();
+                    rebuildDirectionalPreviewTabs();
+                    updateDirectionalLivePreview();
+                }, 80);
+            } else {
+                // Fresh Add: Sub-Q 1
+                const idx0 = nextSubQIndex++;
+                directionalSubQuestions.push({ idx: idx0, seq: 1 });
+                list.innerHTML += buildSubQuestionCardHtml(idx0, 1);
 
-            // Initialize CKEditors for Sub-Q 1 & 2
-            setTimeout(() => {
-                initSubQuestionCKEditors(idx0);
-                initSubQuestionCKEditors(idx1);
-                activeDirSubqIdx = idx0;
-                updateDirectionalSubqCounts();
-                rebuildDirectionalPreviewTabs();
-                updateDirectionalLivePreview();
-            }, 80);
+                // Fresh Add: Sub-Q 2
+                const idx1 = nextSubQIndex++;
+                directionalSubQuestions.push({ idx: idx1, seq: 2 });
+                list.innerHTML += buildSubQuestionCardHtml(idx1, 2);
+
+                // Initialize CKEditors for Sub-Q 1 & 2
+                setTimeout(() => {
+                    initSubQuestionCKEditors(idx0);
+                    initSubQuestionCKEditors(idx1);
+                    activeDirSubqIdx = idx0;
+                    updateDirectionalSubqCounts();
+                    rebuildDirectionalPreviewTabs();
+                    updateDirectionalLivePreview();
+                }, 80);
+            }
         }
 
         directionalEditorsInitialized = true;
@@ -3093,21 +3205,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 50);
     });
 
-    // Auto-initialize Manual CKEditors on load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+    // Auto-initialize Question Builder / Editor on load
+    const isDirectionalModeOnLoad = {{ $isDirMode ? 'true' : 'false' }};
+    const isEditMode = {{ !empty($isEdit) ? 'true' : 'false' }};
+    const currentQuestionId = {{ !empty($data->id) ? $data->id : 'null' }};
+    const initialDirectionalQuestions = @json($directionalQuestions ?? []);
+
+    const bootApp = () => {
+        if (isDirectionalModeOnLoad) {
+            initDirectionalEngine();
+        } else {
             setTimeout(initManualCKEditors, 100);
-            @if(old('ans5') || old('correct_ans') == '4')
+            @if(!empty($data->ans5) || old('ans5') || ((string)old('correct_ans', $data->correct_ans ?? '0') === '4'))
                 showOption5();
             @endif
             setTimeout(updateManualLivePreview, 250);
-        });
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootApp);
     } else {
-        setTimeout(initManualCKEditors, 100);
-        @if(old('ans5') || old('correct_ans') == '4')
-            showOption5();
-        @endif
-        setTimeout(updateManualLivePreview, 250);
+        bootApp();
     }
 
         // =========================================================================

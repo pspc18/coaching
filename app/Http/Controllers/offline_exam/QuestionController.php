@@ -853,7 +853,7 @@ class QuestionController extends Controller
     }
 
     /**
-     * Edit Question
+     * Edit Question (Unified with Add Page)
      */
     public function editQuestion(Request $request, $id)
     {
@@ -863,6 +863,149 @@ class QuestionController extends Controller
         }
 
         if ($request->isMethod('post')) {
+            $manualMode = $request->input('manual_mode', 'standalone');
+
+            $normalizeField = function($val) {
+                if ($val === null || $val === '') return null;
+                $str = (string)$val;
+                $str = preg_replace('/(?<!\\\\)\\\\n(?![a-zA-Z])/', "\n", $str);
+                return trim($str);
+            };
+
+            // 1. DIRECTIONAL TYPE QUESTION SET UPDATE
+            if ($manualMode === 'directional' || $request->has('directional_questions')) {
+                $request->validate([
+                    'class_type_id' => 'required',
+                    'subject_id' => 'required',
+                    'direction' => 'required',
+                ]);
+
+                $groupId = trim($request->input('group_id') ?: ($data->group_id ?: ('DIR-' . date('Ymd-His') . '-' . strtoupper(Str::random(4)))));
+                $direction = $normalizeField($request->input('direction'));
+                $directionTable = $request->input('direction_table');
+
+                // Handle common direction diagram/graph
+                $dirImagePath = $data->image;
+                if ($request->hasFile('direction_image')) {
+                    $file = $request->file('direction_image');
+                    $filename = 'dir_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+                    $destPath = public_path('uploads/questions');
+                    if (!file_exists($destPath)) {
+                        mkdir($destPath, 0755, true);
+                    }
+                    $file->move($destPath, $filename);
+                    $dirImagePath = 'uploads/questions/' . $filename;
+                } elseif ($request->filled('direction_image_path')) {
+                    $dirImagePath = $request->input('direction_image_path');
+                } elseif ($request->has('remove_direction_image')) {
+                    $dirImagePath = null;
+                }
+
+                $subQuestions = $request->input('directional_questions', []);
+                if (empty($subQuestions) || !is_array($subQuestions)) {
+                    return redirect()->back()->with('error', 'Please enter at least one valid sub-question.')->withInput();
+                }
+
+                $userId = Session::get('id') ?: 1;
+                $sessionId = Session::get('session_id') ?: 1;
+                $branchId = Session::get('branch_id') ?: 1;
+                $classTypeId = (int)$request->class_type_id;
+                $subjectId = (int)$request->subject_id;
+                $now = Carbon::now();
+
+                DB::beginTransaction();
+                try {
+                    $savedCount = 0;
+                    $retainedIds = [];
+
+                    foreach ($subQuestions as $idx => $subQ) {
+                        $qName = $normalizeField($subQ['name'] ?? '');
+                        if (empty($qName)) {
+                            continue;
+                        }
+
+                        $subId = !empty($subQ['id']) ? (int)$subQ['id'] : null;
+                        $qItem = null;
+                        if ($subId) {
+                            $qItem = Question::find($subId);
+                        }
+                        if (!$qItem && $idx === 0 && !empty($data->id) && empty($data->group_id)) {
+                            $qItem = $data;
+                        }
+                        if (!$qItem) {
+                            $qItem = new Question;
+                            $qItem->user_id = $userId;
+                            $qItem->session_id = $sessionId;
+                            $qItem->branch_id = $branchId;
+                            $qItem->created_at = $now;
+                        }
+
+                        // Sub-question specific image
+                        $subImgPath = null;
+                        if ($request->hasFile("directional_questions.{$idx}.image")) {
+                            $file = $request->file("directional_questions.{$idx}.image");
+                            $filename = 'q_sub_' . time() . "_{$idx}_" . Str::random(6) . '.' . $file->getClientOriginalExtension();
+                            $destPath = public_path('uploads/questions');
+                            if (!file_exists($destPath)) {
+                                mkdir($destPath, 0755, true);
+                            }
+                            $file->move($destPath, $filename);
+                            $subImgPath = 'uploads/questions/' . $filename;
+                        } elseif (!empty($subQ['image_path'])) {
+                            $subImgPath = $subQ['image_path'];
+                        } elseif (!empty($qItem->image) && !$request->has("directional_questions.{$idx}.remove_image")) {
+                            $subImgPath = $qItem->image;
+                        } else {
+                            $subImgPath = $dirImagePath;
+                        }
+
+                        $qItem->class_type_id = $classTypeId;
+                        $qItem->subject_id = $subjectId;
+                        $qItem->name = $qName;
+                        $qItem->question_type_id = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
+                        $qItem->ans1 = $normalizeField($subQ['ans1'] ?? null);
+                        $qItem->ans2 = $normalizeField($subQ['ans2'] ?? null);
+                        $qItem->ans3 = $normalizeField($subQ['ans3'] ?? null);
+                        $qItem->ans4 = $normalizeField($subQ['ans4'] ?? null);
+                        $qItem->ans5 = $normalizeField($subQ['ans5'] ?? null);
+                        $qItem->correct_ans = isset($subQ['correct_ans']) ? (string)$subQ['correct_ans'] : '0';
+                        $qItem->group_id = $groupId;
+                        $qItem->direction = $direction;
+                        $qItem->direction_table = $directionTable;
+                        $qItem->sub_question_no = !empty($subQ['sub_question_no']) ? $subQ['sub_question_no'] : ($idx + 1);
+                        $qItem->explanation = $normalizeField($subQ['explanation'] ?? null);
+                        $qItem->difficulty_level = $subQ['difficulty_level'] ?? 'Medium';
+                        $qItem->image = $subImgPath;
+                        $qItem->updated_at = $now;
+                        $qItem->save();
+
+                        $retainedIds[] = $qItem->id;
+                        $savedCount++;
+                    }
+
+                    if ($savedCount === 0) {
+                        DB::rollBack();
+                        return redirect()->back()->with('error', 'Please enter at least one valid question statement in the directional set.')->withInput();
+                    }
+
+                    // Remove sub-questions that were removed during edit
+                    if (!empty($groupId) && !empty($retainedIds)) {
+                        Question::where('group_id', $groupId)
+                            ->whereNotIn('id', $retainedIds)
+                            ->delete();
+                    }
+
+                    DB::commit();
+
+                    return redirect('view/question?group_filter=' . urlencode($groupId))
+                        ->with('message', "Directional Question Set [{$groupId}] updated successfully ({$savedCount} sub-questions)!");
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Failed to update directional set: ' . $e->getMessage())->withInput();
+                }
+            }
+
+            // 2. STANDALONE SINGLE QUESTION UPDATE
             $request->validate([
                 'class_type_id' => 'required',
                 'subject_id' => 'required',
@@ -870,6 +1013,7 @@ class QuestionController extends Controller
                 'question_type_id' => 'required',
             ]);
 
+            $imagePath = $data->image;
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $filename = 'q_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
@@ -878,33 +1022,57 @@ class QuestionController extends Controller
                     mkdir($destPath, 0755, true);
                 }
                 $file->move($destPath, $filename);
-                $data->image = 'uploads/questions/' . $filename;
+                $imagePath = 'uploads/questions/' . $filename;
+            } elseif ($request->filled('image_path')) {
+                $imagePath = $request->image_path;
+            } elseif ($request->has('remove_image')) {
+                $imagePath = null;
             }
 
-            $data->class_type_id = $request->class_type_id;
-            $data->subject_id = $request->subject_id;
-            $data->name = $request->name;
+            $data->class_type_id = (int)$request->class_type_id;
+            $data->subject_id = (int)$request->subject_id;
+            $data->name = $normalizeField($request->name);
             $data->question_type_id = (int)$request->question_type_id;
-            $data->ans1 = $request->ans1;
-            $data->ans2 = $request->ans2;
-            $data->ans3 = $request->ans3;
-            $data->ans4 = $request->ans4;
-            $data->correct_ans = $request->correct_ans;
-            $data->explanation = $request->explanation;
+            $data->ans1 = $normalizeField($request->ans1);
+            $data->ans2 = $normalizeField($request->ans2);
+            $data->ans3 = $normalizeField($request->ans3);
+            $data->ans4 = $normalizeField($request->ans4);
+            $data->ans5 = $normalizeField($request->ans5);
+            $data->correct_ans = (string)$request->correct_ans;
+            $data->explanation = $normalizeField($request->explanation);
             $data->difficulty_level = $request->difficulty_level ?: 'Medium';
+            $data->image = $imagePath;
             $data->save();
+
+            if (!empty($data->group_id)) {
+                return redirect('view/question?group_filter=' . urlencode($data->group_id))
+                    ->with('message', 'Question updated successfully.');
+            }
 
             return redirect('view/question')->with('message', 'Question updated successfully.');
         }
 
         $classType = Helper::classType();
         $allSubjects = Helper::getSubject();
+        $geminiApiKey = $this->aiService->getApiKey();
+        $isEdit = true;
 
-        return view('examination.offline_exam.question_bank.edit', [
-            'data' => $data,
-            'classType' => $classType,
-            'allSubjects' => $allSubjects
-        ]);
+        $directionalQuestions = [];
+        if (!empty($data->group_id)) {
+            $directionalQuestions = Question::where('group_id', $data->group_id)
+                ->orderBy('sub_question_no', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+        }
+
+        return view('examination.offline_exam.question_bank.add', compact(
+            'data',
+            'isEdit',
+            'classType',
+            'allSubjects',
+            'geminiApiKey',
+            'directionalQuestions'
+        ));
     }
 
     /**
