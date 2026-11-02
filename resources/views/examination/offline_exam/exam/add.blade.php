@@ -40,19 +40,29 @@
 
 <style>
 /* ==========================================================================
-   ARISE ERP SIGNATURE THEME STYLING
+   ARISE ERP - MODERN EXAM BUILDER THEME (HIGH CONTRAST & EQUAL HEIGHT)
+   - Backgrounds: Dark Navy (#002C54 to #0f3460), Page Canvas (#eef2f6), Cards (#ffffff)
+   - Contrast Rule:
+     * Dark Backgrounds -> Strictly light text (#ffffff, #f8fafc, #38bdf8, #cbd5e1)
+     * Light Backgrounds -> Strictly dark text (#0f172a, #1e293b, #334155, #475569)
+   - Equal-Height Dual-Column Layout on Desktop
    ========================================================================== */
+
 .omr-page-wrapper {
-    padding: 10px 14px 25px 14px;
-    background: #f4f6f9;
+    padding: 10px 14px 20px 14px;
+    background: #eef2f6;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: #0f172a;
+    box-sizing: border-box;
 }
 
-/* 1. Hero Header Banner */
+/* 1. Hero Header Banner (Dark Navy -> Light Fonts) */
 .perf-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
-    border-radius: 2px;
+    border-radius: 4px;
     padding: 8px 14px;
     display: flex;
     align-items: center;
@@ -60,7 +70,7 @@
     flex-wrap: wrap;
     gap: 8px;
     box-shadow: 0 1px 3px rgba(0, 44, 84, 0.18);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 .perf-hero-text {
     display: flex;
@@ -70,10 +80,32 @@
     font-size: 9.5px;
     text-transform: uppercase;
     letter-spacing: .06em;
-    opacity: .9;
-    display: block;
-    margin-bottom: 2px;
     color: #38bdf8;
+    font-weight: 700;
+    margin-bottom: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.perf-breadcrumb {
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+.perf-breadcrumb a {
+    color: #93c5fd !important;
+    text-decoration: none !important;
+    transition: color 0.15s;
+}
+.perf-breadcrumb a:hover {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+.perf-breadcrumb .sep {
+    color: #94a3b8;
+    margin: 0 4px;
+}
+.perf-breadcrumb .current {
+    color: #ffffff;
     font-weight: 700;
 }
 .perf-title {
@@ -86,20 +118,18 @@
     align-items: center;
     gap: 7px;
 }
-.perf-subtitle {
-    font-size: 11px;
-    margin: 2px 0 0;
-    opacity: .88;
-    color: #cbd5e1;
+
+/* Hero Action Navigation Buttons */
+.perf-hero-actions {
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
 }
-.perf-hero-actions {
-    display: flex;
+.workflow-hero-nav {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex-wrap: wrap;
 }
 .dash-btn {
@@ -107,7 +137,7 @@
     align-items: center;
     gap: 5px;
     padding: 4px 10px;
-    border-radius: 2px;
+    border-radius: 3px;
     font-size: 11px;
     font-weight: 700;
     text-decoration: none !important;
@@ -127,13 +157,19 @@
     color: #001833 !important;
 }
 .dash-btn-outline {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.14);
     color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.35);
 }
 .dash-btn-outline:hover {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.24);
     border-color: #ffffff;
+}
+.workflow-hero-nav .dash-btn.active {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .dash-btn-emerald {
     background: #059669;
@@ -154,30 +190,12 @@
     color: #ffffff !important;
 }
 
-/* Workflow Hero Navigation */
-.workflow-hero-nav {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-.workflow-hero-nav .dash-btn {
-    height: 28px;
-    font-size: 11px;
-}
-.workflow-hero-nav .dash-btn.active {
-    background: #ffffff !important;
-    color: #002C54 !important;
-    border-color: #ffffff !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-/* Mode Selection Cards - 4 Modes Grid */
+/* 2. Mode Selection 4-Grid Cards */
 .mode-selector-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 @media (max-width: 1200px) {
     .mode-selector-grid {
@@ -189,40 +207,11 @@
         grid-template-columns: 1fr;
     }
 }
-.workflow-steps-vertical {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-left: 2px;
-}
-.wf-step-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-.wf-step-icon {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    border-radius: 50%;
-    background: #002C54;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    margin-top: 2px;
-}
-.wf-step-content strong {
-    font-size: 11.5px;
-    color: #0f172a;
-    display: block;
-}
 .mode-option-card {
     background: #ffffff;
-    border: 2px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     border-radius: 4px;
-    padding: 10px 14px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: all 0.18s ease;
     display: flex;
@@ -230,15 +219,17 @@
     gap: 10px;
     position: relative;
     user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .mode-option-card:hover {
-    border-color: #94a3b8;
+    border-color: #002C54;
     background: #f8fafc;
+    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.08);
 }
 .mode-option-card.active {
     border-color: #002C54;
     background: #f0f7ff;
-    box-shadow: 0 2px 8px rgba(0, 44, 84, 0.12);
+    box-shadow: 0 3px 10px rgba(0, 44, 84, 0.14);
 }
 .mode-option-card input[type="radio"] {
     position: absolute;
@@ -246,8 +237,8 @@
     pointer-events: none;
 }
 .mode-icon-circle {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: #e2e8f0;
     color: #002C54;
@@ -275,146 +266,192 @@
     color: #002C54;
 }
 .mode-card-desc {
-    font-size: 10.5px;
-    color: #64748b;
+    font-size: 11px;
+    color: #475569;
     margin: 0;
     line-height: 1.35;
+}
+.mode-option-card.active .mode-card-desc {
+    color: #334155;
 }
 .mode-badge-pill {
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 1px 6px;
+    padding: 2px 7px;
     border-radius: 10px;
     background: #e2e8f0;
-    color: #475569;
+    color: #1e293b;
 }
 .mode-option-card.active .mode-badge-pill {
     background: #002C54;
     color: #ffffff;
 }
 
-/* Theme Cards */
-.theme-card {
+/* 3. Equal-Height Two-Column Row */
+.exam-builder-row {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    margin: 0;
+}
+.exam-builder-col-left {
+    flex: 0 0 42%;
+    max-width: 42%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+.exam-builder-col-right {
+    flex: 0 0 calc(58% - 14px);
+    max-width: calc(58% - 14px);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+@media (max-width: 991px) {
+    .exam-builder-row {
+        flex-direction: column;
+    }
+    .exam-builder-col-left,
+    .exam-builder-col-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Unified Master Card for Equal Height */
+.builder-main-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 680px;
     overflow: hidden;
 }
+@media (min-width: 992px) {
+    .builder-main-card {
+        height: calc(100vh - 195px);
+        min-height: 680px;
+    }
+}
+
+/* Card Header (Deep Navy -> White Text) */
 .theme-card-header {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
     color: #ffffff !important;
-    padding: 6px 12px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+    min-height: 42px;
 }
 .theme-card-header .card-title {
-    font-size: 12px !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 7px !important;
     margin: 0 !important;
     color: #ffffff !important;
     line-height: 1.2 !important;
 }
 .theme-card-header .header-badge {
-    font-size: 10px;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 2px 8px;
-    border-radius: 2px;
+    font-size: 10.5px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    padding: 3px 9px;
+    border-radius: 3px;
     color: #ffffff !important;
     font-weight: 700;
 }
 
-/* Mode 2 Preview Tabs Header (High-contrast Theme & Zero Bullets) */
-#qbank-preview-tabs {
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    border: none !important;
-}
-#qbank-preview-tabs li,
-#qbank-preview-tabs .nav-item {
-    list-style: none !important;
-    list-style-type: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-#qbank-preview-tabs li::before,
-#qbank-preview-tabs li::marker,
-#qbank-preview-tabs .nav-item::before,
-#qbank-preview-tabs .nav-item::marker {
-    display: none !important;
-    content: "" !important;
-}
-#qbank-preview-tabs .nav-link {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 4px 12px !important;
-    border-radius: 3px !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    line-height: 1.2 !important;
-    text-decoration: none !important;
-    transition: all 0.15s ease !important;
-    cursor: pointer !important;
-    /* Inactive State: Light slate/white text on dark navy card header */
-    background: rgba(255, 255, 255, 0.14) !important;
-    color: #f1f5f9 !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-#qbank-preview-tabs .nav-link i {
-    color: #7dd3fc !important;
-}
-#qbank-preview-tabs .nav-link:hover {
-    background: rgba(255, 255, 255, 0.25) !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.55) !important;
-}
-/* Active State: Pure White Background Pill with Deep Navy Text (#002C54) */
-#qbank-preview-tabs .nav-link.active,
-#qbank-preview-tabs .nav-item.show .nav-link {
-    background: #ffffff !important;
-    color: #002C54 !important;
-    font-weight: 800 !important;
-    border-color: #ffffff !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
-}
-#qbank-preview-tabs .nav-link.active i,
-#qbank-preview-tabs .nav-item.show .nav-link i {
-    color: #002C54 !important;
-}
-.theme-card-body {
-    padding: 12px;
+/* Left Card Scrollable Body */
+.builder-card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    background: #ffffff;
 }
 
-/* Form inputs */
+/* Section Header Dividers inside Left Card */
+.builder-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #f1f5f9;
+    border-left: 3px solid #002C54;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    margin-top: 12px;
+}
+.builder-section-header:first-child {
+    margin-top: 0;
+}
+.builder-section-header h4 {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #002C54;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Pinned Bottom Footer Action on Left Card */
+.builder-card-footer {
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #cbd5e1;
+    flex-shrink: 0;
+}
+.btn-create-exam-main {
+    width: 100%;
+    height: 38px;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 44, 84, 0.25);
+    transition: all 0.15s ease;
+}
+.btn-create-exam-main:hover {
+    background: linear-gradient(135deg, #001f3b 0%, #0b2749 100%);
+    box-shadow: 0 4px 10px rgba(0, 44, 84, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Form Controls (Light Background -> Dark Text) */
 .theme-form-group {
     margin-bottom: 10px;
 }
 .theme-form-group label {
     font-size: 11px;
     font-weight: 700;
-    color: #334155;
+    color: #1e293b;
     margin-bottom: 3px;
     display: block;
 }
 .theme-form-control {
-    height: 29px;
+    height: 30px;
     padding: 4px 8px;
     font-size: 11.5px;
     border: 1px solid #cbd5e1 !important;
-    border-radius: 2px !important;
+    border-radius: 3px !important;
     color: #0f172a !important;
     background-color: #ffffff !important;
     width: 100%;
@@ -433,31 +470,33 @@
     color: #002C54 !important;
     cursor: not-allowed;
     border-color: #cbd5e1 !important;
+    font-weight: 700;
 }
 textarea.theme-form-control {
     height: auto !important;
 }
 .theme-hint {
-    font-size: 10px;
-    color: #64748b;
+    font-size: 10.5px;
+    color: #475569;
     margin-top: 2px;
 }
 
 /* Quick Question Chips */
 .quick-chip-btn {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 3px 9px;
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
+    border-radius: 3px;
     background: #f8fafc;
     font-size: 10.5px;
     font-weight: 700;
-    color: #334155;
+    color: #1e293b;
     cursor: pointer;
-    margin-right: 3px;
+    margin-right: 4px;
     transition: all 0.12s ease;
 }
-.quick-chip-btn:hover, .quick-chip-btn.active {
+.quick-chip-btn:hover,
+.quick-chip-btn.active {
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
@@ -466,27 +505,30 @@ textarea.theme-form-control {
 /* Answer Key Matrix */
 .answer-key-box {
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
+    border-radius: 4px;
     background: #ffffff;
     overflow: hidden;
 }
 .answer-key-toolbar {
     background: #f8fafc;
     border-bottom: 1px solid #cbd5e1;
-    padding: 5px 8px;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 4px;
 }
+.answer-key-toolbar span {
+    color: #334155;
+}
 .ak-btn-group button {
-    padding: 2px 6px;
-    font-size: 9.5px;
+    padding: 3px 7px;
+    font-size: 10px;
     font-weight: 700;
     border: 1px solid #cbd5e1;
     background: #ffffff;
-    color: #334155;
+    color: #1e293b;
     border-radius: 2px;
     cursor: pointer;
     transition: all 0.12s;
@@ -499,13 +541,13 @@ textarea.theme-form-control {
 .answer-key-list {
     max-height: 270px;
     overflow-y: auto;
-    padding: 4px 6px;
+    padding: 4px 8px;
 }
 .ak-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 3px 6px;
+    padding: 4px 6px;
     border-bottom: 1px solid #f1f5f9;
     font-size: 11px;
 }
@@ -518,12 +560,12 @@ textarea.theme-form-control {
 .ak-qnum {
     font-weight: 700;
     color: #002C54;
-    width: 36px;
+    width: 38px;
     flex-shrink: 0;
 }
 .ak-options {
     display: flex;
-    gap: 5px;
+    gap: 6px;
     flex: 1;
     justify-content: flex-end;
 }
@@ -546,7 +588,7 @@ textarea.theme-form-control {
     border-radius: 2px;
     font-size: 10px;
     font-weight: 700;
-    color: #475569;
+    color: #334155;
     background: #ffffff;
     transition: all 0.12s ease;
     user-select: none;
@@ -561,7 +603,7 @@ textarea.theme-form-control {
 /* Question Bank Selected Questions Cards */
 .selected-q-card {
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
+    border-radius: 3px;
     background: #ffffff;
     padding: 8px 10px;
     margin-bottom: 8px;
@@ -621,7 +663,7 @@ textarea.theme-form-control {
 .selected-q-options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
+    gap: 5px;
     font-size: 11px;
 }
 .opt-pill-preview {
@@ -629,7 +671,7 @@ textarea.theme-form-control {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 2px;
-    color: #334155;
+    color: #1e293b;
 }
 .opt-pill-preview.is-correct {
     background: #ecfdf5;
@@ -645,7 +687,7 @@ textarea.theme-form-control {
 .btn-q-action {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    color: #475569;
+    color: #334155;
     padding: 2px 6px;
     font-size: 10px;
     border-radius: 2px;
@@ -662,49 +704,200 @@ textarea.theme-form-control {
     border-color: #fca5a5;
 }
 
-/* OMR Preview Canvas / SVG */
-.omr-sheet-card {
-    background: #e2e8f0;
+/* 4. Right Column Panels (Equal Height) */
+.builder-right-panel {
+    height: 100%;
+}
+.builder-right-panel:not([style*="display: none"]) {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+}
+.builder-right-panel .theme-card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    background: #ffffff;
+}
+
+/* Mode 1 Overview Styles */
+.normal-summary-box {
+    background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    padding: 10px;
-    text-align: center;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 11.5px;
+    margin-bottom: 14px;
+}
+.normal-summary-box .meta-label {
+    color: #475569;
+    font-weight: 700;
+}
+.normal-summary-box .meta-value {
+    color: #0f172a;
+    font-weight: 700;
+}
+.workflow-steps-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding-left: 2px;
+}
+.wf-step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.wf-step-icon {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
+    background: #002C54;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    margin-top: 1px;
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.2);
+}
+.wf-step-content strong {
+    font-size: 12px;
+    color: #0f172a;
+    display: block;
+    margin-bottom: 1px;
+}
+.wf-step-content p {
+    font-size: 11px;
+    color: #334155;
+    line-height: 1.4;
+    margin-bottom: 0;
+}
+.normal-quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+.normal-quick-actions .dash-btn {
+    height: 30px;
+    font-size: 11px;
+    border-radius: 3px;
+}
+
+/* Mode 2 & Mode 3 OMR Sheet Viewport */
+.omr-sheet-viewport {
+    background: #475569;
+    padding: 16px 12px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 .omr-sheet-paper {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    display: inline-block;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
     width: 100%;
     max-width: 630px;
     margin: 0 auto;
+    border-radius: 2px;
+}
+
+/* Mode 3 Dual Tabs Header */
+#qbank-preview-tabs {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border: none !important;
+}
+#qbank-preview-tabs li,
+#qbank-preview-tabs .nav-item {
+    list-style: none !important;
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+#qbank-preview-tabs li::before,
+#qbank-preview-tabs li::marker,
+#qbank-preview-tabs .nav-item::before,
+#qbank-preview-tabs .nav-item::marker {
+    display: none !important;
+    content: "" !important;
+}
+#qbank-preview-tabs .nav-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 12px !important;
+    border-radius: 3px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+#qbank-preview-tabs .nav-link i {
+    color: #7dd3fc !important;
+}
+#qbank-preview-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+#qbank-preview-tabs .nav-link.active,
+#qbank-preview-tabs .nav-item.show .nav-link {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    font-weight: 800 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+}
+#qbank-preview-tabs .nav-link.active i,
+#qbank-preview-tabs .nav-item.show .nav-link i {
+    color: #002C54 !important;
 }
 
 /* Printable Question Paper Layout */
 .paper-preview-container {
-    background: #525659;
-    padding: 12px;
-    border-radius: 2px;
+    background: #475569;
+    padding: 14px;
+    flex: 1;
     overflow-y: auto;
-    max-height: calc(100vh - 180px);
+    display: flex;
+    justify-content: center;
 }
 .printable-exam-paper {
     background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-    padding: 28px 32px;
-    max-width: 780px;
-    margin: 0 auto;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    padding: 24px 30px;
+    width: 100%;
+    max-width: 760px;
     font-family: "DejaVu Sans", "Segoe UI", Arial, sans-serif;
-    color: #111827;
+    color: #0f172a;
+    border-radius: 2px;
 }
 .exam-paper-header {
     text-align: center;
     border-bottom: 2px solid #002C54;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
     margin-bottom: 12px;
 }
 .exam-paper-institute {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
     color: #002C54;
     text-transform: uppercase;
@@ -721,7 +914,7 @@ textarea.theme-form-control {
     width: 100%;
     font-size: 11px;
     font-weight: 600;
-    color: #334155;
+    color: #1e293b;
     border-collapse: collapse;
 }
 .exam-paper-meta-table td {
@@ -729,15 +922,15 @@ textarea.theme-form-control {
 }
 .exam-instructions-box {
     background: #f8fafc;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed #94a3b8;
     padding: 6px 10px;
     font-size: 10.5px;
-    color: #475569;
+    color: #334155;
     margin-bottom: 14px;
     border-radius: 2px;
 }
 .paper-question-block {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     padding-bottom: 10px;
     border-bottom: 1px solid #f1f5f9;
 }
@@ -748,7 +941,7 @@ textarea.theme-form-control {
     font-size: 11.5px;
     font-weight: 600;
     line-height: 1.45;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     color: #0f172a;
 }
 .paper-q-num {
@@ -758,20 +951,20 @@ textarea.theme-form-control {
 }
 .paper-q-marks {
     float: right;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
-    color: #475569;
+    color: #64748b;
 }
 .paper-q-options-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px 14px;
+    gap: 4px 16px;
     font-size: 11px;
-    padding-left: 14px;
+    padding-left: 10px;
 }
 .paper-q-opt {
     color: #1e293b;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 .paper-q-opt-label {
     font-weight: 700;
@@ -782,21 +975,21 @@ textarea.theme-form-control {
     max-height: 140px;
     display: block;
     margin: 6px 0;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 2px;
     padding: 2px;
 }
 
-/* Modal styling */
+/* Modal Styling */
 .modal-header-theme {
-    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
-    color: #ffffff;
-    padding: 8px 14px;
+    background: linear-gradient(135deg, #002C54 0%, #0f3460 100%) !important;
+    color: #ffffff !important;
+    padding: 10px 14px;
 }
 .modal-header-theme .modal-title {
+    color: #ffffff !important;
     font-size: 13.5px;
     font-weight: 700;
-    color: #ffffff;
 }
 .modal-filter-bar {
     background: #f8fafc;
@@ -807,14 +1000,19 @@ textarea.theme-form-control {
     gap: 8px;
     flex-wrap: wrap;
 }
+.modal-filter-bar label {
+    color: #1e293b !important;
+    font-weight: 700;
+}
 .modal-questions-scroll {
     max-height: 60vh;
     overflow-y: auto;
     padding: 10px 12px;
+    background: #ffffff;
 }
 .modal-q-item {
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
+    border-radius: 3px;
     padding: 8px 10px;
     margin-bottom: 6px;
     background: #ffffff;
@@ -827,6 +1025,46 @@ textarea.theme-form-control {
 .modal-q-item.selected {
     background: #f0f7ff;
     border-color: #0284c7;
+}
+
+/* Custom Scrollbars */
+.builder-card-body::-webkit-scrollbar,
+.builder-right-panel .theme-card-body::-webkit-scrollbar,
+.omr-sheet-viewport::-webkit-scrollbar,
+.paper-preview-container::-webkit-scrollbar,
+.modal-questions-scroll::-webkit-scrollbar,
+.answer-key-list::-webkit-scrollbar,
+#selected-questions-list::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.builder-card-body::-webkit-scrollbar-track,
+.builder-right-panel .theme-card-body::-webkit-scrollbar-track,
+.omr-sheet-viewport::-webkit-scrollbar-track,
+.paper-preview-container::-webkit-scrollbar-track,
+.modal-questions-scroll::-webkit-scrollbar-track,
+.answer-key-list::-webkit-scrollbar-track,
+#selected-questions-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.builder-card-body::-webkit-scrollbar-thumb,
+.builder-right-panel .theme-card-body::-webkit-scrollbar-thumb,
+.omr-sheet-viewport::-webkit-scrollbar-thumb,
+.paper-preview-container::-webkit-scrollbar-thumb,
+.modal-questions-scroll::-webkit-scrollbar-thumb,
+.answer-key-list::-webkit-scrollbar-thumb,
+#selected-questions-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+.builder-card-body::-webkit-scrollbar-thumb:hover,
+.builder-right-panel .theme-card-body::-webkit-scrollbar-thumb:hover,
+.omr-sheet-viewport::-webkit-scrollbar-thumb:hover,
+.paper-preview-container::-webkit-scrollbar-thumb:hover,
+.modal-questions-scroll::-webkit-scrollbar-thumb:hover,
+.answer-key-list::-webkit-scrollbar-thumb:hover,
+#selected-questions-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* Print Rules */
@@ -882,18 +1120,18 @@ textarea.theme-form-control {
 <div class="content-wrapper">
     <div class="omr-page-wrapper" id="exam-builder-app">
 
-        {{-- 1. Hero Header Banner --}}
+        {{-- 1. Hero Header Banner (High Contrast) --}}
         <div class="perf-hero">
             <div class="perf-hero-text">
                 <span class="perf-kicker">
                     <i class="fa fa-graduation-cap"></i> Examination & OMR Sheet System
                 </span>
-                <div class="perf-breadcrumb mb-1" style="font-size: 11px;">
-                    <a href="{{ url('/') }}" class="text-white-50">Dashboard</a>
-                    <span class="text-white-50 mx-1">/</span>
-                    <a href="{{ url('view/exam') }}" class="text-white-50">Examinations</a>
-                    <span class="text-white-50 mx-1">/</span>
-                    <span class="text-white font-weight-bold">{{ !empty($formExam) ? 'Edit Exam' : 'Create Offline Exam' }}</span>
+                <div class="perf-breadcrumb">
+                    <a href="{{ url('/') }}">Dashboard</a>
+                    <span class="sep">/</span>
+                    <a href="{{ url('view/exam') }}">Examinations</a>
+                    <span class="sep">/</span>
+                    <span class="current">{{ !empty($formExam) ? 'Edit Exam' : 'Create Offline Exam' }}</span>
                 </div>
                 <h1 class="perf-title">
                     <i class="fa fa-pencil-square-o"></i> {{ !empty($formExam) ? 'Edit Examination & OMR Sheet' : 'Offline Exam & OMR Sheet Creator' }}
@@ -926,13 +1164,13 @@ textarea.theme-form-control {
 
         {{-- Alerts --}}
         @if(session('message'))
-            <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 2px;">
+            <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 3px;">
                 <i class="fa fa-check-circle mr-1"></i> {{ session('message') }}
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
         @endif
         @if(session('error') || (isset($errors) && $errors->any()))
-            <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 2px;">
+            <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-2" style="font-size: 11.5px; border-radius: 3px;">
                 <i class="fa fa-exclamation-triangle mr-1"></i> {{ session('error') ?? (isset($errors) ? $errors->first() : '') }}
                 <button type="button" class="close py-2" data-dismiss="alert">&times;</button>
             </div>
@@ -959,7 +1197,7 @@ textarea.theme-form-control {
                     <div>
                         <div class="mode-card-title">
                             <span>Mode 1: Normal Exam</span>
-                            <span class="mode-badge-pill badge-primary">Excel / Manual</span>
+                            <span class="mode-badge-pill">Excel / Manual</span>
                         </div>
                         <p class="mode-card-desc">
                             Exam Name, Date, Class & optional PDF paper. Marks Excel ya Manual entry se upload honge.
@@ -976,7 +1214,7 @@ textarea.theme-form-control {
                     <div>
                         <div class="mode-card-title">
                             <span>Mode 2: PDF + OMR</span>
-                            <span class="mode-badge-pill badge-danger">Print OMR</span>
+                            <span class="mode-badge-pill">Print OMR</span>
                         </div>
                         <p class="mode-card-desc">
                             Total questions count dalo, PDF paper attach karo, answer key set karo aur Printable OMR Sheet generate karo.
@@ -993,7 +1231,7 @@ textarea.theme-form-control {
                     <div>
                         <div class="mode-card-title">
                             <span>Mode 3: Q-Bank + OMR</span>
-                            <span class="mode-badge-pill badge-success">Paper + OMR</span>
+                            <span class="mode-badge-pill">Paper + OMR</span>
                         </div>
                         <p class="mode-card-desc">
                             Question Bank se questions select karo, automatic answer key sync karo aur Question Paper + OMR Sheet print karo.
@@ -1010,7 +1248,7 @@ textarea.theme-form-control {
                     <div>
                         <div class="mode-card-title">
                             <span>Mode 4: Online Exam</span>
-                            <span class="mode-badge-pill badge-info">No OMR (CBT)</span>
+                            <span class="mode-badge-pill">No OMR (CBT)</span>
                         </div>
                         <p class="mode-card-desc">
                             Question Bank se questions browse & add karo. Student online exam panel par test denge. OMR Sheet nahi hogi.
@@ -1019,20 +1257,28 @@ textarea.theme-form-control {
                 </label>
             </div>
 
-            {{-- Two-Column Layout: Left Form Details + Right Previews --}}
-            <div class="row">
-                {{-- Left Column: Parameters & Question Configuration --}}
-                <div class="col-lg-5 col-xl-5">
+            {{-- Equal-Height Dual-Column Layout --}}
+            <div class="exam-builder-row">
 
-                    {{-- Card 1: Common Examination Parameters --}}
-                    <div class="theme-card">
+                {{-- Left Column: Parameters & Configuration Master Card --}}
+                <div class="exam-builder-col-left">
+                    <div class="builder-main-card">
+                        {{-- Left Header --}}
                         <div class="theme-card-header">
                             <h3 class="card-title">
-                                <i class="fa fa-sliders text-warning"></i> Examination Parameters
+                                <i class="fa fa-sliders text-warning"></i> Examination Parameters & Setup
                             </h3>
                             <span class="header-badge" id="exam-code-badge">{{ $previewCode }}</span>
                         </div>
-                        <div class="theme-card-body">
+
+                        {{-- Left Scrollable Body --}}
+                        <div class="builder-card-body">
+
+                            {{-- Sub-Header: Basic Details --}}
+                            <div class="builder-section-header">
+                                <h4><i class="fa fa-info-circle text-primary"></i> Basic Exam Information</h4>
+                            </div>
+
                             {{-- Exam Name --}}
                             <div class="theme-form-group">
                                 <label for="exam-name">Exam Name <span class="text-danger">*</span></label>
@@ -1091,18 +1337,18 @@ textarea.theme-form-control {
                                     <div class="theme-form-group">
                                         <label for="exam-code">Exam Code</label>
                                         <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly>
-                                        <div class="theme-hint"><i class="fa fa-lock"></i> Auto-generated scanner code</div>
+                                        <div class="theme-hint"><i class="fa fa-lock"></i> Auto-generated unique scanner code</div>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Mode 1 Only: Maximum Marks Input --}}
+                            {{-- Mode 1 Only: Maximum Marks & Optional PDF Paper --}}
                             <div class="row" id="pane-mode-normal-marks" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
                                         <label for="exam-max-marks">Maximum Marks <span class="text-danger">*</span></label>
                                         <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ old('exam_maximum_marks', $formExam->exam_maximum_marks ?? 100) }}" min="1" max="9999" step="0.5">
-                                        <div class="theme-hint">Total maximum marks for traditional offline exam</div>
+                                        <div class="theme-hint">Total maximum marks for offline exam</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -1150,24 +1396,18 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- Description / Notes --}}
-                            <div class="theme-form-group mb-0">
+                            <div class="theme-form-group">
                                 <label for="description">Instructions / Remarks</label>
                                 <textarea id="description" name="description" rows="2" class="theme-form-control" placeholder="Optional examination notes or instructions...">{{ old('description', $formExam->description ?? '') }}</textarea>
                             </div>
-                        </div>
-                    </div>
 
-                    {{-- Pane 1: Mode 1 (PDF Upload + OMR Key) --}}
-                    <div id="pane-mode-pdf-upload" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
-                        {{-- Questions Count & PDF File --}}
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-file-pdf-o text-warning"></i> Question Paper PDF & Count
-                                </h3>
-                                <span class="header-badge" id="pdf-qcount-badge">{{ $previewQuestions }} Questions</span>
-                            </div>
-                            <div class="theme-card-body">
+                            {{-- Pane: Mode 2 (PDF Upload + OMR Key) --}}
+                            <div id="pane-mode-pdf-upload" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
+                                <div class="builder-section-header">
+                                    <h4><i class="fa fa-file-pdf-o text-warning"></i> Question Paper PDF & Count</h4>
+                                    <span class="badge badge-primary py-1 px-2" id="pdf-qcount-badge" style="font-size: 10px;">{{ $previewQuestions }} Questions</span>
+                                </div>
+
                                 {{-- Number of Questions --}}
                                 <div class="theme-form-group">
                                     <label for="exam-question-count">Total Questions <span class="text-danger">*</span></label>
@@ -1185,7 +1425,7 @@ textarea.theme-form-control {
                                 </div>
 
                                 {{-- Question Paper PDF --}}
-                                <div class="theme-form-group mb-0">
+                                <div class="theme-form-group">
                                     <label for="exam-question-paper">Question Paper <span class="text-muted font-weight-normal">(PDF up to 10MB)</span></label>
                                     <input type="file" id="exam-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
                                     @if(!empty($formExam->question_paper_path))
@@ -1196,21 +1436,15 @@ textarea.theme-form-control {
                                         </div>
                                     @endif
                                 </div>
-                            </div>
-                        </div>
 
-                        {{-- Answer Key Matrix (Mode 1) --}}
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-key text-warning"></i> Answer Key (OMR Options)
-                                </h3>
-                                <span class="header-badge" id="answer-key-progress">0 / {{ $previewQuestions }} Selected</span>
-                            </div>
-                            <div class="theme-card-body p-2">
-                                <div class="answer-key-box">
+                                {{-- Answer Key Matrix (Mode 2) --}}
+                                <div class="builder-section-header">
+                                    <h4><i class="fa fa-key text-warning"></i> Answer Key (OMR Options)</h4>
+                                    <span class="badge badge-info py-1 px-2" id="answer-key-progress" style="font-size: 10px;">0 / {{ $previewQuestions }} Selected</span>
+                                </div>
+                                <div class="answer-key-box mb-2">
                                     <div class="answer-key-toolbar">
-                                        <span class="small font-weight-bold text-muted" style="font-size: 10px;">Select correct option:</span>
+                                        <span class="small font-weight-bold" style="font-size: 10px;">Select correct option:</span>
                                         <div class="ak-btn-group">
                                             <button type="button" data-fill="A">All A</button>
                                             <button type="button" data-fill="B">All B</button>
@@ -1225,29 +1459,24 @@ textarea.theme-form-control {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {{-- Pane: Mode 3 (Question Bank OMR) & Mode 4 (Online Exam CBT) --}}
-                    <div id="pane-mode-question-bank" style="{{ in_array($initialMode, ['question_bank', 'online']) ? '' : 'display: none;' }}">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-list-ol text-warning"></i> Questions From Question Bank
-                                </h3>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="header-badge" id="selected-questions-count-badge">0 Questions</span>
-                                    <button type="button" id="btn-open-question-modal" class="dash-btn dash-btn-light" style="height: 22px; font-size: 10px;">
-                                        <i class="fa fa-plus-circle"></i> Browse Question Bank
-                                    </button>
+                            {{-- Pane: Mode 3 (Question Bank OMR) & Mode 4 (Online Exam CBT) --}}
+                            <div id="pane-mode-question-bank" style="{{ in_array($initialMode, ['question_bank', 'online']) ? '' : 'display: none;' }}">
+                                <div class="builder-section-header">
+                                    <h4><i class="fa fa-list-ol text-warning"></i> Questions From Question Bank</h4>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge badge-primary py-1 px-2" id="selected-questions-count-badge" style="font-size: 10px;">0 Questions</span>
+                                        <button type="button" id="btn-open-question-modal" class="dash-btn dash-btn-sky" style="height: 24px; font-size: 10px; padding: 2px 8px;">
+                                            <i class="fa fa-plus-circle mr-1"></i> Browse Question Bank
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="theme-card-body p-2">
+
                                 {{-- Empty state message --}}
-                                <div id="qbank-empty-state" class="text-center py-4 text-muted" style="border: 2px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
+                                <div id="qbank-empty-state" class="text-center py-4 text-muted mb-2" style="border: 2px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
                                     <i class="fa fa-book fa-2x mb-2 text-secondary"></i>
-                                    <p class="font-weight-bold mb-1" style="font-size: 12px; color: #334155;">No Questions Added Yet</p>
-                                    <p class="small text-muted mb-3" style="font-size: 10.5px;">Click the button below to browse questions from your Question Bank and attach them to this exam.</p>
+                                    <p class="font-weight-bold mb-1" style="font-size: 12px; color: #1e293b;">No Questions Added Yet</p>
+                                    <p class="small mb-3" style="font-size: 11px; color: #475569;">Click the button below to browse questions from your Question Bank and attach them to this exam.</p>
                                     <button type="button" id="btn-open-question-modal-empty" class="dash-btn dash-btn-sky">
                                         <i class="fa fa-search mr-1"></i> Browse Question Bank
                                     </button>
@@ -1261,8 +1490,8 @@ textarea.theme-form-control {
                                 {{-- Mode 3 Only: Auto-derived Answer Key Review (Collapsible) --}}
                                 <div class="mt-2 border-top pt-2" id="qbank-derived-answer-key-box" style="{{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
                                     <a class="d-flex align-items-center justify-content-between text-decoration-none" data-toggle="collapse" href="#qbank-answer-key-collapse" role="button">
-                                        <span class="small font-weight-bold text-primary" style="font-size: 11px;">
-                                            <i class="fa fa-key mr-1"></i> View Auto-Derived Answer Key (<span id="qbank-key-count">0</span>)
+                                        <span class="small font-weight-bold" style="font-size: 11px; color: #002C54;">
+                                            <i class="fa fa-key mr-1 text-warning"></i> View Auto-Derived Answer Key (<span id="qbank-key-count">0</span>)
                                         </span>
                                         <i class="fa fa-chevron-down text-muted small"></i>
                                     </a>
@@ -1277,271 +1506,259 @@ textarea.theme-form-control {
 
                                 {{-- Mode 4 Only: Online CBT Notice --}}
                                 <div class="mt-2 border-top pt-2" id="online-exam-notice-box" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
-                                    <div class="p-2 bg-light border rounded small text-muted">
+                                    <div class="p-2 border rounded small" style="background: #eff6ff; border-color: #bae6fd !important; color: #0c4a6e;">
                                         <i class="fa fa-info-circle text-info mr-1"></i> <strong>Online CBT Mode:</strong> Questions selected here will appear on the Student Online Examination Portal for students to answer digitally.
                                     </div>
                                 </div>
                             </div>
+
+                        </div>
+
+                        {{-- Pinned Footer on Left Card --}}
+                        <div class="builder-card-footer">
+                            <button type="button" id="btn-submit-save" class="btn-create-exam-main">
+                                <i class="fa fa-{{ !empty($formExam) ? 'save' : 'plus-circle' }} mr-1"></i> {{ !empty($formExam) ? 'Update Exam' : 'Create Exam' }}
+                            </button>
                         </div>
                     </div>
-
-                    {{-- Form Actions Bar --}}
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <button type="button" id="btn-submit-save" class="dash-btn" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color:#ffffff; width: 100%; justify-content:center; height:36px; font-size:12px; font-weight:700; box-shadow: 0 2px 4px rgba(0, 44, 84, 0.2);">
-                            <i class="fa fa-{{ !empty($formExam) ? 'save' : 'plus-circle' }} mr-1"></i> {{ !empty($formExam) ? 'Update Exam' : 'Create Exam' }}
-                        </button>
-                    </div>
-
                 </div>
 
-                {{-- Right Column: Live Previews (Normal Overview, OMR Sheet, Question Paper, Online CBT) --}}
-                <div class="col-lg-7 col-xl-7">
+                {{-- Right Column: Live Previews (Equal Height Matching Left Card) --}}
+                <div class="exam-builder-col-right">
 
                     {{-- Mode 1 Right Panel: Normal Offline Exam Overview & Workflow --}}
-                    <div id="right-panel-normal" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-file-text-o text-warning"></i> Standard Offline Examination Overview
-                                </h3>
-                                <span class="header-badge" id="normal-badge-status">Traditional Offline</span>
+                    <div id="right-panel-normal" class="builder-main-card builder-right-panel" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
+                        <div class="theme-card-header">
+                            <h3 class="card-title">
+                                <i class="fa fa-file-text-o text-warning"></i> Standard Offline Examination Overview
+                            </h3>
+                            <span class="header-badge" id="normal-badge-status">Traditional Offline</span>
+                        </div>
+                        <div class="theme-card-body p-3 d-flex flex-column">
+                            {{-- Parameters Summary Table --}}
+                            <div class="normal-summary-box">
+                                <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                    <span class="meta-label"><i class="fa fa-pencil-square-o mr-1"></i> Exam Name:</span>
+                                    <strong class="meta-value" id="normal-summary-name">{{ $previewName ?: 'Untitled Examination' }}</strong>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <span class="meta-label">Target Class:</span> <span id="normal-summary-class" class="meta-value">--</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="meta-label">Subject:</span> <span id="normal-summary-subject" class="meta-value">All Subjects</span>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <span class="meta-label">Exam Date:</span> <span id="normal-summary-date" class="meta-value">{{ date('d M Y') }}</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="meta-label">Max Marks:</span> <span id="normal-summary-max-marks" class="badge badge-success px-2 font-weight-bold" style="font-size: 11px;">100</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                                    <span class="meta-label">Question Paper (PDF):</span>
+                                    <span id="normal-summary-paper" class="badge badge-secondary">Optional Attached</span>
+                                </div>
                             </div>
-                            <div class="theme-card-body p-3">
-                                {{-- Parameters Summary Table --}}
-                                <div class="p-3 mb-3 bg-light border rounded" style="font-size: 11.5px;">
-                                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
-                                        <span class="text-muted font-weight-bold"><i class="fa fa-pencil-square-o mr-1"></i> Exam Name:</span>
-                                        <strong class="text-dark" id="normal-summary-name">{{ $previewName ?: 'Untitled Examination' }}</strong>
-                                    </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <span class="text-muted font-weight-bold">Target Class:</span> <span id="normal-summary-class" class="text-dark font-weight-bold">--</span>
-                                        </div>
-                                        <div class="col-6">
-                                            <span class="text-muted font-weight-bold">Subject:</span> <span id="normal-summary-subject" class="text-dark font-weight-bold">All Subjects</span>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <span class="text-muted font-weight-bold">Exam Date:</span> <span id="normal-summary-date" class="text-dark font-weight-bold">{{ date('d M Y') }}</span>
-                                        </div>
-                                        <div class="col-6">
-                                            <span class="text-muted font-weight-bold">Max Marks:</span> <span id="normal-summary-max-marks" class="badge badge-success px-2 font-weight-bold" style="font-size: 11px;">100</span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                                        <span class="text-muted font-weight-bold">Question Paper (PDF):</span>
-                                        <span id="normal-summary-paper" class="badge badge-secondary">Optional Attached</span>
-                                    </div>
-                                </div>
 
-                                {{-- 4-Step Process Guide --}}
-                                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 12px;">
-                                    <i class="fa fa-map-signs text-primary mr-1"></i> Examination Lifecycle & Workflow:
-                                </h6>
-                                <div class="workflow-steps-vertical mb-3">
-                                    <div class="wf-step-item">
-                                        <div class="wf-step-icon"><i class="fa fa-check"></i></div>
-                                        <div class="wf-step-content">
-                                            <strong>Step 1: Exam Created & Scheduled</strong>
-                                            <p class="small text-muted mb-0">Exam basic parameters saved for the assigned class. Optional question paper PDF can be downloaded anytime.</p>
-                                        </div>
-                                    </div>
-                                    <div class="wf-step-item">
-                                        <div class="wf-step-icon"><i class="fa fa-users"></i></div>
-                                        <div class="wf-step-content">
-                                            <strong>Step 2: Conduct Offline Classroom Exam</strong>
-                                            <p class="small text-muted mb-0">Print/distribute question papers to students in classroom and evaluate their written copies.</p>
-                                        </div>
-                                    </div>
-                                    <div class="wf-step-item">
-                                        <div class="wf-step-icon"><i class="fa fa-upload"></i></div>
-                                        <div class="wf-step-content">
-                                            <strong>Step 3: Upload Student Marks</strong>
-                                            <p class="small text-muted mb-0">Marks can be entered in two fast ways:
-                                                <span class="d-block mt-1">
-                                                    &bull; <strong>Option A: Excel Sheet Upload</strong> — Download student sample template, fill numbers, and import.
-                                                </span>
-                                                <span class="d-block">
-                                                    &bull; <strong>Option B: Manual Marks Entry</strong> — Fill marks online student-by-student in table.
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="wf-step-item">
-                                        <div class="wf-step-icon"><i class="fa fa-trophy"></i></div>
-                                        <div class="wf-step-content">
-                                            <strong>Step 4: Result Declaration & Report Cards</strong>
-                                            <p class="small text-muted mb-0">Declare result, generate student marksheets and export performance analytics.</p>
-                                        </div>
+                            {{-- 4-Step Process Guide --}}
+                            <h6 class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a;">
+                                <i class="fa fa-map-signs text-primary mr-1"></i> Examination Lifecycle & Workflow:
+                            </h6>
+                            <div class="workflow-steps-vertical mb-3">
+                                <div class="wf-step-item">
+                                    <div class="wf-step-icon"><i class="fa fa-check"></i></div>
+                                    <div class="wf-step-content">
+                                        <strong>Step 1: Exam Created & Scheduled</strong>
+                                        <p>Exam basic parameters saved for the assigned class. Optional question paper PDF can be downloaded anytime.</p>
                                     </div>
                                 </div>
+                                <div class="wf-step-item">
+                                    <div class="wf-step-icon"><i class="fa fa-users"></i></div>
+                                    <div class="wf-step-content">
+                                        <strong>Step 2: Conduct Offline Classroom Exam</strong>
+                                        <p>Print/distribute question papers to students in classroom and evaluate their written copies.</p>
+                                    </div>
+                                </div>
+                                <div class="wf-step-item">
+                                    <div class="wf-step-icon"><i class="fa fa-upload"></i></div>
+                                    <div class="wf-step-content">
+                                        <strong>Step 3: Upload Student Marks</strong>
+                                        <p>Marks can be entered in two fast ways:
+                                            <span class="d-block mt-1">
+                                                &bull; <strong>Option A: Excel Sheet Upload</strong> — Download student sample template, fill numbers, and import.
+                                            </span>
+                                            <span class="d-block">
+                                                &bull; <strong>Option B: Manual Marks Entry</strong> — Fill marks online student-by-student in table.
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="wf-step-item">
+                                    <div class="wf-step-icon"><i class="fa fa-trophy"></i></div>
+                                    <div class="wf-step-content">
+                                        <strong>Step 4: Result Declaration & Report Cards</strong>
+                                        <p>Declare result, generate student marksheets and export performance analytics.</p>
+                                    </div>
+                                </div>
+                            </div>
 
-                                {{-- Quick Links --}}
-                                <div class="d-flex align-items-center gap-2 pt-2 border-top flex-wrap">
-                                    <a href="{{ url('fill-marks-by-excel') }}" class="dash-btn dash-btn-light" style="font-size: 11px;">
-                                        <i class="fa fa-file-excel-o text-success mr-1"></i> Excel Marks Upload
-                                    </a>
-                                    <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-light" style="font-size: 11px;">
-                                        <i class="fa fa-pencil text-primary mr-1"></i> Manual Marks Entry
-                                    </a>
-                                    <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" style="font-size: 11px; background: #e2e8f0; color: #002C54 !important;">
-                                        <i class="fa fa-list mr-1"></i> View All Examinations
-                                    </a>
-                                </div>
+                            {{-- Quick Links --}}
+                            <div class="normal-quick-actions">
+                                <a href="{{ url('fill-marks-by-excel') }}" class="dash-btn dash-btn-light" style="border: 1px solid #cbd5e1;">
+                                    <i class="fa fa-file-excel-o text-success mr-1"></i> Excel Marks Upload
+                                </a>
+                                <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-light" style="border: 1px solid #cbd5e1;">
+                                    <i class="fa fa-pencil text-primary mr-1"></i> Manual Marks Entry
+                                </a>
+                                <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" style="background: #e2e8f0; color: #002C54 !important; border: 1px solid #cbd5e1;">
+                                    <i class="fa fa-list mr-1"></i> View All Examinations
+                                </a>
                             </div>
                         </div>
                     </div>
 
                     {{-- Mode 2 Right Panel: OMR Sheet Live Preview --}}
-                    <div id="right-panel-omr" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-eye text-warning"></i> Printable OMR Sheet Preview
-                                </h3>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="header-badge" id="exam-preview-count">{{ $previewQuestions }} Questions</span>
-                                    <button type="button" class="dash-btn dash-btn-light py-0 px-2 btn-trigger-print-omr" style="height: 22px; font-size: 10px;">
-                                        <i class="fa fa-print"></i> Print OMR Sheet
-                                    </button>
-                                </div>
+                    <div id="right-panel-omr" class="builder-main-card builder-right-panel" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
+                        <div class="theme-card-header">
+                            <h3 class="card-title">
+                                <i class="fa fa-eye text-warning"></i> Printable OMR Sheet Preview
+                            </h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="header-badge" id="exam-preview-count">{{ $previewQuestions }} Questions</span>
+                                <button type="button" class="dash-btn dash-btn-light py-0 px-2 btn-trigger-print-omr" style="height: 24px; font-size: 10.5px;">
+                                    <i class="fa fa-print mr-1"></i> Print OMR Sheet
+                                </button>
                             </div>
+                        </div>
 
-                            <div class="theme-card-body p-2 omr-sheet-card">
-                                <div class="omr-sheet-paper" id="exam-omr-print-area">
-                                    <svg id="exam-omr-svg" viewBox="0 0 800 1100" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" class="d-block w-100 h-auto bg-white" aria-label="Printable exam OMR sheet">
-                                        <rect width="800" height="1100" fill="white"/>
-                                        <rect x="24" y="24" width="752" height="1052" fill="none" stroke="#111827" stroke-width="3"/>
-                                        
-                                        {{-- Corner Marks --}}
-                                        @foreach([[35,35],[739,35],[35,1039],[739,1039]] as $mark)
-                                            <rect x="{{ $mark[0] }}" y="{{ $mark[1] }}" width="26" height="26" fill="#000000"/>
-                                        @endforeach
+                        <div class="omr-sheet-viewport">
+                            <div class="omr-sheet-paper" id="exam-omr-print-area">
+                                <svg id="exam-omr-svg" viewBox="0 0 800 1100" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" class="d-block w-100 h-auto bg-white" aria-label="Printable exam OMR sheet">
+                                    <rect width="800" height="1100" fill="white"/>
+                                    <rect x="24" y="24" width="752" height="1052" fill="none" stroke="#111827" stroke-width="3"/>
+                                    
+                                    {{-- Corner Marks --}}
+                                    @foreach([[35,35],[739,35],[35,1039],[739,1039]] as $mark)
+                                        <rect x="{{ $mark[0] }}" y="{{ $mark[1] }}" width="26" height="26" fill="#000000"/>
+                                    @endforeach
 
-                                        {{-- School / Institute Header --}}
-                                        <text x="400" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="800" fill="#002C54">{{ mb_strtoupper($previewInstituteName) }}</text>
-                                        <text x="400" y="94" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="600" fill="#475569">OPTICAL MARK RECOGNITION (OMR) ANSWER SHEET</text>
-                                        
-                                        {{-- Exam Meta --}}
-                                        <text id="omr-preview-name" x="70" y="128" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#0f172a">EXAM: {{ mb_strtoupper($previewName) }}</text>
-                                        <text id="omr-preview-code" x="730" y="128" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700" fill="#002C54">EXAM CODE: {{ $previewCode }}</text>
-                                        <line x1="70" y1="145" x2="730" y2="145" stroke="#002C54" stroke-width="2"/>
+                                    {{-- School / Institute Header --}}
+                                    <text x="400" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="800" fill="#002C54">{{ mb_strtoupper($previewInstituteName) }}</text>
+                                    <text x="400" y="94" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="600" fill="#475569">OPTICAL MARK RECOGNITION (OMR) ANSWER SHEET</text>
+                                    
+                                    {{-- Exam Meta --}}
+                                    <text id="omr-preview-name" x="70" y="128" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#0f172a">EXAM: {{ mb_strtoupper($previewName) }}</text>
+                                    <text id="omr-preview-code" x="730" y="128" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700" fill="#002C54">EXAM CODE: {{ $previewCode }}</text>
+                                    <line x1="70" y1="145" x2="730" y2="145" stroke="#002C54" stroke-width="2"/>
 
-                                        {{-- Student Info Lines --}}
-                                        <text x="75" y="174" font-family="Arial" font-size="13" font-weight="700">Student Name:</text>
-                                        <line x1="185" y1="176" x2="470" y2="176" stroke="#94a3b8"/>
-                                        <text x="500" y="174" font-family="Arial" font-size="13" font-weight="700">Date:</text>
-                                        <line x1="545" y1="176" x2="720" y2="176" stroke="#94a3b8"/>
+                                    {{-- Student Info Lines --}}
+                                    <text x="75" y="174" font-family="Arial" font-size="13" font-weight="700" fill="#0f172a">Student Name:</text>
+                                    <line x1="185" y1="176" x2="470" y2="176" stroke="#94a3b8"/>
+                                    <text x="500" y="174" font-family="Arial" font-size="13" font-weight="700" fill="#0f172a">Date:</text>
+                                    <line x1="545" y1="176" x2="720" y2="176" stroke="#94a3b8"/>
 
-                                        {{-- Roll Number Matrix --}}
-                                        <text x="70" y="202" font-family="Arial" font-size="13" font-weight="800" fill="#002C54">ROLL NUMBER (FILL ONE BUBBLE PER DIGIT)</text>
-                                        @for($column=0;$column<6;$column++)
-                                            @php($rx=70+$column*110)
-                                            <rect x="{{ $rx }}" y="212" width="100" height="190" fill="none" stroke="#94a3b8" stroke-width="1"/>
-                                            <text x="{{ $rx+50 }}" y="228" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700">DIGIT {{ $column+1 }}</text>
-                                            @for($digit=0;$digit<10;$digit++)
-                                                @php($ry=245+$digit*15.5)
-                                                <text x="{{ $rx+24 }}" y="{{ $ry+3 }}" text-anchor="middle" font-family="Arial" font-size="8.5" fill="#334155">{{ $digit }}</text>
-                                                <circle cx="{{ $rx+50 }}" cy="{{ $ry }}" r="6" fill="white" stroke="#000000" stroke-width="1.2"/>
-                                                <line x1="{{ $rx+7 }}" y1="{{ $ry+7 }}" x2="{{ $rx+93 }}" y2="{{ $ry+7 }}" stroke="#f1f5f9" stroke-width="0.8"/>
-                                            @endfor
+                                    {{-- Roll Number Matrix --}}
+                                    <text x="70" y="202" font-family="Arial" font-size="13" font-weight="800" fill="#002C54">ROLL NUMBER (FILL ONE BUBBLE PER DIGIT)</text>
+                                    @for($column=0;$column<6;$column++)
+                                        @php($rx=70+$column*110)
+                                        <rect x="{{ $rx }}" y="212" width="100" height="190" fill="none" stroke="#94a3b8" stroke-width="1"/>
+                                        <text x="{{ $rx+50 }}" y="228" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#002C54">DIGIT {{ $column+1 }}</text>
+                                        @for($digit=0;$digit<10;$digit++)
+                                            @php($ry=245+$digit*15.5)
+                                            <text x="{{ $rx+24 }}" y="{{ $ry+3 }}" text-anchor="middle" font-family="Arial" font-size="8.5" fill="#334155">{{ $digit }}</text>
+                                            <circle cx="{{ $rx+50 }}" cy="{{ $ry }}" r="6" fill="white" stroke="#000000" stroke-width="1.2"/>
+                                            <line x1="{{ $rx+7 }}" y1="{{ $ry+7 }}" x2="{{ $rx+93 }}" y2="{{ $ry+7 }}" stroke="#f1f5f9" stroke-width="0.8"/>
                                         @endfor
+                                    @endfor
 
-                                        {{-- Question Matrix Header --}}
-                                        <text id="omr-question-total" x="70" y="432" font-family="Arial" font-size="14" font-weight="800" fill="#002C54">ANSWERS — {{ $previewQuestions }} QUESTIONS</text>
-                                        <text x="730" y="432" text-anchor="end" font-family="Arial" font-size="10" font-weight="700" fill="#64748b">DARKEN THE APPROPRIATE BUBBLE COMPLETELY</text>
-                                        
-                                        {{-- Dynamic Question Grid --}}
-                                        <g id="omr-question-grid"></g>
+                                    {{-- Question Matrix Header --}}
+                                    <text id="omr-question-total" x="70" y="432" font-family="Arial" font-size="14" font-weight="800" fill="#002C54">ANSWERS — {{ $previewQuestions }} QUESTIONS</text>
+                                    <text x="730" y="432" text-anchor="end" font-family="Arial" font-size="10" font-weight="700" fill="#64748b">DARKEN THE APPROPRIATE BUBBLE COMPLETELY</text>
+                                    
+                                    {{-- Dynamic Question Grid --}}
+                                    <g id="omr-question-grid"></g>
 
-                                        {{-- Instructions Footer --}}
-                                        <text x="400" y="1042" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#0f172a">INSTRUCTIONS: Use BLUE or BLACK Ball Point Pen | Fill only one circle per question | Do not fold or tear</text>
-                                        <text x="400" y="1060" text-anchor="middle" font-family="Arial" font-size="9.5" font-weight="600" fill="#475569">Keep sheet flat and clean | Ensure all 4 black corner squares remain clean &amp; visible for OMR Optical Scanner</text>
-                                    </svg>
-                                </div>
+                                    {{-- Instructions Footer --}}
+                                    <text x="400" y="1042" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#0f172a">INSTRUCTIONS: Use BLUE or BLACK Ball Point Pen | Fill only one circle per question | Do not fold or tear</text>
+                                    <text x="400" y="1060" text-anchor="middle" font-family="Arial" font-size="9.5" font-weight="600" fill="#475569">Keep sheet flat and clean | Ensure all 4 black corner squares remain clean &amp; visible for OMR Optical Scanner</text>
+                                </svg>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Mode 2 Right Panel: Dual Tabs (Question Paper & OMR Sheet) --}}
-                    <div id="right-panel-qbank" style="{{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <ul class="nav nav-pills" id="qbank-preview-tabs" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="tab-paper-btn" data-toggle="pill" href="#tab-paper-content" role="tab">
-                                            <i class="fa fa-file-text-o"></i> Question Paper Preview
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="tab-omr-btn" data-toggle="pill" href="#tab-omr-content" role="tab">
-                                            <i class="fa fa-th"></i> Matching OMR Sheet
-                                        </a>
-                                    </li>
-                                </ul>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" id="btn-print-active-tab" class="dash-btn dash-btn-light py-0 px-2" style="height: 24px; font-size: 10.5px; font-weight: 700;">
-                                        <i class="fa fa-print"></i> <span id="print-active-label">Print Question Paper</span>
-                                    </button>
-                                </div>
+                    {{-- Mode 3 Right Panel: Dual Tabs (Question Paper & OMR Sheet) --}}
+                    <div id="right-panel-qbank" class="builder-main-card builder-right-panel" style="{{ $initialMode === 'question_bank' ? '' : 'display: none;' }}">
+                        <div class="theme-card-header">
+                            <ul class="nav nav-pills" id="qbank-preview-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="tab-paper-btn" data-toggle="pill" href="#tab-paper-content" role="tab">
+                                        <i class="fa fa-file-text-o"></i> Question Paper Preview
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-omr-btn" data-toggle="pill" href="#tab-omr-content" role="tab">
+                                        <i class="fa fa-th"></i> Matching OMR Sheet
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="btn-print-active-tab" class="dash-btn dash-btn-light py-0 px-2" style="height: 24px; font-size: 10.5px; font-weight: 700;">
+                                    <i class="fa fa-print mr-1"></i> <span id="print-active-label">Print Question Paper</span>
+                                </button>
                             </div>
+                        </div>
 
-                            <div class="theme-card-body p-0">
-                                <div class="tab-content">
-                                    {{-- Tab 1: Printable Question Paper --}}
-                                    <div class="tab-pane fade show active" id="tab-paper-content" role="tabpanel">
-                                        <div class="paper-preview-container">
-                                            <div class="printable-exam-paper" id="exam-paper-print-area">
-                                                {{-- Paper Header --}}
-                                                <div class="exam-paper-header">
-                                                    <h2 class="exam-paper-institute">{{ mb_strtoupper($previewInstituteName) }}</h2>
-                                                    <h3 class="exam-paper-exam-name" id="paper-preview-title">{{ $previewName }}</h3>
-                                                    <table class="exam-paper-meta-table">
-                                                        <tr>
-                                                            <td style="text-align: left; width: 33%;"><strong>Class:</strong> <span id="paper-preview-class">--</span></td>
-                                                            <td style="text-align: center; width: 34%;"><strong>Subject:</strong> <span id="paper-preview-subject">All Subjects</span></td>
-                                                            <td style="text-align: right; width: 33%;"><strong>Date:</strong> <span id="paper-preview-date">{{ date('d M Y') }}</span></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="text-align: left;"><strong>Code:</strong> {{ $previewCode }}</td>
-                                                            <td style="text-align: center;"><strong>Total Questions:</strong> <span id="paper-preview-total-q">0</span></td>
-                                                            <td style="text-align: right;"><strong>Max. Marks:</strong> <span id="paper-preview-max-marks">0</span></td>
-                                                        </tr>
-                                                    </table>
-                                                </div>
+                        <div class="tab-content flex-grow-1 d-flex flex-column" style="height: calc(100% - 42px); overflow: hidden;">
+                            {{-- Tab 1: Printable Question Paper --}}
+                            <div class="tab-pane fade show active flex-grow-1" id="tab-paper-content" role="tabpanel" style="height: 100%; overflow: hidden;">
+                                <div class="paper-preview-container" style="height: 100%;">
+                                    <div class="printable-exam-paper" id="exam-paper-print-area">
+                                        {{-- Paper Header --}}
+                                        <div class="exam-paper-header">
+                                            <h2 class="exam-paper-institute">{{ mb_strtoupper($previewInstituteName) }}</h2>
+                                            <h3 class="exam-paper-exam-name" id="paper-preview-title">{{ $previewName }}</h3>
+                                            <table class="exam-paper-meta-table">
+                                                <tr>
+                                                    <td style="text-align: left; width: 33%;"><strong>Class:</strong> <span id="paper-preview-class">--</span></td>
+                                                    <td style="text-align: center; width: 34%;"><strong>Subject:</strong> <span id="paper-preview-subject">All Subjects</span></td>
+                                                    <td style="text-align: right; width: 33%;"><strong>Date:</strong> <span id="paper-preview-date">{{ date('d M Y') }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: left;"><strong>Code:</strong> {{ $previewCode }}</td>
+                                                    <td style="text-align: center;"><strong>Total Questions:</strong> <span id="paper-preview-total-q">0</span></td>
+                                                    <td style="text-align: right;"><strong>Max. Marks:</strong> <span id="paper-preview-max-marks">0</span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
 
-                                                {{-- Instructions --}}
-                                                <div class="exam-instructions-box">
-                                                    <strong>General Instructions:</strong>
-                                                    <ul class="mb-0 pl-3">
-                                                        <li>All questions are compulsory. Fill answers in the accompanying OMR answer sheet.</li>
-                                                        <li>Each correct answer carries <strong id="paper-correct-marks-label">1.0</strong> mark(s). Negative marking: <strong id="paper-negative-marks-label">0</strong>.</li>
-                                                        <li>Use blue or black ball point pen only to darken the bubbles on the OMR sheet.</li>
-                                                    </ul>
-                                                </div>
+                                        {{-- Instructions --}}
+                                        <div class="exam-instructions-box">
+                                            <strong style="color: #002C54;">General Instructions:</strong>
+                                            <ul class="mb-0 pl-3">
+                                                <li>All questions are compulsory. Fill answers in the accompanying OMR answer sheet.</li>
+                                                <li>Each correct answer carries <strong id="paper-correct-marks-label">1.0</strong> mark(s). Negative marking: <strong id="paper-negative-marks-label">0</strong>.</li>
+                                                <li>Use blue or black ball point pen only to darken the bubbles on the OMR sheet.</li>
+                                            </ul>
+                                        </div>
 
-                                                {{-- Questions List Container --}}
-                                                <div id="exam-paper-questions-flow">
-                                                    <div class="text-center py-4 text-muted">
-                                                        <em>Please add questions from Question Bank to generate paper preview...</em>
-                                                    </div>
-                                                </div>
+                                        {{-- Questions List Container --}}
+                                        <div id="exam-paper-questions-flow">
+                                            <div class="text-center py-4 text-muted">
+                                                <em>Please add questions from Question Bank to generate paper preview...</em>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
-                                    {{-- Tab 2: Matching OMR Sheet --}}
-                                    <div class="tab-pane fade" id="tab-omr-content" role="tabpanel">
-                                        <div class="omr-sheet-card p-2">
-                                            {{-- Uses same SVG element or clone --}}
-                                            <div class="text-center mb-1">
-                                                <span class="small font-weight-bold text-muted">OMR Sheet configured automatically for <span id="qbank-omr-count-label">0</span> questions</span>
-                                            </div>
-                                            <div class="omr-sheet-paper" id="exam-omr-mode2-paper">
-                                                {{-- Injected / mirrored from SVG --}}
-                                            </div>
-                                        </div>
+                            {{-- Tab 2: Matching OMR Sheet --}}
+                            <div class="tab-pane fade flex-grow-1" id="tab-omr-content" role="tabpanel" style="height: 100%; overflow: hidden;">
+                                <div class="omr-sheet-viewport" style="height: 100%;">
+                                    <div class="omr-sheet-paper" id="exam-omr-mode2-paper">
+                                        {{-- Injected / mirrored from SVG --}}
                                     </div>
                                 </div>
                             </div>
@@ -1549,51 +1766,49 @@ textarea.theme-form-control {
                     </div>
 
                     {{-- Mode 4 Right Panel: Online Exam (CBT Panel) Live Preview --}}
-                    <div id="right-panel-online" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
-                        <div class="theme-card">
-                            <div class="theme-card-header">
-                                <h3 class="card-title">
-                                    <i class="fa fa-laptop text-info"></i> Online Examination (CBT) Panel Preview
-                                </h3>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="header-badge" id="online-preview-count">0 Questions</span>
-                                    <span class="header-badge bg-info text-white" id="online-preview-duration">60 Mins</span>
+                    <div id="right-panel-online" class="builder-main-card builder-right-panel" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
+                        <div class="theme-card-header">
+                            <h3 class="card-title">
+                                <i class="fa fa-laptop text-info"></i> Online Examination (CBT) Panel Preview
+                            </h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="header-badge" id="online-preview-count">0 Questions</span>
+                                <span class="header-badge" style="background: #0284c7; color: #ffffff;" id="online-preview-duration">60 Mins</span>
+                            </div>
+                        </div>
+
+                        <div class="theme-card-body p-3 d-flex flex-column">
+                            {{-- Online Notice Banner (High Contrast) --}}
+                            <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" style="background: #eff6ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; color: #0c4a6e; font-size: 11px;">
+                                <i class="fa fa-info-circle fa-lg text-info mr-1"></i>
+                                <div>
+                                    <strong style="color: #0369a1;">Online Computer-Based Test (CBT):</strong>
+                                    Students will take this examination digitally on the online examination portal. <u>No physical OMR sheet is generated</u> for this exam mode.
                                 </div>
                             </div>
 
-                            <div class="theme-card-body p-3">
-                                {{-- Online Notice Banner --}}
-                                <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2" style="font-size: 11px; border-left: 4px solid #0284c7;">
-                                    <i class="fa fa-info-circle fa-lg text-info"></i>
+                            {{-- Online Test Preview Flow --}}
+                            <div style="flex: 1; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 14px;">
+                                <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
                                     <div>
-                                        <strong>Online Computer-Based Test (CBT):</strong>
-                                        Students will take this examination digitally on the online examination portal. <u>No physical OMR sheet is generated</u> for this exam mode.
+                                        <h5 class="font-weight-bold mb-0" id="online-paper-title" style="font-size: 13.5px; color: #0f172a;">{{ $previewName ?: 'Untitled Online Examination' }}</h5>
+                                        <div class="small mt-1" style="color: #475569;">
+                                            <span id="online-paper-class">Class: --</span> &bull; 
+                                            <span id="online-paper-subject">Subject: All Subjects</span> &bull; 
+                                            <span id="online-paper-date">Date: {{ date('d M Y') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="badge badge-success px-2 py-1 font-weight-bold" id="online-preview-max-marks">0 Marks</span>
                                     </div>
                                 </div>
 
-                                {{-- Online Test Preview Flow --}}
-                                <div class="paper-preview-container" style="max-height: 540px; overflow-y: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 14px;">
-                                    <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom">
-                                        <div>
-                                            <h5 class="font-weight-bold mb-0 text-dark" id="online-paper-title" style="font-size: 13.5px;">{{ $previewName ?: 'Untitled Online Examination' }}</h5>
-                                            <div class="small text-muted mt-1">
-                                                <span id="online-paper-class">Class: --</span> &bull; 
-                                                <span id="online-paper-subject">Subject: All Subjects</span> &bull; 
-                                                <span id="online-paper-date">Date: {{ date('d M Y') }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="badge badge-success px-2 py-1 font-weight-bold" id="online-preview-max-marks">0 Marks</span>
-                                        </div>
-                                    </div>
-
-                                    {{-- Question flow rendered by JS --}}
-                                    <div id="online-paper-questions-flow">
-                                        <div class="text-center py-5 text-muted">
-                                            <i class="fa fa-laptop fa-2x mb-2 text-info"></i>
-                                            <p class="mb-0 font-weight-bold">No questions added yet for Online Exam.</p>
-                                            <p class="small text-muted">Click "Browse Question Bank" on the left to add questions to this online exam.</p>
-                                        </div>
+                                {{-- Question flow rendered by JS --}}
+                                <div id="online-paper-questions-flow">
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="fa fa-laptop fa-2x mb-2 text-info"></i>
+                                        <p class="mb-0 font-weight-bold" style="color: #1e293b;">No questions added yet for Online Exam.</p>
+                                        <p class="small text-muted">Click "Browse Question Bank" on the left to add questions to this online exam.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1623,7 +1838,7 @@ textarea.theme-form-control {
             {{-- Filter Bar --}}
             <div class="modal-filter-bar">
                 <div style="min-width: 160px;">
-                    <label class="small font-weight-bold mb-0 text-muted" style="font-size: 10px;">Class:</label>
+                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Class:</label>
                     <select id="modal-filter-class" class="theme-form-control">
                         <option value="">-- All Classes --</option>
                         @if(!empty($classType))
@@ -1637,7 +1852,7 @@ textarea.theme-form-control {
                 </div>
 
                 <div style="min-width: 160px;">
-                    <label class="small font-weight-bold mb-0 text-muted" style="font-size: 10px;">Subject:</label>
+                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Subject:</label>
                     <select id="modal-filter-subject" class="theme-form-control">
                         <option value="">-- All Subjects --</option>
                         @if(!empty($subjects))
@@ -1651,7 +1866,7 @@ textarea.theme-form-control {
                 </div>
 
                 <div style="min-width: 140px;">
-                    <label class="small font-weight-bold mb-0 text-muted" style="font-size: 10px;">Question Type:</label>
+                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Question Type:</label>
                     <select id="modal-filter-type" class="theme-form-control">
                         <option value="">All Question Types</option>
                         <option value="1">1: Multiple Choice (MCQ)</option>
@@ -1660,7 +1875,7 @@ textarea.theme-form-control {
                 </div>
 
                 <div class="flex-grow-1" style="min-width: 180px;">
-                    <label class="small font-weight-bold mb-0 text-muted" style="font-size: 10px;">Search Questions:</label>
+                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Search Questions:</label>
                     <input type="text" id="modal-filter-search" class="theme-form-control" placeholder="Search by question text or formula...">
                 </div>
 
@@ -1675,7 +1890,7 @@ textarea.theme-form-control {
             <div class="modal-questions-scroll" id="modal-questions-container">
                 <div class="text-center py-5 text-muted" id="modal-loading-indicator">
                     <i class="fa fa-spinner fa-spin fa-2x mb-2 text-primary"></i>
-                    <p class="mb-0" style="font-size: 12px;">Loading questions from Question Bank...</p>
+                    <p class="mb-0" style="font-size: 12px; color: #1e293b;">Loading questions from Question Bank...</p>
                 </div>
                 <div id="modal-questions-list">
                     {{-- Dynamically populated via AJAX --}}
@@ -1685,10 +1900,10 @@ textarea.theme-form-control {
             {{-- Modal Footer --}}
             <div class="modal-footer py-2 px-3 bg-light d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
-                    <label class="mb-0 small font-weight-bold" style="cursor: pointer;">
+                    <label class="mb-0 small font-weight-bold" style="cursor: pointer; color: #0f172a;">
                         <input type="checkbox" id="modal-select-all-visible" class="mr-1"> Select All Visible
                     </label>
-                    <span class="badge badge-info py-1 px-2" id="modal-selected-badge" style="font-size: 11px;">0 Selected</span>
+                    <span class="badge badge-primary py-1 px-2" id="modal-selected-badge" style="font-size: 11px;">0 Selected</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancel</button>
@@ -1838,7 +2053,7 @@ document.addEventListener('DOMContentLoaded', function () {
             flowEl.innerHTML = `
                 <div class="text-center py-5 text-muted">
                     <i class="fa fa-laptop fa-2x mb-2 text-info"></i>
-                    <p class="mb-0 font-weight-bold">No questions added yet for Online Exam.</p>
+                    <p class="mb-0 font-weight-bold" style="color: #1e293b;">No questions added yet for Online Exam.</p>
                     <p class="small text-muted">Click "Browse Question Bank" on the left to add questions to this online exam.</p>
                 </div>`;
             return;
@@ -1866,7 +2081,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="paper-q-opt"><span class="paper-q-opt-label">(D)</span> <span class="math-content">${q.ans4 || ''}</span></div>
                     </div>
                 ` : `
-                    <div class="small text-muted font-italic mt-1">
+                    <div class="small font-italic mt-1" style="color: #475569;">
                         Descriptive / Numerical Answer: <span class="text-success font-weight-bold">${q.correct_ans || ''}</span>
                     </div>
                 `}
@@ -1915,16 +2130,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (qbankDerivedKeyBox) qbankDerivedKeyBox.style.display = (mode === 'question_bank') ? 'block' : 'none';
         if (onlineNoticeBox) onlineNoticeBox.style.display = (mode === 'online') ? 'block' : 'none';
 
-        // 4. Right Column Previews
+        // 4. Right Column Previews (Equal Height with flex)
         const rightNormal = document.getElementById('right-panel-normal');
         const rightOmr = document.getElementById('right-panel-omr');
         const rightQBank = document.getElementById('right-panel-qbank');
         const rightOnline = document.getElementById('right-panel-online');
 
-        if (rightNormal) rightNormal.style.display = (mode === 'normal') ? 'block' : 'none';
-        if (rightOmr) rightOmr.style.display = (mode === 'pdf_upload') ? 'block' : 'none';
-        if (rightQBank) rightQBank.style.display = (mode === 'question_bank') ? 'block' : 'none';
-        if (rightOnline) rightOnline.style.display = (mode === 'online') ? 'block' : 'none';
+        if (rightNormal) rightNormal.style.display = (mode === 'normal') ? 'flex' : 'none';
+        if (rightOmr) rightOmr.style.display = (mode === 'pdf_upload') ? 'flex' : 'none';
+        if (rightQBank) rightQBank.style.display = (mode === 'question_bank') ? 'flex' : 'none';
+        if (rightOnline) rightOnline.style.display = (mode === 'online') ? 'flex' : 'none';
 
         // 5. Trigger Respective Renders
         if (mode === 'normal') {
@@ -1948,7 +2163,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -------------------------------------------------------------
-    // Mode 1: Answer Key & OMR Sheet Generator
+    // Mode 2: Answer Key & OMR Sheet Generator
     // -------------------------------------------------------------
     const renderAnswerKey = (count) => {
         let html = '';
@@ -1985,7 +2200,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const progressEl = document.getElementById('answer-key-progress');
         if (progressEl) {
             progressEl.textContent = `${selected} / ${count} Selected`;
-            progressEl.className = selected === count ? 'header-badge bg-success text-white' : 'header-badge';
+            progressEl.className = selected === count ? 'badge badge-success py-1 px-2' : 'badge badge-info py-1 px-2';
         }
     };
 
@@ -2033,16 +2248,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             svg += `<text x="${bx + 77.5}" y="456" text-anchor="middle" font-family="Arial" font-size="8.5" font-weight="700" fill="#002C54">QUESTIONS ${blockStart} - ${blockEnd}</text>`;
             svg += `<rect x="${bx}" y="444" width="155" height="576" fill="none" stroke="#94a3b8" stroke-width="1"/>`;
-            svg += `<text x="${bx + 14}" y="471" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700">Q</text>`;
+            svg += `<text x="${bx + 14}" y="471" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#0f172a">Q</text>`;
             labels.forEach((label, idx) => {
-                svg += `<text x="${bx + 48 + idx * 26}" y="471" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700">${label}</text>`;
+                svg += `<text x="${bx + 48 + idx * 26}" y="471" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#0f172a">${label}</text>`;
             });
 
             for (let row = 1; row <= 25; row++) {
                 const question = block * 25 + row;
                 const qy = 486 + (row - 1) * 21.8;
                 if (question <= count) {
-                    svg += `<text x="${bx + 14}" y="${qy + 3}" text-anchor="middle" font-family="Arial" font-size="8" font-weight="700">${question}</text>`;
+                    svg += `<text x="${bx + 14}" y="${qy + 3}" text-anchor="middle" font-family="Arial" font-size="8" font-weight="700" fill="#002C54">${question}</text>`;
                     labels.forEach((label, idx) => {
                         svg += `<circle cx="${bx + 48 + idx * 26}" cy="${qy}" r="7" fill="white" stroke="#000000" stroke-width="1.15"/>`;
                     });
@@ -2069,7 +2284,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         renderAnswerKey(count);
 
-        // Mirror SVG to Mode 2 OMR tab
+        // Mirror SVG to Mode 3 OMR tab
         const mode2OmrPaper = document.getElementById('exam-omr-mode2-paper');
         const omrSvg = document.getElementById('exam-omr-svg');
         if (mode2OmrPaper && omrSvg) {
@@ -2086,7 +2301,7 @@ document.addEventListener('DOMContentLoaded', function () {
     countInput?.addEventListener('input', renderOMRPreview);
 
     // -------------------------------------------------------------
-    // Mode 2: Question Bank Integration & Paper Preview
+    // Mode 3: Question Bank Integration & Paper Preview
     // -------------------------------------------------------------
     const updatePaperHeader = () => {
         const nameVal = nameInput?.value?.trim() || 'Untitled Examination';
@@ -2149,15 +2364,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     subjectSelect?.addEventListener('change', updatePaperHeader);
 
-    // Render Mode 2 Workspace & Question Paper
+    // Render Question Bank Selected Questions Cards & Paper Preview
     const renderQBankExam = () => {
         const count = selectedQuestions.length;
         selectedCountBadge.textContent = `${count} Questions`;
         qbankKeyCount.textContent = count;
-        jsonInput.value = JSON.stringify(selectedQuestions);
 
         if (countInput) {
-            countInput.value = count > 0 ? count : (countInput.value || 50);
+            countInput.value = count;
+        }
+
+        if (jsonInput) {
+            jsonInput.value = JSON.stringify(selectedQuestions);
         }
 
         if (count === 0) {
@@ -2167,15 +2385,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="text-center py-4 text-muted">
                     <em>Please add questions from Question Bank to generate paper preview...</em>
                 </div>`;
-            qbankAnswerKeyGrid.innerHTML = '<div class="p-2 text-muted small text-center">No questions added yet.</div>';
+            qbankAnswerKeyGrid.innerHTML = '';
             updatePaperHeader();
             renderOMRPreview();
+            if (currentMode === 'online') {
+                renderOnlineExamPreview();
+            }
             return;
         }
 
         qbankEmptyState.style.display = 'none';
 
-        // 1. Build Left Column Cards
         let cardsHtml = '';
         let paperHtml = '';
         let keyHtml = '';
@@ -2185,17 +2405,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const isMcq = (parseInt(q.question_type_id, 10) === 1);
             const correctLetter = q.correct_letter || (isMcq ? (['A','B','C','D','E'][parseInt(q.correct_ans, 10)] || q.correct_ans || 'A') : (q.correct_ans || ''));
 
-            // Auto-sync into answerKey map
-            answerKey[String(qNum)] = correctLetter;
-
-            // Card
+            // Selected Question Card (Left Column)
             cardsHtml += `
-            <div class="selected-q-card" data-index="${idx}">
+            <div class="selected-q-card" data-id="${q.id}" data-index="${idx}">
                 <div class="selected-q-header">
                     <div class="selected-q-badges">
-                        <span class="q-badge-num">Q${qNum}</span>
-                        <span class="q-badge-type">${isMcq ? 'MCQ (4 Options)' : 'Descriptive / Numerical'}</span>
-                        <span class="q-badge-ans">✓ Correct: ${correctLetter}</span>
+                        <span class="q-badge-num">#${qNum}</span>
+                        <span class="q-badge-type">${isMcq ? 'MCQ' : 'Descriptive'}</span>
+                        <span class="q-badge-ans">Key: ${correctLetter}</span>
                     </div>
                     <div class="selected-q-actions">
                         <button type="button" class="btn-q-action btn-q-up" title="Move Up" ${idx === 0 ? 'disabled' : ''}><i class="fa fa-arrow-up"></i></button>
@@ -2219,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `}
             </div>`;
 
-            // Paper Flow Block
+            // Paper Flow Block (Right Column)
             paperHtml += `
             <div class="paper-question-block">
                 <div class="paper-q-statement">
@@ -2309,14 +2526,12 @@ document.addEventListener('DOMContentLoaded', function () {
     let modalSelectedMap = {};
 
     const openQuestionModal = () => {
-        // Pre-fill filter with current selection
         const targetClass = classSelect.value;
         const targetSub = subjectSelect.value;
 
         if (targetClass) document.getElementById('modal-filter-class').value = targetClass;
         if (targetSub) document.getElementById('modal-filter-subject').value = targetSub;
 
-        // Sync existing selected IDs into map
         modalSelectedMap = {};
         selectedQuestions.forEach(q => {
             modalSelectedMap[q.id] = true;
@@ -2355,9 +2570,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!res.questions || res.questions.length === 0) {
                     list.innerHTML = `
                     <div class="text-center py-5 text-muted">
-                        <i class="fa fa-folder-open-o fa-2x mb-2"></i>
-                        <p class="mb-0 font-weight-bold">No questions found matching the selected filters.</p>
-                        <p class="small">Try selecting another class or subject, or clearing search keywords.</p>
+                        <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary"></i>
+                        <p class="mb-0 font-weight-bold" style="color: #1e293b;">No questions found matching the selected filters.</p>
+                        <p class="small text-muted">Try selecting another class or subject, or clearing search keywords.</p>
                     </div>`;
                     modalFetchedQuestions = [];
                     updateModalBadge();
@@ -2392,7 +2607,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <div class="opt-pill-preview ${q.correct_letter === 'D' ? 'is-correct' : ''}"><strong>(D)</strong> <span class="math-content">${q.ans4 || '--'}</span></div>
                                     </div>
                                 ` : `
-                                    <div class="small text-muted font-italic">Numerical / Descriptive Answer: <strong class="text-success">${q.correct_ans || ''}</strong></div>
+                                    <div class="small font-italic" style="color: #475569;">Numerical / Descriptive Answer: <strong class="text-success">${q.correct_ans || ''}</strong></div>
                                 `}
                             </div>
                         </div>
@@ -2460,7 +2675,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Apply selection from modal
     document.getElementById('modal-btn-apply-selection')?.addEventListener('click', function () {
-        // Build new selected questions list preserving order and appending newly selected
         const existingMap = {};
         selectedQuestions.forEach(q => existingMap[q.id] = q);
 
@@ -2503,7 +2717,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const printWin = window.open('', '_blank');
         if (!printWin) {
-            // Fallback for pop-up blocker
             document.body.classList.add('printing-omr');
             document.body.classList.remove('printing-paper');
             window.print();
@@ -2512,7 +2725,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const examName = (document.getElementById('exam-name')?.value || 'Examination').trim();
-
         printWin.document.title = examName + ' - A4 OMR Sheet';
 
         const faCss = printWin.document.createElement('link');
@@ -2583,7 +2795,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const printWin = window.open('', '_blank');
         if (!printWin) {
-            // Fallback for pop-up blocker
             document.body.classList.add('printing-paper');
             document.body.classList.remove('printing-omr');
             window.print();
@@ -2592,7 +2803,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const examTitle = (document.getElementById('exam-name')?.value || 'Examination').trim();
-
         printWin.document.title = examTitle + ' - A4 Question Paper';
 
         const katexCss = printWin.document.createElement('link');
@@ -2706,21 +2916,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (jsonInput && Array.isArray(selectedQuestions)) {
             jsonInput.value = JSON.stringify(selectedQuestions);
         }
-    });
-
-    document.getElementById('btn-submit-print-omr')?.addEventListener('click', () => {
-        actionInput.value = 'print_omr';
-        form.submit();
-    });
-
-    document.getElementById('btn-submit-print-paper')?.addEventListener('click', () => {
-        actionInput.value = 'print_paper';
-        form.submit();
-    });
-
-    document.getElementById('btn-submit-marks')?.addEventListener('click', () => {
-        actionInput.value = 'fill_marks';
-        form.submit();
     });
 
     // -------------------------------------------------------------
