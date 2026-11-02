@@ -2235,19 +2235,21 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="a4-omr-wrapper">
         ${svgClone.outerHTML}
     </div>
-    <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                window.print();
-            }, 350);
-        });
-    <\/script>
 </body>
 </html>`;
 
         printWindow.document.open();
         printWindow.document.write(omrDoc);
         printWindow.document.close();
+
+        setTimeout(() => {
+            try {
+                printWindow.focus();
+                printWindow.print();
+            } catch (err) {
+                console.log(err);
+            }
+        }, 350);
     };
 
     const printPaper = () => {
@@ -2526,34 +2528,21 @@ document.addEventListener('DOMContentLoaded', function () {
             ${flowHtml}
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"><\/script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"><\/script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (window.renderMathInElement) {
-                renderMathInElement(document.querySelector('.paper-questions-list'), {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false},
-                        {left: '\\\\(', right: '\\\\)', display: false},
-                        {left: '\\\\[', right: '\\\\]', display: true}
-                    ],
-                    throwOnError: false
-                });
-            }
-        });
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                window.print();
-            }, 450);
-        });
-    <\/script>
 </body>
 </html>`;
 
         printWin.document.open();
         printWin.document.write(paperDoc);
         printWin.document.close();
+
+        setTimeout(() => {
+            try {
+                printWin.focus();
+                printWin.print();
+            } catch (err) {
+                console.log(err);
+            }
+        }, 400);
     };
 
     document.querySelectorAll('.btn-trigger-print-omr').forEach(btn => btn.addEventListener('click', printOmr));
