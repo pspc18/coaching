@@ -21,6 +21,13 @@
         })->values();
     }
 
+    // Temporarily comment out / hide "Students Promote" sub menu
+    $subSidebar = $subSidebar->reject(function ($item) {
+        return trim((string) ($item->url ?? ''), '/') === 'student/promote_add'
+            || strtolower(trim((string) ($item->name ?? ''))) === 'students promote'
+            || strtolower(trim((string) ($item->name ?? ''))) === 'student promote';
+    })->values();
+
     $getSetting = Helper::getSetting();
 @endphp
 

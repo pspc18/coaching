@@ -44,6 +44,13 @@
         })->values();
     }
 
+    // Temporarily comment out / hide "Students Promote" sub menu
+    $subSidebar = $subSidebar->reject(function ($item) {
+        return trim((string) ($item->url ?? ''), '/') === 'student/promote_add'
+            || strtolower(trim((string) ($item->name ?? ''))) === 'students promote'
+            || strtolower(trim((string) ($item->name ?? ''))) === 'student promote';
+    })->values();
+
     $mobileLogoUrl = Helper::getLogoUrl();
     $faviconUrl = Helper::getFaviconUrl();
     $firmInitial = strtoupper(mb_substr(trim($setting->name ?? 'A'), 0, 1, 'UTF-8')) ?: 'A';
