@@ -608,7 +608,7 @@
                             <option value="">All Subjects</option>
                             @if(!empty($allSubjects))
                                 @foreach($allSubjects as $sub)
-                                    <option value="{{ $sub->id }}" {{ ($sub->id == ($search['subject_id'] ?? '')) ? 'selected' : '' }}>
+                                    <option value="{{ $sub->id }}" {{ (($sub->id == ($search['subject_id'] ?? '')) || (!empty($selectedSubjectName) && $sub->name == $selectedSubjectName)) ? 'selected' : '' }}>
                                         {{ $sub->name ?? '' }}
                                     </option>
                                 @endforeach
@@ -1063,6 +1063,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if ($.fn.select2) {
         $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
     }
+
+    // Dynamic Class -> Subject Filter sync (No Duplicates)
+    const initialSubjectOptionsHtml = $('#subject_id').html();
+    $('#class_type_id').off('change').on('change', function () {
+        const classId = $(this).val();
+        const subjectSelect = $('#subject_id');
+
+        if (!classId) {
+            subjectSelect.html(initialSubjectOptionsHtml);
+            if ($.fn.select2) {
+                subjectSelect.val('').trigger('change.select2');
+            }
+            return;
+        }
+
+        $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            url: "{{ url('subjectGetData') }}/" + classId,
+            type: 'GET',
+            success: function (data) {
+                let html = data.replace('<option value="">Select</option>', '<option value="">All Subjects</option>');
+                subjectSelect.html(html);
+                if ($.fn.select2) {
+                    subjectSelect.val('').trigger('change.select2');
+                }
+            },
+            error: function () {
+                subjectSelect.html(initialSubjectOptionsHtml);
+                if ($.fn.select2) {
+                    subjectSelect.val('').trigger('change.select2');
+                }
+            }
+        });
+    });
 
     // Format HTML & Linebreaks safely
     function formatRichExamContent(text) {

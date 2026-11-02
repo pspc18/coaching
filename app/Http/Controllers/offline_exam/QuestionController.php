@@ -114,8 +114,31 @@ class QuestionController extends Controller
         }
 
         // 3. Subject filter
+        $selectedSubjectName = null;
         if (!empty($request->subject_id)) {
-            $data = $data->where('questions.subject_id', $request->subject_id);
+            if (!empty($request->class_type_id)) {
+                // If specific class selected, match exact subject_id
+                $data = $data->where('questions.subject_id', $request->subject_id);
+                $selectedSubjectName = DB::table('subject')->where('id', $request->subject_id)->value('name');
+            } else {
+                // If "All Classes", match all questions of this subject name across all classes
+                $selectedSubjectName = DB::table('subject')->where('id', $request->subject_id)->value('name');
+                if ($selectedSubjectName) {
+                    $matchingIdsQuery = DB::table('subject')
+                        ->where('name', $selectedSubjectName)
+                        ->whereNull('deleted_at');
+                    if (Session::get('role_id') > 1) {
+                        $matchingIdsQuery = $matchingIdsQuery->where('branch_id', Session::get('branch_id'));
+                    }
+                    if (Session::get('session_id')) {
+                        $matchingIdsQuery = $matchingIdsQuery->where('session_id', Session::get('session_id'));
+                    }
+                    $matchingIds = $matchingIdsQuery->pluck('id')->toArray();
+                    $data = $data->whereIn('questions.subject_id', !empty($matchingIds) ? $matchingIds : [$request->subject_id]);
+                } else {
+                    $data = $data->where('questions.subject_id', $request->subject_id);
+                }
+            }
         }
 
         // 4. Question Type (1 = MCQ/Objective, 2 = Descriptive)
@@ -178,7 +201,32 @@ class QuestionController extends Controller
 
         $data = $data->orderBy('questions.id', 'DESC')->paginate($perPage)->appends($request->all());
         $classType = Helper::classType();
-        $allSubjects = Helper::getSubject();
+
+        // Retrieve real active subjects (scoped to branch, session and non-deleted)
+        $subjQuery = DB::table('subject')->whereNull('deleted_at');
+        if (Session::get('role_id') > 1) {
+            $subjQuery = $subjQuery->where('branch_id', Session::get('branch_id'));
+        }
+        if (Session::get('session_id')) {
+            $subjQuery = $subjQuery->where('session_id', Session::get('session_id'));
+        }
+
+        if (!empty($request->class_type_id)) {
+            // Scoped to the selected class
+            $allSubjects = $subjQuery
+                ->where('class_type_id', $request->class_type_id)
+                ->select('id', 'name')
+                ->orderBy('sort_by', 'ASC')
+                ->orderBy('name', 'ASC')
+                ->get();
+        } else {
+            // Unique distinct active subjects (no duplicates)
+            $allSubjects = $subjQuery
+                ->select('name', DB::raw('MIN(id) as id'))
+                ->groupBy('name')
+                ->orderBy('name', 'ASC')
+                ->get();
+        }
 
         return Helper::view('examination.offline_exam.question_bank.view', [
             'data' => $data,
@@ -186,6 +234,7 @@ class QuestionController extends Controller
             'stats' => $stats,
             'classType' => $classType,
             'allSubjects' => $allSubjects,
+            'selectedSubjectName' => $selectedSubjectName,
             'perPage' => $perPage,
         ]);
     }
