@@ -319,12 +319,21 @@ class QuestionController extends Controller
                         $add->class_type_id = $classTypeId;
                         $add->subject_id = $subjectId;
                         $add->name = $qName;
-                        $add->question_type_id = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
-                        $add->ans1 = $subQ['ans1'] ?? null;
-                        $add->ans2 = $subQ['ans2'] ?? null;
-                        $add->ans3 = $subQ['ans3'] ?? null;
-                        $add->ans4 = $subQ['ans4'] ?? null;
-                        $add->ans5 = $subQ['ans5'] ?? null;
+                        $subQTypeId = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
+                        $add->question_type_id = $subQTypeId;
+                        if ($subQTypeId === 2) {
+                            $add->ans1 = null;
+                            $add->ans2 = null;
+                            $add->ans3 = null;
+                            $add->ans4 = null;
+                            $add->ans5 = null;
+                        } else {
+                            $add->ans1 = $subQ['ans1'] ?? null;
+                            $add->ans2 = $subQ['ans2'] ?? null;
+                            $add->ans3 = $subQ['ans3'] ?? null;
+                            $add->ans4 = $subQ['ans4'] ?? null;
+                            $add->ans5 = $subQ['ans5'] ?? null;
+                        }
                         $add->correct_ans = isset($subQ['correct_ans']) ? (string)$subQ['correct_ans'] : '0';
                         $add->group_id = $groupId;
                         $add->direction = $direction;
@@ -402,11 +411,19 @@ class QuestionController extends Controller
             $add->subject_id = $request->subject_id;
             $add->name = $request->name;
             $add->question_type_id = (int)$request->question_type_id;
-            $add->ans1 = $request->ans1;
-            $add->ans2 = $request->ans2;
-            $add->ans3 = $request->ans3;
-            $add->ans4 = $request->ans4;
-            $add->ans5 = $request->ans5;
+            if ($add->question_type_id === 2) {
+                $add->ans1 = null;
+                $add->ans2 = null;
+                $add->ans3 = null;
+                $add->ans4 = null;
+                $add->ans5 = null;
+            } else {
+                $add->ans1 = $request->ans1;
+                $add->ans2 = $request->ans2;
+                $add->ans3 = $request->ans3;
+                $add->ans4 = $request->ans4;
+                $add->ans5 = $request->ans5;
+            }
             $add->group_id = $request->group_id;
             $add->direction = $request->direction;
             $add->direction_table = $request->direction_table;
@@ -593,6 +610,7 @@ class QuestionController extends Controller
                 'subject_name' => $subjectName,
                 'difficulty' => $request->input('difficulty', 'Mixed'),
                 'options_count' => (int)$request->input('options_count', 4),
+                'question_type_id' => (int)$request->input('question_type_id', 1),
             ];
 
             $result = $this->aiService->generateQuestionsWithAi($userPrompt, $filePath, $customKey, $context);
@@ -669,12 +687,21 @@ class QuestionController extends Controller
                 $add->class_type_id = $classTypeId;
                 $add->subject_id = $subjectId;
                 $add->name = $qName;
-                $add->question_type_id = isset($q['question_type_id']) ? (int)$q['question_type_id'] : 1;
-                $add->ans1 = $ans1;
-                $add->ans2 = $ans2;
-                $add->ans3 = $ans3;
-                $add->ans4 = $ans4;
-                $add->ans5 = $ans5;
+                $bulkQTypeId = isset($q['question_type_id']) ? (int)$q['question_type_id'] : 1;
+                $add->question_type_id = $bulkQTypeId;
+                if ($bulkQTypeId === 2) {
+                    $add->ans1 = null;
+                    $add->ans2 = null;
+                    $add->ans3 = null;
+                    $add->ans4 = null;
+                    $add->ans5 = null;
+                } else {
+                    $add->ans1 = $ans1;
+                    $add->ans2 = $ans2;
+                    $add->ans3 = $ans3;
+                    $add->ans4 = $ans4;
+                    $add->ans5 = $ans5;
+                }
                 $add->group_id = $q['group_id'] ?? null;
                 $add->direction = $direction;
                 $add->direction_table = $q['direction_table'] ?? null;
@@ -962,12 +989,21 @@ class QuestionController extends Controller
                         $qItem->class_type_id = $classTypeId;
                         $qItem->subject_id = $subjectId;
                         $qItem->name = $qName;
-                        $qItem->question_type_id = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
-                        $qItem->ans1 = $normalizeField($subQ['ans1'] ?? null);
-                        $qItem->ans2 = $normalizeField($subQ['ans2'] ?? null);
-                        $qItem->ans3 = $normalizeField($subQ['ans3'] ?? null);
-                        $qItem->ans4 = $normalizeField($subQ['ans4'] ?? null);
-                        $qItem->ans5 = $normalizeField($subQ['ans5'] ?? null);
+                        $subQTypeId = isset($subQ['question_type_id']) ? (int)$subQ['question_type_id'] : 1;
+                        $qItem->question_type_id = $subQTypeId;
+                        if ($subQTypeId === 2) {
+                            $qItem->ans1 = null;
+                            $qItem->ans2 = null;
+                            $qItem->ans3 = null;
+                            $qItem->ans4 = null;
+                            $qItem->ans5 = null;
+                        } else {
+                            $qItem->ans1 = $normalizeField($subQ['ans1'] ?? null);
+                            $qItem->ans2 = $normalizeField($subQ['ans2'] ?? null);
+                            $qItem->ans3 = $normalizeField($subQ['ans3'] ?? null);
+                            $qItem->ans4 = $normalizeField($subQ['ans4'] ?? null);
+                            $qItem->ans5 = $normalizeField($subQ['ans5'] ?? null);
+                        }
                         $qItem->correct_ans = isset($subQ['correct_ans']) ? (string)$subQ['correct_ans'] : '0';
                         $qItem->group_id = $groupId;
                         $qItem->direction = $direction;
@@ -1033,11 +1069,19 @@ class QuestionController extends Controller
             $data->subject_id = (int)$request->subject_id;
             $data->name = $normalizeField($request->name);
             $data->question_type_id = (int)$request->question_type_id;
-            $data->ans1 = $normalizeField($request->ans1);
-            $data->ans2 = $normalizeField($request->ans2);
-            $data->ans3 = $normalizeField($request->ans3);
-            $data->ans4 = $normalizeField($request->ans4);
-            $data->ans5 = $normalizeField($request->ans5);
+            if ($data->question_type_id === 2) {
+                $data->ans1 = null;
+                $data->ans2 = null;
+                $data->ans3 = null;
+                $data->ans4 = null;
+                $data->ans5 = null;
+            } else {
+                $data->ans1 = $normalizeField($request->ans1);
+                $data->ans2 = $normalizeField($request->ans2);
+                $data->ans3 = $normalizeField($request->ans3);
+                $data->ans4 = $normalizeField($request->ans4);
+                $data->ans5 = $normalizeField($request->ans5);
+            }
             $data->correct_ans = (string)$request->correct_ans;
             $data->explanation = $normalizeField($request->explanation);
             $data->difficulty_level = $request->difficulty_level ?: 'Medium';

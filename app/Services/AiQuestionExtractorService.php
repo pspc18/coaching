@@ -696,6 +696,29 @@ EOT;
         $subjectName = !empty($context['subject_name']) ? $context['subject_name'] : 'General Examination';
         $diffPref = !empty($context['difficulty']) ? $context['difficulty'] : 'Mixed (Easy, Medium, Hard)';
         $optionsCount = !empty($context['options_count']) ? (int)$context['options_count'] : 4;
+        $questionTypeId = !empty($context['question_type_id']) ? (int)$context['question_type_id'] : 1;
+
+        // Detect if user prompt or context requires Descriptive / Numerical (No Options)
+        $lowerPrompt = mb_strtolower($userPrompt);
+        $isDescriptiveByPrompt = (
+            strpos($lowerPrompt, 'descriptive') !== false ||
+            strpos($lowerPrompt, 'numerical') !== false ||
+            strpos($lowerPrompt, 'subjective') !== false ||
+            strpos($lowerPrompt, 'without options') !== false ||
+            strpos($lowerPrompt, 'without option') !== false ||
+            strpos($lowerPrompt, 'no options') !== false ||
+            strpos($lowerPrompt, 'no option') !== false ||
+            strpos($lowerPrompt, 'options ki need nahi') !== false ||
+            strpos($lowerPrompt, 'option ki need nahi') !== false ||
+            strpos($lowerPrompt, 'bina option') !== false ||
+            strpos($lowerPrompt, 'bina options') !== false ||
+            strpos($lowerPrompt, 'options nahi') !== false ||
+            strpos($lowerPrompt, 'option nahi') !== false ||
+            strpos($lowerPrompt, 'only answer') !== false ||
+            strpos($lowerPrompt, 'direct answer') !== false
+        );
+
+        $isDescriptiveMode = ($questionTypeId === 2 || $isDescriptiveByPrompt);
 
         // Use Nowdoc <<<'PROMPT_TEMPLATE' so PHP NEVER attempts variable interpolation on $LaTeX or $ math expressions!
         $template = <<<'PROMPT_TEMPLATE'
@@ -712,7 +735,7 @@ ACADEMIC CONTEXT:
 - Target Class / Level: {{CLASS_NAME}}
 - Subject: {{SUBJECT_NAME}}
 - Target Difficulty: {{DIFF_PREF}}
-- Default Options Count: {{OPTIONS_COUNT}} options per MCQ
+{{FORMAT_ACADEMIC_CONTEXT}}
 
 CORE OBJECTIVE:
 Synthesize high-quality, authentic, examination-grade questions adhering strictly to the user's prompt.
@@ -740,7 +763,114 @@ STRICT GUIDELINES:
    - If a question or directional set references a diagram, figure, chart, geometry drawing, or graph from the attached reference document, set "diagram_id" to the matching diagram ID and "has_diagram": true.
    - If no diagram is referenced, set "diagram_id": null and "has_diagram": false.
 
-4. STANDALONE QUESTIONS:
+{{FORMAT_GUIDELINES_STANDALONE}}
+
+5. DIRECTIONAL QUESTION SETS (PASSAGE / CASE STUDY / DATA INTERPRETATION):
+   - "direction": The full common passage, comprehension story, or problem statement that introduces the context for the set.
+   - "direction_table": If the set is based on a data table or matrix, provide a clean, complete HTML table:
+     <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
+     (If no table is needed, set to null).
+   - "has_diagram": boolean.
+   - "diagram_id": string or null.
+   - "sub_questions": An array of questions that depend on this common direction/passage.
+{{FORMAT_GUIDELINES_DIRECTIONAL}}
+
+6. SCHEMA INTEGRITY:
+   - Return pure, valid JSON matching the exact schema below.
+   - Do NOT wrap in markdown fences. Output raw JSON only.
+
+SCHEMA:
+{
+  "summary": "Concise summary of generated questions",
+  "topic": "Primary Topic / Chapter Name",
+  "standalone_questions": [
+{{STANDALONE_SAMPLE_JSON}}
+  ],
+  "directional_sets": [
+    {
+      "direction": "Common narrative passage or context text...",
+      "direction_table": null,
+      "has_diagram": false,
+      "diagram_id": null,
+      "sub_questions": [
+{{SUBQ_SAMPLE_JSON}}
+      ]
+    }
+  ]
+}
+PROMPT_TEMPLATE;
+
+        if ($isDescriptiveMode) {
+            $formatAcademicContext = "- Target Question Format: DESCRIPTIVE / NUMERICAL VALUE (STRICTLY NO OPTIONS!)\n- Options: NONE. Do NOT generate options under any circumstances.";
+            $formatGuidelinesStandalone = <<<'GUIDELINE'
+4. STANDALONE QUESTIONS (DESCRIPTIVE / NUMERICAL - STRICTLY NO OPTIONS):
+   - "name": Clear, self-contained question statement (use LaTeX $...$ for all mathematical equations).
+   - "question_type_id": 2 (Descriptive / Numerical).
+   - "table": HTML <table> string if this question contains a data table, otherwise null.
+   - "has_diagram": boolean.
+   - "diagram_id": string or null.
+   - "ans1", "ans2", "ans3", "ans4", "ans5": MUST STRICTLY BE NULL! DO NOT GENERATE OPTIONS!
+   - "correct_ans": Provide the exact mathematical result, numerical answer (e.g. "10", "42.5", "-7"), single formula/fraction (e.g. "x/10", "3/4"), or short concise string answer. NEVER output option indices like "0", "1", "2" or option letters!
+   - "correct_option_letter": MUST BE NULL.
+   - "explanation": Comprehensive, pedagogically sound, step-by-step mathematical solution / derivation leading directly to this exact answer.
+   - "difficulty_level": "Easy", "Medium", or "Hard".
+GUIDELINE;
+
+            $formatGuidelinesDirectional = <<<'GUIDELINE'
+     Each sub-question must have:
+     - "sub_question_no": 1, 2, 3, etc.
+     - "name": Specific question statement for this sub-question (do NOT repeat the common passage).
+     - "question_type_id": 2 (Descriptive / Numerical).
+     - "has_diagram": boolean.
+     - "diagram_id": string or null.
+     - "ans1", "ans2", "ans3", "ans4", "ans5": MUST STRICTLY BE NULL! NO OPTIONS!
+     - "correct_ans": Exact expected numerical value or formula answer string (e.g. "10", "42.5", "x/10").
+     - "correct_option_letter": MUST BE NULL.
+     - "explanation": Detailed step-by-step mathematical solution for this specific sub-question.
+     - "difficulty_level": "Easy", "Medium", or "Hard".
+GUIDELINE;
+
+            $standaloneSampleJson = <<<'JSON'
+    {
+      "name": "Solve for x: $3x + 15 = 45$...",
+      "question_type_id": 2,
+      "table": null,
+      "has_diagram": false,
+      "diagram_id": null,
+      "ans1": null,
+      "ans2": null,
+      "ans3": null,
+      "ans4": null,
+      "ans5": null,
+      "correct_ans": "10",
+      "correct_option_letter": null,
+      "explanation": "Step-by-step derivation: $3x = 45 - 15 = 30 \implies x = 10$.",
+      "difficulty_level": "Medium"
+    }
+JSON;
+
+            $subqSampleJson = <<<'JSON'
+        {
+          "sub_question_no": 1,
+          "name": "Calculate the value of $P$ using the data table above...",
+          "question_type_id": 2,
+          "has_diagram": false,
+          "diagram_id": null,
+          "ans1": null,
+          "ans2": null,
+          "ans3": null,
+          "ans4": null,
+          "ans5": null,
+          "correct_ans": "25.5",
+          "correct_option_letter": null,
+          "explanation": "Detailed solution for sub-question 1...",
+          "difficulty_level": "Medium"
+        }
+JSON;
+        } else {
+            $formatAcademicContext = "- Target Question Format: OBJECTIVE (MULTIPLE CHOICE QUESTIONS - MCQ)\n- Default Options Count: {$optionsCount} options per MCQ";
+            $formatGuidelinesStandalone = <<<'GUIDELINE'
+4. STANDALONE QUESTIONS (OBJECTIVE / MCQ):
    - "name": Clear, self-contained question statement.
    - "question_type_id": 1 (Objective / MCQ).
    - "table": HTML <table> string if this question contains a data table, otherwise null.
@@ -753,15 +883,9 @@ STRICT GUIDELINES:
    - "correct_option_letter": Corresponding letter ("A", "B", "C", "D", or "E").
    - "explanation": Comprehensive, pedagogically sound, step-by-step solution / derivation.
    - "difficulty_level": "Easy", "Medium", or "Hard".
+GUIDELINE;
 
-5. DIRECTIONAL QUESTION SETS (PASSAGE / CASE STUDY / DATA INTERPRETATION):
-   - "direction": The full common passage, comprehension story, or problem statement that introduces the context for the set.
-   - "direction_table": If the set is based on a data table or matrix, provide a clean, complete HTML table:
-     <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
-     (If no table is needed, set to null).
-   - "has_diagram": boolean.
-   - "diagram_id": string or null.
-   - "sub_questions": An array of questions that depend on this common direction/passage.
+            $formatGuidelinesDirectional = <<<'GUIDELINE'
      Each sub-question must have:
      - "sub_question_no": 1, 2, 3, etc.
      - "name": Specific question statement for this sub-question (do NOT repeat the common passage).
@@ -773,16 +897,9 @@ STRICT GUIDELINES:
      - "correct_option_letter": "A", "B", "C", "D", or "E".
      - "explanation": Detailed solution for this specific sub-question.
      - "difficulty_level": "Easy", "Medium", or "Hard".
+GUIDELINE;
 
-6. SCHEMA INTEGRITY:
-   - Return pure, valid JSON matching the exact schema below.
-   - Do NOT wrap in markdown fences. Output raw JSON only.
-
-SCHEMA:
-{
-  "summary": "Concise summary of generated questions",
-  "topic": "Primary Topic / Chapter Name",
-  "standalone_questions": [
+            $standaloneSampleJson = <<<'JSON'
     {
       "name": "Question statement with LaTeX...",
       "question_type_id": 1,
@@ -799,14 +916,9 @@ SCHEMA:
       "explanation": "Step-by-step explanation...",
       "difficulty_level": "Medium"
     }
-  ],
-  "directional_sets": [
-    {
-      "direction": "Common narrative passage or context text...",
-      "direction_table": null,
-      "has_diagram": false,
-      "diagram_id": null,
-      "sub_questions": [
+JSON;
+
+            $subqSampleJson = <<<'JSON'
         {
           "sub_question_no": 1,
           "name": "Sub-question 1 statement...",
@@ -823,11 +935,8 @@ SCHEMA:
           "explanation": "Solution for sub-question 1...",
           "difficulty_level": "Medium"
         }
-      ]
-    }
-  ]
-}
-PROMPT_TEMPLATE;
+JSON;
+        }
 
         $prompt = str_replace(
             [
@@ -837,7 +946,11 @@ PROMPT_TEMPLATE;
                 '{{CLASS_NAME}}',
                 '{{SUBJECT_NAME}}',
                 '{{DIFF_PREF}}',
-                '{{OPTIONS_COUNT}}'
+                '{{FORMAT_ACADEMIC_CONTEXT}}',
+                '{{FORMAT_GUIDELINES_STANDALONE}}',
+                '{{FORMAT_GUIDELINES_DIRECTIONAL}}',
+                '{{STANDALONE_SAMPLE_JSON}}',
+                '{{SUBQ_SAMPLE_JSON}}'
             ],
             [
                 $referenceDocNote,
@@ -846,7 +959,11 @@ PROMPT_TEMPLATE;
                 $className,
                 $subjectName,
                 $diffPref,
-                $optionsCount
+                $formatAcademicContext,
+                $formatGuidelinesStandalone,
+                $formatGuidelinesDirectional,
+                $standaloneSampleJson,
+                $subqSampleJson
             ],
             $template
         );
@@ -923,6 +1040,28 @@ PROMPT_TEMPLATE;
                         $sq['name'] .= '<div class="table-responsive my-2">' . $sq['table'] . '</div>';
                     }
                 }
+
+                // Descriptive / Numerical sanitization
+                if ($isDescriptiveMode || (!empty($sq['question_type_id']) && (int)$sq['question_type_id'] === 2)) {
+                    $sq['question_type_id'] = 2;
+                    $cAnsStr = trim((string)($sq['correct_ans'] ?? ''));
+                    if (in_array($cAnsStr, ['0', '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E'], true)) {
+                        $idxMap = [
+                            '0' => 'ans1', '1' => 'ans2', '2' => 'ans3', '3' => 'ans4', '4' => 'ans5',
+                            'A' => 'ans1', 'B' => 'ans2', 'C' => 'ans3', 'D' => 'ans4', 'E' => 'ans5'
+                        ];
+                        $key = $idxMap[$cAnsStr] ?? null;
+                        if ($key && !empty($sq[$key])) {
+                            $sq['correct_ans'] = $sq[$key];
+                        }
+                    }
+                    $sq['ans1'] = null;
+                    $sq['ans2'] = null;
+                    $sq['ans3'] = null;
+                    $sq['ans4'] = null;
+                    $sq['ans5'] = null;
+                    $sq['correct_option_letter'] = null;
+                }
             }
             unset($sq);
 
@@ -968,6 +1107,28 @@ PROMPT_TEMPLATE;
                         $sq['has_diagram'] = true;
                     } else {
                         $sq['image'] = $sq['image'] ?? null;
+                    }
+
+                    // Descriptive / Numerical sanitization
+                    if ($isDescriptiveMode || (!empty($sq['question_type_id']) && (int)$sq['question_type_id'] === 2)) {
+                        $sq['question_type_id'] = 2;
+                        $cAnsStr = trim((string)($sq['correct_ans'] ?? ''));
+                        if (in_array($cAnsStr, ['0', '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E'], true)) {
+                            $idxMap = [
+                                '0' => 'ans1', '1' => 'ans2', '2' => 'ans3', '3' => 'ans4', '4' => 'ans5',
+                                'A' => 'ans1', 'B' => 'ans2', 'C' => 'ans3', 'D' => 'ans4', 'E' => 'ans5'
+                            ];
+                            $key = $idxMap[$cAnsStr] ?? null;
+                            if ($key && !empty($sq[$key])) {
+                                $sq['correct_ans'] = $sq[$key];
+                            }
+                        }
+                        $sq['ans1'] = null;
+                        $sq['ans2'] = null;
+                        $sq['ans3'] = null;
+                        $sq['ans4'] = null;
+                        $sq['ans5'] = null;
+                        $sq['correct_option_letter'] = null;
                     }
                 }
                 unset($sq);

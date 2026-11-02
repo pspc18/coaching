@@ -1616,6 +1616,9 @@ textarea.theme-form-control {
                                         <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 5 high-quality standalone MCQs on this topic with clear options (A-D), accurate correct answers, and detailed step-by-step explanations in LaTeX.">
                                             ⚡ 5 Standalone MCQs with Solutions
                                         </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Generate 5 Descriptive / Numerical questions with exact answers (e.g. numerical value or formula) and step-by-step solutions. Strictly do not include options." data-format="2">
+                                            ⚡ 5 Descriptive / Numerical Qs (No Options)
+                                        </button>
                                         <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 1 Directional Question Set with a comprehensive Common Passage, an HTML data table, and 4 linked sub-questions with full explanations.">
                                             ⚡ 1 Directional Set (Passage &amp; Table)
                                         </button>
@@ -1664,6 +1667,13 @@ textarea.theme-form-control {
                                     <i class="fa fa-sliders text-primary mr-1"></i> Generation Preferences
                                 </label>
                                 <div class="row">
+                                    <div class="col-12 mb-2">
+                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Question Format:</label>
+                                        <select id="ai-gen-format" class="form-control form-control-sm font-weight-bold" style="font-size: 11px; height: 30px; color: #002C54; border-color: #cbd5e1;">
+                                            <option value="1" selected>Objective (MCQ with Options)</option>
+                                            <option value="2">Descriptive / Numerical (No Options)</option>
+                                        </select>
+                                    </div>
                                     <div class="col-6 mb-2">
                                         <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Difficulty Level:</label>
                                         <select id="ai-gen-difficulty" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
@@ -1673,8 +1683,11 @@ textarea.theme-form-control {
                                             <option value="Hard">Hard / Advanced</option>
                                         </select>
                                     </div>
-                                    <div class="col-6 mb-2">
-                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Options Format:</label>
+                                    <div class="col-6 mb-2" id="ai-gen-options-count-wrap">
+                                        <label class="small font-weight-bold text-muted mb-1 d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                            <span>Options Format:</span>
+                                            <span id="ai-gen-options-disabled-hint" class="badge badge-secondary d-none" style="font-size: 9px; font-weight: normal;"><i class="fa fa-ban mr-1"></i> Disabled</span>
+                                        </label>
                                         <select id="ai-gen-options-count" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
                                             <option value="4" selected>4 Options (A, B, C, D)</option>
                                             <option value="5">5 Options (A, B, C, D, E)</option>
@@ -2749,7 +2762,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Add a new Sub-Question
-    function addSubQuestion() {
+    function addSubQuestion(dataObj) {
         const seq = directionalSubQuestions.length + 1;
         const idx = nextSubQIndex++;
         directionalSubQuestions.push({ idx: idx, seq: seq });
@@ -2757,7 +2770,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const list = document.getElementById('directional-sub-questions-list');
         if (list) {
             const div = document.createElement('div');
-            div.innerHTML = buildSubQuestionCardHtml(idx, seq);
+            div.innerHTML = buildSubQuestionCardHtml(idx, seq, dataObj);
             list.appendChild(div.firstElementChild);
             initSubQuestionCKEditors(idx);
         }
@@ -4712,6 +4725,32 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentAiGeneratedData = null;
     let aiSelectedFile = null;
 
+    // Format synchronization for AI Generator modal
+    function syncAiModalFormat() {
+        const fmtSelect = document.getElementById('ai-gen-format');
+        const optSelect = document.getElementById('ai-gen-options-count');
+        const optHint = document.getElementById('ai-gen-options-disabled-hint');
+        const isDesc = (fmtSelect && fmtSelect.value === '2');
+
+        if (optSelect) {
+            if (isDesc) {
+                optSelect.setAttribute('disabled', 'disabled');
+                optSelect.style.background = '#e2e8f0';
+                optSelect.style.color = '#64748b';
+                optSelect.style.cursor = 'not-allowed';
+                if (optHint) optHint.classList.remove('d-none');
+            } else {
+                optSelect.removeAttribute('disabled');
+                optSelect.style.background = '';
+                optSelect.style.color = '';
+                optSelect.style.cursor = '';
+                if (optHint) optHint.classList.add('d-none');
+            }
+        }
+    }
+
+    document.getElementById('ai-gen-format')?.addEventListener('change', syncAiModalFormat);
+
     // Sync academic context badges when opening modal
     $('#modal-ai-generator').on('show.bs.modal', function () {
         const clsName = globalClassSelect && globalClassSelect.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : '';
@@ -4739,6 +4778,13 @@ document.addEventListener('DOMContentLoaded', function () {
             badgeSubject.style.background = '#f59e0b';
             badgeSubject.textContent = 'Subject: Not Selected';
         }
+
+        // Auto-sync AI modal format with the page's global question type
+        const aiFmt = document.getElementById('ai-gen-format');
+        if (aiFmt && globalTypeSelect) {
+            aiFmt.value = globalTypeSelect.value || '1';
+        }
+        syncAiModalFormat();
     });
 
     // Quick Prompt Presets
@@ -4748,9 +4794,29 @@ document.addEventListener('DOMContentLoaded', function () {
             if (promptInput) {
                 const preset = this.getAttribute('data-preset');
                 promptInput.value = preset;
+                const fmt = this.getAttribute('data-format');
+                if (fmt) {
+                    const fmtSelect = document.getElementById('ai-gen-format');
+                    if (fmtSelect) {
+                        fmtSelect.value = fmt;
+                        syncAiModalFormat();
+                    }
+                }
                 promptInput.focus();
             }
         });
+    });
+
+    // Auto-detect descriptive keywords typed into prompt
+    document.getElementById('ai-gen-prompt-text')?.addEventListener('input', function () {
+        const text = this.value.toLowerCase();
+        const fmtSelect = document.getElementById('ai-gen-format');
+        if (!fmtSelect) return;
+        const isDescKeywords = text.includes('descriptive') || text.includes('numerical') || text.includes('subjective') || text.includes('without options') || text.includes('no option') || text.includes('options ki need nahi') || text.includes('bina option') || text.includes('options nahi');
+        if (isDescKeywords && fmtSelect.value !== '2') {
+            fmtSelect.value = '2';
+            syncAiModalFormat();
+        }
     });
 
     // File Dropzone Handling
@@ -4861,6 +4927,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('prompt', promptText);
         if (globalClassSelect && globalClassSelect.value) formData.append('class_type_id', globalClassSelect.value);
         if (globalSubjectSelect && globalSubjectSelect.value) formData.append('subject_id', globalSubjectSelect.value);
+        formData.append('question_type_id', document.getElementById('ai-gen-format')?.value || '1');
         formData.append('difficulty', document.getElementById('ai-gen-difficulty')?.value || 'Mixed');
         formData.append('options_count', document.getElementById('ai-gen-options-count')?.value || '4');
 
@@ -4940,6 +5007,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 1. Render Standalone Questions
         standalone.forEach((q, sIdx) => {
+            const isDesc = (String(q.question_type_id) === '2');
             const correctIdx = parseInt(q.correct_ans, 10) || 0;
             const diff = q.difficulty_level || 'Medium';
             const diffColor = diff === 'Easy' ? '#059669' : (diff === 'Hard' ? '#dc2626' : '#d97706');
@@ -4957,10 +5025,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             <i class="fa fa-file-text-o mr-1"></i> Standalone Q #${sIdx + 1}
                         </span>
                         <span class="badge" style="background: ${diffColor}; color: #ffffff; font-size: 10px;">${diff}</span>
+                        ${isDesc ? `<span class="badge badge-info" style="font-size: 10px; background: #0284c7;"><i class="fa fa-pencil-square-o mr-1"></i> Descriptive / Numerical</span>` : ''}
                         ${imgUrl ? `<span class="badge badge-info" style="font-size: 10px; background: #0284c7;"><i class="fa fa-picture-o mr-1"></i> Has Diagram</span>` : ''}
-                        <span class="badge badge-success font-weight-bold" style="background: #059669; color: #ffffff; font-size: 10px;">
-                            <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
-                        </span>
+                        ${isDesc ? `
+                            <span class="badge badge-success font-weight-bold" style="background: #059669; color: #ffffff; font-size: 10px;">
+                                <i class="fa fa-check mr-1"></i> Expected Answer: ${escapeHtmlSafe(String(q.correct_ans || ''))}
+                            </span>
+                        ` : `
+                            <span class="badge badge-success font-weight-bold" style="background: #059669; color: #ffffff; font-size: 10px;">
+                                <i class="fa fa-check mr-1"></i> Correct: Option ${['A','B','C','D','E'][correctIdx] || 'A'}
+                            </span>
+                        `}
                     </div>
                     <div>
                         <button type="button" class="btn btn-xs btn-outline-primary btn-ai-load-standalone font-weight-bold" data-idx="${sIdx}" style="font-size: 11px; padding: 3px 10px;">
@@ -4980,7 +5055,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Attached Diagram / Figure</div>
                 </div>` : ''}
 
-                {{-- Options Grid --}}
+                ${isDesc ? `
+                {{-- Expected Answer Box for Descriptive / Numerical Question --}}
+                <div class="p-2 mb-2 rounded d-flex align-items-center" style="background: #ecfdf5; border: 1.5px solid #059669;">
+                    <span class="badge mr-2" style="background: #059669; color: #ffffff; font-size: 11px; padding: 4px 8px;">
+                        <i class="fa fa-check-circle mr-1"></i> Expected / Correct Answer:
+                    </span>
+                    <div class="flex-grow-1 font-weight-bold" style="font-size: 12.5px; color: #065f46;">
+                        ${formatRichExamContent(String(q.correct_ans || ''))}
+                    </div>
+                </div>
+                ` : `
+                {{-- Options Grid for Objective MCQ Question --}}
                 <div class="row mb-2">
                     ${[
                         { k: 'ans1', l: 'A', i: 0 },
@@ -5004,6 +5090,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>`;
                     }).join('')}
                 </div>
+                `}
 
                 ${q.explanation ? `
                 <div class="p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 3.5px solid #f59e0b; font-size: 11px; color: #92400e; line-height: 1.45;">
@@ -5061,6 +5148,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="pl-2 border-left" style="border-left-width: 2px !important; border-color: #cbd5e1 !important;">
                     <div class="small font-weight-bold mb-2 text-dark">Sub-Questions in this set:</div>
                     ${subQs.map((sq, sqIdx) => {
+                        const sqIsDesc = (String(sq.question_type_id) === '2');
                         const sqCorrIdx = parseInt(sq.correct_ans, 10) || 0;
                         const sqImgUrl = (sq.image && sq.image !== set.image) ? (sq.image.startsWith('http') ? sq.image : '{{ asset("") }}' + sq.image) : null;
                         return `
@@ -5069,9 +5157,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
                                     <i class="fa fa-question-circle text-primary mr-1"></i> Sub-Q #${sq.sub_question_no || (sqIdx + 1)}
                                 </span>
+                                ${sqIsDesc ? `
+                                <span class="badge badge-success" style="font-size: 9.5px; background: #059669; color: #ffffff;">
+                                    Expected: ${escapeHtmlSafe(String(sq.correct_ans || ''))}
+                                </span>` : `
                                 <span class="badge badge-success" style="font-size: 9.5px; background: #059669; color: #ffffff;">
                                     Correct: Option ${['A','B','C','D','E'][sqCorrIdx] || 'A'}
-                                </span>
+                                </span>`}
                             </div>
                             <div class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a; line-height: 1.5;">
                                 ${formatRichExamContent(sq.name)}
@@ -5082,6 +5174,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <img src="${sqImgUrl}" style="max-height: 110px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
                             </div>` : ''}
 
+                            ${sqIsDesc ? `
+                            <div class="p-1 px-2 mb-1 rounded d-flex align-items-center" style="background: #ecfdf5; border: 1px solid #059669;">
+                                <span class="badge mr-2" style="background: #059669; color: #ffffff; font-size: 9.5px; padding: 2px 6px;">
+                                    Answer:
+                                </span>
+                                <div class="font-weight-bold" style="font-size: 11.5px; color: #065f46;">
+                                    ${formatRichExamContent(String(sq.correct_ans || ''))}
+                                </div>
+                            </div>
+                            ` : `
                             <div class="row mb-1">
                                 ${[
                                     { k: 'ans1', l: 'A', i: 0 },
@@ -5105,6 +5207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     </div>`;
                                 }).join('')}
                             </div>
+                            `}
                             ${sq.explanation ? `
                             <div class="mt-1 p-1 px-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 10.5px; color: #92400e;">
                                 <strong>Solution:</strong> ${formatRichExamContent(sq.explanation)}
@@ -5185,9 +5288,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!currentAiGeneratedData || !currentAiGeneratedData.standalone_questions || !currentAiGeneratedData.standalone_questions[idx]) return;
 
                 const q = currentAiGeneratedData.standalone_questions[idx];
+                const isDesc = (String(q.question_type_id) === '2');
 
                 // Switch Manual Builder to Standalone mode
                 switchManualMode('standalone');
+
+                // Switch Global Question Format to match this question (MCQ vs Descriptive)
+                if (globalTypeSelect) {
+                    globalTypeSelect.value = isDesc ? '2' : '1';
+                    applyQuestionFormatToggle(!isDesc);
+                }
 
                 // Populate Question Statement
                 if (window.CKEDITOR && CKEDITOR.instances['manual_question_name']) {
@@ -5211,47 +5321,75 @@ document.addEventListener('DOMContentLoaded', function () {
                     manualImgWrap?.classList.add('d-none');
                 }
 
-                // Populate Options 1-4
-                for (let i = 1; i <= 4; i++) {
-                    const edId = `manual_ans${i}`;
-                    const val = q[`ans${i}`] || '';
-                    if (window.CKEDITOR && CKEDITOR.instances[edId]) {
-                        CKEDITOR.instances[edId].setData(val);
-                    } else {
-                        const el = document.getElementById(edId);
-                        if (el) el.value = val;
+                if (isDesc) {
+                    // Populate Descriptive / Numerical Expected Answer
+                    const descInput = document.getElementById('manual_descriptive_correct_ans');
+                    if (descInput) {
+                        descInput.value = q.correct_ans || '';
                     }
-                }
 
-                // Handle Option 5 (E)
-                const col5 = document.getElementById('manual-opt-col-5');
-                const btnTog5 = document.getElementById('btn-toggle-manual-opt-5');
-                const btnRem5 = document.getElementById('btn-remove-manual-opt-5');
-
-                if (q.ans5) {
-                    if (col5 && col5.classList.contains('d-none')) {
-                        btnTog5?.click();
-                    }
-                    setTimeout(() => {
-                        if (window.CKEDITOR && CKEDITOR.instances['manual_ans5']) {
-                            CKEDITOR.instances['manual_ans5'].setData(q.ans5);
+                    // Clear MCQ Options 1-5
+                    for (let i = 1; i <= 5; i++) {
+                        const edId = `manual_ans${i}`;
+                        if (window.CKEDITOR && CKEDITOR.instances[edId]) {
+                            CKEDITOR.instances[edId].setData('');
                         } else {
-                            const el = document.getElementById('manual_ans5');
-                            if (el) el.value = q.ans5;
+                            const el = document.getElementById(edId);
+                            if (el) el.value = '';
                         }
-                    }, 50);
-                } else {
+                    }
+                    const col5 = document.getElementById('manual-opt-col-5');
+                    const btnRem5 = document.getElementById('btn-remove-manual-opt-5');
                     if (col5 && !col5.classList.contains('d-none')) {
                         btnRem5?.click();
                     }
-                }
+                } else {
+                    // Reset Descriptive input
+                    const descInput = document.getElementById('manual_descriptive_correct_ans');
+                    if (descInput) descInput.value = '';
 
-                // Mark Correct Answer Radio
-                const correctVal = String(q.correct_ans ?? '0');
-                const cRadio = document.querySelector(`input[name="correct_ans"][value="${correctVal}"]`);
-                if (cRadio) {
-                    cRadio.checked = true;
-                    cRadio.dispatchEvent(new Event('change'));
+                    // Populate Options 1-4
+                    for (let i = 1; i <= 4; i++) {
+                        const edId = `manual_ans${i}`;
+                        const val = q[`ans${i}`] || '';
+                        if (window.CKEDITOR && CKEDITOR.instances[edId]) {
+                            CKEDITOR.instances[edId].setData(val);
+                        } else {
+                            const el = document.getElementById(edId);
+                            if (el) el.value = val;
+                        }
+                    }
+
+                    // Handle Option 5 (E)
+                    const col5 = document.getElementById('manual-opt-col-5');
+                    const btnTog5 = document.getElementById('btn-toggle-manual-opt-5');
+                    const btnRem5 = document.getElementById('btn-remove-manual-opt-5');
+
+                    if (q.ans5) {
+                        if (col5 && col5.classList.contains('d-none')) {
+                            btnTog5?.click();
+                        }
+                        setTimeout(() => {
+                            if (window.CKEDITOR && CKEDITOR.instances['manual_ans5']) {
+                                CKEDITOR.instances['manual_ans5'].setData(q.ans5);
+                            } else {
+                                const el = document.getElementById('manual_ans5');
+                                if (el) el.value = q.ans5;
+                            }
+                        }, 50);
+                    } else {
+                        if (col5 && !col5.classList.contains('d-none')) {
+                            btnRem5?.click();
+                        }
+                    }
+
+                    // Mark Correct Answer Radio
+                    const correctVal = String(q.correct_ans ?? '0');
+                    const cRadio = document.querySelector(`input[name="correct_ans"][value="${correctVal}"]`);
+                    if (cRadio) {
+                        cRadio.checked = true;
+                        cRadio.dispatchEvent(new Event('change'));
+                    }
                 }
 
                 // Populate Explanation
@@ -5353,10 +5491,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Re-add each sub-question from AI set
                 subQs.forEach((sq, sqIdx) => {
-                    addSubQuestion();
+                    addSubQuestion(sq);
                     const newSub = directionalSubQuestions[directionalSubQuestions.length - 1];
                     if (!newSub) return;
                     const idx = newSub.idx;
+                    const sqIsDesc = (String(sq.question_type_id) === '2');
 
                     setTimeout(() => {
                         // Statement
@@ -5375,32 +5514,44 @@ document.addEventListener('DOMContentLoaded', function () {
                             subWrap?.classList.remove('d-none');
                         }
 
-                        // Options A-D
-                        for (let opt = 1; opt <= 4; opt++) {
-                            const optEdId = `dir_sub_${idx}_ans${opt}`;
-                            const optVal = sq[`ans${opt}`] || '';
-                            if (window.CKEDITOR && CKEDITOR.instances[optEdId]) {
-                                CKEDITOR.instances[optEdId].setData(optVal);
-                            }
+                        // Format selector
+                        const fmtSelect = document.querySelector(`.dir-sub-type-select[data-idx="${idx}"]`);
+                        if (fmtSelect) {
+                            fmtSelect.value = sqIsDesc ? '2' : '1';
+                            fmtSelect.dispatchEvent(new Event('change'));
                         }
 
-                        // Option E
-                        if (sq.ans5) {
-                            const btn5 = document.querySelector(`[data-subq-idx="${idx}"].btn-toggle-subq-opt5`);
-                            btn5?.click();
-                            setTimeout(() => {
-                                if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
-                                    CKEDITOR.instances[`dir_sub_${idx}_ans5`].setData(sq.ans5);
+                        if (sqIsDesc) {
+                            const descInput = document.querySelector(`.dir-sub-descriptive-ans[data-idx="${idx}"]`);
+                            if (descInput) descInput.value = sq.correct_ans || '';
+                        } else {
+                            // Options A-D
+                            for (let opt = 1; opt <= 4; opt++) {
+                                const optEdId = `dir_sub_${idx}_ans${opt}`;
+                                const optVal = sq[`ans${opt}`] || '';
+                                if (window.CKEDITOR && CKEDITOR.instances[optEdId]) {
+                                    CKEDITOR.instances[optEdId].setData(optVal);
                                 }
-                            }, 50);
-                        }
+                            }
 
-                        // Correct Ans Radio
-                        const cVal = String(sq.correct_ans ?? '0');
-                        const cRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"][value="${cVal}"]`);
-                        if (cRadio) {
-                            cRadio.checked = true;
-                            cRadio.dispatchEvent(new Event('change'));
+                            // Option E
+                            if (sq.ans5) {
+                                const btn5 = document.querySelector(`[data-subq-idx="${idx}"].btn-toggle-subq-opt5`);
+                                btn5?.click();
+                                setTimeout(() => {
+                                    if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
+                                        CKEDITOR.instances[`dir_sub_${idx}_ans5`].setData(sq.ans5);
+                                    }
+                                }, 50);
+                            }
+
+                            // Correct Ans Radio
+                            const cVal = String(sq.correct_ans ?? '0');
+                            const cRadio = document.querySelector(`input[name="directional_questions[${idx}][correct_ans]"][value="${cVal}"]`);
+                            if (cRadio) {
+                                cRadio.checked = true;
+                                cRadio.dispatchEvent(new Event('change'));
+                            }
                         }
 
                         // Explanation
@@ -5475,14 +5626,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (type === 'standalone' && standalone[idx]) {
                 const q = standalone[idx];
+                const qTypeId = q.question_type_id ? parseInt(q.question_type_id, 10) : 1;
+                const isDesc = (qTypeId === 2);
                 questionsToSave.push({
                     name: q.name,
-                    question_type_id: 1,
-                    ans1: q.ans1,
-                    ans2: q.ans2,
-                    ans3: q.ans3,
-                    ans4: q.ans4,
-                    ans5: q.ans5 || null,
+                    question_type_id: qTypeId,
+                    ans1: isDesc ? null : (q.ans1 || null),
+                    ans2: isDesc ? null : (q.ans2 || null),
+                    ans3: isDesc ? null : (q.ans3 || null),
+                    ans4: isDesc ? null : (q.ans4 || null),
+                    ans5: isDesc ? null : (q.ans5 || null),
                     correct_ans: q.correct_ans,
                     explanation: q.explanation || null,
                     difficulty_level: q.difficulty_level || 'Medium',
@@ -5496,14 +5649,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 const set = dirSets[idx];
                 const subQs = Array.isArray(set.sub_questions) ? set.sub_questions : [];
                 subQs.forEach((sq, sIdx) => {
+                    const sqTypeId = sq.question_type_id ? parseInt(sq.question_type_id, 10) : 1;
+                    const sqIsDesc = (sqTypeId === 2);
                     questionsToSave.push({
                         name: sq.name,
-                        question_type_id: 1,
-                        ans1: sq.ans1,
-                        ans2: sq.ans2,
-                        ans3: sq.ans3,
-                        ans4: sq.ans4,
-                        ans5: sq.ans5 || null,
+                        question_type_id: sqTypeId,
+                        ans1: sqIsDesc ? null : (sq.ans1 || null),
+                        ans2: sqIsDesc ? null : (sq.ans2 || null),
+                        ans3: sqIsDesc ? null : (sq.ans3 || null),
+                        ans4: sqIsDesc ? null : (sq.ans4 || null),
+                        ans5: sqIsDesc ? null : (sq.ans5 || null),
                         correct_ans: sq.correct_ans,
                         explanation: sq.explanation || null,
                         difficulty_level: sq.difficulty_level || 'Medium',
