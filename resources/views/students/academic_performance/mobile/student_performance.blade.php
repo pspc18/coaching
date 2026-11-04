@@ -59,11 +59,14 @@
 <style>
 /* ==============================================================================
    ARISE ERP - NATIVE MOBILE STUDENT ACADEMIC PERFORMANCE
-   100% Matching Arise ERP Mobile Design System (enquiryView & duesList standard)
+   Theme Pattern: Sharp Cards (4px), Circular Accents, Zero Layout Shift (CLS)
+   Aligned with Arise ERP Mobile Dashboard Design System
    ============================================================================== */
 
 .mob-perf-container {
-    padding: 6px 0 80px 0;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 16px 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
     font-size: 12px;
@@ -72,69 +75,119 @@
     box-sizing: border-box;
 }
 
-/* 1. Hero Card - Perfect Clearance from Fixed Top Bar */
+/* 1. Hero Snapshot Card (Matching Native Mobile Dashboard) */
 .mob-hero-card {
-    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
+    background: linear-gradient(135deg, #001833 0%, #002C54 55%, #0a4275 100%);
     color: #ffffff;
     border-radius: 4px;
     padding: 10px 12px;
-    margin-top: 2px;
     margin-bottom: 8px;
-    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 20, 40, 0.25);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    position: relative;
+    overflow: hidden;
+}
+.mob-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+    pointer-events: none;
 }
 .mob-hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
-    min-height: 24px;
+    position: relative;
+    z-index: 1;
 }
 .mob-hero-title {
-    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mob-hero-icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+.mob-hero-heading {
+    font-size: 13px;
     font-weight: 800;
     line-height: 1.2;
     color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
+.mob-hero-sub {
+    font-size: 9px;
+    color: #93c5fd;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
 .mob-session-pill {
     font-size: 9.5px;
-    background: rgba(56, 189, 248, 0.18);
+    background: rgba(56, 189, 248, 0.15);
     border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #38bdf8;
-    padding: 2px 7px;
-    border-radius: 3px;
+    color: #bae6fd !important;
+    padding: 3px 8px;
+    border-radius: 20px;
     font-weight: 700;
     max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-/* 4 Metrics Glance Grid (Clickable Tab Shortcuts) */
+/* 4 Metrics Glance Grid (2x2 Balanced Mobile Grid) */
 .mob-metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    background: rgba(0, 15, 30, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px;
     margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+}
+@media (min-width: 480px) {
+    .mob-metrics-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 .mob-metric-box {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 4px;
-    padding: 6px 4px;
+    padding: 7px 6px;
     text-align: center;
     cursor: pointer;
-    transition: background .15s ease, transform .12s ease;
+    transition: all .15s ease;
 }
 .mob-metric-box:active {
-    transform: scale(0.96);
-    background: rgba(255, 255, 255, 0.18);
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.16);
 }
 .mob-metric-tag {
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
@@ -142,10 +195,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 .mob-metric-val {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.1;
@@ -156,40 +209,31 @@
 
 /* Hero Action Bar */
 .mob-actions-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    position: relative;
+    z-index: 1;
 }
-.mob-act-btn {
-    height: 32px;
-    padding: 0 10px;
+.mob-act-btn-filter {
+    background: rgba(56, 189, 248, 0.15);
+    color: #bae6fd !important;
+    border: 1px solid rgba(56, 189, 248, 0.35);
     border-radius: 4px;
+    height: 32px;
     font-size: 11.5px;
     font-weight: 700;
+    width: 100%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    text-decoration: none !important;
-    border: none;
-    cursor: pointer;
-    transition: all .12s ease;
-    box-sizing: border-box;
-    width: 100%;
-}
-.mob-act-btn:active {
-    transform: scale(0.96);
-}
-.mob-act-btn-filter {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    gap: 6px;
     position: relative;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.mob-act-btn-filter:active {
+    transform: scale(0.98);
+    background: rgba(56, 189, 248, 0.25);
 }
 .filter-active-dot {
-    position: absolute;
-    top: 5px;
-    right: 8px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -205,7 +249,7 @@
     border-radius: 4px;
     padding: 10px 12px;
     margin-bottom: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .mob-filter-box.show {
     display: block;
@@ -280,7 +324,7 @@
     justify-content: center;
 }
 
-/* 3. Compact Search & Horizontal Filter Chips (Arise Gold Standard) */
+/* 3. Compact Search & Horizontal Filter Chips */
 .mob-search-toolbar {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -308,7 +352,7 @@
     padding: 0 28px 0 28px;
     font-size: 11.5px;
     border: 1px solid #cbd5e1;
-    border-radius: 3px;
+    border-radius: 4px;
     background: #f8fafc;
     color: #0f172a;
     outline: none;
@@ -343,7 +387,7 @@
 }
 .mob-chip {
     padding: 4px 9px;
-    border-radius: 3px;
+    border-radius: 4px;
     font-size: 10.5px;
     font-weight: 700;
     white-space: nowrap;
@@ -364,7 +408,7 @@
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
-    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 44, 84, 0.2);
 }
 .mob-chip-count {
     font-size: 8.5px;
@@ -402,7 +446,7 @@
     border-radius: 3px;
 }
 
-/* 5. Student Cards Feed List (Matching Admission Mobile View) */
+/* 5. Student Cards Feed List */
 .student-feed-list {
     display: flex;
     flex-direction: column;
@@ -414,7 +458,7 @@
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     padding: 9px 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     position: relative;
     border-left: 3.5px solid #94a3b8;
     transition: transform .1s ease, border-color .1s ease;
@@ -440,38 +484,61 @@
     min-width: 0;
     flex: 1;
 }
-.student-avatar {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 4px;
-    object-fit: cover;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
+
+/* Strict Zero-Flash Sized Avatar System */
+.student-avatar-box {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    position: relative;
     flex-shrink: 0;
 }
+.student-avatar-inner {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e0f2fe;
+    border: 1.5px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.student-avatar-img {
+    width: 38px;
+    height: 38px;
+    max-width: 38px;
+    max-height: 38px;
+    object-fit: cover;
+    display: block;
+    border-radius: 50%;
+}
 .student-avatar-fallback {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 4px;
-    background: #002C54;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #002C54, #0284c7);
     color: #ffffff;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    position: relative;
+    text-transform: uppercase;
 }
 .topper-rank-crown {
     position: absolute;
     top: -5px;
     right: -5px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
+
 .student-primary-info {
     min-width: 0;
     flex: 1;
@@ -569,23 +636,23 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    border-radius: 3px;
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    border-radius: 4px;
     background: #22c55e;
     color: #ffffff !important;
-    margin-left: 4px;
     text-decoration: none !important;
     flex-shrink: 0;
     line-height: 1;
+    border: none;
 }
 .student-wa-btn:active {
     transform: scale(0.92);
     background: #16a34a;
 }
 .student-wa-btn i {
-    font-size: 11.5px !important;
+    font-size: 13px !important;
     color: #ffffff !important;
 }
 
@@ -617,7 +684,7 @@
 }
 .mob-btn-action {
     flex: 1;
-    height: 29px;
+    height: 30px;
     padding: 0 6px;
     border-radius: 4px;
     font-size: 11px;
@@ -646,10 +713,12 @@
     background: #f8fafc;
     border-color: #cbd5e1;
     color: #0284c7 !important;
-    flex: 0 0 29px;
+    flex: 0 0 30px;
+    width: 30px;
+    min-width: 30px;
 }
 
-/* 6. Analytics Card (Grade Distribution & Toppers) */
+/* 6. Analytics Card */
 .mob-analytics-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -783,16 +852,18 @@
     border-bottom: 1px solid #e2e8f0;
 }
 .mob-modal-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 4px;
-    background: #002C54;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #002C54, #0284c7);
     color: #ffffff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 .mob-modal-grid {
     display: grid;
@@ -832,13 +903,21 @@
 @section('content')
 <div class="mob-perf-container">
 
-    {{-- 1. HERO CARD (Standard Arise ERP Mobile) --}}
+    {{-- 1. HERO SNAPSHOT CARD (Arise Mobile Theme Pattern) --}}
     <div class="mob-hero-card">
         <div class="mob-hero-top">
             <div class="mob-hero-title">
-                <i class="fa fa-line-chart text-warning"></i> Student Performance
+                <div class="mob-hero-icon-circle">
+                    <i class="fa fa-line-chart"></i>
+                </div>
+                <div>
+                    <div class="mob-hero-heading">Student Performance</div>
+                    <div class="mob-hero-sub">Academic KPIs &amp; Rankings</div>
+                </div>
             </div>
-            <span class="mob-session-pill"><i class="fa fa-th-large mr-1"></i> {{ $selectedClass->name ?? 'All Classes' }}</span>
+            <span class="mob-session-pill">
+                <i class="fa fa-th-large"></i> {{ $selectedClass->name ?? 'All Classes' }}
+            </span>
         </div>
 
         {{-- 4 Metrics Glance Grid (Clickable to switch tab) --}}
@@ -863,7 +942,7 @@
 
         {{-- Action Bar in Hero --}}
         <div class="mob-actions-bar">
-            <button type="button" class="mob-act-btn mob-act-btn-filter" id="btnToggleFilter">
+            <button type="button" class="mob-act-btn-filter" id="btnToggleFilter">
                 <i class="fa fa-filter"></i> Search &amp; Filter Class
                 @if($hasFilter)
                     <span class="filter-active-dot"></span>
@@ -915,7 +994,7 @@
         </form>
     </div>
 
-    {{-- 3. SEARCH & HORIZONTAL FILTER CHIPS (Arise Gold Standard Toolbar) --}}
+    {{-- 3. SEARCH & HORIZONTAL FILTER CHIPS --}}
     <div class="mob-search-toolbar">
         <div class="mob-search-input-wrap">
             <i class="fa fa-search search-icon"></i>
@@ -1032,7 +1111,7 @@
 
 </div>
 
-{{-- 8. QUICK STUDENT SNAPSHOT MODAL --}}
+{{-- 5. QUICK STUDENT SNAPSHOT MODAL --}}
 <div class="mob-modal-overlay" id="mobSnapshotModal" onclick="closeMobSnapshot(event)">
     <div class="mob-modal-card" onclick="event.stopPropagation()">
         <div class="mob-modal-header">
@@ -1083,6 +1162,7 @@
         </div>
     </div>
 </div>
+@endsection
 
 @section('scripts')
 <script>

@@ -1,5 +1,7 @@
 @extends('layout.mobile_app')
 
+@include('layout.message')
+
 @php
     $classType = Helper::classType();
     $selectedClassId = (int) ($search['class_type_id'] ?? 0);
@@ -30,113 +32,183 @@
 <style>
 /* ==========================================================================
    ARISE ERP - NATIVE MOBILE STREAM & SUBJECT ALLOCATION THEME
-   Strictly matched with Admission, Enquiry & Credentials Mobile Views
+   Strictly matched with Mobile Dashboard & ERP Mobile App Shell
+   - Consistent 8px spacing, sharp 4px radii & standard card borders
+   - Unified Glassmorphic Hero with circular avatar accent & dual radar metrics
+   - Theme-standard Empty States matching Dashboard and Admission views
+   - Native Mobile Slide-Up Bottom Sheet for Subject Allocation & Class Selection
    ========================================================================== */
 
-/* 1. Glassmorphic Hero Card */
-.mob-hero-card {
-    background: linear-gradient(135deg, #001833 0%, #002C54 100%);
-    color: #ffffff;
+/* 1. Glassmorphic Hero Card (Strictly Matched to Mobile Dashboard .native-hero-card) */
+.native-hero-card {
+    background: linear-gradient(135deg, #001833 0%, #002C54 55%, #0a4275 100%);
+    border: 1px solid rgba(56, 189, 248, 0.28);
     border-radius: 4px;
-    padding: 10px 12px;
+    padding: 12px 14px;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 20, 40, 0.25);
+    position: relative;
+    overflow: hidden;
     margin-bottom: 8px;
-    box-shadow: 0 4px 14px rgba(0, 44, 84, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.mob-hero-top {
+.native-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+    pointer-events: none;
+}
+.native-hero-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
-.mob-hero-title {
-    font-size: 13.5px;
-    font-weight: 800;
-    line-height: 1.2;
-    color: #ffffff;
+.hero-user-cluster {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    min-width: 0;
 }
-.mob-session-pill {
-    font-size: 9.5px;
-    background: rgba(56, 189, 248, 0.18);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #38bdf8;
-    padding: 2px 7px;
-    border-radius: 3px;
-    font-weight: 700;
-}
-
-/* 3 KPI Metrics Glance */
-.mob-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-bottom: 8px;
-}
-.mob-metric-box {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 4px;
-    padding: 6px 4px;
-    text-align: center;
-}
-.mob-metric-tag {
-    font-size: 8.5px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
+.hero-avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-}
-.mob-metric-val {
     font-size: 15px;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+.hero-user-title {
+    font-size: 13.5px;
     font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.hero-user-sub {
+    font-size: 9.5px;
+    color: #93c5fd;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+.hero-session-pill {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #bae6fd !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Symmetrical 3-Column Metrics Glance */
+.hero-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: rgba(0, 15, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+}
+.hero-metric-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+.hero-metric-box:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 15%;
+    bottom: 15%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+.hero-metric-tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.hero-metric-val {
+    font-size: 16px;
+    font-weight: 800;
+    color: #38bdf8;
     line-height: 1.2;
     margin: 2px 0 1px;
-    color: #ffffff;
 }
-.mob-metric-box.metric-sky .mob-metric-val { color: #38bdf8; }
-.mob-metric-box.metric-green .mob-metric-val { color: #34d399; }
-.mob-metric-box.metric-amber .mob-metric-val { color: #fbbf24; }
+.hero-metric-val.val-green { color: #34d399; }
+.hero-metric-val.val-amber { color: #fbbf24; }
+.hero-metric-meta {
+    font-size: 9px;
+    color: #cbd5e1;
+    font-weight: 500;
+    line-height: 1.1;
+}
 
-/* Fast Action Bar */
-.mob-actions-bar {
+/* Fast Action Bar inside Hero */
+.hero-actions-bar {
     display: flex;
+    align-items: center;
     gap: 6px;
 }
-.mob-act-btn {
+.hero-action-btn {
     flex: 1;
-    height: 31px;
-    padding: 0 8px;
+    padding: 6px 4px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
     text-decoration: none !important;
+    line-height: 1.2;
+    white-space: nowrap;
     border: none;
     cursor: pointer;
-    transition: all .12s ease;
-    white-space: nowrap;
+    transition: transform .12s ease;
 }
-.mob-act-btn-light {
+.hero-action-btn:active {
+    transform: scale(0.96);
+}
+.act-btn-primary {
+    background: #0284c7;
+    color: #ffffff !important;
+    border: 1px solid #0284c7;
+}
+.act-btn-light {
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.25);
 }
-.mob-act-btn-primary {
-    background: #0284c7;
-    color: #ffffff !important;
-}
 
-/* 2. Class Selector Banner */
-.mob-class-select-card {
+/* 2. Sharp Section Cards & Class Selector Banner */
+.class-selector-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
@@ -148,24 +220,58 @@
     justify-content: space-between;
     gap: 8px;
 }
-.mob-class-info-wrap {
+.class-selector-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.class-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.class-info-cluster {
+    min-width: 0;
+}
+.class-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    display: block;
+    line-height: 1.1;
+}
+.class-name-txt {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #002C54;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-top: 1px;
 }
-.mob-class-current-pill {
-    font-size: 11.5px;
-    font-weight: 800;
-    color: #002C54;
-    background: #e0f2fe;
-    border: 1px solid #bae6fd;
-    padding: 3px 8px;
-    border-radius: 3px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+.class-badge-subjects {
+    font-size: 9px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 1px 5px;
+    border-radius: 2px;
 }
-.mob-btn-change-class {
+.btn-change-class {
     height: 28px;
     padding: 0 10px;
     background: #002C54;
@@ -178,47 +284,56 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
+    transition: background .12s ease;
+}
+.btn-change-class:active {
+    background: #0284c7;
 }
 
-/* 3. Status Segmented Tabs */
-.mob-seg-bar {
+/* 3. Status Segmented Tabs (Exact Match with Dashboard .native-segments-bar) */
+.native-segments-bar {
     display: flex;
     background: #e2e8f0;
-    padding: 2.5px;
+    padding: 3px;
     border-radius: 4px;
     margin-bottom: 8px;
-    gap: 3px;
+    gap: 2px;
 }
-.mob-seg-btn {
+.native-seg-btn {
     flex: 1;
-    padding: 5px 2px;
+    padding: 6.5px 2px;
     font-size: 10.5px;
     font-weight: 700;
-    color: #475569;
+    color: #64748b;
     border: none;
     background: transparent;
     border-radius: 3px;
     cursor: pointer;
     text-align: center;
     transition: all .15s ease;
+    user-select: none;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
-.mob-seg-btn.active {
+.native-seg-btn.active {
     background: #002C54;
     color: #ffffff;
     font-weight: 800;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
-.mob-seg-pill {
+.native-seg-pill {
     display: inline-block;
     padding: 1px 5px;
     font-size: 9px;
     border-radius: 10px;
-    background: rgba(0,0,0,0.08);
-    margin-left: 3px;
+    background: rgba(0, 0, 0, 0.08);
 }
-.mob-seg-btn.active .mob-seg-pill {
-    background: rgba(255,255,255,0.25);
+.native-seg-btn.active .native-seg-pill {
+    background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
 }
 
@@ -227,7 +342,7 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 5px 6px;
+    padding: 6px 8px;
     margin-bottom: 8px;
     display: flex;
     gap: 6px;
@@ -240,55 +355,137 @@
     display: flex;
     align-items: center;
 }
-.mob-search-input-wrap i {
+.mob-search-input-wrap i.fa-search {
     position: absolute;
-    left: 8px;
+    left: 9px;
     color: #94a3b8;
-    font-size: 11px;
+    font-size: 11.5px;
+    pointer-events: none;
 }
 .mob-search-input {
     width: 100%;
-    height: 30px;
-    padding: 0 24px 0 26px;
+    height: 31px;
+    padding: 0 26px 0 28px;
     font-size: 11.5px;
+    font-weight: 500;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
     background: #f8fafc;
     color: #0f172a;
     outline: none;
+    transition: all .15s ease;
 }
 .mob-search-input:focus {
     border-color: #0284c7;
     background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
 }
 .mob-clear-search {
     position: absolute;
-    right: 6px;
+    right: 7px;
     background: none;
     border: none;
     color: #94a3b8;
     cursor: pointer;
     display: none;
-    font-size: 11px;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px;
 }
 .mob-counter-pill {
     font-size: 10px;
     font-weight: 700;
     background: #f1f5f9;
     color: #475569;
-    padding: 4px 8px;
+    padding: 5px 8px;
     border-radius: 3px;
     border: 1px solid #cbd5e1;
     white-space: nowrap;
 }
 
-/* 5. Student Stream Card Feed */
+/* 5. Theme-Standard Empty State (Strictly Matched to Dashboard & Admission Views) */
+.empty-state-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 28px 16px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    margin-bottom: 8px;
+}
+.empty-state-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+.empty-state-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #002C54;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+.empty-state-desc {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+    max-width: 320px;
+    margin: 0 auto 12px;
+}
+.empty-state-btn {
+    height: 30px;
+    padding: 0 12px;
+    background: #002C54;
+    color: #ffffff !important;
+    border: 1px solid #002C54;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .12s ease;
+    text-decoration: none !important;
+}
+.empty-state-btn:active {
+    background: #0284c7;
+    border-color: #0284c7;
+}
+.empty-state-btn-outline {
+    height: 30px;
+    padding: 0 12px;
+    background: #f8fafc;
+    color: #002C54 !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background .12s ease;
+    text-decoration: none !important;
+}
+.empty-state-btn-outline:active {
+    background: #e2e8f0;
+}
+
+/* 6. Student Cards Feed */
 .mob-feed-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
-    padding-bottom: 60px; /* Space for sticky bar */
+    padding-bottom: 64px; /* Space for floating bulk bar */
 }
 .mob-stream-card {
     background: #ffffff;
@@ -297,14 +494,13 @@
     padding: 9px 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     position: relative;
-    transition: transform .1s ease, border-color .1s ease;
+    transition: transform .1s ease, border-color .1s ease, background-color .1s ease;
 }
 .mob-stream-card.has-assigned {
     border-left: 3px solid #10b981;
 }
 .mob-stream-card.has-unassigned {
     border-left: 3px solid #f59e0b;
-    background: #fffdfa;
 }
 .mob-stream-card.is-selected {
     border-color: #0284c7 !important;
@@ -324,19 +520,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0;
+    cursor: pointer;
 }
 .mob-check-box input[type="checkbox"] {
     width: 17px;
     height: 17px;
     cursor: pointer;
     accent-color: #002C54;
+    margin: 0;
 }
 .mob-avatar-box {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #002C54;
-    color: #ffffff;
+    background: #e0f2fe;
+    color: #0284c7;
+    border: 1.5px solid #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -352,7 +552,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
+    gap: 6px;
 }
 .mob-student-name {
     font-size: 12.5px;
@@ -362,26 +562,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.mob-pills-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 2px;
-}
-.mob-adm-badge {
-    font-size: 9px;
-    font-weight: 700;
-    background: #f1f5f9;
-    color: #475569;
-    padding: 1px 5px;
-    border-radius: 2px;
-    border: 1px solid #e2e8f0;
-}
 .mob-subject-count-pill {
     font-size: 8.5px;
     font-weight: 800;
-    padding: 1px 5px;
+    padding: 1.5px 6px;
     border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .mob-subject-count-pill.pill-green {
     background: #ecfdf5;
@@ -393,6 +580,28 @@
     color: #d97706;
     border: 1px solid #fde68a;
 }
+.mob-pills-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+.mob-adm-badge {
+    font-size: 9px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e2e8f0;
+}
+.mob-status-dot-text {
+    font-size: 9px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
 
 /* Assigned Subject Chips Section */
 .mob-chips-wrap {
@@ -400,7 +609,6 @@
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
-    margin-top: 4px;
 }
 .mob-subject-chip {
     display: inline-flex;
@@ -442,10 +650,10 @@
     font-weight: 600;
 }
 
-/* 6. Sticky Floating Bulk Action Bar */
+/* 7. Sticky Floating Bulk Action Bar (Aligned above bottom dock nav) */
 .mob-floating-bar {
     position: fixed;
-    bottom: 54px; /* Above bottom app nav bar */
+    bottom: calc(var(--bottom-nav-height, 52px) + 12px + var(--safe-bottom, 0px));
     left: 8px;
     right: 8px;
     background: #001833;
@@ -494,58 +702,90 @@
     padding: 2px 6px;
 }
 
-/* 7. Bottom Sheet Filter / Class Selector Modal */
-.mob-filter-modal-backdrop {
+/* 8. Bottom Sheet Modals (Class Selector & Subject Allocation) */
+.mob-bottom-backdrop {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 20, 40, 0.6);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 20, 40, 0.65);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     z-index: 2050;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .2s ease, visibility .2s ease;
+    transition: opacity .25s ease, visibility .25s ease;
 }
-.mob-filter-modal-backdrop.show {
+.mob-bottom-backdrop.show {
     opacity: 1;
     visibility: visible;
 }
-.mob-filter-sheet {
+.mob-bottom-sheet {
     position: fixed;
     bottom: -100%;
     left: 0;
     right: 0;
     background: #ffffff;
-    border-radius: 4px 4px 0 0;
-    border-top: 1px solid #002C54;
+    border-radius: 16px 16px 0 0;
+    border-top: 1px solid rgba(0, 44, 84, 0.15);
     z-index: 2051;
-    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: bottom .28s cubic-bezier(0.33, 1, 0.68, 1);
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
+    box-shadow: 0 -8px 30px rgba(0, 20, 40, 0.35);
 }
-.mob-filter-sheet.show {
+.mob-bottom-sheet.show {
     bottom: 0;
+}
+.mob-sheet-handle-wrap {
+    padding: 8px 0 4px;
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+}
+.mob-sheet-handle-pill {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #cbd5e1;
 }
 .mob-sheet-header {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
-    padding: 10px 12px;
-    border-radius: 4px 4px 0 0;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.mob-sheet-title {
-    font-size: 12.5px;
-    font-weight: 800;
+.mob-sheet-title-cluster {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    min-width: 0;
+}
+.mob-sheet-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #fbbf24;
+    flex-shrink: 0;
+}
+.mob-sheet-title {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+.mob-sheet-sub {
+    font-size: 10px;
+    color: #93c5fd;
+    margin-top: 1px;
 }
 .mob-sheet-close {
     background: rgba(255, 255, 255, 0.12);
@@ -554,294 +794,398 @@
     width: 26px;
     height: 26px;
     border-radius: 3px;
-    font-size: 15px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    line-height: 1;
 }
 .mob-sheet-body {
-    padding: 12px;
+    padding: 12px 14px;
     overflow-y: auto;
     flex: 1;
 }
-.mob-form-group {
-    margin-bottom: 10px;
+
+/* 9. Native Stream Presets Pills (Horizontal Scrollable Mobile App Bar) */
+.mob-presets-section {
+    margin-bottom: 12px;
 }
-.mob-form-label {
+.mob-presets-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.mob-presets-scroll-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+.mob-presets-scroll-bar::-webkit-scrollbar {
+    display: none;
+}
+.mob-preset-pill-btn {
+    padding: 6px 11px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all .15s ease;
+    user-select: none;
+    flex-shrink: 0;
+}
+.mob-preset-pill-btn:active {
+    transform: scale(0.96);
+}
+.mob-preset-pill-btn.active {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);
+}
+
+/* 10. Mobile Subject Tiles Grid */
+.mob-subject-select-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+}
+.mob-btn-clear-subjects {
+    background: none;
+    border: none;
+    color: #0284c7;
     font-size: 10px;
     font-weight: 700;
-    color: #475569;
-    margin-bottom: 3px;
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: .03em;
+    cursor: pointer;
+    padding: 0;
 }
-.mob-form-select {
-    width: 100%;
-    height: 34px;
-    padding: 0 8px;
-    font-size: 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
+.mob-subject-tiles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.mob-subject-tile {
     background: #f8fafc;
-    color: #0f172a;
-    outline: none;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 9px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all .15s ease;
 }
-.mob-sheet-footer {
-    padding: 9px 12px;
+.mob-subject-tile:active {
+    transform: scale(0.98);
+}
+.mob-subject-tile.is-selected {
+    background: #eff6ff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 1px #0284c7;
+}
+.mob-tile-checkbox-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mob-subject-native-check {
+    display: none;
+}
+.mob-custom-check-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid #94a3b8;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 11px;
+    transition: all .15s ease;
+    flex-shrink: 0;
+}
+.mob-subject-tile.is-selected .mob-custom-check-circle {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+.mob-tile-name {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+/* Sheet Sticky Bottom Action Bar */
+.mob-sheet-action-footer {
+    padding: 10px 14px calc(10px + var(--safe-bottom, 0px));
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     display: flex;
+    align-items: center;
     gap: 8px;
 }
-.btn-sheet-apply {
-    flex: 1;
-    height: 33px;
-    background: #0284c7;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 11.5px;
+.btn-sheet-cancel {
+    height: 38px;
+    padding: 0 16px;
+    background: #f1f5f9;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: 700;
+    cursor: pointer;
+}
+.btn-sheet-submit {
+    flex: 1;
+    height: 38px;
+    background: #0284c7;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-}
-
-/* 8. Presets Toolbar in Modal */
-.mob-preset-bar {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 10px;
-}
-.mob-preset-btn {
-    flex: 1;
-    padding: 5px 2px;
-    font-size: 10px;
-    font-weight: 700;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
-    color: #334155;
-    border-radius: 3px;
-    cursor: pointer;
-    text-align: center;
-}
-.mob-preset-btn:active {
-    background: #002C54;
-    color: #ffffff;
-    border-color: #002C54;
-}
-
-/* Subject Checkbox Grid */
-.mob-subject-check-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 6px;
-    max-height: 240px;
-    overflow-y: auto;
-    padding: 4px;
-    border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    background: #f8fafc;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    transition: background .12s ease;
 }
-.mob-subject-check-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 6px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    font-size: 11px;
-    cursor: pointer;
-    user-select: none;
-}
-.mob-subject-check-item input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
-    accent-color: #0284c7;
-}
-
-/* Empty State */
-.mob-empty-feed {
-    text-align: center;
-    padding: 36px 16px;
-    color: #64748b;
-    background: #ffffff;
-    border: 1px dashed #cbd5e1;
-    border-radius: 4px;
-    margin: 8px 0;
+.btn-sheet-submit:active {
+    background: #0369a1;
 }
 </style>
 @endsection
 
 @section('content')
-<div class="container-fluid p-2" style="max-width: 600px; margin: 0 auto;">
-
-    {{-- 1. Hero Summary Card --}}
-    <div class="mob-hero-card">
-        <div class="mob-hero-top">
-            <div class="mob-hero-title">
-                <i class="fa fa-book text-warning"></i> Stream Subject Allocation
+{{-- 1. Glassmorphic Hero Snapshot Card --}}
+<div class="native-hero-card">
+    <div class="native-hero-top">
+        <div class="hero-user-cluster">
+            <div class="hero-avatar-circle">
+                <i class="fa fa-book"></i>
             </div>
-            <div class="mob-session-pill">
-                <i class="fa fa-calendar mr-1"></i> {{ $currentSessionName }}
-            </div>
-        </div>
-
-        {{-- 3 KPI Metrics --}}
-        <div class="mob-metrics-grid">
-            <div class="mob-metric-box metric-sky">
-                <div class="mob-metric-tag"><i class="fa fa-users"></i> Students</div>
-                <div class="mob-metric-val">{{ number_format($studentCount) }}</div>
-            </div>
-            <div class="mob-metric-box metric-green">
-                <div class="mob-metric-tag"><i class="fa fa-check-circle"></i> Assigned</div>
-                <div class="mob-metric-val" id="stat-assigned">{{ number_format($assignedCount) }}</div>
-            </div>
-            <div class="mob-metric-box metric-amber">
-                <div class="mob-metric-tag"><i class="fa fa-clock-o"></i> Unassigned</div>
-                <div class="mob-metric-val" id="stat-unassigned">{{ number_format($unassignedCount) }}</div>
+            <div>
+                <div class="hero-user-title">Stream &amp; Subject Allocation</div>
+                <div class="hero-user-sub">Manage optional subjects for students</div>
             </div>
         </div>
-
-        {{-- Fast Action Buttons --}}
-        <div class="mob-actions-bar">
-            <button type="button" class="mob-act-btn mob-act-btn-light" id="btn-toggle-select-all" onclick="toggleSelectAll()">
-                <i class="fa fa-check-square-o"></i> <span id="lbl-select-all">Select All</span>
-            </button>
-            <button type="button" class="mob-act-btn mob-act-btn-primary" onclick="openClassSheet()">
-                <i class="fa fa-graduation-cap"></i> Select Class
-            </button>
+        <div class="hero-session-pill">
+            <i class="fa fa-graduation-cap"></i> {{ $currentSessionName }}
         </div>
     </div>
 
-    {{-- 2. Class Selector Banner --}}
-    <div class="mob-class-select-card">
-        <div class="mob-class-info-wrap">
-            <span class="text-muted" style="font-size: 11px;">Current Class:</span>
-            <span class="mob-class-current-pill">
-                <i class="fa fa-graduation-cap text-primary"></i> {{ $selectedClass->name ?? 'No Class Selected' }}
-            </span>
+    {{-- Symmetrical 3-Column Metrics Glance --}}
+    <div class="hero-metrics-grid">
+        <div class="hero-metric-box">
+            <span class="hero-metric-tag"><i class="fa fa-users text-info"></i> Total</span>
+            <div class="hero-metric-val">{{ number_format($studentCount) }}</div>
+            <span class="hero-metric-meta">Active Students</span>
         </div>
-        <button type="button" class="mob-btn-change-class" onclick="openClassSheet()">
-            <span>Change</span> <i class="fa fa-angle-right"></i>
+        <div class="hero-metric-box">
+            <span class="hero-metric-tag"><i class="fa fa-check-circle text-success"></i> Assigned</span>
+            <div class="hero-metric-val val-green" id="stat-assigned">{{ number_format($assignedCount) }}</div>
+            <span class="hero-metric-meta">Allocated</span>
+        </div>
+        <div class="hero-metric-box">
+            <span class="hero-metric-tag"><i class="fa fa-clock-o text-warning"></i> Pending</span>
+            <div class="hero-metric-val val-amber" id="stat-unassigned">{{ number_format($unassignedCount) }}</div>
+            <span class="hero-metric-meta">Unassigned</span>
+        </div>
+    </div>
+
+    {{-- Fast Action Buttons --}}
+    <div class="hero-actions-bar">
+        <button type="button" class="hero-action-btn act-btn-primary" onclick="openClassSheet()">
+            <i class="fa fa-filter"></i> Select Class
+        </button>
+        <button type="button" class="hero-action-btn act-btn-light" id="btn-toggle-select-all" onclick="toggleSelectAll()">
+            <i class="fa fa-check-square-o"></i> <span id="lbl-select-all">Select All</span>
+        </button>
+    </div>
+</div>
+
+{{-- 2. Class Selector Banner Card --}}
+<div class="class-selector-card">
+    <div class="class-selector-left">
+        <div class="class-icon-box">
+            <i class="fa fa-graduation-cap"></i>
+        </div>
+        <div class="class-info-cluster">
+            <span class="class-label">Current Class</span>
+            <div class="class-name-txt">
+                {{ $selectedClass->name ?? 'No Class Selected' }}
+                @if($selectedClassId > 0 && $subjectCount > 0)
+                    <span class="class-badge-subjects">{{ $subjectCount }} Subjects</span>
+                @endif
+            </div>
+        </div>
+    </div>
+    <button type="button" class="btn-change-class" onclick="openClassSheet()">
+        <span>{{ $selectedClassId > 0 ? 'Change' : 'Select' }}</span>
+        <i class="fa fa-angle-right"></i>
+    </button>
+</div>
+
+@if($selectedClassId > 0)
+    {{-- 3. Native Segment Navigation Tabs --}}
+    <div class="native-segments-bar">
+        <button type="button" class="native-seg-btn active" data-status="all" onclick="filterByStatus('all', this)">
+            All <span class="native-seg-pill">{{ $studentCount }}</span>
+        </button>
+        <button type="button" class="native-seg-btn" data-status="assigned" onclick="filterByStatus('assigned', this)">
+            🟢 Assigned <span class="native-seg-pill">{{ $assignedCount }}</span>
+        </button>
+        <button type="button" class="native-seg-btn" data-status="unassigned" onclick="filterByStatus('unassigned', this)">
+            🟡 Unassigned <span class="native-seg-pill">{{ $unassignedCount }}</span>
         </button>
     </div>
 
-    @if($selectedClassId > 0)
-        {{-- 3. Status Segmented Tabs --}}
-        <div class="mob-seg-bar">
-            <button type="button" class="mob-seg-btn active" data-status="all" onclick="filterByStatus('all', this)">
-                All <span class="mob-seg-pill">{{ $studentCount }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-status="assigned" onclick="filterByStatus('assigned', this)">
-                🟢 Assigned <span class="mob-seg-pill">{{ $assignedCount }}</span>
-            </button>
-            <button type="button" class="mob-seg-btn" data-status="unassigned" onclick="filterByStatus('unassigned', this)">
-                🟡 Unassigned <span class="mob-seg-pill">{{ $unassignedCount }}</span>
-            </button>
+    {{-- 4. Search Toolbar --}}
+    <div class="mob-search-toolbar">
+        <div class="mob-search-input-wrap">
+            <i class="fa fa-search"></i>
+            <input type="text" id="mobSearchInput" class="mob-search-input" placeholder="Search student name or Adm No...">
+            <button type="button" id="mobClearSearch" class="mob-clear-search" onclick="clearSearch()" aria-label="Clear Search">&times;</button>
         </div>
+        <span class="mob-counter-pill" id="mobRecordCount">{{ $studentCount }} Students</span>
+    </div>
 
-        {{-- 4. Search Toolbar --}}
-        <div class="mob-search-toolbar">
-            <div class="mob-search-input-wrap">
-                <i class="fa fa-search"></i>
-                <input type="text" id="mobSearchInput" class="mob-search-input" placeholder="Search student name or Adm No...">
-                <button type="button" id="mobClearSearch" class="mob-clear-search" onclick="clearSearch()">&times;</button>
-            </div>
-            <span class="mob-counter-pill" id="mobRecordCount">{{ $studentCount }} Students</span>
-        </div>
+    {{-- 5. Student Stream Cards Feed --}}
+    <div class="mob-feed-list" id="streamCardsContainer">
+        @if(!empty($data) && $studentCount > 0)
+            @foreach($data as $student)
+                @php
+                    $fullName = trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? ''));
+                    $initial = strtoupper(mb_substr($fullName ?: 'S', 0, 1, 'UTF-8'));
+                    $subList = $assignedSubjectsByStudent[$student->id] ?? collect();
+                    $hasSub = $subList->isNotEmpty();
+                @endphp
+                <div class="mob-stream-card {{ $hasSub ? 'has-assigned' : 'has-unassigned' }}"
+                     id="student-card-{{ $student->id }}"
+                     data-id="{{ $student->id }}"
+                     data-name="{{ strtolower($fullName) }}"
+                     data-adm="{{ strtolower($student->admissionNo ?? '') }}"
+                     data-status="{{ $hasSub ? 'assigned' : 'unassigned' }}">
 
-        {{-- 5. Student Stream Cards Feed --}}
-        <div class="mob-feed-list" id="streamCardsContainer">
-            @if(!empty($data) && $studentCount > 0)
-                @foreach($data as $student)
-                    @php
-                        $fullName = trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? ''));
-                        $initial = strtoupper(mb_substr($fullName ?: 'S', 0, 1, 'UTF-8'));
-                        $subList = $assignedSubjectsByStudent[$student->id] ?? collect();
-                        $hasSub = $subList->isNotEmpty();
-                    @endphp
-                    <div class="mob-stream-card {{ $hasSub ? 'has-assigned' : 'has-unassigned' }}"
-                         id="student-card-{{ $student->id }}"
-                         data-id="{{ $student->id }}"
-                         data-name="{{ strtolower($fullName) }}"
-                         data-adm="{{ strtolower($student->admissionNo ?? '') }}"
-                         data-status="{{ $hasSub ? 'assigned' : 'unassigned' }}">
+                    {{-- Card Header --}}
+                    <div class="mob-card-head">
+                        <label class="mob-check-box" for="check-{{ $student->id }}">
+                            <input type="checkbox" id="check-{{ $student->id }}" class="student-check" value="{{ $student->id }}"
+                                   data-name="{{ $fullName }}"
+                                   title="Select {{ $fullName }}">
+                        </label>
 
-                        {{-- Card Header --}}
-                        <div class="mob-card-head">
-                            <div class="mob-check-box">
-                                <input type="checkbox" class="student-check" value="{{ $student->id }}"
-                                       data-name="{{ $fullName }}"
-                                       title="Select {{ $fullName }}">
-                            </div>
-
-                            <div class="mob-avatar-box">
-                                <span>{{ $initial }}</span>
-                            </div>
-
-                            <div class="mob-head-info">
-                                <div class="mob-name-row">
-                                    <span class="mob-student-name">{{ $fullName ?: '-' }}</span>
-                                    <span class="mob-subject-count-pill {{ $hasSub ? 'pill-green' : 'pill-amber' }}" id="sub-count-{{ $student->id }}">
-                                        {{ $subList->count() }} Subjects
-                                    </span>
-                                </div>
-                                <div class="mob-pills-row">
-                                    @if(!empty($student->admissionNo))
-                                        <span class="mob-adm-badge">Adm: {{ $student->admissionNo }}</span>
-                                    @endif
-                                </div>
-                            </div>
+                        <div class="mob-avatar-box">
+                            <span>{{ $initial }}</span>
                         </div>
 
-                        {{-- Subject Chips Container --}}
-                        <div class="mob-chips-wrap" id="subject-list-{{ $student->id }}">
-                            @if($hasSub)
-                                @foreach($subList as $subject)
-                                    <span class="mob-subject-chip" id="admission-{{ $student->id }}-{{ $subject->id }}">
-                                        <span>{{ $subject->name }}</span>
-                                        <button type="button" class="mob-btn-remove-chip"
-                                                onclick="confirmRemoveSubject({{ $student->id }}, {{ $subject->id }}, '{{ addslashes($subject->name) }}', '{{ addslashes($fullName) }}')"
-                                                title="Remove {{ $subject->name }}">
-                                            <i class="fa fa-times-circle"></i>
-                                        </button>
-                                    </span>
-                                @endforeach
-                            @else
-                                <span class="mob-empty-subject-badge" id="empty-sub-{{ $student->id }}">
-                                    <i class="fa fa-exclamation-triangle"></i> No subjects assigned
+                        <div class="mob-head-info">
+                            <div class="mob-name-row">
+                                <span class="mob-student-name">{{ $fullName ?: '-' }}</span>
+                                <span class="mob-subject-count-pill {{ $hasSub ? 'pill-green' : 'pill-amber' }}" id="sub-count-{{ $student->id }}">
+                                    {{ $subList->count() }} {{ $subList->count() === 1 ? 'Subject' : 'Subjects' }}
                                 </span>
-                            @endif
+                            </div>
+                            <div class="mob-pills-row">
+                                @if(!empty($student->admissionNo))
+                                    <span class="mob-adm-badge">Adm #{{ $student->admissionNo }}</span>
+                                @endif
+                                <span class="mob-status-dot-text {{ $hasSub ? 'text-success' : 'text-warning' }}">
+                                    <i class="fa {{ $hasSub ? 'fa-check-circle' : 'fa-clock-o' }}"></i>
+                                    {{ $hasSub ? 'Assigned' : 'Not Assigned' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                @endforeach
-            @else
-                <div class="mob-empty-feed">
-                    <i class="fa fa-users fa-2x text-muted mb-2"></i>
-                    <h6>No Students in Class</h6>
-                    <p>There are no active students in {{ $selectedClass->name ?? 'this class' }}.</p>
-                </div>
-            @endif
-        </div>
-    @else
-        <div class="mob-empty-feed">
-            <i class="fa fa-graduation-cap fa-3x text-muted mb-2"></i>
-            <h6>Please Select a Class</h6>
-            <p>Select a class above to view students and allocate optional/stream subjects.</p>
-            <button type="button" class="btn btn-sm btn-primary mt-2" onclick="openClassSheet()" style="background: #0284c7; border: none; font-weight: 700;">
-                <i class="fa fa-filter mr-1"></i> Choose Class
-            </button>
-        </div>
-    @endif
 
-</div>
+                    {{-- Subject Chips Container --}}
+                    <div class="mob-chips-wrap" id="subject-list-{{ $student->id }}">
+                        @if($hasSub)
+                            @foreach($subList as $subject)
+                                <span class="mob-subject-chip" id="admission-{{ $student->id }}-{{ $subject->id }}">
+                                    <span>{{ $subject->name }}</span>
+                                    <button type="button" class="mob-btn-remove-chip"
+                                            onclick="confirmRemoveSubject({{ $student->id }}, {{ $subject->id }}, '{{ addslashes($subject->name) }}', '{{ addslashes($fullName) }}')"
+                                            title="Remove {{ $subject->name }}" aria-label="Remove {{ $subject->name }}">
+                                        <i class="fa fa-times-circle"></i>
+                                    </button>
+                                </span>
+                            @endforeach
+                        @else
+                            <span class="mob-empty-subject-badge" id="empty-sub-{{ $student->id }}">
+                                <i class="fa fa-info-circle mr-1"></i> No optional subjects assigned
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+
+            {{-- Dynamic Empty State when Search or Status Filter yields 0 matches --}}
+            <div class="empty-state-card" id="mobSearchEmptyState" style="display: none;">
+                <div class="empty-state-icon">
+                    <i class="fa fa-search"></i>
+                </div>
+                <div class="empty-state-title">No Matching Students Found</div>
+                <div class="empty-state-desc">No students match your selected status tab or search keyword.</div>
+                <button type="button" class="empty-state-btn-outline" onclick="resetSearchAndTabs()">
+                    <i class="fa fa-refresh mr-1"></i> Reset Filters
+                </button>
+            </div>
+        @else
+            {{-- Data Not Found Condition: Class Selected, but 0 Students in DB --}}
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
+                    <i class="fa fa-users"></i>
+                </div>
+                <div class="empty-state-title">No Students in this Class</div>
+                <div class="empty-state-desc">There are currently no active students found in {{ $selectedClass->name ?? 'the selected class' }}.</div>
+                <button type="button" class="empty-state-btn-outline" onclick="openClassSheet()">
+                    <i class="fa fa-exchange mr-1"></i> Switch to Another Class
+                </button>
+            </div>
+        @endif
+    </div>
+@else
+    {{-- Data Not Found / Initial Prompt: No Class Selected Yet --}}
+    <div class="empty-state-card">
+        <div class="empty-state-icon">
+            <i class="fa fa-graduation-cap"></i>
+        </div>
+        <div class="empty-state-title">Please Select a Class</div>
+        <div class="empty-state-desc">Select a class from above or click below to view registered students and allocate optional / stream subjects.</div>
+        <button type="button" class="empty-state-btn" onclick="openClassSheet()">
+            <i class="fa fa-filter mr-1"></i> Choose Class
+        </button>
+    </div>
+@endif
 
 {{-- 6. Sticky Floating Bulk Action Bar --}}
 <div class="mob-floating-bar" id="mobFloatingBar">
@@ -849,26 +1193,35 @@
         <span class="mob-selected-pill"><span id="lblSelectedCount">0</span> Selected</span>
         <button type="button" class="mob-btn-clear-sel" onclick="clearAllSelections()">Clear</button>
     </div>
-    <button type="button" class="mob-btn-assign-subjects" onclick="openAssignModal()">
+    <button type="button" class="mob-btn-assign-subjects" onclick="openAssignSheet()">
         <i class="fa fa-plus-circle"></i> Assign Subjects
     </button>
 </div>
 
-{{-- 7. Bottom Sheet Class Selector Modal --}}
-<div class="mob-filter-modal-backdrop" id="mobFilterBackdrop" onclick="closeClassSheet()"></div>
-<div class="mob-filter-sheet" id="mobFilterSheet">
+{{-- 7. Native Mobile Bottom Sheet: Class Selector --}}
+<div class="mob-bottom-backdrop" id="mobClassBackdrop" onclick="closeClassSheet()"></div>
+<div class="mob-bottom-sheet" id="mobClassSheet">
+    <div class="mob-sheet-handle-wrap" onclick="closeClassSheet()">
+        <div class="mob-sheet-handle-pill"></div>
+    </div>
     <div class="mob-sheet-header">
-        <div class="mob-sheet-title">
-            <i class="fa fa-graduation-cap text-info"></i> Select Class
+        <div class="mob-sheet-title-cluster">
+            <div class="mob-sheet-icon-box">
+                <i class="fa fa-graduation-cap"></i>
+            </div>
+            <div>
+                <div class="mob-sheet-title">Select Class</div>
+                <div class="mob-sheet-sub">Switch class to view &amp; allocate subjects</div>
+            </div>
         </div>
         <button type="button" class="mob-sheet-close" onclick="closeClassSheet()">&times;</button>
     </div>
     <form action="{{ url('stream_update') }}" method="GET" id="mobClassForm">
         <input type="hidden" name="layout" value="mobile">
         <div class="mob-sheet-body">
-            <div class="mob-form-group">
-                <label class="mob-form-label">Choose Class</label>
-                <select name="class_type_id" class="mob-form-select" id="mobClassSelect" onchange="document.getElementById('mobClassForm').submit()">
+            <div class="form-group mb-2">
+                <label style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;">Choose Class</label>
+                <select name="class_type_id" class="form-control" id="mobClassSelect" onchange="document.getElementById('mobClassForm').submit()">
                     <option value="">-- Choose Class --</option>
                     @if(!empty($classType))
                         @foreach($classType as $class)
@@ -880,109 +1233,106 @@
                 </select>
             </div>
         </div>
-        <div class="mob-sheet-footer">
-            <button type="submit" class="btn-sheet-apply">
+        <div class="mob-sheet-action-footer">
+            <button type="button" class="btn-sheet-cancel" onclick="closeClassSheet()">Cancel</button>
+            <button type="submit" class="btn-sheet-submit">
                 <i class="fa fa-check mr-1"></i> Load Class Students
             </button>
         </div>
     </form>
 </div>
 
-{{-- 8. Mobile Assign Subjects Modal --}}
-<div class="modal fade" id="mobAssignModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px; margin: 12px auto;">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #002C54;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #001833 0%, #002C54 100%); color: #ffffff; padding: 10px 14px;">
-                <h6 class="modal-title m-0" style="font-size: 13px; font-weight: 800;">
-                    <i class="fa fa-book text-warning mr-1"></i> Allocate Stream Subjects
-                </h6>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+{{-- 8. Native Mobile Bottom Sheet: Allocate Stream Subjects --}}
+<div class="mob-bottom-backdrop" id="mobAssignBackdrop" onclick="closeAssignSheet()"></div>
+<div class="mob-bottom-sheet" id="mobAssignSheet">
+    <div class="mob-sheet-handle-wrap" onclick="closeAssignSheet()">
+        <div class="mob-sheet-handle-pill"></div>
+    </div>
+    <div class="mob-sheet-header">
+        <div class="mob-sheet-title-cluster">
+            <div class="mob-sheet-icon-box">
+                <i class="fa fa-book"></i>
             </div>
-
-            <form action="{{ url('stream_update_save') }}" method="POST" id="mobAssignForm">
-                @csrf
-                <input type="hidden" name="class_type_id" value="{{ $selectedClassId }}">
-                <div id="hiddenAdmissionInputs"></div>
-
-                <div class="modal-body p-3" style="font-size: 11.5px;">
-                    <div class="alert alert-info py-2 px-3 mb-2" style="font-size: 11px; border-radius: 3px;">
-                        <i class="fa fa-info-circle mr-1"></i> Assigning subjects to <b id="mobModalSelectedCount">0</b> selected student(s) of <b>{{ $selectedClass->name ?? '' }}</b>.
-                    </div>
-
-                    {{-- Quick Stream Presets --}}
-                    <label class="font-weight-bold text-dark mb-1" style="font-size: 10.5px; text-transform: uppercase;">
-                        Quick Stream Presets:
-                    </label>
-                    <div class="mob-preset-bar">
-                        <button type="button" class="mob-preset-btn" onclick="applySubjectPreset(['physics', 'chemistry', 'mathematics', 'maths', 'math'])">
-                            ⚡ Science (PCM)
-                        </button>
-                        <button type="button" class="mob-preset-btn" onclick="applySubjectPreset(['physics', 'chemistry', 'biology', 'bio'])">
-                            🔬 Science (PCB)
-                        </button>
-                        <button type="button" class="mob-preset-btn" onclick="applySubjectPreset(['commerce', 'accounts', 'accountancy', 'business', 'economics'])">
-                            💼 Commerce
-                        </button>
-                        <button type="button" class="mob-preset-btn" onclick="applySubjectPreset(['arts', 'history', 'geography', 'political', 'hindi', 'english'])">
-                            🎨 Arts
-                        </button>
-                    </div>
-
-                    <label class="font-weight-bold text-dark mb-1" style="font-size: 10.5px; text-transform: uppercase;">
-                        Select Subjects:
-                    </label>
-                    <div class="mob-subject-check-grid">
-                        @if(!empty($list_subject) && $subjectCount > 0)
-                            @foreach($list_subject as $subj)
-                                <label class="mob-subject-check-item">
-                                    <input type="checkbox" name="subject_id[]" value="{{ $subj->id }}" data-subj-name="{{ strtolower($subj->name) }}">
-                                    <span>{{ $subj->name }}</span>
-                                </label>
-                            @endforeach
-                        @else
-                            <div class="p-2 text-muted text-center col-span-2" style="grid-column: span 2; font-size: 11px;">
-                                No subjects registered for this class.
-                            </div>
-                        @endif
-                    </div>
+            <div>
+                <div class="mob-sheet-title">Allocate Stream Subjects</div>
+                <div class="mob-sheet-sub">
+                    Assigning to <b id="mobModalSelectedCount">0</b> selected student(s) of <b>{{ $selectedClass->name ?? '' }}</b>
                 </div>
+            </div>
+        </div>
+        <button type="button" class="mob-sheet-close" onclick="closeAssignSheet()">&times;</button>
+    </div>
 
-                <div class="modal-footer p-2" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
-                    <button type="button" class="btn btn-sm btn-light" data-dismiss="modal" style="font-size: 11px; font-weight: 700;">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="mobBtnSubmitAssign" style="background: #0284c7; border-color: #0284c7; font-size: 11px; font-weight: 700;">
-                        <i class="fa fa-check mr-1"></i> Save Allocation
+    <form action="{{ url('stream_update_save') }}" method="POST" id="mobAssignForm">
+        @csrf
+        <input type="hidden" name="layout" value="mobile">
+        <input type="hidden" name="class_type_id" value="{{ $selectedClassId }}">
+        <div id="hiddenAdmissionInputs"></div>
+
+        <div class="mob-sheet-body">
+            {{-- Quick Stream Presets Horizontal Bar --}}
+            <div class="mob-presets-section">
+                <div class="mob-presets-label">
+                    <span><i class="fa fa-magic text-primary mr-1"></i> Quick Stream Presets</span>
+                    <span style="font-size: 9px; font-weight: 600; color: #94a3b8; text-transform: none;">1-Click Select</span>
+                </div>
+                <div class="mob-presets-scroll-bar">
+                    <button type="button" class="mob-preset-pill-btn" data-preset="abc" onclick="applySubjectPreset('abc', this)">
+                        🌱 Agri (ABC)
+                    </button>
+                    <button type="button" class="mob-preset-pill-btn" data-preset="pcm" onclick="applySubjectPreset('pcm', this)">
+                        ⚡ Science (PCM)
+                    </button>
+                    <button type="button" class="mob-preset-pill-btn" data-preset="pcb" onclick="applySubjectPreset('pcb', this)">
+                        🔬 Science (PCB)
+                    </button>
+                    <button type="button" class="mob-preset-pill-btn" data-preset="commerce" onclick="applySubjectPreset('commerce', this)">
+                        💼 Commerce
+                    </button>
+                    <button type="button" class="mob-preset-pill-btn" data-preset="arts" onclick="applySubjectPreset('arts', this)">
+                        🎨 Arts
+                    </button>
+                    <button type="button" class="mob-preset-pill-btn" data-preset="all" onclick="applySubjectPreset('all', this)">
+                        ✨ Select All
                     </button>
                 </div>
-            </form>
-        </div>
-    </div>
-</div>
+            </div>
 
-{{-- 9. Remove Subject Confirmation Modal --}}
-<div class="modal fade" id="mobRemoveSubjectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 360px; margin: 12px auto;">
-        <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: 1px solid #ef4444;">
-            <div class="modal-header" style="background: #ef4444; color: #ffffff; padding: 10px 14px;">
-                <h6 class="modal-title m-0" style="font-size: 13px; font-weight: 800;">
-                    <i class="fa fa-trash mr-1"></i> Remove Subject
-                </h6>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            {{-- Subject Selection Tiles Grid --}}
+            <div class="mob-subject-select-head">
+                <span>Select Subjects (<span id="lblSelectedSubjectCount">0</span> selected)</span>
+                <button type="button" class="mob-btn-clear-subjects" onclick="clearSelectedSubjects()">Clear All</button>
             </div>
-            <div class="modal-body p-3" style="font-size: 11.5px;">
-                Are you sure you want to remove <b id="lblRemoveSubjName" class="text-danger"></b> from <b id="lblRemoveStudentName"></b>?
-            </div>
-            <div class="modal-footer p-2" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
-                <button type="button" class="btn btn-sm btn-light" data-dismiss="modal" style="font-size: 11px; font-weight: 700;">Cancel</button>
-                <button type="button" class="btn btn-sm btn-danger" id="btnConfirmRemove" style="font-size: 11px; font-weight: 700;">
-                    <i class="fa fa-trash mr-1"></i> Remove
-                </button>
+
+            <div class="mob-subject-tiles-grid" id="mobSubjectTilesGrid">
+                @if(!empty($list_subject) && $subjectCount > 0)
+                    @foreach($list_subject as $subj)
+                        <div class="mob-subject-tile" id="subject-tile-{{ $subj->id }}" data-id="{{ $subj->id }}" data-subj-name="{{ strtolower($subj->name) }}" onclick="toggleSubjectTile({{ $subj->id }})">
+                            <div class="mob-tile-checkbox-wrap">
+                                <input type="checkbox" name="subject_id[]" value="{{ $subj->id }}" id="subj-check-{{ $subj->id }}" class="mob-subject-native-check" onclick="event.stopPropagation(); updateSubjectTileUI({{ $subj->id }});">
+                                <span class="mob-custom-check-circle"><i class="fa fa-check"></i></span>
+                            </div>
+                            <div class="mob-tile-info">
+                                <span class="mob-tile-name">{{ $subj->name }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="col-12 text-center py-3 text-muted" style="grid-column: span 2; font-size: 11px;">
+                        <i class="fa fa-info-circle mb-1 d-block text-warning" style="font-size: 18px;"></i>
+                        No subjects available for this class.
+                    </div>
+                @endif
             </div>
         </div>
-    </div>
+
+        <div class="mob-sheet-action-footer">
+            <button type="button" class="btn-sheet-cancel" onclick="closeAssignSheet()">Cancel</button>
+            <button type="submit" class="btn-sheet-submit" id="mobBtnSubmitAssign" disabled style="opacity: 0.6;">
+                <i class="fa fa-check-circle mr-1"></i> Save Allocation (<span id="lblFooterSubjectCount">0</span>)
+            </button>
+        </div>
+    </form>
 </div>
 @endsection
 
@@ -990,14 +1340,47 @@
 <script>
 var streamBaseUrl = "{{ url('/') }}";
 
-// Class Sheet Controls
+// Class Sheet Controls (Native Bottom Sheet)
 function openClassSheet() {
-    $('#mobFilterBackdrop').addClass('show');
-    $('#mobFilterSheet').addClass('show');
+    $('#mobClassBackdrop').addClass('show');
+    $('#mobClassSheet').addClass('show');
 }
 function closeClassSheet() {
-    $('#mobFilterBackdrop').removeClass('show');
-    $('#mobFilterSheet').removeClass('show');
+    $('#mobClassBackdrop').removeClass('show');
+    $('#mobClassSheet').removeClass('show');
+}
+
+// Assign Subjects Sheet Controls (Native Bottom Sheet)
+function openAssignSheet() {
+    var selectedIds = [];
+    $('.student-check:checked').each(function() {
+        selectedIds.push($(this).val());
+    });
+
+    if (selectedIds.length === 0) {
+        if (typeof window.showMobileConfirm === 'function') {
+            window.showMobileConfirm('No Students Selected', 'Please select at least one student before assigning subjects.', function(){}, 'OK', false, 'fa-info-circle text-primary');
+        } else {
+            alert('Please select at least one student.');
+        }
+        return;
+    }
+
+    var hiddenHtml = '';
+    for (var i = 0; i < selectedIds.length; i++) {
+        hiddenHtml += '<input type="hidden" name="admission_id[]" value="' + selectedIds[i] + '">';
+    }
+    $('#hiddenAdmissionInputs').html(hiddenHtml);
+
+    updateSubjectSelectionCount();
+
+    $('#mobAssignBackdrop').addClass('show');
+    $('#mobAssignSheet').addClass('show');
+}
+
+function closeAssignSheet() {
+    $('#mobAssignBackdrop').removeClass('show');
+    $('#mobAssignSheet').removeClass('show');
 }
 
 // Recency / Status Segment Tabs Filter
@@ -1005,7 +1388,7 @@ var currentStatusFilter = 'all';
 
 function filterByStatus(st, btn) {
     currentStatusFilter = st;
-    $('.mob-seg-btn').removeClass('active');
+    $('.native-seg-btn').removeClass('active');
     $(btn).addClass('active');
     applyCombinedFilters();
 }
@@ -1030,9 +1413,23 @@ function clearSearch() {
     $('#mobSearchInput').val('').trigger('input');
 }
 
+function resetSearchAndTabs() {
+    $('#mobSearchInput').val('');
+    $('#mobClearSearch').hide();
+    currentStatusFilter = 'all';
+    $('.native-seg-btn').removeClass('active');
+    $('.native-seg-btn[data-status="all"]').addClass('active');
+    applyCombinedFilters();
+}
+
 function applyCombinedFilters() {
     var kw = $.trim($('#mobSearchInput').val()).toLowerCase();
     var visibleCount = 0;
+    var totalCards = $('.mob-stream-card').length;
+
+    if (totalCards === 0) {
+        return;
+    }
 
     $('.mob-stream-card').each(function() {
         var cardStatus = $(this).attr('data-status') || '';
@@ -1061,9 +1458,15 @@ function applyCombinedFilters() {
     });
 
     $('#mobRecordCount').text(visibleCount + ' Students');
+
+    if (visibleCount === 0) {
+        $('#mobSearchEmptyState').show();
+    } else {
+        $('#mobSearchEmptyState').hide();
+    }
 }
 
-// Selection Management
+// Student Selection Management
 function updateSelection() {
     var totalChecked = $('.student-check:checked').length;
 
@@ -1105,42 +1508,95 @@ function clearAllSelections() {
     updateSelection();
 }
 
-// Subject Presets
-function applySubjectPreset(keywords) {
-    $('.mob-subject-check-grid input[type="checkbox"]').prop('checked', false);
-    $('.mob-subject-check-grid input[type="checkbox"]').each(function() {
-        var subName = $(this).attr('data-subj-name') || '';
-        for (var i = 0; i < keywords.length; i++) {
-            if (subName.indexOf(keywords[i]) !== -1) {
-                $(this).prop('checked', true);
-                break;
-            }
-        }
-    });
+// Subject Tile Selection within Bottom Sheet
+function toggleSubjectTile(subjId) {
+    var $check = $('#subj-check-' + subjId);
+    $check.prop('checked', !$check.prop('checked'));
+    updateSubjectTileUI(subjId);
 }
 
-// Open Assign Modal
-function openAssignModal() {
-    var selectedIds = [];
-    $('.student-check:checked').each(function() {
-        selectedIds.push($(this).val());
+function updateSubjectTileUI(subjId) {
+    var $tile = $('#subject-tile-' + subjId);
+    var $check = $('#subj-check-' + subjId);
+    if ($check.is(':checked')) {
+        $tile.addClass('is-selected');
+    } else {
+        $tile.removeClass('is-selected');
+        $('.mob-preset-pill-btn').removeClass('active');
+    }
+    updateSubjectSelectionCount();
+}
+
+function updateSubjectSelectionCount() {
+    var count = $('.mob-subject-native-check:checked').length;
+    $('#lblSelectedSubjectCount').text(count);
+    $('#lblFooterSubjectCount').text(count);
+    if (count > 0) {
+        $('#mobBtnSubmitAssign').prop('disabled', false).css('opacity', '1');
+    } else {
+        $('#mobBtnSubmitAssign').prop('disabled', true).css('opacity', '0.6');
+    }
+}
+
+function clearSelectedSubjects() {
+    $('.mob-subject-native-check').prop('checked', false);
+    $('.mob-subject-tile').removeClass('is-selected');
+    $('.mob-preset-pill-btn').removeClass('active');
+    updateSubjectSelectionCount();
+}
+
+// Stream Presets Auto-Selector
+function applySubjectPreset(presetType, btn) {
+    $('.mob-preset-pill-btn').removeClass('active');
+    if (btn) $(btn).addClass('active');
+
+    var keywords = [];
+    if (presetType === 'abc') {
+        keywords = ['agri', 'bio', 'chem'];
+    } else if (presetType === 'pcm') {
+        keywords = ['physic', 'chem', 'math'];
+    } else if (presetType === 'pcb') {
+        keywords = ['physic', 'chem', 'bio'];
+    } else if (presetType === 'commerce') {
+        keywords = ['account', 'business', 'eco', 'comm', 'math'];
+    } else if (presetType === 'arts') {
+        keywords = ['hist', 'pol', 'geo', 'eco', 'socio', 'hindi', 'eng', 'art', 'draw'];
+    } else if (presetType === 'all') {
+        keywords = ['*'];
+    }
+
+    var matchCount = 0;
+    $('.mob-subject-tile').each(function() {
+        var subName = $(this).attr('data-subj-name') || '';
+        var isMatch = false;
+
+        if (presetType === 'all') {
+            isMatch = true;
+        } else {
+            for (var i = 0; i < keywords.length; i++) {
+                if (subName.indexOf(keywords[i]) !== -1) {
+                    isMatch = true;
+                    break;
+                }
+            }
+        }
+
+        var $check = $(this).find('.mob-subject-native-check');
+        if (isMatch) {
+            $check.prop('checked', true);
+            $(this).addClass('is-selected');
+            matchCount++;
+        } else {
+            $check.prop('checked', false);
+            $(this).removeClass('is-selected');
+        }
     });
 
-    if (selectedIds.length === 0) {
-        alert('Please select at least one student.');
-        return;
-    }
-
-    var hiddenHtml = '';
-    for (var i = 0; i < selectedIds.length; i++) {
-        hiddenHtml += '<input type="hidden" name="admission_id[]" value="' + selectedIds[i] + '">';
-    }
-    $('#hiddenAdmissionInputs').html(hiddenHtml);
-    $('#mobAssignModal').modal('show');
+    updateSubjectSelectionCount();
 }
 
 $('#mobAssignForm').on('submit', function() {
-    var checkedSubjs = $('.mob-subject-check-grid input[type="checkbox"]:checked').length;
+    var checkedSubjs = $('.mob-subject-native-check:checked').length;
     if (checkedSubjs === 0) {
         alert('Please select at least one subject to assign.');
         return false;
@@ -1149,21 +1605,7 @@ $('#mobAssignForm').on('submit', function() {
 });
 
 // Remove Subject Chip Handlers
-var pendingDelete = null;
-
-function confirmRemoveSubject(admId, subId, subName, stuName) {
-    pendingDelete = { admId: admId, subId: subId };
-    $('#lblRemoveSubjName').text(subName);
-    $('#lblRemoveStudentName').text(stuName);
-    $('#mobRemoveSubjectModal').modal('show');
-}
-
-$('#btnConfirmRemove').on('click', function() {
-    if (!pendingDelete) return;
-    var admId = pendingDelete.admId;
-    var subId = pendingDelete.subId;
-
-    $('#mobRemoveSubjectModal').modal('hide');
+function executeRemoveSubject(admId, subId) {
     var $chip = $('#admission-' + admId + '-' + subId);
     $chip.css('opacity', 0.5);
 
@@ -1175,11 +1617,18 @@ $('#btnConfirmRemove').on('click', function() {
             $chip.fadeOut(150, function() {
                 $(this).remove();
                 var remaining = $('#subject-list-' + admId).find('.mob-subject-chip').length;
-                $('#sub-count-' + admId).text(remaining + ' Subjects');
+                $('#sub-count-' + admId).text(remaining + ' ' + (remaining === 1 ? 'Subject' : 'Subjects'));
                 if (remaining === 0) {
                     $('#sub-count-' + admId).removeClass('pill-green').addClass('pill-amber');
-                    $('#subject-list-' + admId).html('<span class="mob-empty-subject-badge"><i class="fa fa-exclamation-triangle"></i> No subjects assigned</span>');
+                    $('#subject-list-' + admId).html('<span class="mob-empty-subject-badge"><i class="fa fa-info-circle mr-1"></i> No optional subjects assigned</span>');
                     $('#student-card-' + admId).removeClass('has-assigned').addClass('has-unassigned').attr('data-status', 'unassigned');
+                    
+                    var currentAssigned = parseInt($('#stat-assigned').text().replace(/[^0-9]/g, '')) || 0;
+                    var currentUnassigned = parseInt($('#stat-unassigned').text().replace(/[^0-9]/g, '')) || 0;
+                    if (currentAssigned > 0) {
+                        $('#stat-assigned').text(Math.max(0, currentAssigned - 1));
+                        $('#stat-unassigned').text(currentUnassigned + 1);
+                    }
                 }
             });
         },
@@ -1188,6 +1637,25 @@ $('#btnConfirmRemove').on('click', function() {
             alert('Failed to remove subject.');
         }
     });
-});
+}
+
+function confirmRemoveSubject(admId, subId, subName, stuName) {
+    if (typeof window.showMobileConfirm === 'function') {
+        window.showMobileConfirm(
+            'Remove Subject',
+            'Are you sure you want to remove <b>' + subName + '</b> from <b>' + stuName + '</b>?',
+            function() {
+                executeRemoveSubject(admId, subId);
+            },
+            'Remove',
+            true,
+            'fa-trash'
+        );
+    } else {
+        if (confirm('Are you sure you want to remove ' + subName + ' from ' + stuName + '?')) {
+            executeRemoveSubject(admId, subId);
+        }
+    }
+}
 </script>
 @endsection

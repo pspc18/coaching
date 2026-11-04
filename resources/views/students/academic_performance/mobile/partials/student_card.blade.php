@@ -60,26 +60,32 @@
     {{-- Card Header --}}
     <div class="student-card-header">
         <div class="student-card-profile-wrap">
-            {{-- Avatar & Topper Badge --}}
-            @if(!empty($student->image))
-                <img src="{{ $imageBase ? $imageBase . '/profile/' . $student->image : asset('upload/profile/' . $student->image) }}" 
-                     alt="{{ $stName }}" 
-                     class="student-avatar"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="student-avatar-fallback" style="display: none;">
-                    {{ $initial }}
-                    @if($topperRank === 1)<span class="topper-rank-crown">🥇</span>@endif
-                    @if($topperRank === 2)<span class="topper-rank-crown">🥈</span>@endif
-                    @if($topperRank === 3)<span class="topper-rank-crown">🥉</span>@endif
+            {{-- Fixed-Size Avatar Box (Zero Flash / CLS Guaranteed) --}}
+            <div class="student-avatar-box" style="width: 38px; height: 38px; min-width: 38px; max-width: 38px; position: relative; flex-shrink: 0;">
+                <div class="student-avatar-inner" style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 50%; overflow: hidden; background: #e0f2fe; border: 1.5px solid #cbd5e1; display: flex; align-items: center; justify-content: center;">
+                    @if(!empty($student->image))
+                        <img src="{{ $imageBase ? $imageBase . '/profile/' . $student->image : asset('upload/profile/' . $student->image) }}" 
+                             alt="{{ $stName }}" 
+                             class="student-avatar-img"
+                             width="38" 
+                             height="38"
+                             loading="lazy"
+                             decoding="async"
+                             style="width: 38px; height: 38px; max-width: 38px; max-height: 38px; object-fit: cover; display: block; border-radius: 50%;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="student-avatar-fallback" style="display: none; width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #002C54, #0284c7); color: #ffffff; font-size: 13px; font-weight: 800; align-items: center; justify-content: center;">
+                            {{ $initial }}
+                        </div>
+                    @else
+                        <div class="student-avatar-fallback" style="display: flex; width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #002C54, #0284c7); color: #ffffff; font-size: 13px; font-weight: 800; align-items: center; justify-content: center;">
+                            {{ $initial }}
+                        </div>
+                    @endif
                 </div>
-            @else
-                <div class="student-avatar-fallback">
-                    {{ $initial }}
-                    @if($topperRank === 1)<span class="topper-rank-crown">🥇</span>@endif
-                    @if($topperRank === 2)<span class="topper-rank-crown">🥈</span>@endif
-                    @if($topperRank === 3)<span class="topper-rank-crown">🥉</span>@endif
-                </div>
-            @endif
+                @if($topperRank === 1)<span class="topper-rank-crown" title="Class Rank #1">🥇</span>@endif
+                @if($topperRank === 2)<span class="topper-rank-crown" title="Class Rank #2">🥈</span>@endif
+                @if($topperRank === 3)<span class="topper-rank-crown" title="Class Rank #3">🥉</span>@endif
+            </div>
 
             {{-- Name & Badges --}}
             <div class="student-primary-info">

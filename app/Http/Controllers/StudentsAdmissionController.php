@@ -1844,6 +1844,59 @@ class StudentsAdmissionController extends Controller
                         ->orderBy("sort_by", "ASC")
                         ->get(['id', 'name']);
 
+                    if ($list_subject->isEmpty()) {
+                        $currentClass = ClassType::find($search["class_type_id"]);
+                        $subjectsToCopy = collect();
+
+                        if ($currentClass && !empty($currentClass->master_id)) {
+                            $sisterClassIds = ClassType::where('master_id', $currentClass->master_id)
+                                ->where('id', '!=', $currentClass->id)
+                                ->pluck('id');
+
+                            $sisterSubjects = Subject::whereIn('class_type_id', $sisterClassIds)
+                                ->where('session_id', Session::get("session_id"))
+                                ->where("branch_id", Session::get("branch_id"))
+                                ->orderBy("sort_by", "ASC")
+                                ->get(['name', 'other_subject']);
+
+                            if ($sisterSubjects->isNotEmpty()) {
+                                $subjectsToCopy = $sisterSubjects->unique('name');
+                            }
+                        }
+
+                        if ($subjectsToCopy->isEmpty()) {
+                            $allSubs = \App\Models\Master\AllSubjects::where(function($q) {
+                                $q->where('branch_id', Session::get('branch_id'))
+                                  ->orWhere('session_id', Session::get('session_id'));
+                            })->whereNull('deleted_at')->orderBy('id', 'ASC')->get(['name', 'other_subject']);
+
+                            if ($allSubs->isNotEmpty()) {
+                                $subjectsToCopy = $allSubs->unique('name');
+                            }
+                        }
+
+                        if ($subjectsToCopy->isNotEmpty()) {
+                            $sortIdx = 1;
+                            foreach ($subjectsToCopy as $subItem) {
+                                Subject::create([
+                                    'user_id' => Session::get('id') ?? 1,
+                                    'session_id' => Session::get("session_id"),
+                                    'branch_id' => Session::get("branch_id"),
+                                    'name' => $subItem->name,
+                                    'other_subject' => $subItem->other_subject ?? 0,
+                                    'sort_by' => $sortIdx++,
+                                    'class_type_id' => $search["class_type_id"],
+                                ]);
+                            }
+
+                            $list_subject = Subject::where("class_type_id", $search["class_type_id"])
+                                ->where('session_id', Session::get("session_id"))
+                                ->where("branch_id", Session::get("branch_id"))
+                                ->orderBy("sort_by", "ASC")
+                                ->get(['id', 'name']);
+                        }
+                    }
+
                     $assignedIds = $data->flatMap(function ($student) {
                         return collect(explode(',', (string) $student->stream_subject))
                             ->map(function ($id) { return (int) trim($id); })
@@ -1887,9 +1940,10 @@ class StudentsAdmissionController extends Controller
                         ->where('session_id', Session::get('session_id'))
                         ->pluck('id')->map(function ($id) { return (int) $id; })->all();
 
+                    $isMobile = $request->get('layout') === 'mobile' || Helper::isMobile();
                     if (empty($subjectIds)) {
-                        $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . (Helper::isMobile() ? '&layout=mobile' : '');
-                    return redirect($redirectUrl)
+                        $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . ($isMobile ? '&layout=mobile' : '');
+                        return redirect($redirectUrl)
                             ->with('error', 'Please select valid subjects for this class.');
                     }
 
@@ -1907,7 +1961,7 @@ class StudentsAdmissionController extends Controller
                         $student->save();
                     }
 
-                    $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . (Helper::isMobile() ? '&layout=mobile' : '');
+                    $redirectUrl = 'stream_update?class_type_id=' . $request->class_type_id . ($isMobile ? '&layout=mobile' : '');
                     return redirect($redirectUrl)
                         ->with('message', 'Subjects assigned successfully.');
                 }
