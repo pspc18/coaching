@@ -143,7 +143,7 @@ Route::match(['get', 'post'], 'studentRegistrationDetail/{id}', 'EnquiryControll
 //Route::post('/get-students-by-class', 'StudentsAdmissionController@getStudentsByClass');
 
 //Students Admission
-Route::match(['get', 'post'], 'admissionAdd', 'StudentsAdmissionController@admissionAdd');
+Route::match(['get', 'post'], 'admissionAdd/{id?}', 'StudentsAdmissionController@admissionAdd');
 Route::match(['get', 'post'], 'admissionView', 'StudentsAdmissionController@admissionView');
 Route::match(['get', 'post'], 'studentDetail/{id}', 'StudentsAdmissionController@studentDetail');
 Route::get('studentDetail/{id}/export', 'StudentsAdmissionController@studentProfileExcel')->name('student.profile.excel');
@@ -261,6 +261,8 @@ Route::match(['get', 'post'], 'get_examination_schedule_data', 'offline_exam\Exa
 Route::match(['get', 'post'], 'download_admit_card', 'offline_exam\AdmitCardController@download_admit_card');
 Route::match(['get', 'post'], 'admit_card_notes', 'offline_exam\AdmitCardController@AdmitCardNotes');
 Route::match(['get', 'post'], 'fill_marks', 'offline_exam\FillMarkController@fillMarks');
+Route::match(['get', 'post'], 'upload_omr', 'offline_exam\ExamController@uploadOmr');
+Route::post('upload_omr/extract', 'offline_exam\ExamController@extractOmr');
 Route::match(['get', 'post'], 'student_performance', 'StudentPerformanceController@studentPerformance');
 //Examination Offline
 Route::match(['get', 'post'], 'exam_wise_report', 'offline_exam\ReportController@exam_wise_report');
@@ -416,6 +418,8 @@ Route::match(['get', 'post'], 'bulkIdPrint', 'StudentsAdmissionController@bulkId
 Route::match(['get', 'post'], 'studentUserNameCreate', 'StudentsAdmissionController@studentUserNameCreate');
 
 Route::match(['get', 'post'], 'getStreamSubjects', 'StudentsAdmissionController@getStreamSubjects');
+Route::match(['get', 'post'], 'getBatchesByCourse/{course_id}', 'master\BatchController@getBatchesByCourse');
+Route::match(['get', 'post'], 'getSubjectsByCourse/{course_id}', 'master\CourseController@getSubjectsByCourse');
 
 Route::match(['get', 'post'], 'saveAdmissionDatatableFields', 'StudentsAdmissionController@saveAdmissionDatatableFields');
 
@@ -677,7 +681,10 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::match(['get', 'post'], 'my_exams', 'offline_exam\FillMarkController@myExams');
 	
     Route::match(['get', 'post'], 'fill_marks_submit', 'offline_exam\FillMarkController@fillMarksSubmit');
-	Route::match(['get', 'post'], 'fill_marks_by_excel', 'offline_exam\FillMarkController@fillMarksByExcel');
+    Route::any('fill_marks_by_excel', function (\Illuminate\Http\Request $request) {
+        $queryString = $request->getQueryString();
+        return redirect()->to(url('fill-marks-by-excel') . ($queryString ? '?' . $queryString : ''), 301);
+    });
 	Route::match(['get', 'post'], 'print_report_card', 'offline_exam\FillMarkController@printReportCard');
 	
     Route::match(['get', 'post'], 'exam_admit_card/{exam_id}/{class_type_id}/{admission_id}', 'offline_exam\AdmitCardController@downloadAdmitCard');

@@ -35,167 +35,32 @@ class FillMarkController extends Controller
 {
 
 
-     public function fillMarksByExcel(Request $request){
-        
-       // dd($request);
-        $search["name"] = "";
-        $search["class_type_id"] = $request->class_type_id;
-        $search["class_type_id"] = $request->class_name;
-        $search["exam_id"] = $request->exam_id ?? "";
-
-        if ($request->isMethod("post")) {
-            
-            $the_file = $request->file('excel');
-            
-            try {
-                $spreadsheet = IOFactory::load($the_file->getRealPath());
-            
-                $sheet        = $spreadsheet->getActiveSheet();
-                $row_limit    = $sheet->getHighestDataRow();
-                $column_limit = $sheet->getHighestDataColumn();
-                $row_range    = range(1, $row_limit);
-                $column_range = range('F', $column_limit);
-                $startcount = 2;
-                $data = array();
-                
-                
-                $searchString = "Total";
-$columnIndex = -1; 
-$subjects =[];
-$columns =[];
-
-for ($col = 1; $col <= $row_range; $col++) {
-    $cellValue = $sheet->getCellByColumnAndRow($col, 1)->getValue();
-    
-    if ($cellValue === $searchString) {
-        $columnIndex = $col; 
-        break; 
-    }
-    if($col>7)
-        {
-        $subjects[] =$cellValue;
-        $columns[]=$col;
-        }
-    }
-    //dd($subjects);
-    $subject_ids_array = [];
-    foreach($subjects as $item)
+    /**
+     * Legacy excel import route redirector.
+     * All excel marks import functionality is now handled by MarksImportController at /fill-marks-by-excel.
+     */
+    public function fillMarksByExcel(Request $request)
     {
-    $subject_ids = Subject::where('class_type_id', $request->class_name)->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($item) . '%'])->first('id');
-    
-    if(!empty($subject_ids))
-    {
-        $subject_ids_array[] =$subject_ids->id;
-    }
-
-    }
-    
-    //dd($subjects);
-                foreach ($row_range as $key => $row) {
-         
-                   if($key >0)
-{
-    $bytes = random_bytes(5);
-     foreach ($subject_ids_array as $index => $ids) {
-                                $subject_name = Subject::find($ids);
-
-                            
-                            $fillMarkByExcel = new FillMarksByExcel(); //model name
-                            
-                            $fillMarkByExcel->user_id = Session::get("id");
-                            $fillMarkByExcel->session_id = Session::get("session_id");
-                            $fillMarkByExcel->branch_id = Session::get("branch_id");
-                            $fillMarkByExcel->exam_id = $request->exam_id;
-                            $fillMarkByExcel->class_type_id = $request->class_name;
-                            $fillMarkByExcel->unique_token = bin2hex($bytes);
-                            $fillMarkByExcel->subject_id = $ids;
-                            $fillMarkByExcel->subject_name = $subject_name->name;
-                            $fillMarkByExcel->test_rank = (!empty($sheet->getCellByColumnAndRow(($columnIndex+1), $row)->getValue())) ? $sheet->getCellByColumnAndRow(($columnIndex+1), $row)->getValue() : '' ;
-                            $fillMarkByExcel->group_rank = (!empty($sheet->getCellByColumnAndRow(($columnIndex+2), $row)->getValue())) ? $sheet->getCellByColumnAndRow(($columnIndex+2), $row)->getValue() : '' ;
-                            $fillMarkByExcel->percentage = (!empty($sheet->getCellByColumnAndRow(($columnIndex+3), $row)->getValue())) ? $sheet->getCellByColumnAndRow(($columnIndex+3), $row)->getValue() : '' ;
-                            $fillMarkByExcel->total = (!empty($sheet->getCellByColumnAndRow(($columnIndex+0), $row)->getValue())) ? $sheet->getCellByColumnAndRow(($columnIndex+0), $row)->getValue() : '' ;
-                            
-                            
-                            $fillMarkByExcel->admission_id = (!empty($sheet->getCell('A' . $row)->getValue())) ? $sheet->getCell('A' . $row)->getValue() : '';
-                           
-                            $fillMarkByExcel->student_marks = (!empty($sheet->getCellByColumnAndRow($columns[$index], $row)->getValue())) ? $sheet->getCellByColumnAndRow($columns[$index], $row)->getValue() : '' ;
-                            $fillMarkByExcel->save();
-                }
-                
-                $data = FillMarksByExcel::where('unique_token',bin2hex($bytes))->get();
-                $admissions = Admission::where('admissionNo',$sheet->getCell('A' . $row)->getValue())->first();
-                if(!empty($admissions)){
-                
-                     $template =  MessageTemplate::Select('message_templates.*','message_types.slug')
-                            ->leftjoin('message_types','message_types.id','message_templates.message_type_id')
-                           ->where('message_types.status',1)->where('message_types.slug','exam-result')->first();
-            
-            $branch = Branch::find(Session::get('branch_id'));
-            $setting = Setting::where('branch_id',Session::get('branch_id'))->first();
-            
-            $sube = ''; // Initialize $sube to store accumulated data
-$total = 0;
-foreach($data as $da) {
-    $sube   .= $da->subject_name . ':' . $da->student_marks . PHP_EOL; // Use PHP_EOL for line breaks
-    $total =$da->total;
-}
-//dd($sube);
-
-if (isset($data[0])) {
-  
-        $arrey1 =   array(
-                        '{#name#}',
-                        '{#school_name#}',
-                        '{#support_no#}',
-                        '{#sub#}',
-                        '{#total#}',
-                        '{#test_rank#}',
-                        '{#date#}'
-                        );
-                       
-        $arrey2 = array(
-                        $admissions->first_name." ".$admissions->last_name,
-                        $setting->name,
-                        $setting->mobile,
-                        $sube,
-                        $total.'/'.$setting->total,
-                        $data[0]->test_rank . ' out of'.$setting->rank,
-                        $setting->test_date
-                        );
-                        
-             // 480      
-                    if($template->status != 1){
-                            if($branch->whatsapp_srvc != 0){
-                                if ($admissions->mobile != ""){
-                                    if($template->whatsapp_status != 0){
-                                        $whatsapp = str_replace($arrey1,$arrey2,$template->whatsapp_content);
-                                        //dd($whatsapp);
-                                        Helper::sendWhatsappMessage($admissions->mobile,$whatsapp);
-                                        //dd('as');
-                                       FillMarksByExcel::where('unique_token',bin2hex($bytes))->update(['message'=>1]);
-                                    }
-                                }
-                            }
-                    }
-}
-                }   
-}
-                }
-            } catch (Exception $e) {
-                $error_code = $e->errorInfo[1];
-                return redirect('fill_marks_by_excel')->with('error', 'Error in Marks Fill !');
-            }
-           
-            return redirect('fill_marks_by_excel')->with('message', 'Marks Filled Successfully !');            
-
-        }
-        return view("examination.offline_exam.fill_mark.fillMarksByExcel", [
-            "search" => $search,
-        ]);
+        $queryString = $request->getQueryString();
+        return redirect()->to(url('fill-marks-by-excel') . ($queryString ? '?' . $queryString : ''), 301);
     }
     public function fillMarks(Request $request)
     {
         $requestedClassId = $request->class_name ?: $request->class_type_id;
+
+        // Auto-detect class_type_id from exam_id if class was not provided in URL
+        if (empty($requestedClassId) && !empty($request->exam_id)) {
+            $examLookup = Exam::find($request->exam_id);
+            if ($examLookup && !empty($examLookup->class_type_id)) {
+                $requestedClassId = $examLookup->class_type_id;
+            } else {
+                $assignLookup = AssignExam::where('exam_id', $request->exam_id)->first();
+                if ($assignLookup && !empty($assignLookup->class_type_id)) {
+                    $requestedClassId = $assignLookup->class_type_id;
+                }
+            }
+        }
+
         $search["class_type_id"] = $requestedClassId;
         $search["subject_name_id"] = array_values(array_filter((array) $request->input('subject_name_id', [])));
         $search["exam_id"] = $request->exam_id ?? "";
@@ -215,7 +80,15 @@ if (isset($data[0])) {
             $request->validate([]);
             $classOrderBy = ClassType::where('id',$requestedClassId)->where("branch_id", Session::get("branch_id"))->first('orderBy');
             $subjects = Subject::where("class_type_id", $requestedClassId)->where("branch_id", Session::get("branch_id"))->orderBy("sort_by", "ASC");
-                        $Allsubjects = Subject::where("class_type_id", $requestedClassId)->where("branch_id", Session::get("branch_id"))->orderBy("sort_by", "ASC");
+            $Allsubjects = Subject::where("class_type_id", $requestedClassId)->where("branch_id", Session::get("branch_id"))->orderBy("sort_by", "ASC");
+
+            if (!empty($search["exam_id"])) {
+                $examModel = Exam::where('id', $search["exam_id"])->first();
+                if ($examModel && !empty($examModel->selected_subject_ids)) {
+                    $subjects->whereIn('id', $examModel->selected_subject_ids);
+                    $Allsubjects->whereIn('id', $examModel->selected_subject_ids);
+                }
+            }
                 $selectedSubjectIds = array_values(array_filter((array) $request->input('subject_name_id', [])));
                 if (!empty($selectedSubjectIds)) {
                 $subjects->whereIn('id', $selectedSubjectIds);
@@ -247,6 +120,19 @@ if (isset($data[0])) {
                 $subjects = collect();
             }
             $Allsubjects = $Allsubjects->get();
+            if ($Allsubjects->isEmpty()) {
+                $csQuery = \App\Models\CourseSubject::where('course_id', $requestedClassId);
+                if (!empty($search["exam_id"])) {
+                    $examModel = Exam::where('id', $search["exam_id"])->first();
+                    if ($examModel && !empty($examModel->selected_subject_ids)) {
+                        $csQuery->whereIn('id', $examModel->selected_subject_ids);
+                    }
+                }
+                $Allsubjects = $csQuery->get();
+                if ($showMarksSection) {
+                    $subjects = $Allsubjects;
+                }
+            }
             if ($showAllSubjects && empty($selectedSubjectIds)) {
                 $selectedSubjectIds = $Allsubjects->pluck('id')->map(function ($id) {
                     return (int) $id;
@@ -320,6 +206,8 @@ if (isset($data[0])) {
                  ->where('exam.deleted_at',null)->where("assign_exams.branch_id", Session::get("branch_id"))->orderBy('exam.id','ASC')
                 ->get();
 
+            $currentExam = !empty($search['exam_id']) ? Exam::find($search['exam_id']) : null;
+
             $fillMinMaxMarksMap = DB::table('fill_min_max_marks')
                 ->where('exam_id', $search['exam_id'] ?? '')
                 ->where('class_type_id', $requestedClassId)
@@ -358,6 +246,7 @@ if (isset($data[0])) {
                 "examlist" => $examlist,
                 "classOrderBy" => $classOrderBy->orderBy ?? '',
                 "selectedSubjectIds" => $selectedSubjectIds,
+                "currentExam" => $currentExam,
                 "studentSubjectAssignments" => $studentSubjectAssignments,
                 "showMarksSection" => $showMarksSection,
                 "fillMinMaxMarksMap" => $fillMinMaxMarksMap,

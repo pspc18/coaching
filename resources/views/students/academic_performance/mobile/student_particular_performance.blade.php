@@ -1265,7 +1265,7 @@
                     <a href="{{ url('fill_marks?layout=mobile') }}" class="empty-state-btn">
                         <i class="fa fa-pencil-square-o mr-1"></i> Enter Marks
                     </a>
-                    <a href="{{ url('fill_marks_by_excel?layout=mobile') }}" class="empty-state-btn-outline">
+                    <a href="{{ url('fill-marks-by-excel?layout=mobile') }}" class="empty-state-btn-outline">
                         <i class="fa fa-file-excel-o text-success mr-1"></i> Import Excel
                     </a>
                     <a href="{{ url('student_performance?layout=mobile') }}" class="empty-state-btn-outline">
