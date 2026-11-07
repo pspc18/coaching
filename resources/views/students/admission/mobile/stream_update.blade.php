@@ -702,90 +702,73 @@
     padding: 2px 6px;
 }
 
-/* 8. Bottom Sheet Modals (Class Selector & Subject Allocation) */
+/* 8. Bottom Sheet Modals (Class Selector & Subject Allocation - Canonical Mobile Theme) */
+.mob-filter-modal-backdrop,
 .mob-bottom-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 20, 40, 0.65);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
     z-index: 2050;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .25s ease, visibility .25s ease;
+    transition: all .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
+.mob-filter-modal-backdrop.show,
 .mob-bottom-backdrop.show {
     opacity: 1;
     visibility: visible;
 }
+.mob-filter-sheet,
 .mob-bottom-sheet {
     position: fixed;
     bottom: -100%;
     left: 0;
     right: 0;
+    max-width: 520px;
+    margin: 0 auto;
     background: #ffffff;
-    border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(0, 44, 84, 0.15);
+    border-radius: 4px 4px 0 0;
+    border-top: 1px solid #002C54;
     z-index: 2051;
-    transition: bottom .28s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -8px 30px rgba(0, 20, 40, 0.35);
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
 }
+.mob-filter-sheet.show,
 .mob-bottom-sheet.show {
     bottom: 0;
-}
-.mob-sheet-handle-wrap {
-    padding: 8px 0 4px;
-    display: flex;
-    justify-content: center;
-    cursor: pointer;
-}
-.mob-sheet-handle-pill {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background: #cbd5e1;
 }
 .mob-sheet-header {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
-    padding: 10px 14px;
+    padding: 10px 12px;
+    border-radius: 4px 4px 0 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-.mob-sheet-title-cluster {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-.mob-sheet-icon-box {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    color: #fbbf24;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
 }
 .mob-sheet-title {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff;
+    margin: 0;
     line-height: 1.2;
 }
 .mob-sheet-sub {
-    font-size: 10px;
+    font-size: 9.5px;
     color: #93c5fd;
-    margin-top: 1px;
+    margin-top: 2px;
+    font-weight: 500;
+    line-height: 1.2;
 }
 .mob-sheet-close {
     background: rgba(255, 255, 255, 0.12);
@@ -794,29 +777,86 @@
     width: 26px;
     height: 26px;
     border-radius: 3px;
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+}
+.mob-sheet-close:active {
+    background: rgba(255, 255, 255, 0.25);
 }
 .mob-sheet-body {
-    padding: 12px 14px;
+    padding: 12px;
     overflow-y: auto;
     flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+.mob-modal-target-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #1e40af;
+}
+.mob-target-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.mob-form-group {
+    margin-bottom: 9px;
+}
+.mob-form-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 3px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+.mob-form-select, .mob-form-input {
+    width: 100%;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color .15s ease;
+}
+.mob-form-select:focus, .mob-form-input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
 }
 
 /* 9. Native Stream Presets Pills (Horizontal Scrollable Mobile App Bar) */
 .mob-presets-section {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px 10px;
 }
 .mob-presets-label {
     font-size: 10px;
     font-weight: 800;
     color: #475569;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .03em;
     margin-bottom: 6px;
     display: flex;
     align-items: center;
@@ -824,21 +864,21 @@
 }
 .mob-presets-scroll-bar {
     display: flex;
-    gap: 6px;
+    gap: 5px;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
 }
 .mob-presets-scroll-bar::-webkit-scrollbar {
     display: none;
 }
 .mob-preset-pill-btn {
-    padding: 6px 11px;
-    background: #f1f5f9;
+    padding: 4px 9px;
+    background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 20px;
-    font-size: 11px;
+    border-radius: 3px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #334155;
     cursor: pointer;
@@ -857,7 +897,7 @@
     background: #002C54;
     color: #ffffff;
     border-color: #002C54;
-    box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);
+    box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);
 }
 
 /* 10. Mobile Subject Tiles Grid */
@@ -869,7 +909,7 @@
     font-weight: 800;
     color: #475569;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .03em;
     margin-bottom: 6px;
 }
 .mob-btn-clear-subjects {
@@ -884,17 +924,17 @@
 .mob-subject-tiles-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 4px;
 }
 .mob-subject-tile {
-    background: #f8fafc;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 9px 10px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     cursor: pointer;
     user-select: none;
     transition: all .15s ease;
@@ -916,16 +956,16 @@
     display: none;
 }
 .mob-custom-check-circle {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
     border: 1.5px solid #94a3b8;
     background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     color: transparent;
-    font-size: 11px;
+    font-size: 10px;
     transition: all .15s ease;
     flex-shrink: 0;
 }
@@ -935,51 +975,73 @@
     color: #ffffff;
 }
 .mob-tile-name {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     color: #0f172a;
     line-height: 1.2;
 }
 
 /* Sheet Sticky Bottom Action Bar */
+.mob-sheet-footer,
 .mob-sheet-action-footer {
-    padding: 10px 14px calc(10px + var(--safe-bottom, 0px));
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom, 0px));
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     display: flex;
-    align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
+.btn-sheet-reset,
 .btn-sheet-cancel {
-    height: 38px;
-    padding: 0 16px;
-    background: #f1f5f9;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-}
-.btn-sheet-submit {
     flex: 1;
-    height: 38px;
+    height: 33px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569 !important;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: background .12s ease;
+}
+.btn-sheet-reset:active,
+.btn-sheet-cancel:active {
+    background: #f1f5f9;
+}
+.btn-sheet-apply,
+.btn-sheet-submit {
+    flex: 2;
+    height: 33px;
     background: #0284c7;
     color: #ffffff !important;
     border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 800;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+    text-decoration: none !important;
     transition: background .12s ease;
 }
+.btn-sheet-apply:active,
 .btn-sheet-submit:active {
     background: #0369a1;
+}
+.btn-sheet-submit.btn-save-action {
+    background: #10b981;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+}
+.btn-sheet-submit.btn-save-action:active {
+    background: #059669;
 }
 </style>
 @endsection
@@ -1199,30 +1261,21 @@
 </div>
 
 {{-- 7. Native Mobile Bottom Sheet: Class Selector --}}
-<div class="mob-bottom-backdrop" id="mobClassBackdrop" onclick="closeClassSheet()"></div>
-<div class="mob-bottom-sheet" id="mobClassSheet">
-    <div class="mob-sheet-handle-wrap" onclick="closeClassSheet()">
-        <div class="mob-sheet-handle-pill"></div>
-    </div>
+<div class="mob-filter-modal-backdrop mob-bottom-backdrop" id="mobClassBackdrop" onclick="closeClassSheet()"></div>
+<div class="mob-filter-sheet mob-bottom-sheet" id="mobClassSheet">
     <div class="mob-sheet-header">
-        <div class="mob-sheet-title-cluster">
-            <div class="mob-sheet-icon-box">
-                <i class="fa fa-graduation-cap"></i>
-            </div>
-            <div>
-                <div class="mob-sheet-title">Select Class</div>
-                <div class="mob-sheet-sub">Switch class to view &amp; allocate subjects</div>
-            </div>
+        <div class="mob-sheet-title">
+            <i class="fa fa-graduation-cap text-primary"></i> Choose Class
         </div>
         <button type="button" class="mob-sheet-close" onclick="closeClassSheet()">&times;</button>
     </div>
-    <form action="{{ url('stream_update') }}" method="GET" id="mobClassForm">
+    <form action="{{ url('stream_update') }}" method="GET" id="mobClassForm" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
         <input type="hidden" name="layout" value="mobile">
         <div class="mob-sheet-body">
-            <div class="form-group mb-2">
-                <label style="font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase;">Choose Class</label>
-                <select name="class_type_id" class="form-control" id="mobClassSelect" onchange="document.getElementById('mobClassForm').submit()">
-                    <option value="">-- Choose Class --</option>
+            <div class="mob-form-group">
+                <label class="mob-form-label">Course / Batch</label>
+                <select name="class_type_id" class="mob-form-select" id="mobClassSelect" onchange="document.getElementById('mobClassForm').submit()">
+                    <option value="">-- Choose Course / Batch --</option>
                     @if(!empty($classType))
                         @foreach($classType as $class)
                             <option value="{{ $class->id }}" {{ $selectedClassId === (int)$class->id ? 'selected' : '' }}>
@@ -1233,9 +1286,9 @@
                 </select>
             </div>
         </div>
-        <div class="mob-sheet-action-footer">
-            <button type="button" class="btn-sheet-cancel" onclick="closeClassSheet()">Cancel</button>
-            <button type="submit" class="btn-sheet-submit">
+        <div class="mob-sheet-footer mob-sheet-action-footer">
+            <button type="button" class="btn-sheet-reset btn-sheet-cancel" onclick="closeClassSheet()">Cancel</button>
+            <button type="submit" class="btn-sheet-apply btn-sheet-submit">
                 <i class="fa fa-check mr-1"></i> Load Class Students
             </button>
         </div>
@@ -1243,33 +1296,29 @@
 </div>
 
 {{-- 8. Native Mobile Bottom Sheet: Allocate Stream Subjects --}}
-<div class="mob-bottom-backdrop" id="mobAssignBackdrop" onclick="closeAssignSheet()"></div>
-<div class="mob-bottom-sheet" id="mobAssignSheet">
-    <div class="mob-sheet-handle-wrap" onclick="closeAssignSheet()">
-        <div class="mob-sheet-handle-pill"></div>
-    </div>
+<div class="mob-filter-modal-backdrop mob-bottom-backdrop" id="mobAssignBackdrop" onclick="closeAssignSheet()"></div>
+<div class="mob-filter-sheet mob-bottom-sheet" id="mobAssignSheet">
     <div class="mob-sheet-header">
-        <div class="mob-sheet-title-cluster">
-            <div class="mob-sheet-icon-box">
-                <i class="fa fa-book"></i>
-            </div>
-            <div>
-                <div class="mob-sheet-title">Allocate Stream Subjects</div>
-                <div class="mob-sheet-sub">
-                    Assigning to <b id="mobModalSelectedCount">0</b> selected student(s) of <b>{{ $selectedClass->name ?? '' }}</b>
-                </div>
-            </div>
+        <div class="mob-sheet-title">
+            <i class="fa fa-book text-primary"></i> Allocate Stream Subjects
         </div>
         <button type="button" class="mob-sheet-close" onclick="closeAssignSheet()">&times;</button>
     </div>
 
-    <form action="{{ url('stream_update_save') }}" method="POST" id="mobAssignForm">
+    <form action="{{ url('stream_update_save') }}" method="POST" id="mobAssignForm" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
         @csrf
         <input type="hidden" name="layout" value="mobile">
         <input type="hidden" name="class_type_id" value="{{ $selectedClassId }}">
         <div id="hiddenAdmissionInputs"></div>
 
         <div class="mob-sheet-body">
+            <div class="mob-modal-target-banner">
+                <div class="mob-target-info">
+                    <i class="fa fa-user-circle text-primary mr-1"></i>
+                    <span>Targeting <b id="mobModalSelectedCount">0</b> selected student(s) in <b>{{ $selectedClass->name ?? '' }}</b></span>
+                </div>
+            </div>
+
             {{-- Quick Stream Presets Horizontal Bar --}}
             <div class="mob-presets-section">
                 <div class="mob-presets-label">
@@ -1326,15 +1375,14 @@
             </div>
         </div>
 
-        <div class="mob-sheet-action-footer">
-            <button type="button" class="btn-sheet-cancel" onclick="closeAssignSheet()">Cancel</button>
-            <button type="submit" class="btn-sheet-submit" id="mobBtnSubmitAssign" disabled style="opacity: 0.6;">
+        <div class="mob-sheet-footer mob-sheet-action-footer">
+            <button type="button" class="btn-sheet-reset btn-sheet-cancel" onclick="closeAssignSheet()">Cancel</button>
+            <button type="submit" class="btn-sheet-apply btn-sheet-submit btn-save-action" id="mobBtnSubmitAssign" disabled style="opacity: 0.6;">
                 <i class="fa fa-check-circle mr-1"></i> Save Allocation (<span id="lblFooterSubjectCount">0</span>)
             </button>
         </div>
     </form>
-</div>
-@endsection
+</div>@endsection
 
 @section('scripts')
 <script>
