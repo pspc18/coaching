@@ -29,37 +29,24 @@
 @section('styles')
 <style>
 /* ==============================================================================
-   ARISE ERP - NATIVE MOBILE STUDENT ACADEMIC PERFORMANCE & ANALYTICS
-   Strictly adheres to Arise ERP Mobile Design System (Plus Jakarta Sans & 4px radius)
+   ARISE ERP - NATIVE MOBILE STUDENT ACADEMIC PERFORMANCE (CANONICAL MOBILE THEME)
+   Strictly aligned with mobile design system: 8px grid, sharp 4px radii & seamless margins
    ============================================================================== */
 
-:root {
-    --perf-navy-900: #001428;
-    --perf-navy-800: #002C54;
-    --perf-navy-700: #0a3d6f;
-    --perf-sky: #0284c7;
-    --perf-emerald: #10b981;
-    --perf-amber: #f59e0b;
-    --perf-rose: #f43f5e;
-    --perf-purple: #8b5cf6;
-    --perf-card-border: #cbd5e1;
-    --perf-bg-soft: #f8fafc;
-}
-
-.mob-perf-page {
-    padding: 8px 10px 75px;
-    background: #f1f5f9;
-    min-height: 100vh;
+.native-perf-wrap {
+    width: 100%;
+    margin: 0;
+    padding: 0 0 calc(var(--bottom-nav-height, 52px) + 20px) 0;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #0f172a;
 }
-.mob-perf-page * {
+.native-perf-wrap * {
     box-sizing: border-box;
 }
 
-/* 1. Native Mobile Hero Banner */
-.mob-perf-hero {
-    background: linear-gradient(135deg, #001428 0%, #002C54 55%, #08335c 100%);
+/* 1. Native Mobile Hero Card (Strictly Matched to Arise Mobile Hero) */
+.native-mob-hero {
+    background: linear-gradient(135deg, #001833 0%, #002C54 55%, #0a4275 100%);
     border: 1px solid rgba(56, 189, 248, 0.28);
     border-radius: 4px;
     padding: 10px 12px;
@@ -69,12 +56,14 @@
     position: relative;
     overflow: hidden;
 }
+
+/* Hero Top Navigation Bar */
 .mob-hero-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
 }
 .mob-hero-nav-left {
     display: flex;
@@ -86,8 +75,8 @@
     width: 28px;
     height: 28px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff !important;
     display: inline-flex;
     align-items: center;
@@ -95,11 +84,11 @@
     font-size: 13px;
     text-decoration: none !important;
     flex-shrink: 0;
-    transition: all .15s ease;
+    transition: transform .12s ease, background .12s ease;
 }
 .mob-hero-btn-back:active {
     background: rgba(255, 255, 255, 0.25);
-    transform: scale(0.94);
+    transform: scale(0.95);
 }
 .mob-hero-page-title {
     font-size: 13.5px;
@@ -116,6 +105,19 @@
     gap: 5px;
     flex-shrink: 0;
 }
+.mob-session-pill {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    padding: 2px 7px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
 .mob-hero-tool-btn {
     height: 26px;
     padding: 0 8px;
@@ -123,14 +125,14 @@
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff !important;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     text-decoration: none !important;
     cursor: pointer;
-    transition: all .12s ease;
+    transition: transform .12s ease, background .12s ease;
 }
 .mob-hero-tool-btn:active {
     background: rgba(255, 255, 255, 0.28);
@@ -147,10 +149,12 @@
     margin-bottom: 8px;
 }
 .mob-perf-avatar-wrap {
-    width: 58px;
-    height: 66px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
     background: #001f3d;
     overflow: hidden;
     flex-shrink: 0;
@@ -170,18 +174,19 @@
     height: 100%;
     background: linear-gradient(135deg, #0284c7 0%, #002C54 100%);
     color: #ffffff;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-transform: uppercase;
 }
 .mob-student-meta {
     flex: 1;
     min-width: 0;
 }
 .mob-student-name {
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.25;
@@ -195,16 +200,17 @@
     align-items: center;
     gap: 4px;
     flex-wrap: wrap;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 .mob-hero-tag {
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
     padding: 1px 6px;
     border-radius: 3px;
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    line-height: 1.3;
 }
 .tag-adm {
     background: rgba(56, 189, 248, 0.22);
@@ -221,30 +227,38 @@
     border: 1px solid rgba(16, 185, 129, 0.5);
     color: #d1fae5;
 }
+.tag-pending {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #f1f5f9;
+}
 .mob-hero-subtext {
     font-size: 9.5px;
     color: #cbd5e1;
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* 4-KPI Metric Grid */
+/* 4-KPI Metric Glance Grid */
 .mob-metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+    gap: 6px;
     margin-bottom: 8px;
 }
 .mob-metric-cell {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 4px;
-    padding: 5px 3px;
+    padding: 6px 4px;
     text-align: center;
 }
 .mob-metric-lbl {
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
@@ -253,12 +267,13 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
+    margin-bottom: 2px;
 }
 .mob-metric-num {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
-    line-height: 1.2;
-    margin: 2px 0 1px;
+    line-height: 1.15;
+    margin: 1px 0;
     color: #ffffff;
     white-space: nowrap;
 }
@@ -277,22 +292,22 @@
 /* Quick Action Contacts Bar */
 .mob-quick-contacts {
     display: flex;
-    gap: 5px;
+    gap: 6px;
 }
 .mob-quick-btn {
     flex: 1;
-    height: 27px;
+    height: 30px;
     border-radius: 4px;
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 5px;
     text-decoration: none !important;
     border: none;
     cursor: pointer;
-    transition: all .12s ease;
+    transition: transform .12s ease;
 }
 .mob-quick-btn:active {
     transform: scale(0.97);
@@ -315,10 +330,10 @@
 .mob-seg-bar {
     display: flex;
     background: #e2e8f0;
-    padding: 2px;
+    padding: 3px;
     border-radius: 4px;
     margin-bottom: 8px;
-    gap: 2px;
+    gap: 3px;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -328,9 +343,9 @@
 }
 .mob-seg-btn {
     flex: 1;
-    min-width: 78px;
-    padding: 6px 6px;
-    font-size: 10.5px;
+    min-width: 0;
+    padding: 7px 6px;
+    font-size: 11px;
     font-weight: 700;
     color: #475569;
     border: none;
@@ -352,14 +367,14 @@
 }
 .mob-seg-pill {
     display: inline-block;
-    padding: 0 4px;
+    padding: 1px 5px;
     font-size: 8.5px;
     font-weight: 800;
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.08);
 }
 .mob-seg-btn.active .mob-seg-pill {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.25);
     color: #ffffff;
 }
 
@@ -388,7 +403,7 @@
 .mob-perf-card-head {
     background: #002C54;
     color: #ffffff;
-    padding: 7px 10px;
+    padding: 8px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -408,7 +423,7 @@
     margin: 0;
 }
 .mob-perf-card-body {
-    padding: 9px 10px;
+    padding: 10px;
 }
 
 /* 4. Exam Feed Cards */
@@ -417,13 +432,13 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px;
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 }
 .mob-view-toggle-btn {
-    height: 25px;
-    padding: 0 8px;
-    border-radius: 3px;
-    font-size: 10px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 4px;
+    font-size: 10.5px;
     font-weight: 700;
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -432,6 +447,7 @@
     align-items: center;
     gap: 4px;
     cursor: pointer;
+    transition: all .12s ease;
 }
 .mob-view-toggle-btn.active {
     background: #002C54;
@@ -447,7 +463,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     overflow: hidden;
     position: relative;
-    border-left-width: 4px;
+    border-left: 3.5px solid #94a3b8;
 }
 .exam-border-distinction { border-left-color: #10b981; }
 .exam-border-first { border-left-color: #0284c7; }
@@ -457,25 +473,24 @@
 .exam-border-none { border-left-color: #94a3b8; }
 
 .mob-exam-card-head {
-    padding: 8px 10px;
+    padding: 9px 10px;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
     cursor: pointer;
     background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
 }
 .mob-exam-meta {
     flex: 1;
     min-width: 0;
 }
 .mob-exam-title {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
     color: #002C54;
     line-height: 1.25;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 .mob-exam-date-sub {
     font-size: 9.5px;
@@ -501,24 +516,26 @@
     font-weight: normal;
 }
 .mob-exam-status-badge {
-    font-size: 8.5px;
+    font-size: 9px;
     font-weight: 800;
-    padding: 1px 5px;
-    border-radius: 2px;
+    padding: 1px 6px;
+    border-radius: 3px;
     display: inline-block;
     margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
 }
-.badge-distinction { background: #dcfce7; color: #15803d; }
-.badge-first { background: #e0f2fe; color: #0369a1; }
-.badge-second { background: #fef3c7; color: #b45309; }
-.badge-pass { background: #cffafe; color: #0e7490; }
-.badge-focus { background: #fee2e2; color: #b91c1c; }
-.badge-pending { background: #f1f5f9; color: #64748b; }
+.badge-distinction { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.badge-first { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+.badge-second { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-pass { background: #cffafe; color: #0e7490; border: 1px solid #a5f3fc; }
+.badge-focus { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.badge-pending { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
 /* Progress bar under exam header */
 .mob-exam-prog-wrap {
-    height: 4px;
-    background: #e2e8f0;
+    height: 3px;
+    background: #f1f5f9;
     width: 100%;
 }
 .mob-exam-prog-fill {
@@ -530,6 +547,7 @@
 .mob-exam-details-body {
     padding: 6px 10px;
     background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
 }
 .mob-sub-result-row {
     display: flex;
@@ -672,9 +690,9 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+    padding: 9px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
 }
 .mob-mastery-head {
     display: flex;
@@ -683,21 +701,21 @@
     margin-bottom: 4px;
 }
 .mob-mastery-title {
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 800;
     color: #002C54;
 }
 .mob-mastery-score {
     font-size: 12px;
     font-weight: 800;
-    color: #0f172a;
+    color: #0284c7;
 }
 .mob-mastery-bar {
-    height: 6px;
-    background: #e2e8f0;
+    height: 5px;
+    background: #f1f5f9;
     border-radius: 3px;
     overflow: hidden;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .mob-mastery-fill {
     height: 100%;
@@ -713,7 +731,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 9px;
+    font-size: 9.5px;
     color: #64748b;
 }
 
@@ -722,11 +740,12 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 8px 10px;
+    padding: 10px;
     margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
 }
 .mob-chart-canvas-wrap {
-    height: 180px;
+    height: 190px;
     width: 100%;
     position: relative;
     margin: 6px 0;
@@ -742,12 +761,13 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 6px 0;
+    padding: 7px 0;
     border-bottom: 1px dashed #e2e8f0;
     font-size: 11px;
 }
 .mob-bio-row:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 .mob-bio-key {
     color: #64748b;
@@ -777,99 +797,130 @@
 
 .mob-stream-pill {
     padding: 2px 7px;
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
     font-size: 10px;
     font-weight: 700;
-    color: #1e293b;
+    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     margin: 2px 2px 0 0;
 }
 
-/* 8. Graceful Empty State (e.g. Student 1448) */
-.mob-empty-card {
+/* 8. Unified Canonical Empty State Card */
+.empty-state-card {
     background: #ffffff;
-    border: 1px dashed #cbd5e1;
+    border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 26px 14px;
+    padding: 28px 16px;
     text-align: center;
-    margin-bottom: 8px;
+    margin: 8px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.mob-empty-icon {
-    width: 48px;
-    height: 48px;
+.empty-state-icon {
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: #e0f2fe;
-    color: #0284c7;
+    background: #f1f5f9;
+    color: #94a3b8;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    margin-bottom: 8px;
+    margin: 0 auto 10px auto;
+    border: 1px dashed #cbd5e1;
 }
-.mob-empty-heading {
+.empty-state-title {
     font-size: 13.5px;
     font-weight: 800;
-    color: #002C54;
-    margin-bottom: 3px;
+    color: #0f172a;
+    margin-bottom: 4px;
 }
-.mob-empty-desc {
+.empty-state-desc {
     font-size: 11px;
     color: #64748b;
+    max-width: 300px;
+    margin: 0 auto 12px auto;
     line-height: 1.4;
-    max-width: 320px;
-    margin: 0 auto 12px;
 }
-.mob-empty-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
-}
-.mob-btn-action-primary {
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 3px;
-    font-size: 10.5px;
-    font-weight: 700;
-    background: #002C54;
+.empty-state-btn {
+    height: 33px;
+    padding: 0 14px;
+    background: #0284c7;
     color: #ffffff !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none !important;
-}
-.mob-btn-action-outline {
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 3px;
-    font-size: 10.5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11.5px;
     font-weight: 700;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #002C54 !important;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.25);
     text-decoration: none !important;
+    transition: background .12s ease;
+}
+.empty-state-btn:active {
+    background: #0369a1;
+}
+.empty-state-btn-outline {
+    height: 33px;
+    padding: 0 12px;
+    background: #ffffff;
+    color: #0284c7 !important;
+    border: 1px solid #0284c7;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none !important;
+    transition: background .12s ease;
+}
+.empty-state-btn-outline:active {
+    background: #f0f9ff;
+}
+
+.mob-profile-btn {
+    height: 34px;
+    width: 100%;
+    background: #0284c7;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none !important;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.25);
+    transition: background .12s ease;
+}
+.mob-profile-btn:active {
+    background: #0369a1;
 }
 
 /* Print Overrides */
 @media print {
-    .mob-perf-page {
+    .native-perf-wrap {
         padding: 0 !important;
         background: #ffffff !important;
     }
-    .mob-hero-nav, .mob-quick-contacts, .mob-seg-bar, .mob-exam-toolbar, .mobile-bottom-dock, .mobile-top-bar, .mob-empty-actions {
+    .mob-hero-nav, .mob-quick-contacts, .mob-seg-bar, .mob-exam-toolbar, .mobile-bottom-dock, .mobile-top-bar, .empty-state-card {
         display: none !important;
     }
     .mob-pane {
         display: block !important;
     }
-    .mob-perf-hero {
+    .native-mob-hero {
         background: none !important;
         color: #000000 !important;
         border: none !important;
@@ -889,10 +940,10 @@
 @endsection
 
 @section('content')
-<div class="mob-perf-page">
+<div class="native-perf-wrap">
 
     {{-- 1. NATIVE MOBILE HERO CARD --}}
-    <div class="mob-perf-hero">
+    <div class="native-mob-hero">
         {{-- Navigation Header --}}
         <div class="mob-hero-nav">
             <div class="mob-hero-nav-left">
@@ -902,12 +953,12 @@
                 <div class="mob-hero-page-title">Academic Performance</div>
             </div>
             <div class="mob-hero-nav-right">
+                <span class="mob-session-pill">
+                    <i class="fa fa-graduation-cap"></i> {{ $sessionName }}
+                </span>
                 <a href="{{ url('studentDetail/' . $data->id . '?layout=mobile') }}" class="mob-hero-tool-btn" title="View Full Student Profile">
                     <i class="fa fa-user"></i> Profile
                 </a>
-                <button type="button" class="mob-hero-tool-btn" onclick="window.print()" title="Print Report Sheet">
-                    <i class="fa fa-print"></i>
-                </button>
             </div>
         </div>
 
@@ -929,12 +980,14 @@
                     <span class="mob-hero-tag tag-class"><i class="fa fa-graduation-cap"></i> {{ $className }}</span>
                     @if($overallPercentage !== null)
                         <span class="mob-hero-tag tag-tier"><i class="fa fa-star"></i> {{ $performanceGrade }}</span>
+                    @else
+                        <span class="mob-hero-tag tag-pending"><i class="fa fa-clock-o"></i> Pending Eval</span>
                     @endif
                 </div>
                 <div class="mob-hero-subtext">
-                    <span>Session: <b>{{ $sessionName }}</b></span>
+                    <span>Roll No: <b>{{ $student->roll_number ?: '-' }}</b></span>
                     <span>&bull;</span>
-                    <span>Role: <b>Student</b></span>
+                    <span>Father: <b>{{ $student->father_name ?: '-' }}</b></span>
                 </div>
             </div>
         </div>
@@ -947,7 +1000,9 @@
                 <div class="mob-metric-num color-score">
                     {{ $overallPercentage !== null ? $overallPercentage . '%' : 'N/A' }}
                 </div>
-                <div class="mob-metric-sub">{{ $performanceGrade }}</div>
+                <div class="mob-metric-sub">
+                    {{ $overallPercentage !== null ? $performanceGrade : 'Pending' }}
+                </div>
             </div>
 
             {{-- Attendance --}}
@@ -958,7 +1013,7 @@
                     @if($totalAttDays > 0)
                         {{ $presentDays }}/{{ $totalAttDays }} Days
                     @else
-                        Active
+                        No Record
                     @endif
                 </div>
             </div>
@@ -1197,24 +1252,24 @@
             </div>
 
         @else
-            {{-- Graceful Empty State (e.g. Student 1448) --}}
-            <div class="mob-empty-card">
-                <div class="mob-empty-icon">
+            {{-- Unified Canonical Empty State (e.g. Student 1594) --}}
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
                     <i class="fa fa-graduation-cap"></i>
                 </div>
-                <div class="mob-empty-heading">No Exam Records Found</div>
-                <div class="mob-empty-desc">
+                <div class="empty-state-title">No Exam Records Found</div>
+                <div class="empty-state-desc">
                     There are currently no examination evaluation records available for <b>{{ $studentName }}</b> in <b>{{ $className }}</b>. Exam marks have either not been uploaded yet or examinations are pending.
                 </div>
-                <div class="mob-empty-actions">
-                    <a href="{{ url('fill_marks?layout=mobile') }}" class="mob-btn-action-primary">
-                        <i class="fa fa-pencil-square-o"></i> Enter Marks
+                <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ url('fill_marks?layout=mobile') }}" class="empty-state-btn">
+                        <i class="fa fa-pencil-square-o mr-1"></i> Enter Marks
                     </a>
-                    <a href="{{ url('fill-marks-by-excel?layout=mobile') }}" class="mob-btn-action-outline">
-                        <i class="fa fa-file-excel-o text-success"></i> Import Excel
+                    <a href="{{ url('fill_marks_by_excel?layout=mobile') }}" class="empty-state-btn-outline">
+                        <i class="fa fa-file-excel-o text-success mr-1"></i> Import Excel
                     </a>
-                    <a href="{{ url('student_performance?layout=mobile') }}" class="mob-btn-action-outline">
-                        <i class="fa fa-users text-primary"></i> All Students
+                    <a href="{{ url('student_performance?layout=mobile') }}" class="empty-state-btn-outline">
+                        <i class="fa fa-users text-primary mr-1"></i> All Students
                     </a>
                 </div>
             </div>
@@ -1264,17 +1319,19 @@
                 </div>
             @endforeach
         @else
-            <div class="mob-empty-card">
-                <div class="mob-empty-icon">
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
                     <i class="fa fa-tags"></i>
                 </div>
-                <div class="mob-empty-heading">No Subject Mastery Data</div>
-                <div class="mob-empty-desc">
+                <div class="empty-state-title">No Subject Mastery Data</div>
+                <div class="empty-state-desc">
                     Subject averages and mastery percentages will be calculated automatically once test marks are entered.
                 </div>
-                <a href="{{ url('fill_marks?layout=mobile') }}" class="mob-btn-action-primary">
-                    <i class="fa fa-pencil"></i> Enter Exam Marks
-                </a>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <a href="{{ url('fill_marks?layout=mobile') }}" class="empty-state-btn">
+                        <i class="fa fa-pencil mr-1"></i> Enter Exam Marks
+                    </a>
+                </div>
             </div>
         @endif
     </div>
@@ -1324,17 +1381,19 @@
                 </div>
             </div>
         @else
-            <div class="mob-empty-card">
-                <div class="mob-empty-icon">
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
                     <i class="fa fa-line-chart"></i>
                 </div>
-                <div class="mob-empty-heading">Trajectory Curve Unavailable</div>
-                <div class="mob-empty-desc">
+                <div class="empty-state-title">Trajectory Curve Unavailable</div>
+                <div class="empty-state-desc">
                     Score trend trajectory requires at least 2 evaluated exams to visualize chronological performance curves.
                 </div>
-                <a href="{{ url('fill_marks?layout=mobile') }}" class="mob-btn-action-primary">
-                    <i class="fa fa-pencil"></i> Add More Exam Marks
-                </a>
+                <div style="display: flex; gap: 6px; justify-content: center;">
+                    <a href="{{ url('fill_marks?layout=mobile') }}" class="empty-state-btn">
+                        <i class="fa fa-pencil mr-1"></i> Add More Exam Marks
+                    </a>
+                </div>
             </div>
         @endif
     </div>
@@ -1414,7 +1473,7 @@
 
                 {{-- Link to Full 360 Student Profile --}}
                 <div style="margin-top: 12px; text-align: center;">
-                    <a href="{{ url('studentDetail/' . $data->id . '?layout=mobile') }}" class="mob-btn-action-primary" style="width: 100%; justify-content: center;">
+                    <a href="{{ url('studentDetail/' . $data->id . '?layout=mobile') }}" class="mob-profile-btn">
                         <i class="fa fa-id-badge"></i> Open 360&deg; Student Profile &amp; Fees
                     </a>
                 </div>
