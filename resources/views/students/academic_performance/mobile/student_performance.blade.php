@@ -241,20 +241,17 @@
     box-shadow: 0 0 6px #38bdf8;
 }
 
-/* 2. Mobile Filter Bottom Sheet Modal (Matched to Arise Mobile ERP Theme) */
+/* 2. Mobile Filter Bottom Sheet Modal Overlay (Strictly Aligned with admissionView Theme) */
 .mob-filter-modal-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 20, 40, 0.68);
+    inset: 0;
+    background: rgba(0, 15, 30, 0.72);
     z-index: 2050;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .25s ease, visibility .25s ease;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    transition: all .22s ease-in-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 .mob-filter-modal-backdrop.show {
     opacity: 1;
@@ -265,67 +262,40 @@
     bottom: -100%;
     left: 0;
     right: 0;
+    max-width: 520px;
+    margin: 0 auto;
     background: #ffffff;
-    border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(0, 44, 84, 0.15);
+    border-radius: 4px 4px 0 0;
+    border-top: 1px solid #002C54;
     z-index: 2051;
-    transition: bottom .28s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: bottom .25s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -8px 30px rgba(0, 20, 40, 0.35);
+    box-shadow: 0 -6px 25px rgba(0, 20, 40, 0.35);
 }
 .mob-filter-sheet.show {
     bottom: 0;
 }
-.mob-sheet-handle-wrap {
-    padding: 8px 0 4px;
-    display: flex;
-    justify-content: center;
-    cursor: pointer;
-}
-.mob-sheet-handle-pill {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background: #cbd5e1;
-}
 .mob-sheet-header {
     background: linear-gradient(135deg, #001833 0%, #002C54 100%);
     color: #ffffff;
-    padding: 10px 14px;
+    padding: 10px 12px;
+    border-radius: 4px 4px 0 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-.mob-sheet-title-cluster {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-}
-.mob-sheet-icon-box {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    color: #38bdf8;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
 }
 .mob-sheet-title {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
-    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     color: #ffffff;
-}
-.mob-sheet-sub {
-    font-size: 10px;
-    color: #93c5fd;
-    margin-top: 1px;
+    margin: 0;
 }
 .mob-sheet-close {
     background: rgba(255, 255, 255, 0.12);
@@ -334,24 +304,26 @@
     width: 26px;
     height: 26px;
     border-radius: 3px;
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     line-height: 1;
+    padding: 0;
 }
 .mob-sheet-body {
-    padding: 14px;
+    padding: 12px;
     overflow-y: auto;
     flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 .mob-filter-active-summary {
     background: #eff6ff;
     border: 1px solid #bfdbfe;
     border-radius: 4px;
     padding: 6px 10px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -369,40 +341,29 @@
     gap: 3px;
 }
 .mob-form-group {
-    margin-bottom: 11px;
+    margin-bottom: 9px;
 }
 .mob-form-label {
     font-size: 10px;
     font-weight: 700;
     color: #475569;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     display: block;
     text-transform: uppercase;
     letter-spacing: .03em;
 }
-.mob-input-with-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.mob-input-with-icon i.input-icon {
-    position: absolute;
-    left: 10px;
-    color: #94a3b8;
-    font-size: 12px;
-    pointer-events: none;
-}
 .mob-form-select, .mob-form-input {
     width: 100%;
-    height: 36px;
-    padding: 0 10px 0 32px;
-    font-size: 12px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11.5px;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
+    border-radius: 3px;
     background: #f8fafc;
     color: #0f172a;
     outline: none;
-    transition: all .15s ease;
+    box-sizing: border-box;
+    transition: border-color .15s ease;
 }
 .mob-form-select:focus, .mob-form-input:focus {
     border-color: #0284c7;
@@ -410,52 +371,51 @@
     box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
 }
 .mob-sheet-footer {
-    padding: 10px 14px calc(10px + var(--safe-bottom, 0px));
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom, 0px));
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
 }
 .btn-sheet-apply {
     flex: 2;
-    height: 38px;
+    height: 33px;
     background: #0284c7;
     color: #ffffff !important;
     border: none;
     border-radius: 4px;
-    font-size: 12px;
-    font-weight: 800;
+    font-size: 11.5px;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
-    transition: background .12s ease;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+    text-decoration: none !important;
 }
 .btn-sheet-apply:active {
     background: #0369a1;
 }
 .btn-sheet-reset {
     flex: 1;
-    height: 38px;
+    height: 33px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #475569 !important;
     border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11.5px;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
     text-decoration: none !important;
-    transition: background .12s ease;
 }
 .btn-sheet-reset:active {
     background: #f1f5f9;
 }
-
 /* Active Filter Banner */
 .mob-active-filter-banner {
     background: #e0f2fe;
@@ -1007,33 +967,81 @@
     margin-right: 4px;
 }
 
-/* Empty State Card */
-.mob-empty-card {
+/* Empty State Card (Strictly Aligned with Dashboard and Stream Update) */
+.empty-state-card, .mob-empty-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
-    padding: 24px 16px;
+    padding: 28px 16px;
     text-align: center;
-    color: #64748b;
-    margin-bottom: 8px;
+    margin: 10px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.mob-empty-icon {
-    font-size: 24px;
+.empty-state-icon, .mob-empty-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #f1f5f9;
     color: #94a3b8;
-    margin-bottom: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin: 0 auto 10px auto;
+    border: 1px dashed #cbd5e1;
 }
-.mob-empty-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #334155;
-    margin: 0 0 2px 0;
+.empty-state-title, .mob-empty-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
 }
-.mob-empty-desc {
-    font-size: 10.5px;
+.empty-state-desc, .mob-empty-desc {
+    font-size: 11px;
     color: #64748b;
-    margin: 0;
+    max-width: 280px;
+    margin: 0 auto 12px auto;
+    line-height: 1.4;
 }
-
+.empty-state-btn {
+    height: 33px;
+    padding: 0 16px;
+    background: #0284c7;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.25);
+    text-decoration: none !important;
+}
+.empty-state-btn:active {
+    background: #0369a1;
+}
+.empty-state-btn-outline {
+    height: 33px;
+    padding: 0 14px;
+    background: #ffffff;
+    color: #0284c7 !important;
+    border: 1px solid #0284c7;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none !important;
+}
+.empty-state-btn-outline:active {
+    background: #f0f9ff;
+}
 /* 7. Quick Student Snapshot Modal */
 .mob-modal-overlay {
     display: none;
@@ -1317,22 +1325,35 @@
 
         {{-- Student Cards Feed List (Filtered by active tab and search input) --}}
         <div class="student-feed-list" id="studentCardsFeed">
-            @foreach($students as $student)
-                @include('students.academic_performance.mobile.partials.student_card', ['student' => $student])
-            @endforeach
+            @if(count($students) > 0)
+                @foreach($students as $student)
+                    @include('students.academic_performance.mobile.partials.student_card', ['student' => $student])
+                @endforeach
+            @else
+                <div class="empty-state-card" id="feedEmptyState">
+                    <div class="empty-state-icon"><i class="fa fa-users"></i></div>
+                    <div class="empty-state-title">No Students Found</div>
+                    <div class="empty-state-desc">Is category ya search criteria ke anusar koi student record uplabdh nahi hai.</div>
+                    <button type="button" class="empty-state-btn" onclick="openFilterSheet()">
+                        <i class="fa fa-sliders mr-1"></i> Choose Course / Batch
+                    </button>
+                </div>
+            @endif
         </div>
 
-        {{-- Empty State Card (When no students match active tab or search query) --}}
-        <div class="mob-empty-card" id="feedEmptyState" style="display: none;">
-            <div class="mob-empty-icon"><i class="fa fa-users"></i></div>
-            <h5 class="mob-empty-title">No Students Found</h5>
-            <p class="mob-empty-desc">Is category ya search criteria ke anusar koi student record uplabdh nahi hai.</p>
+        {{-- Dynamic Search/Tab Empty State (Shown when client-side filter yields 0 matches) --}}
+        <div class="empty-state-card" id="feedSearchEmptyState" style="display: none;">
+            <div class="empty-state-icon"><i class="fa fa-search"></i></div>
+            <div class="empty-state-title">No Matching Records</div>
+            <div class="empty-state-desc">Aapke quick search keyword ke anusar koi student record match nahi hua.</div>
+            <button type="button" class="empty-state-btn-outline" onclick="resetFeedFilters()">
+                <i class="fa fa-refresh mr-1"></i> Reset View
+            </button>
         </div>
 
     </div>
 
 </div>
-
 {{-- 5. QUICK STUDENT SNAPSHOT MODAL --}}
 <div class="mob-modal-overlay" id="mobSnapshotModal" onclick="closeMobSnapshot(event)">
     <div class="mob-modal-card" onclick="event.stopPropagation()">
@@ -1385,33 +1406,24 @@
     </div>
 </div>
 
-{{-- 6. MOBILE FILTER BOTTOM SHEET MODAL (Native App Drawer) --}}
+{{-- 6. MOBILE FILTER BOTTOM SHEET MODAL (Strictly Aligned with admissionView Theme) --}}
 <div class="mob-filter-modal-backdrop" id="mobFilterBackdrop" onclick="closeFilterSheet()"></div>
 <div class="mob-filter-sheet" id="mobFilterSheet">
-    <div class="mob-sheet-handle-wrap" onclick="closeFilterSheet()">
-        <div class="mob-sheet-handle-pill"></div>
-    </div>
     <div class="mob-sheet-header">
-        <div class="mob-sheet-title-cluster">
-            <div class="mob-sheet-icon-box">
-                <i class="fa fa-filter"></i>
-            </div>
-            <div>
-                <div class="mob-sheet-title">Search &amp; Filter Class</div>
-                <div class="mob-sheet-sub">Filter performance matrix by class, admission or keywords</div>
-            </div>
+        <div class="mob-sheet-title">
+            <i class="fa fa-filter text-primary"></i> Filter Student Performance
         </div>
-        <button type="button" class="mob-sheet-close" onclick="closeFilterSheet()" aria-label="Close Filter">&times;</button>
+        <button type="button" class="mob-sheet-close" id="btnCloseFilterSheet" onclick="closeFilterSheet()">&times;</button>
     </div>
 
-    <form action="{{ url('student_performance') }}" method="POST" id="mobPerfFilterForm">
+    <form action="{{ url('student_performance') }}" method="POST" id="mobPerfFilterForm" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
         @csrf
         <input type="hidden" name="layout" value="mobile">
 
         <div class="mob-sheet-body">
             @if($hasFilter)
                 <div class="mob-filter-active-summary">
-                    <span><i class="fa fa-info-circle text-primary mr-1"></i> Filter is currently active</span>
+                    <span><i class="fa fa-info-circle text-primary mr-1"></i> Active filter applied</span>
                     <a href="{{ url('student_performance?layout=mobile') }}" class="mob-filter-quick-clear">
                         <i class="fa fa-times"></i> Clear All
                     </a>
@@ -1419,56 +1431,40 @@
             @endif
 
             <div class="mob-form-group">
-                <label class="mob-form-label">Course / Batch <span class="text-danger">*</span></label>
-                <div class="mob-input-with-icon">
-                    <i class="fa fa-graduation-cap input-icon"></i>
-                    <select name="class_type_id" id="sheetClassSelect" class="mob-form-select">
-                        <option value="">-- All Courses / Batches --</option>
-                        @if(!empty($classType))
-                            @foreach($classType as $type)
-                                <option value="{{ $type->id }}" {{ (int)($search['class_type_id'] ?? 0) === (int)$type->id ? 'selected' : '' }}>
-                                    {{ $type->name }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
-                </div>
+                <label class="mob-form-label">Course / Batch</label>
+                <select name="class_type_id" id="sheetClassSelect" class="mob-form-select">
+                    <option value="">All Courses / Batches</option>
+                    @if(!empty($classType))
+                        @foreach($classType as $type)
+                            <option value="{{ $type->id }}" {{ (string)($search['class_type_id'] ?? '') === (string)$type->id ? 'selected' : '' }}>
+                                {{ $type->name }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
             </div>
 
             <div class="mob-form-group">
-                <label class="mob-form-label">Admission No</label>
-                <div class="mob-input-with-icon">
-                    <i class="fa fa-id-card input-icon"></i>
-                    <input type="text" name="admissionNo" class="mob-form-input" placeholder="e.g. 1024" value="{{ $search['admissionNo'] ?? '' }}">
-                </div>
+                <label class="mob-form-label">Admission / Scholar No.</label>
+                <input type="text" name="admissionNo" class="mob-form-input" placeholder="e.g. 1042" value="{{ $search['admissionNo'] ?? '' }}" inputmode="numeric">
             </div>
 
             <div class="mob-form-group">
-                <label class="mob-form-label">Student Name / Mobile / Father</label>
-                <div class="mob-input-with-icon">
-                    <i class="fa fa-user input-icon"></i>
-                    <input type="text" name="name" class="mob-form-input" placeholder="Student name, mobile, father name..." value="{{ $search['name'] ?? '' }}">
-                </div>
+                <label class="mob-form-label">Search Keywords</label>
+                <input type="text" name="name" class="mob-form-input" placeholder="Student name, father, phone, adm no..." value="{{ $search['name'] ?? '' }}">
             </div>
         </div>
 
         <div class="mob-sheet-footer">
-            @if($hasFilter)
-                <a href="{{ url('student_performance?layout=mobile') }}" class="btn-sheet-reset">
-                    <i class="fa fa-refresh mr-1"></i> Reset
-                </a>
-            @else
-                <button type="button" class="btn-sheet-reset" onclick="closeFilterSheet()">
-                    Cancel
-                </button>
-            @endif
+            <a href="{{ url('student_performance?layout=mobile') }}" class="btn-sheet-reset">
+                Reset
+            </a>
             <button type="submit" class="btn-sheet-apply">
-                <i class="fa fa-check mr-1"></i> Apply Filter
+                <i class="fa fa-check mr-1"></i> Apply Filters
             </button>
         </div>
     </form>
-</div>
-@endsection
+</div>@endsection
 
 @section('scripts')
 <script>
@@ -1633,10 +1629,18 @@ function applyCardFiltering() {
     var countEl = document.getElementById('feedHeaderCount');
     if (countEl) countEl.textContent = visibleCount;
 
-    var emptyEl = document.getElementById('feedEmptyState');
-    if (emptyEl) {
-        emptyEl.style.display = (visibleCount === 0) ? 'block' : 'none';
+    var searchEmptyEl = document.getElementById('feedSearchEmptyState');
+    if (searchEmptyEl) {
+        searchEmptyEl.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
     }
+}
+
+function resetFeedFilters() {
+    var searchInput = document.getElementById('quickSearchInput');
+    if (searchInput) searchInput.value = '';
+    var clearIcon = document.getElementById('quickSearchClear');
+    if (clearIcon) clearIcon.style.display = 'none';
+    selectTab('all');
 }
 
 // Snapshot Modal Helpers
