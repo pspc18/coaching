@@ -870,7 +870,7 @@
                             <div class="mob-sub-meta-sub">
                                 <span>Adm: <strong>{{ $admNo }}</strong></span>
                                 <span>&bull;</span>
-                                <span>Class: <strong>{{ $className }}</strong></span>
+                                <span>Course / Batch: <strong>{{ $className }}</strong></span>
                             </div>
                         </div>
                     </div>

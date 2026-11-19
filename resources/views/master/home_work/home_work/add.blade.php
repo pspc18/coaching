@@ -521,7 +521,7 @@ $formAction = $isEdit ? url('homework/edit/' . $data->id) : url('homework/add');
             <div class="user-card-body">
                 <div class="row">
 
-                    {{-- Target Class / Batch --}}
+                    {{-- Target Course / Batch / Batch --}}
                     <div class="col-12 col-sm-6 col-md-3 col-lg-3">
                         <div class="form-group form-group-compact">
                             <label class="form-label-compact" for="class_type_id">
@@ -564,7 +564,7 @@ $formAction = $isEdit ? url('homework/edit/' . $data->id) : url('homework/add');
                                         </option>
                                     @endforeach
                                 @else
-                                    <option value="">-- First Select Class --</option>
+                                    <option value="">-- First Select Course --</option>
                                 @endif
                             </select>
                             <div class="subject-loader" id="subjectLoader">
@@ -965,7 +965,7 @@ $formAction = $isEdit ? url('homework/edit/' . $data->id) : url('homework/add');
         // 3. Dynamic Subject Loading
         function fetchSubjects(classId, selectedSubjectId) {
             if (!classId) {
-                $('#subject_id').html('<option value="">-- First Select Class --</option>');
+                $('#subject_id').html('<option value="">-- First Select Course --</option>');
                 if ($.fn.select2) $('#subject_id').trigger('change');
                 return;
             }

@@ -201,9 +201,20 @@ class ReportController extends Controller
             $requestClassTypeId = (int) $request->class_type_id;
             $requestExamId = (int) $request->exam_id;
 
+            $exam = Exam::where('id', $requestExamId)
+                    ->where('branch_id', Session::get('branch_id'))
+                    ->where('session_id', Session::get('session_id'))
+                    ->whereNull('deleted_at')->first();
+
+            $examSubjectIds = $exam ? $exam->selected_subject_ids : [];
+
             $list_subject = Subject::where("class_type_id", $requestClassTypeId)
                 ->where("branch_id", Session::get("branch_id"))
                 ->where('session_id', Session::get("session_id"));
+
+            if (!empty($examSubjectIds)) {
+                $list_subject = $list_subject->whereIn('id', $examSubjectIds);
+            }
 
             if (!empty($search["subject_id"])) {
                 $list_subject = $list_subject->whereIn('id', $search["subject_id"]);
@@ -217,11 +228,6 @@ class ReportController extends Controller
                     ->where('status', 1)
                     ->orderBy("first_name", "ASC")
                     ->get(['id', 'admissionNo', 'first_name', 'last_name', 'father_name', 'roll_no', 'class_type_id']);
-
-            $exam = Exam::where('id', $requestExamId)
-                    ->where('branch_id', Session::get('branch_id'))
-                    ->where('session_id', Session::get('session_id'))
-                    ->whereNull('deleted_at')->first();
 
             $className = ClassType::where('id', $requestClassTypeId)
                         ->where('branch_id', Session::get('branch_id'))
@@ -282,14 +288,20 @@ class ReportController extends Controller
             ->whereNull('deleted_at')
             ->firstOrFail();
 
-        $listSubject = Subject::where('class_type_id', $classTypeId)
+        $listSubjectQuery = Subject::where('class_type_id', $classTypeId)
             ->where('branch_id', $branchId)
-            ->where('session_id', $sessionId)
-            ->whereIn('id', $validated['subject_id'])
+            ->where('session_id', $sessionId);
+
+        $examSubjectIds = $exam->selected_subject_ids;
+        if (!empty($examSubjectIds)) {
+            $listSubjectQuery->whereIn('id', $examSubjectIds);
+        }
+
+        $listSubject = $listSubjectQuery->whereIn('id', $validated['subject_id'])
             ->orderBy('sort_by', 'ASC')
             ->get();
 
-        abort_if($listSubject->count() !== count($validated['subject_id']), 404);
+        abort_if($listSubject->isEmpty(), 404);
 
         $students = Admission::where('class_type_id', $classTypeId)
             ->where('session_id', $sessionId)
@@ -608,6 +620,12 @@ class ReportController extends Controller
           
             $list_subject = Subject::where("class_type_id", $request->class_type_id)
                 ->where("branch_id", Session::get("branch_id"));
+                if (!empty($request->exam_id)) {
+                    $exm = Exam::find($request->exam_id);
+                    if ($exm && !empty($exm->selected_subject_ids)) {
+                        $list_subject = $list_subject->whereIn('id', $exm->selected_subject_ids);
+                    }
+                }
                 if(!empty($request->subject_id)){
                    $list_subject = $list_subject ->whereIn('id',$request->subject_id);
                 }
@@ -652,6 +670,12 @@ class ReportController extends Controller
           
             $list_subject = Subject::where("class_type_id", $request->class_type_id)
                 ->where("branch_id", Session::get("branch_id"));
+                if (!empty($request->exam_id)) {
+                    $exm = Exam::find($request->exam_id);
+                    if ($exm && !empty($exm->selected_subject_ids)) {
+                        $list_subject = $list_subject->whereIn('id', $exm->selected_subject_ids);
+                    }
+                }
                 if(!empty($request->subject_id)){
                    $list_subject = $list_subject ->whereIn('id',$request->subject_id);
                 }

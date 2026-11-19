@@ -45,14 +45,14 @@ return [
 'Add Class' => 'कक्षा जोड़ें',
 'View Class' => 'कक्षा देखें',
 'Edit Class' => 'कक्षा संपादित करें',
-'Class' => 'कक्षा',
+'Class' => 'कोर्स / बैच',
 
 //For "Section":
 
 'Add Section' => 'अनुभाग जोड़ें',
 'View Section' => 'अनुभाग देखें',
 'Edit Section' => 'अनुभाग संपादित करें',
-'Section' => 'अनुभाग',
+'Section' => 'बैच',
 
 //For "Assign Section":
 
@@ -350,14 +350,14 @@ return [
     'Category' =>  'श्रेणी',
     'View Email Records' =>  'ईमेल रिकॉर्ड देखें',
     'Edit Staff Categories' =>  'स्टाफ श्रेणियां संपादित',
-    'Add Class' =>  'कक्षा जोड़ें',
+    'Add Class' =>  'कोर्स जोड़ें',
     'Email Records' =>  'ईमेल रिकॉर्ड',
-    'View Class' =>  'कक्षा देखें',
+    'View Class' =>  'कोर्स देखें',
     'Add Section' =>  'अनुभाग जोड़ें',
     'View Section' =>  'अनुभाग देखें',
     'Add Section-Class' =>  'अनुभाग-वर्ग जोड़ें',
     'View Section-Class' =>  'अनुभाग-वर्ग देखें',
-    'Class Type' =>  'कक्षा का प्रकार',
+    'Class Type' =>  'कोर्स',
     'Development Class' =>'विकास वर्ग',
     'Test Classes' =>'परीक्षण कक्षाओं',
     'Assign Section' =>'अनुभाग असाइन करें',
@@ -481,7 +481,7 @@ return [
     'Date' => 'दिनांक',
     'Action' => 'गतिविधि',
     'Add Certificate Management' => 'प्रमाणपत्र प्रबंधन जोड़ें',
-    'Class' => 'कक्षा',
+    'Class' => 'कोर्स / बैच',
     'Section' => 'खंड',
     'Search' => 'खोज',
     'Student Name' => 'छात्र का नाम',

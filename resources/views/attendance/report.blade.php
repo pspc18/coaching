@@ -416,7 +416,7 @@
                     <div class="d-flex align-items-center" style="gap:8px;">
                         <div class="search-input-wrapper">
                             <i class="fa fa-search search-icon"></i>
-                            <input type="text" id="reportTableSearch" class="form-control search-input-field" placeholder="Search name, ID, class..." autocomplete="off">
+                            <input type="text" id="reportTableSearch" class="form-control search-input-field" placeholder="Search name, ID, course / batch..." autocomplete="off">
                         </div>
                         <span class="badge badge-light border text-muted" style="font-size:11px; padding:6px 9px; border-radius:2px;" id="rowCountBadge">
                             <strong id="visibleCount" class="text-dark">{{ $totalCount }}</strong> / {{ $totalCount }}
@@ -442,7 +442,7 @@
                         @else
                             <div style="min-width: 200px;">
                                 <select name="class_type_id" class="form-control select2">
-                                    <option value="">All Classes</option>
+                                    <option value="">All Courses / Batches</option>
                                     @foreach($classes as $class)
                                         <option value="{{ $class->id }}" {{ (string)$classFilter === (string)$class->id ? 'selected' : '' }}>{{ $class->name }}</option>
                                     @endforeach

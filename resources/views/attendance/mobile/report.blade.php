@@ -486,9 +486,9 @@
                 </div>
             @else
                 <div class="form-group mb-2">
-                    <label style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:3px;">Class</label>
+                    <label style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:3px;">Course / Batch</label>
                     <select name="class_type_id" class="form-control form-control-sm" style="font-size:12px; height:32px; border-radius:3px;">
-                        <option value="">All Classes</option>
+                        <option value="">All Courses / Batches</option>
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}" {{ (string)$classFilter === (string)$class->id ? 'selected' : '' }}>{{ $class->name }}</option>
                         @endforeach

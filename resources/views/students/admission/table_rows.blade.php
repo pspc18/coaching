@@ -16,7 +16,7 @@
     @foreach($data as $item)
         @php
             $fullName = trim(($item['first_name'] ?? '') . ' ' . ($item['last_name'] ?? ''));
-            $className = $item['class_name'] ?? ($item['ClassTypes']['name'] ?? '');
+            $className = $item->course->name ?? ($item['class_name'] ?? ($item['ClassTypes']['name'] ?? ''));
             $bloodGroupText = $bloodGroupLookup[$item->blood_group] ?? '-';
             $genderText = $genderLookup[$item->gender_id] ?? '-';
             $admDateYmd = !empty($item['admission_date']) ? date('Y-m-d', strtotime($item['admission_date'])) : '';
@@ -61,7 +61,16 @@
                             echo '<td>' . (!empty($item['admission_date']) ? date('d-m-Y', strtotime($item['admission_date'])) : '-') . '</td>';
                             break;
                         case 'Class':
-                            echo '<td><span class="badge-class">' . e($className ?: '-') . '</span></td>';
+                            $courseName = $item->course->name ?? ($item['class_name'] ?? '-');
+                            $batchObj = $item->batch ?? null;
+                            $batchShift = $batchObj ? $batchObj->shift : '';
+                            $batchText = $batchObj ? ($batchObj->name . ($batchShift ? ' [' . $batchShift . ']' : '')) : '';
+                            echo '<td>';
+                            echo '<div class="font-weight-bold text-primary" style="font-size: 11.5px;">' . e($courseName) . '</div>';
+                            if (!empty($batchText)) {
+                                echo '<div class="text-muted" style="font-size: 10.5px;"><i class="fa fa-users text-info mr-1"></i>' . e($batchText) . '</div>';
+                            }
+                            echo '</td>';
                             break;
                         case 'Fees Progress':
                             $assignAmt = (float) ($feesAssignLookup[$item->id] ?? 0);
@@ -92,7 +101,7 @@
                         <a href="{{ url('admissionStudentPrint/'.$item->id) }}" target="_blank" class="table-btn btn-action-print" title="Print Admission Form"><i class="fa fa-print"></i></a>
                     @endif
                     @if($permission->edit ?? true)
-                        <button type="button" class="table-btn btn-action-edit openEditModal" data-id="{{ $item->id }}" title="Quick Edit Student"><i class="fa fa-edit"></i></button>
+                        <a href="{{ url('admissionEdit/' . $item->id) }}" class="table-btn btn-action-edit" title="Edit Student"><i class="fa fa-edit"></i></a>
                     @endif
                     @if($permission->delete ?? true)
                         <button type="button" class="table-btn btn-action-delete deleteData" data-id="{{ $item->id }}" title="Delete Student"><i class="fa fa-trash-o"></i></button>

@@ -73,6 +73,11 @@ class ExamScheduleController extends Controller
             $data = $this->getSubjectsForClass($request->class_type_id);
 
             if (!empty($request->exam_id)) {
+                $examModel = Exam::where('id', $request->exam_id)->first();
+                if ($examModel && !empty($examModel->selected_subject_ids)) {
+                    $data = $data->whereIn('id', $examModel->selected_subject_ids)->values();
+                }
+
                 $schedules = DB::table('examination_schedules')
                     ->where('exam_id', $request->exam_id)
                     ->where('class_type_id', $request->class_type_id)
@@ -114,6 +119,12 @@ class ExamScheduleController extends Controller
         }
 
         $subjects = $this->getSubjectsForClass($classTypeId);
+        if (!empty($examId)) {
+            $examModel = Exam::where('id', $examId)->first();
+            if ($examModel && !empty($examModel->selected_subject_ids)) {
+                $subjects = $subjects->whereIn('id', $examModel->selected_subject_ids)->values();
+            }
+        }
         $schedules = DB::table('examination_schedules')
             ->where('exam_id', $examId)
             ->where('class_type_id', $classTypeId)

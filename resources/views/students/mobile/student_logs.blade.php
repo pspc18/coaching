@@ -879,9 +879,9 @@
 
         <div class="mob-sheet-body">
             <div class="mob-form-group">
-                <label class="mob-form-label">Class</label>
+                <label class="mob-form-label">Course / Batch</label>
                 <select name="class_type_id" class="mob-form-select">
-                    <option value="">-- All Classes --</option>
+                    <option value="">-- All Courses / Batches --</option>
                     @if(!empty($classType))
                         @foreach($classType as $class)
                             <option value="{{ $class->id }}" {{ (int)($selectedClassId ?? 0) === (int)$class->id ? 'selected' : '' }}>

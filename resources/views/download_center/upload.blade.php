@@ -550,7 +550,7 @@ input[type="file"].form-control-compact { padding: 2px 4px; }
                                     <th><input type="text" class="excel-col-filter" id="filter-title" placeholder="Search title..."></th>
                                     <th>
                                         <select class="excel-col-filter" id="filter-class">
-                                            <option value="">All Classes</option>
+                                            <option value="">All Courses / Batches</option>
                                             <option value="none">General (All)</option>
                                             @foreach($classType ?? [] as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>

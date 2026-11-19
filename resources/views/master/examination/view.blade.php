@@ -18,7 +18,7 @@
           <thead>
           <tr role="row">
               <th>Sr. No.</th>
-                    <th>Class</th>
+                    <th>Course / Batch</th>
                     <th>Max Marks</th>
                     <th>Student Name</th>
                     <th>Father Name</th>

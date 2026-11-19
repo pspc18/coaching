@@ -24,6 +24,14 @@ protected $table = "admissions"; //table name
     {
         return $this->belongsTo('App\Models\ClassType','class_type_id');
     }
+    public function course()
+    {
+        return $this->belongsTo('App\Models\Course', 'course_id');
+    }
+    public function batch()
+    {
+        return $this->belongsTo('App\Models\Batch', 'batch_id');
+    }
     public function Section()
     {
         return $this->belongsTo('App\Models\Master\Section','section_id');

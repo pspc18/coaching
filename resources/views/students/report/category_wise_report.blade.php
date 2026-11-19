@@ -799,11 +799,11 @@
             {{-- Active Classes --}}
             <div class="kpi-card">
                 <div class="kpi-info">
-                    <div class="kpi-label">Avg. Per Class</div>
+                    <div class="kpi-label">Avg. Per Course</div>
                     <div class="kpi-value text-warning">
                         {{ $classCount > 0 ? round($totalStudents / $classCount, 1) : 0 }}
                     </div>
-                    <div class="kpi-sub">Students / Class</div>
+                    <div class="kpi-sub">Students / Course</div>
                 </div>
                 <div class="kpi-badge kpi-badge-amber">
                     <i class="fa fa-th-list"></i>
@@ -885,7 +885,7 @@
             <div class="dash-card-header">
                 <div class="matrix-header-title">
                     <i class="fa fa-cubes text-warning mr-1"></i>
-                    <span>Class-Wise Category Enrollment Matrix</span>
+                    <span>Course-Wise Category Enrollment Matrix</span>
                 </div>
                 <span class="matrix-header-count">
                     {{ $sessionLabel }} &bull; {{ number_format($totalStudents) }} Students Enrolled
@@ -898,7 +898,7 @@
                         {{-- Row 1: Category Headings --}}
                         <tr>
                             <th rowspan="2" class="col-sticky-sno">#</th>
-                            <th rowspan="2" class="col-sticky-class">Class Name</th>
+                            <th rowspan="2" class="col-sticky-class">Course Name</th>
 
                             @foreach ($categories as $cat)
                                 @php

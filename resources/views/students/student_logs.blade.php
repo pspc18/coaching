@@ -795,7 +795,7 @@ select.excel-col-filter option {
                         {{-- Compact Fast Search Form --}}
                         <form action="{{ url('student_logs') }}" method="GET" id="logsServerFilterForm" class="header-filter-form">
                             <select name="class_type_id" id="hdr_class_type_id" class="hdr-filter-select" onchange="document.getElementById('logsServerFilterForm').submit()">
-                                <option value="">-- All Classes --</option>
+                                <option value="">-- All Courses / Batches --</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $class)
                                         <option value="{{ $class->id }}" {{ (int)($selectedClassId ?? 0) === (int)$class->id ? 'selected' : '' }}>
@@ -889,7 +889,7 @@ select.excel-col-filter option {
                                     {{-- 4. Class Dropdown --}}
                                     <th>
                                         <select class="excel-col-filter" id="filter-class">
-                                            <option value="">All Classes</option>
+                                            <option value="">All Courses / Batches</option>
                                             @if(!empty($classType))
                                                 @foreach($classType as $type)
                                                     <option value="{{ strtolower($type->name ?? $type->class_name ?? '') }}">

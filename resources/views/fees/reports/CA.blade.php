@@ -870,7 +870,7 @@ select.excel-col-filter option {
                                     <th style="min-width: 85px;">Offline Slip</th>
                                     <th style="min-width: 85px;" class="text-center">Payment Date</th>
                                     <th style="min-width: 75px;">Adm No</th>
-                                    <th style="min-width: 70px;">Class</th>
+                                    <th style="min-width: 70px;">Course / Batch</th>
                                     <th style="min-width: 120px;">Student Name</th>
                                     <th style="min-width: 110px;">Father Name</th>
                                     <th style="min-width: 90px;">Collect By</th>

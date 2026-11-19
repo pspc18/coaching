@@ -873,7 +873,7 @@ select.excel-col-filter option {
                         <div class="dash-card-header d-flex align-items-center justify-content-between flex-wrap" style="gap: 8px;">
                             <div class="d-flex align-items-center" style="gap: 8px;">
                                 <h3 class="dash-card-title"><i class="fa fa-address-book-o text-info mr-1"></i> Student Fee Defaulters & Dues Register</h3>
-                                <span class="text-light" style="font-size: 10.5px; opacity: 0.75;">(Select a Class to view fee-group column breakdown)</span>
+                                <span class="text-light" style="font-size: 10.5px; opacity: 0.75;">(Select a Course / Batch to view fee-group column breakdown)</span>
                             </div>
                             <div class="d-flex align-items-center" style="gap: 8px;">
                                 <span class="badge-total-records"><span id="header-records-count">{{ $totalCount }}</span> Students with Dues</span>
@@ -900,7 +900,7 @@ select.excel-col-filter option {
                                             </div>
                                         </th>
                                         <th class="col-adm">{{ __('student.Admission No.') }}</th>
-                                        <th class="col-class">Class</th>
+                                        <th class="col-class">Course / Batch</th>
                                         <th class="col-name">{{ __('Student Name') }}</th>
                                         <th class="col-father">{{ __('messages.Fathers Name') }}</th>
                                         <th class="col-mobile">{{ __('Mobile') }}</th>
@@ -934,7 +934,7 @@ select.excel-col-filter option {
                                         {{-- 3. Class Filter --}}
                                         <th class="col-class">
                                             <select class="excel-col-filter" id="filter-class" title="Class">
-                                                <option value="">All Classes</option>
+                                                <option value="">All Courses / Batches</option>
                                                 @if(!empty($classType))
                                                     @foreach($classType as $class)
                                                         <option value="{{ $class->id }}" {{ ($search['class_type_id'] ?? '') == $class->id ? 'selected' : '' }}>

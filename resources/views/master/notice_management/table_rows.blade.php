@@ -94,7 +94,7 @@
                         @if($notice->audience_type === 'role')
                             <span class="badge-audience badge-audience-role"><i class="fa fa-user-circle mr-1"></i> By Role</span>
                         @elseif($notice->audience_type === 'class')
-                            <span class="badge-audience badge-audience-class"><i class="fa fa-graduation-cap mr-1"></i> By Class</span>
+                            <span class="badge-audience badge-audience-class"><i class="fa fa-graduation-cap mr-1"></i> By Course / Batch</span>
                         @else
                             <span class="badge-audience badge-audience-specific"><i class="fa fa-users mr-1"></i> Specific People</span>
                         @endif

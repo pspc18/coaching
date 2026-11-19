@@ -610,8 +610,8 @@ select.excel-col-filter option {
                         <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#addSubjectModal">
                             <i class="fa fa-plus mr-1"></i> Add Subject
                         </button>
-                        <a href="{{ url('add_subject') }}" class="dash-btn dash-btn-outline">
-                            <i class="fa fa-leanpub mr-1"></i> Assign to Class
+                        <a href="{{ url('course_subjects') }}" class="dash-btn dash-btn-outline">
+                            <i class="fa fa-graduation-cap mr-1"></i> Course Subjects
                         </a>
                     </div>
                 </div>

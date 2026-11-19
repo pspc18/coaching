@@ -42,7 +42,7 @@
                                 <tr role="row">
                                   <td><b>Name</b></td>
                                    <td>{{ $data['name'] ?? '' }}</td>
-                                   <td><b>Class</b></td>
+                                   <td><b>Course / Batch</b></td>
                                   <td>{{ $data['ClassTypes']['name'] ?? '' }} ({{ $data['Section']['name'] ?? '' }})</td>
                                 </tr>
                                 <tr role="row">

@@ -34,7 +34,7 @@
             <div class="row m-2">
                     <div class="col-md-4">
                 		<div class="form-group">
-                			<label style="color:red;">Class*</label>
+                			<label style="color:red;">Course / Batch*</label>
                 			<select class="form-control" id="class_type_id" name="class_type_id" >
                 			<option value="">Select</option>
                              @if(!empty($classType)) 

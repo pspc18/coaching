@@ -1009,7 +1009,7 @@ select.excel-col-filter option {
                     <div class="credential-hero-text">
                         <span class="credential-kicker"><i class="fa fa-key mr-1"></i> Student Portal Access</span>
                         <h1 class="credential-title">Student Login Credentials</h1>
-                        <p class="credential-subtitle">Fast class-wise student credentials, 1-click password reveal, instant copy &amp; direct WhatsApp sharing</p>
+                        <p class="credential-subtitle">Fast course-wise student credentials, 1-click password reveal, instant copy &amp; direct WhatsApp sharing</p>
                     </div>
 
                     {{-- Summary Statistics Badges --}}
@@ -1065,7 +1065,7 @@ select.excel-col-filter option {
                                     </th>
                                     <th style="width: 45px;" class="text-center">#</th>
                                     <th style="min-width: 170px;">Student Details</th>
-                                    <th style="width: 105px;" class="text-center">Class</th>
+                                    <th style="width: 105px;" class="text-center">Course / Batch</th>
                                     <th style="min-width: 130px;">Father / Guardian</th>
                                     <th style="min-width: 135px;">Mobile &amp; WhatsApp</th>
                                     <th style="min-width: 145px;">Username</th>
@@ -1085,7 +1085,7 @@ select.excel-col-filter option {
                                     </th>
                                     <th>
                                         <select class="excel-col-filter" id="filter-class">
-                                            <option value="">All Classes</option>
+                                            <option value="">All Courses / Batches</option>
                                             @foreach($classType ?? [] as $type)
                                                 <option value="{{ $type->id }}" {{ $selectedClassId == $type->id ? 'selected' : '' }}>{{ $type->name ?? '' }}</option>
                                             @endforeach

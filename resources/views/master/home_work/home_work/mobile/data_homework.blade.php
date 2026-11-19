@@ -519,7 +519,7 @@
                     <div class="mob-eval-subtext">
                         <span>Adm: <strong>{{ $admNo }}</strong></span>
                         <span class="mx-1">&bull;</span>
-                        <span>Class: <strong>{{ $className }} {{ !empty($sectionName) ? "($sectionName)" : "" }}</strong></span>
+                        <span>Course / Batch: <strong>{{ $className }} {{ !empty($sectionName) ? "($sectionName)" : "" }}</strong></span>
                     </div>
                 </div>
             </div>

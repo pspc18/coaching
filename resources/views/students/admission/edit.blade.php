@@ -119,10 +119,47 @@ $list = DB::table('custom_villages_list')->orderBy('name','ASC')->whereNull('del
 								
 
 
+								{{-- Coaching Model: Course Selector --}}
 								<div class="col-md-2">
 									<div class="form-group">
-										<label>{{ __('common.Class') }}<span style="color:red;">*</span></label>
+										<label>Course / Exam Target<span style="color:red;">*</span></label>
+										<select class="form-control invalid select2" id="course_id" name="course_id" required>
+											<option value="">Select Course</option>
+											@if(!empty($courses))
+												@foreach($courses as $c)
+													<option value="{{ $c->id }}" data-class-type-id="{{ $c->class_type_id }}" {{ ($c->id == ($data->course_id ?? '')) ? 'selected' : '' }}>
+														{{ $c->name }}
+													</option>
+												@endforeach
+											@endif
+										</select>
+									</div>
+								</div>
 
+								{{-- Coaching Model: Batch & Shift Selector --}}
+								<div class="col-md-2">
+									<div class="form-group">
+										<label>Batch & Shift<span style="color:red;">*</span></label>
+										<select class="form-control invalid select2" id="batch_id" name="batch_id" required>
+											<option value="">Select Batch</option>
+											@if(!empty($batches))
+												@foreach($batches as $b)
+													<option value="{{ $b->id }}" data-shift="{{ $b->shift }}" data-timing="{{ $b->start_time ? ($b->start_time . ' - ' . $b->end_time) : '' }}" {{ ($b->id == ($data->batch_id ?? '')) ? 'selected' : '' }}>
+														{{ $b->formatted_title }}
+													</option>
+												@endforeach
+											@endif
+										</select>
+										<div id="batch_shift_info" class="mt-1" style="{{ !empty($data->batch_id) ? '' : 'display: none;' }} font-size: 11px;">
+											<span class="badge badge-info p-1" id="batch_shift_badge"><i class="fa fa-clock-o mr-1"></i> <span id="batch_shift_text"></span></span>
+										</div>
+									</div>
+								</div>
+
+								{{-- Legacy Class Bridge --}}
+								<div class="col-md-2" id="legacy_class_div" style="display: none;">
+									<div class="form-group">
+										<label>{{ __('common.Class') }}</label>
 										<select class="form-control invalid" id="class_type_id" name="class_type_id">
 											<option value="">{{ __('common.Select') }}</option>
 											@if(!empty($classType))
@@ -131,7 +168,6 @@ $list = DB::table('custom_villages_list')->orderBy('name','ASC')->whereNull('del
 											@endforeach
 											@endif
 										</select>
-										
 									</div>
 								</div>
 								
@@ -632,22 +668,92 @@ $list = DB::table('custom_villages_list')->orderBy('name','ASC')->whereNull('del
 $(document).ready(function(){
     var baseUrl = "{{ url('/') }}";
 
-    // Initially hide/show based on selected
-    toggleStream($('#class_type_id'));
+    // Coaching Model: Course change handler
+    $('#course_id').on('change', function(e, preserveBatch){
+        var courseId = $(this).val();
+        if(!courseId){
+            $('#batch_id').html('<option value="">Select Batch</option>');
+            $('#stream_subject').html('');
+            $('#stream_subject_div').hide();
+            $('#batch_shift_info').hide();
+            return;
+        }
 
-    $('#class_type_id').change(function(){
-        toggleStream($(this));
+        var mappedClassTypeId = $(this).find('option:selected').data('class-type-id');
+        if(mappedClassTypeId){
+            $('#class_type_id').val(mappedClassTypeId);
+        }
+
+        // 1. Load Batches
+        var currentBatchId = $('#batch_id').val();
+        $.ajax({
+            type: 'GET',
+            url: baseUrl + '/getBatchesByCourse/' + courseId + ($('select[name="session_id"], input[name="session_id"]').val() ? '?session_id=' + $('select[name="session_id"], input[name="session_id"]').val() : ''),
+            success: function(batches) {
+                var bOptions = '<option value="">Select Batch</option>';
+                for (var i = 0; i < batches.length; i++) {
+                    var b = batches[i];
+                    var timingStr = b.start_time ? (b.start_time + ' - ' + b.end_time) : '';
+                    var isSel = (preserveBatch && b.id == currentBatchId) ? 'selected' : '';
+                    bOptions += '<option value="' + b.id + '" data-shift="' + b.shift + '" data-timing="' + timingStr + '" ' + isSel + '>' + b.formatted_title + '</option>';
+                }
+                $('#batch_id').html(bOptions);
+                if (!preserveBatch && batches.length > 0) {
+                    $('#batch_id').val(batches[0].id).trigger('change');
+                } else {
+                    $('#batch_id').trigger('change');
+                }
+            }
+        });
+
+        // 2. Load Course Subjects
+        if (!preserveBatch) {
+            $.ajax({
+                type: 'GET',
+                url: baseUrl + '/getSubjectsByCourse/' + courseId,
+                success: function(subjects) {
+                    if (subjects && subjects.length > 0) {
+                        var sOptions = '';
+                        for (var i = 0; i < subjects.length; i++) {
+                            var s = subjects[i];
+                            var subVal = s.subject_id || s.id;
+                            sOptions += '<option value="' + subVal + '" selected>' + s.name + '</option>';
+                        }
+                        $('#stream_subject').html(sOptions);
+                        $('#stream_subject_div').show();
+                    } else {
+                        $('#stream_subject').html('');
+                        $('#stream_subject_div').hide();
+                    }
+                }
+            });
+        }
     });
 
-    function toggleStream($el) {
-        var orderBy = parseInt($el.find('option:selected').data('orderby')) || 0;
-        var class_type_id = parseInt($el.val()) || 0;
+    $('#batch_id').on('change', function(){
+        var selectedOpt = $(this).find('option:selected');
+        var shift = selectedOpt.data('shift');
+        var timing = selectedOpt.data('timing');
+        if(shift || timing){
+            var text = (shift ? shift : '') + (timing ? (' • ' + timing) : '');
+            $('#batch_shift_text').text(text);
+            $('#batch_shift_info').show();
+        } else {
+            $('#batch_shift_info').hide();
+        }
+    });
 
-        if(orderBy > 10){
+    if($('#batch_id').val()){
+        $('#batch_id').trigger('change');
+    }
+
+    // Legacy handler fallback
+    $('#class_type_id').change(function(){
+        var class_type_id = parseInt($(this).val()) || 0;
+        var orderBy = parseInt($(this).find('option:selected').data('orderby')) || 0;
+        if(orderBy > 10 && !$('#course_id').val()){
             $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 type: 'POST',
                 url: baseUrl + '/getStreamSubjects',
                 data: { class_type_id: class_type_id },
@@ -660,11 +766,8 @@ $(document).ready(function(){
                     $('#stream_subject_div').show();
                 }
             });
-        } else {
-            $('#stream_subject').html("");
-            $('#stream_subject_div').hide();
         }
-    }
+    });
 });
 </script>
 

@@ -690,7 +690,7 @@
                 @endif
                 @if(!($canAccessStaffAttendance ?? false) && $classes->isEmpty())
                     <div class="alert alert-warning py-1 mb-1">
-                        <i class="fa fa-exclamation-triangle mr-1"></i> No classes are assigned to your teacher account. Please contact the school administrator.
+                        <i class="fa fa-exclamation-triangle mr-1"></i> No courses are assigned to your teacher account. Please contact the school administrator.
                     </div>
                 @endif
 
@@ -719,7 +719,7 @@
                             {{-- Class or Role Selector --}}
                             @if(!$isStaffTab)
                                 <select id="studentClassFilter" name="class_type_id" class="att-select select2">
-                                    <option value="">{{ ($canAccessStaffAttendance ?? false) ? '-- Select Class --' : '-- Select Assigned Class --' }}</option>
+                                    <option value="">{{ ($canAccessStaffAttendance ?? false) ? '-- Select Course --' : '-- Select Assigned Course --' }}</option>
                                     @foreach($classes as $class)
                                         <option value="{{ $class->id }}" {{ request('class_type_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
                                     @endforeach
@@ -904,7 +904,7 @@
                                                     <div class="att-empty-icon"><i class="fa fa-folder-open-o"></i></div>
                                                     <div class="att-empty-title">
                                                         @if(!$isStaffTab)
-                                                            {{ request('class_type_id') ? 'No students found in the selected class.' : 'Please select a class from the dropdown to load students.' }}
+                                                            {{ request('class_type_id') ? 'No students found in the selected course.' : 'Please select a course from the dropdown to load students.' }}
                                                         @else
                                                             {{ request('role_id') ? 'No staff members found for the selected role.' : 'No active staff records available.' }}
                                                         @endif

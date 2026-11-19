@@ -708,7 +708,7 @@
                 <div class="mob-radar-val" style="color: {{ $bestRank ? '#38bdf8' : '#cbd5e1' }};">
                     {{ $bestRank ? '#' . $bestRank : '—' }}
                 </div>
-                <span class="mob-radar-meta">{{ $bestRank ? 'In Class Standing' : 'Standing N/A' }}</span>
+                <span class="mob-radar-meta">{{ $bestRank ? 'In Course Standing' : 'Standing N/A' }}</span>
             </div>
         </div>
     </div>

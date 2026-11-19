@@ -166,10 +166,10 @@ $allowSubSidebar  = explode(',',$getPermisnByBranch['sidebar_sub_id']);
                         </div>
                          <div class="col-md-3">
                                     <div class="form-group">
-                                        <label>Class Name</label>
+                                        <label>Course Name</label>
                                         <div class="custom-multi" id="classMulti">
                                             <button type="button" class="custom-btn" onclick="toggleDropdown()">
-                                                <span id="selectedText">None selected Class</span>
+                                                <span id="selectedText">None selected Course</span>
                                                 <span>▼</span>
                                             </button>
                                             <div class="custom-dropdown" id="ClassDropdown">

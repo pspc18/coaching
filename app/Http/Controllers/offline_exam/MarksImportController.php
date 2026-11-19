@@ -97,14 +97,18 @@ class MarksImportController extends Controller
             ->whereNull('deleted_at')
             ->count();
 
-        $examList = $exams->map(function ($item) use ($classTypeId, $subjectCount, $studentsCount) {
+        $examModels = Exam::whereIn('id', $exams->pluck('exam_id')->toArray())->get()->keyBy('id');
+
+        $examList = $exams->map(function ($item) use ($classTypeId, $subjectCount, $studentsCount, $examModels) {
             $examDate = !empty($item->exam_date) ? date('d M Y', strtotime($item->exam_date)) : 'No Date Set';
+            $examModel = $examModels->get($item->exam_id);
+            $itemSubjectCount = ($examModel && !empty($examModel->selected_subject_ids)) ? count($examModel->selected_subject_ids) : $subjectCount;
             return [
                 'id' => $item->exam_id,
                 'name' => $item->exam_name,
                 'term' => $item->exam_term_name ?? 'General',
                 'date' => $examDate,
-                'subject_count' => $subjectCount,
+                'subject_count' => $itemSubjectCount,
                 'student_count' => $studentsCount,
                 'upload_url' => url('fill-marks-by-excel?class_type_id='.$classTypeId.'&exam_id='.$item->exam_id),
                 'template_url' => route('marks.template.download', ['class_type_id' => $classTypeId, 'exam_id' => $item->exam_id]),
@@ -116,6 +120,7 @@ class MarksImportController extends Controller
         $className = ClassType::where('id', $classTypeId)->value('name') ?? 'Selected Class';
 
         return response()->json([
+            'status' => true,
             'success' => true,
             'class_id' => $classTypeId,
             'class_name' => $className,
@@ -759,7 +764,10 @@ class MarksImportController extends Controller
             ->where('branch_id', $branchId)->where('session_id', $sessionId)
             ->where('status', 1)->whereNull('deleted_at')
             ->orderBy('first_name')->get();
-        $subjects = Subject::select(
+        $exam = Exam::where('id', $examId)->first();
+        $examSubjectIds = $exam ? $exam->selected_subject_ids : [];
+
+        $subjectsQuery = Subject::select(
                 'subject.*',
                 'fill_min_max_marks.exam_maximum_marks as maximum_marks',
                 'fill_min_max_marks.exam_minimum_marks as minimum_marks'
@@ -775,7 +783,13 @@ class MarksImportController extends Controller
             ->where('subject.class_type_id', $classTypeId)
             ->where('subject.branch_id', $branchId)
             ->where('subject.session_id', $sessionId)
-            ->whereNull('subject.deleted_at')->orderBy('subject.sort_by')->get();
+            ->whereNull('subject.deleted_at');
+
+        if (!empty($examSubjectIds)) {
+            $subjectsQuery->whereIn('subject.id', $examSubjectIds);
+        }
+
+        $subjects = $subjectsQuery->orderBy('subject.sort_by')->get();
 
         return [$assignment, $students, $subjects];
     }

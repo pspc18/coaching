@@ -688,7 +688,7 @@ textarea.theme-form-control {
             </div>
             <div class="perf-hero-actions">
                 @if(empty($isEdit))
-                <button type="button" class="dash-btn dash-btn-light" data-toggle="modal" data-target="#modal-ai-generator" style="background: #ffffff !important; color: #002C54 !important; border: 1px solid #ffffff !important; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.15);" title="Generate Questions using AI Prompt & Pattern Engine">
+                <button type="button" class="dash-btn dash-btn-light btn-trigger-ai-modal" id="hero-btn-ai-generator" style="background: #ffffff !important; color: #002C54 !important; border: 1px solid #ffffff !important; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.15);" title="Generate Questions using AI Prompt & Pattern Engine (Requires Course, Subject, Chapter & Topic)">
                     <i class="fa fa-magic text-warning mr-1"></i> AI Question Generator
                 </button>
                 @endif
@@ -722,24 +722,25 @@ textarea.theme-form-control {
             </div>
         @endif
 
-        {{-- 2. Global Target Context Card (Class, Subject, Type) --}}
+        {{-- 2. Global Target Context Card (Class, Subject, Chapter, Topic, Format, Language, Marks, PYQ) --}}
         <div class="theme-card mb-2">
             <div class="theme-card-header">
                 <h3 class="card-title">
-                    <i class="fa fa-sliders text-warning mr-2"></i> Target Academic Context (Class &amp; Subject)
+                    <i class="fa fa-sliders text-warning mr-2"></i> Target Academic Context &amp; Coaching Category Standards
                 </h3>
                 <span class="text-white small" style="font-size: 10px; opacity: 0.9;">
-                    <i class="fa fa-info-circle mr-1"></i> Used for Manual and AI Document / Paper Parser
+                    <i class="fa fa-info-circle mr-1"></i> Indian Coaching &amp; Exam Pattern Compliant (SSC, Banking, NEET, JEE, etc.)
                 </span>
             </div>
             <div class="theme-card-body py-2">
+                {{-- Row 1: Academic & Subject Hierarchy --}}
                 <div class="row">
-                    {{-- Target Class --}}
-                    <div class="col-md-4">
-                        <div class="theme-form-group mb-1">
-                            <label for="global_class_type_id">Target Class <span class="text-danger">*</span></label>
+                    {{-- Target Course / Batch --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-2">
+                            <label for="global_class_type_id" class="font-weight-bold" style="font-size: 11px;">Target Course / Exam <span class="text-danger">*</span></label>
                             <select id="global_class_type_id" class="theme-form-control select2" required>
-                                <option value="">-- Select Class --</option>
+                                <option value="">-- Select Course --</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}" {{ old('class_type_id', $data->class_type_id ?? '') == $type->id ? 'selected' : '' }}>
@@ -751,10 +752,10 @@ textarea.theme-form-control {
                         </div>
                     </div>
 
-                    {{-- Target Subject (Dynamically filtered by Class) --}}
-                    <div class="col-md-4">
-                        <div class="theme-form-group mb-1">
-                            <label for="global_subject_id">Subject <span class="text-danger">*</span></label>
+                    {{-- Target Subject (Dynamically filtered by Course) --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-2">
+                            <label for="global_subject_id" class="font-weight-bold" style="font-size: 11px;">Subject <span class="text-danger">*</span></label>
                             <select id="global_subject_id" class="theme-form-control select2" required>
                                 <option value="">-- Select Subject --</option>
                                 @if(!empty($allSubjects))
@@ -768,14 +769,129 @@ textarea.theme-form-control {
                         </div>
                     </div>
 
-                    {{-- Question Type --}}
-                    <div class="col-md-4">
-                        <div class="theme-form-group mb-1">
-                            <label for="global_question_type_id">Question Format <span class="text-danger">*</span></label>
-                            <select id="global_question_type_id" class="theme-form-control">
-                                <option value="1" {{ old('question_type_id', $data->question_type_id ?? '1') == '1' ? 'selected' : '' }}>Objective (MCQ - 4 Options)</option>
-                                <option value="2" {{ old('question_type_id', $data->question_type_id ?? '1') == '2' ? 'selected' : '' }}>Descriptive / Subjective</option>
+                    {{-- Chapter (अध्याय) --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-2">
+                            <label for="global_chapter_id" class="font-weight-bold d-flex align-items-center justify-content-between mb-1" style="font-size: 11px; height: 18px; line-height: 18px;">
+                                <span><i class="fa fa-folder-open-o text-warning mr-1"></i> Chapter (अध्याय) <span class="text-danger">*</span></span>
+                                <a href="javascript:void(0);" id="btn-quick-add-chapter" class="badge badge-light border text-primary px-2 py-0" style="font-size: 10px; font-weight: 700; text-decoration: none;" title="Add new Chapter to this Subject">
+                                    <i class="fa fa-plus-circle text-primary mr-1"></i> + Add / Save
+                                </a>
+                            </label>
+                            <select id="global_chapter_id" class="theme-form-control" style="height: 33px; font-size: 11.5px;">
+                                <option value="">{{ !empty($data->subject_id) ? '-- Select Chapter --' : '-- Select Subject First --' }}</option>
+                                <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Chapter...</option>
+                                @if(!empty($existingChapters) && !empty($data->subject_id))
+                                    @foreach($existingChapters as $ch)
+                                        @if(empty($ch->subject_id) || $ch->subject_id == $data->subject_id)
+                                            @php
+                                                $chId = is_object($ch) ? $ch->id : '';
+                                                $chName = is_object($ch) ? $ch->name : $ch;
+                                                $isSel = (old('chapter_id', $data->chapter_id ?? '') == $chId || (!empty($data->chapter_name) && $data->chapter_name == $chName));
+                                            @endphp
+                                            <option value="{{ $chId }}" data-name="{{ $chName }}" {{ $isSel ? 'selected' : '' }}>{{ $chName }}</option>
+                                        @endif
+                                    @endforeach
+                                @endif
                             </select>
+                        </div>
+                    </div>
+
+                    {{-- Topic / Sub-topic --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-2">
+                            <label for="global_topic_id" class="font-weight-bold d-flex align-items-center justify-content-between mb-1" style="font-size: 11px; height: 18px; line-height: 18px;">
+                                <span><i class="fa fa-tag text-info mr-1"></i> Topic / Sub-topic <span class="text-danger">*</span></span>
+                                <a href="javascript:void(0);" id="btn-quick-add-topic" class="badge badge-light border text-info px-2 py-0" style="font-size: 10px; font-weight: 700; text-decoration: none;" title="Add new Topic to this Chapter">
+                                    <i class="fa fa-plus-circle text-info mr-1"></i> + Add / Save
+                                </a>
+                            </label>
+                            <select id="global_topic_id" class="theme-form-control" style="height: 33px; font-size: 11.5px;">
+                                <option value="">{{ !empty($data->chapter_id) ? '-- Select Topic --' : '-- Select Chapter First --' }}</option>
+                                <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Topic...</option>
+                                @if(!empty($existingTopics) && !empty($data->chapter_id))
+                                    @foreach($existingTopics as $top)
+                                        @if(empty($top->chapter_id) || $top->chapter_id == $data->chapter_id)
+                                            @php
+                                                $topId = is_object($top) ? $top->id : '';
+                                                $topName = is_object($top) ? $top->name : $top;
+                                                $topChapId = is_object($top) ? ($top->chapter_id ?? '') : '';
+                                                $isSel = (old('topic_id', $data->topic_id ?? '') == $topId || (!empty($data->topic_name) && $data->topic_name == $topName));
+                                            @endphp
+                                            <option value="{{ $topId }}" data-chapter-id="{{ $topChapId }}" data-name="{{ $topName }}" {{ $isSel ? 'selected' : '' }}>{{ $topName }}</option>
+                                        @endif
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Row 2: Exam Pattern, Medium & Coaching Standards --}}
+                <div class="row pt-2" style="border-top: 1px dashed #e2e8f0;">
+                    {{-- Question Format --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-1">
+                            <label for="global_question_type_id" class="font-weight-bold d-flex align-items-center mb-1" style="font-size: 11px; height: 18px; line-height: 18px;">
+                                <span><i class="fa fa-list-ul text-primary mr-1"></i> Question Format <span class="text-danger">*</span></span>
+                            </label>
+                            @php
+                                $curTypeVal = old('question_type_id', $data->question_type_id ?? '1');
+                                $is5Opt = (!empty($data->ans5) || !empty($data->ans5_hi) || old('ans5') || old('ans5_hi'));
+                                if ($curTypeVal == '1' && $is5Opt) {
+                                    $curFormatSelect = '1_5';
+                                } elseif ($curTypeVal == '2') {
+                                    $curFormatSelect = '2';
+                                } else {
+                                    $curFormatSelect = '1';
+                                }
+                            @endphp
+                            <select id="global_question_type_id" class="theme-form-control" style="height: 33px; font-size: 11px; font-weight: 600;">
+                                <option value="1" {{ $curFormatSelect == '1' ? 'selected' : '' }}>Objective (MCQ - 4 Options)</option>
+                                <option value="1_5" {{ $curFormatSelect == '1_5' ? 'selected' : '' }}>Objective (MCQ - 5 Options - Banking)</option>
+                                <option value="2" {{ $curFormatSelect == '2' ? 'selected' : '' }}>Descriptive / Subjective</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Medium / Language --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-1">
+                            <label for="global_language" class="font-weight-bold d-flex align-items-center mb-1" style="font-size: 11px; height: 18px; line-height: 18px;">
+                                <span><i class="fa fa-language text-primary mr-1"></i> Medium / भाषा</span>
+                            </label>
+                            @php $curLang = old('language', $data->language ?? 'en'); @endphp
+                            <select id="global_language" class="theme-form-control" style="height: 33px; font-size: 11px; font-weight: 600;">
+                                <option value="en" {{ $curLang === 'en' ? 'selected' : '' }}>English (अंग्रेजी)</option>
+                                <option value="hi" {{ $curLang === 'hi' ? 'selected' : '' }}>हिन्दी (Hindi)</option>
+                                <option value="bilingual" {{ $curLang === 'bilingual' ? 'selected' : '' }}>Bilingual (द्विभाषी - EN+HI)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- PYQ Exam Name --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-1">
+                            <div class="d-flex align-items-center justify-content-between mb-1" style="height: 18px; line-height: 18px;">
+                                <label for="global_pyq_exam" class="font-weight-bold m-0" style="font-size: 11px; line-height: 18px; cursor: pointer;">
+                                    <i class="fa fa-star text-warning mr-1"></i> Previous Year (PYQ)
+                                </label>
+                                <label for="global_is_pyq" class="d-inline-flex align-items-center m-0 text-primary font-weight-bold" style="cursor: pointer; font-size: 10.5px; gap: 4px; line-height: 18px;">
+                                    <input type="checkbox" id="global_is_pyq" {{ old('is_pyq', $data->is_pyq ?? false) ? 'checked' : '' }} style="cursor: pointer; margin: 0; vertical-align: middle;">
+                                    <span>Is PYQ?</span>
+                                </label>
+                            </div>
+                            <input type="text" id="global_pyq_exam" class="theme-form-control" placeholder="Exam (e.g. SSC CGL / NEET / IBPS)" value="{{ old('pyq_exam', $data->pyq_exam ?? '') }}" style="height: 33px; font-size: 11.5px; transition: all 0.2s ease;">
+                        </div>
+                    </div>
+
+                    {{-- PYQ Year / Shift --}}
+                    <div class="col-md-3">
+                        <div class="theme-form-group mb-1">
+                            <label for="global_pyq_year" class="font-weight-bold d-flex align-items-center mb-1" style="font-size: 11px; height: 18px; line-height: 18px;">
+                                <span><i class="fa fa-calendar-check-o text-muted mr-1"></i> Exam Year / Shift</span>
+                            </label>
+                            <input type="text" id="global_pyq_year" class="theme-form-control" placeholder="e.g. 2023 Tier-1 Shift 2" value="{{ old('pyq_year', $data->pyq_year ?? '') }}" style="height: 33px; font-size: 11.5px; transition: all 0.2s ease;">
                         </div>
                     </div>
                 </div>
@@ -804,7 +920,15 @@ textarea.theme-form-control {
                 @csrf
                 <input type="hidden" name="class_type_id" id="manual_class_type_id" value="{{ old('class_type_id', $data->class_type_id ?? '') }}">
                 <input type="hidden" name="subject_id" id="manual_subject_id" value="{{ old('subject_id', $data->subject_id ?? '') }}">
+                <input type="hidden" name="chapter_id" id="manual_chapter_id" value="{{ old('chapter_id', $data->chapter_id ?? '') }}">
+                <input type="hidden" name="topic_id" id="manual_topic_id" value="{{ old('topic_id', $data->topic_id ?? '') }}">
+                <input type="hidden" name="chapter_name" id="manual_chapter_name" value="{{ old('chapter_name', $data->chapter_name ?? '') }}">
+                <input type="hidden" name="topic_name" id="manual_topic_name" value="{{ old('topic_name', $data->topic_name ?? '') }}">
+                <input type="hidden" name="language" id="manual_language" value="{{ old('language', $data->language ?? 'en') }}">
                 <input type="hidden" name="question_type_id" id="manual_question_type_id" value="{{ old('question_type_id', $data->question_type_id ?? '1') }}">
+                <input type="hidden" name="is_pyq" id="manual_is_pyq" value="{{ old('is_pyq', $data->is_pyq ?? false) ? '1' : '0' }}">
+                <input type="hidden" name="pyq_exam" id="manual_pyq_exam" value="{{ old('pyq_exam', $data->pyq_exam ?? '') }}">
+                <input type="hidden" name="pyq_year" id="manual_pyq_year" value="{{ old('pyq_year', $data->pyq_year ?? '') }}">
                 <input type="hidden" name="submit_action" id="manual_submit_action" value="save">
                 @php
                     $isDirMode = (!empty($data->group_id) || old('manual_mode') === 'directional');
@@ -829,9 +953,9 @@ textarea.theme-form-control {
                                 </label>
                             </div>
                             @if(empty($isEdit))
-                            <button type="button" class="btn btn-sm btn-ai-pulse-glow" id="btn-open-ai-generator" data-toggle="modal" data-target="#modal-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff !important; border: 1px solid #3b82f6; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);" title="Generate Questions using AI Prompt & Pattern Engine">
+                            <button type="button" class="btn btn-sm btn-trigger-ai-modal" id="btn-open-ai-generator" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%); color: #ffffff !important; border: 1px solid #3b82f6; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 2px; cursor: pointer; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 44, 84, 0.2);" title="Generate Questions using AI Prompt & Pattern Engine (Requires Course, Subject, Chapter & Topic)">
                                 <i class="fa fa-magic text-warning mr-1"></i> Generate with AI
-                                <span class="badge ml-1" style="background: rgba(255,255,255,0.22); font-size: 9px; color: #ffffff; padding: 1px 5px; border-radius: 2px; font-weight: 600;">Prompt/File</span>
+                                <span class="badge ml-1" id="ai-btn-status-badge" style="background: rgba(255,255,255,0.22); font-size: 9px; color: #ffffff; padding: 1px 5px; border-radius: 2px; font-weight: 600;"><i class="fa fa-lock mr-1 text-warning"></i> Need 4 Fields</span>
                             </button>
                             @endif
                         </div>
@@ -889,12 +1013,22 @@ textarea.theme-form-control {
                                         </div>
                                     </div>
 
-                                    {{-- Question Textarea --}}
+                                    {{-- Question Textarea & Language Pill --}}
                                     <div class="theme-form-group">
-                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <label for="manual_question_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
-                                                Question Statement <span class="text-danger">*</span>
-                                            </label>
+                                        <div class="d-flex align-items-center justify-content-between mb-1 flex-wrap" style="gap: 6px;">
+                                            <div class="d-flex align-items-center" style="gap: 6px;">
+                                                <label class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
+                                                    <i class="fa fa-pencil-square-o text-primary mr-1"></i> Question Statement <span class="text-danger">*</span>
+                                                </label>
+                                                {{-- Quick Active Language Switcher for Editor --}}
+                                                <div class="btn-group btn-group-toggle" id="manual_lang_btn_group">
+                                                    <button type="button" class="btn btn-xs btn-outline-primary {{ old('language', $data->language ?? 'en') === 'en' ? 'active' : '' }} btn-lang-switch" data-lang="en" style="font-size: 10px; font-weight: 700; padding: 1px 7px;">English</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary {{ old('language', $data->language ?? 'en') === 'hi' ? 'active' : '' }} btn-lang-switch" data-lang="hi" style="font-size: 10px; font-weight: 700; padding: 1px 7px;">हिन्दी</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary {{ old('language', $data->language ?? 'en') === 'bilingual' ? 'active' : '' }} btn-lang-switch" data-lang="bilingual" style="font-size: 10px; font-weight: 700; padding: 1px 7px;">
+                                                        <i class="fa fa-globe mr-1"></i> Both (Bilingual)
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <div class="d-flex align-items-center gap-1 editor-height-tools">
                                                 <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
                                                 <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="manual_question_name" data-delta="-40" title="Decrease Question Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-minus"></i></button>
@@ -902,7 +1036,26 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_question_name" data-reset="125" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement, equations (e.g. $E=mc^2$), or text..." {{ $isDirMode ? '' : 'required' }}>{{ old('name', $data->name ?? '') }}</textarea>
+
+                                        {{-- English Question Box --}}
+                                        <div id="wrap_manual_q_en" class="mb-2 {{ old('language', $data->language ?? 'en') === 'hi' ? 'd-none' : '' }}">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="badge badge-light border text-primary px-2 py-0" style="font-size: 9.5px; font-weight: 700;">
+                                                    <i class="fa fa-font mr-1"></i> English Statement:
+                                                </span>
+                                            </div>
+                                            <textarea id="manual_question_name" name="name" rows="3" class="theme-form-control active-math-target" placeholder="Enter question statement in English, equations (e.g. $E=mc^2$), or text...">{{ old('name', $data->name ?? '') }}</textarea>
+                                        </div>
+
+                                        {{-- Hindi Question Box --}}
+                                        <div id="wrap_manual_q_hi" class="mb-2 {{ old('language', $data->language ?? 'en') === 'en' ? 'd-none' : '' }}">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="badge badge-light border text-danger px-2 py-0" style="font-size: 9.5px; font-weight: 700;">
+                                                    <i class="fa fa-language mr-1"></i> प्रश्न (हिन्दी में):
+                                                </span>
+                                            </div>
+                                            <textarea id="manual_question_name_hi" name="name_hi" rows="3" class="theme-form-control active-math-target" placeholder="यहाँ हिन्दी में प्रश्न दर्ज करें (उदा. एक वस्तु का क्रय मूल्य ₹500 है...)...">{{ old('name_hi', $data->name_hi ?? '') }}</textarea>
+                                        </div>
                                     </div>
 
                                     {{-- Options Section (Objective) --}}
@@ -932,6 +1085,7 @@ textarea.theme-form-control {
                                                  @php 
                                                      $optIndex = (string)($num - 1); 
                                                      $optVal = old('ans'.$num, $data->{'ans'.$num} ?? '');
+                                                     $optValHi = old('ans'.$num.'_hi', $data->{'ans'.$num.'_hi'} ?? '');
                                                      $isCorrect = ((string)old('correct_ans', $data->correct_ans ?? '0') === $optIndex);
                                                  @endphp
                                                 <div class="col-md-6 mb-2">
@@ -952,22 +1106,32 @@ textarea.theme-form-control {
                                                                 </label>
                                                             </div>
                                                         </div>
-                                                        <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }}...">{{ $optVal }}</textarea>
+
+                                                        {{-- English Option --}}
+                                                        <div class="opt-lang-wrap-en mb-1 {{ old('language', $data->language ?? 'en') === 'hi' ? 'd-none' : '' }}" id="wrap_opt_{{ $num }}_en">
+                                                            <textarea name="ans{{ $num }}" id="manual_ans{{ $num }}" rows="2" class="theme-form-control active-math-target" placeholder="Answer option {{ $letter }} (English)...">{{ $optVal }}</textarea>
+                                                        </div>
+
+                                                        {{-- Hindi Option --}}
+                                                        <div class="opt-lang-wrap-hi mt-1 {{ old('language', $data->language ?? 'en') === 'en' ? 'd-none' : '' }}" id="wrap_opt_{{ $num }}_hi">
+                                                            <div class="small text-danger font-weight-bold mb-1" style="font-size: 9px;">विकल्प {{ $letter }} (हिन्दी में):</div>
+                                                            <textarea name="ans{{ $num }}_hi" id="manual_ans{{ $num }}_hi" rows="2" class="theme-form-control active-math-target" placeholder="विकल्प {{ $letter }} (हिन्दी में)...">{{ $optValHi }}</textarea>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endforeach
 
-                                            {{-- 5th Option (Option E) --}}
+                                            {{-- 5th Option (Option E - Banking Pattern) --}}
                                             @php
-                                                $hasOpt5 = (!empty($data->ans5) || old('ans5') || ((string)old('correct_ans', $data->correct_ans ?? '0') === '4'));
+                                                $hasOpt5 = (!empty($data->ans5) || !empty($data->ans5_hi) || old('ans5') || old('ans5_hi') || ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') || old('question_type_id', $data->question_type_id ?? '1') == '1_5');
                                             @endphp
                                             <div class="col-md-6 mb-2 {{ $hasOpt5 ? '' : 'd-none' }}" id="manual-opt-col-5">
                                                 <div class="option-input-card {{ ((string)old('correct_ans', $data->correct_ans ?? '0') === '4') ? 'correct-selected' : '' }}" id="manual-opt-card-5">
                                                     <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
                                                         <div class="d-flex align-items-center">
-                                                            <span class="option-label-pill mr-2">E</span>
-                                                            <strong style="font-size: 11px; color: #334155;">Option E</strong>
-                                                            <span class="badge badge-light border text-muted small ml-1" style="font-size: 9px;">Optional</span>
+                                                            <span class="option-label-pill mr-2" style="background:#0284c7;">E</span>
+                                                            <strong style="font-size: 11px; color: #002C54;">Option E</strong>
+                                                            <span class="badge border small ml-1" style="font-size: 9px; background: #e0f2fe; color: #0369a1;">Banking 5th Option</span>
                                                         </div>
                                                         <div class="d-flex align-items-center">
                                                             <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
@@ -983,7 +1147,17 @@ textarea.theme-form-control {
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E...">{{ old('ans5', $data->ans5 ?? '') }}</textarea>
+
+                                                    {{-- English Option E --}}
+                                                    <div class="opt-lang-wrap-en mb-1 {{ old('language', $data->language ?? 'en') === 'hi' ? 'd-none' : '' }}" id="wrap_opt_5_en">
+                                                        <textarea name="ans5" id="manual_ans5" rows="2" class="theme-form-control active-math-target" placeholder="Answer option E (English)...">{{ old('ans5', $data->ans5 ?? '') }}</textarea>
+                                                    </div>
+
+                                                    {{-- Hindi Option E --}}
+                                                    <div class="opt-lang-wrap-hi mt-1 {{ old('language', $data->language ?? 'en') === 'en' ? 'd-none' : '' }}" id="wrap_opt_5_hi">
+                                                        <div class="small text-danger font-weight-bold mb-1" style="font-size: 9px;">विकल्प E (हिन्दी में):</div>
+                                                        <textarea name="ans5_hi" id="manual_ans5_hi" rows="2" class="theme-form-control active-math-target" placeholder="विकल्प E (हिन्दी में)...">{{ old('ans5_hi', $data->ans5_hi ?? '') }}</textarea>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1025,7 +1199,17 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="manual_explanation" data-reset="75" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes...">{{ old('explanation', $data->explanation ?? '') }}</textarea>
+
+                                        {{-- English Explanation --}}
+                                        <div class="exp-lang-wrap-en mb-2 {{ old('language', $data->language ?? 'en') === 'hi' ? 'd-none' : '' }}" id="wrap_exp_en">
+                                            <textarea id="manual_explanation" name="explanation" rows="2" class="theme-form-control active-math-target" placeholder="Provide step-by-step reasoning or solution notes in English...">{{ old('explanation', $data->explanation ?? '') }}</textarea>
+                                        </div>
+
+                                        {{-- Hindi Explanation --}}
+                                        <div class="exp-lang-wrap-hi mb-0 {{ old('language', $data->language ?? 'en') === 'en' ? 'd-none' : '' }}" id="wrap_exp_hi">
+                                            <div class="small text-danger font-weight-bold mb-1" style="font-size: 9px;">हिन्दी समाधान / व्याख्या (Hindi Explanation):</div>
+                                            <textarea id="manual_explanation_hi" name="explanation_hi" rows="2" class="theme-form-control active-math-target" placeholder="हल एवं व्याख्या हिन्दी में दर्ज करें...">{{ old('explanation_hi', $data->explanation_hi ?? '') }}</textarea>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1159,10 +1343,10 @@ textarea.theme-form-control {
                                     </div>
 
                                     {{-- Common Passage Textarea with Height Adjustment --}}
-                                    <div class="theme-form-group">
+                                    <div class="theme-form-group mb-2">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <label for="dir_direction" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
-                                                Common Passage / Direction Text <span class="text-danger">*</span>
+                                                <i class="fa fa-align-left text-primary mr-1"></i> Common Passage / Direction Text (English) <span class="text-danger">*</span>
                                             </label>
                                             <div class="d-flex align-items-center gap-1 editor-height-tools">
                                                 <span class="text-muted small mr-1" style="font-size: 10px;"><i class="fa fa-arrows-v text-primary"></i> Height:</span>
@@ -1171,7 +1355,17 @@ textarea.theme-form-control {
                                                 <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_direction" data-reset="140" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                                             </div>
                                         </div>
-                                        <textarea id="dir_direction" name="direction" rows="4" class="theme-form-control active-math-target" placeholder="Enter common instructions or comprehension passage (e.g. Directions (Q.1 - Q.5): Read the following passage carefully and answer the questions given below...)...">{{ old('direction', $data->direction ?? '') }}</textarea>
+                                        <textarea id="dir_direction" name="direction" rows="3" class="theme-form-control active-math-target" placeholder="Enter common instructions or comprehension passage in English...">{{ old('direction', $data->direction ?? '') }}</textarea>
+                                    </div>
+
+                                    {{-- Common Passage Hindi Textarea --}}
+                                    <div class="theme-form-group mb-2 dir-hi-wrap {{ old('language', $data->language ?? 'en') === 'en' ? 'd-none' : '' }}" id="wrap_dir_direction_hi">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="dir_direction_hi" class="font-weight-bold mb-0 text-danger" style="font-size: 11.5px;">
+                                                <i class="fa fa-language mr-1"></i> Common Passage / गद्यांश / निर्देश (हिन्दी में):
+                                            </label>
+                                        </div>
+                                        <textarea id="dir_direction_hi" name="direction_hi" rows="3" class="theme-form-control active-math-target" placeholder="गद्यांश या निर्देश हिन्दी में यहाँ दर्ज करें (उदा. निर्देश (प्र. 1-5): निम्नलिखित जानकारी का ध्यानपूर्वक अध्ययन करें...)...">{{ old('direction_hi', $data->direction_hi ?? '') }}</textarea>
                                     </div>
 
                                     {{-- Common Diagram & Data Table Row --}}
@@ -1415,7 +1609,7 @@ textarea.theme-form-control {
                 {{-- Bottom Bulk Action Sticky Bar --}}
                 <div class="p-2 bg-white border rounded d-flex align-items-center justify-content-between mt-2">
                     <span class="text-muted small" style="font-size: 11px;">
-                        <i class="fa fa-info-circle mr-1"></i> All selected questions above will be saved with the active Target Class and Subject.
+                        <i class="fa fa-info-circle mr-1"></i> All selected questions above will be saved with the active Target Course / Batch and Subject.
                     </span>
                     <button type="button" id="btn-bulk-import-save-bottom" class="dash-btn dash-btn-emerald" style="height: 32px; padding: 0 16px;">
                         <i class="fa fa-database mr-1"></i> Import Selected Questions to Bank
@@ -1545,31 +1739,77 @@ textarea.theme-form-control {
 </div>
 
 {{-- =========================================================================
+     MODAL: QUICK ADD CHAPTER & TOPIC (MASTER SYLLABUS)
+     ========================================================================= --}}
+<div class="modal fade" id="modal-quick-add-chapter-topic" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px;">
+        <div class="modal-content" style="border: none; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header py-2 px-3 text-white" style="background: linear-gradient(135deg, #002C54 0%, #1e40af 100%);">
+                <h6 class="modal-title font-weight-bold mb-0 text-white" id="modal-chapter-topic-title" style="font-size: 13px;">
+                    <i class="fa fa-folder-open-o text-warning mr-1"></i> Add Chapter / Topic
+                </h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.85;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3" style="background: #ffffff;">
+                <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 11px;">
+                    <i class="fa fa-info-circle mr-1"></i> Saving for <strong id="modal-ctx-class">Course</strong> &bull; <strong id="modal-ctx-subj">Subject</strong>
+                </div>
+
+                <div id="modal-field-chapter-group" class="form-group mb-2">
+                    <label class="font-weight-bold" style="font-size: 11px; color: #334155;">
+                        <i class="fa fa-folder-open text-warning mr-1"></i> Chapter Name (अध्याय का नाम) <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="modal-input-chapter-name" class="form-control" placeholder="e.g. Percentage, Profit & Loss..." style="font-size: 12px; height: 34px;">
+                </div>
+
+                <div id="modal-field-topic-group" class="form-group mb-2">
+                    <label class="font-weight-bold d-flex align-items-center justify-content-between" style="font-size: 11px; color: #334155;">
+                        <span><i class="fa fa-tag text-info mr-1"></i> Topic / Sub-topic (टॉपिक का नाम)</span>
+                        <span class="text-muted font-weight-normal small" id="modal-topic-optional-hint">(Optional)</span>
+                    </label>
+                    <input type="text" id="modal-input-topic-name" class="form-control" placeholder="e.g. Successive Discount, Error in Weight..." style="font-size: 12px; height: 34px;">
+                </div>
+
+                <div id="modal-add-error" class="text-danger small mt-1 d-none font-weight-bold" style="font-size: 10.5px;"></div>
+            </div>
+            <div class="modal-footer py-2 px-3" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" style="font-size: 11px;">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-modal-save-chapter-topic" style="background: #002C54; border-color: #002C54; font-size: 11px; font-weight: 700;">
+                    <i class="fa fa-check mr-1"></i> Save to Syllabus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- =========================================================================
      MODAL: AI QUESTION GENERATOR (PROMPT + PDF/IMAGE PATTERN ENGINE)
      ========================================================================= --}}
 <div class="modal fade" id="modal-ai-generator" tabindex="-1" role="dialog" aria-labelledby="aiGenModalTitle" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document" style="max-width: 95%;">
         <div class="modal-content" style="border: none; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);">
             {{-- Modal Header --}}
-            <div class="modal-header py-2 px-3 text-white" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%);">
-                <div class="d-flex align-items-center">
-                    <div class="mr-2" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;">
+            <div class="modal-header py-2 px-3 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 60%, #1e3a8a 100%) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;">
+                <div class="d-flex align-items-center" style="min-width: 0;">
+                    <div class="mr-2 flex-shrink-0" style="width: 34px; height: 34px; border-radius: 4px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2);">
                         <i class="fa fa-magic text-warning" style="font-size: 16px;"></i>
                     </div>
-                    <div>
-                        <h5 class="modal-title font-weight-bold mb-0 text-white" id="aiGenModalTitle" style="font-size: 14px; letter-spacing: 0.3px;">
+                    <div class="d-flex flex-column justify-content-center" style="min-width: 0;">
+                        <div class="font-weight-bold text-white mb-0" id="aiGenModalTitle" style="font-size: 14.5px; letter-spacing: 0.2px; line-height: 1.25; display: block !important;">
                             AI Question Generation &amp; Pattern Engine
-                        </h5>
-                        <p class="mb-0 text-white-50" style="font-size: 10.5px;">
+                        </div>
+                        <div class="text-white-50 mt-1" style="font-size: 11px; line-height: 1.35; display: block !important; opacity: 0.9;">
                             Generate Standalone Questions, Directional Sets (Passages + Tables), or multi-topic batches using your custom prompt &amp; reference file.
-                        </p>
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge" style="background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10px; padding: 4px 8px;">
-                        <i class="fa fa-check-circle mr-1"></i> AI Engine Active
+                <div class="d-flex align-items-center flex-shrink-0 ml-3" style="gap: 8px;">
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 10.5px; padding: 4px 8px; font-weight: 600;">
+                        <i class="fa fa-check-circle mr-1 text-success"></i> AI Engine Active
                     </span>
-                    <button type="button" class="close text-white ml-2" data-dismiss="modal" aria-label="Close" style="opacity: 0.85; font-size: 22px;">
+                    <button type="button" class="close text-white ml-2" data-dismiss="modal" aria-label="Close" style="opacity: 0.9; font-size: 20px; line-height: 1; text-shadow: none;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -1581,16 +1821,32 @@ textarea.theme-form-control {
                 {{-- 1. INPUT CONFIGURATION VIEW --}}
                 <div id="ai-gen-input-view">
                     {{-- Target Academic Scope Alert --}}
-                    <div class="d-flex align-items-center justify-content-between p-2 mb-3 bg-white rounded border" style="border-left: 4px solid #002C54 !important;">
-                        <div class="d-flex align-items-center flex-wrap gap-2">
-                            <span class="small font-weight-bold" style="color: #002C54; font-size: 11.5px;">
-                                <i class="fa fa-graduation-cap text-primary mr-1"></i> Target Academic Context:
+                    <div class="d-flex align-items-center justify-content-between p-2 mb-3 bg-white rounded border flex-wrap" style="border-left: 4px solid #002C54 !important; border: 1px solid #cbd5e1; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                            <span class="small font-weight-bold mr-1" style="color: #002C54; font-size: 11.5px;">
+                                <i class="fa fa-graduation-cap text-primary mr-1"></i> Target Context &amp; AI Keywords:
                             </span>
-                            <span class="badge badge-primary px-2 py-1" id="ai-gen-badge-class" style="background: #002C54; font-size: 11px;">Class: Not Selected</span>
-                            <span class="badge badge-info px-2 py-1" id="ai-gen-badge-subject" style="background: #0284c7; font-size: 11px;">Subject: Not Selected</span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-class" style="background: #002C54 !important; color: #ffffff !important; border: 1px solid #002C54 !important; font-size: 11px; font-weight: 600; border-radius: 3px;">
+                                <i class="fa fa-university mr-1"></i> Course: ...
+                            </span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-subject" style="background: #0284c7 !important; color: #ffffff !important; border: 1px solid #0284c7 !important; font-size: 11px; font-weight: 600; border-radius: 3px;">
+                                <i class="fa fa-book mr-1"></i> Subject: ...
+                            </span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-chapter" style="background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; font-size: 11px; font-weight: 700; border-radius: 3px;">
+                                <i class="fa fa-folder-open text-warning mr-1"></i> Chapter: ...
+                            </span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-topic" style="background: #eff6ff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; font-size: 11px; font-weight: 700; border-radius: 3px;">
+                                <i class="fa fa-tag text-primary mr-1"></i> Topic: ...
+                            </span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-mode" style="background: #f1f5f9 !important; color: #002C54 !important; border: 1px solid #cbd5e1 !important; font-size: 11px; font-weight: 700; border-radius: 3px;">
+                                <i class="fa fa-sliders text-primary mr-1"></i> Mode: ...
+                            </span>
+                            <span class="badge px-2 py-1" id="ai-gen-badge-lang" style="background: #ecfdf5 !important; color: #065f46 !important; border: 1px solid #a7f3d0 !important; font-size: 11px; font-weight: 700; border-radius: 3px;">
+                                <i class="fa fa-language text-success mr-1"></i> Medium: ...
+                            </span>
                         </div>
-                        <span class="small text-muted" style="font-size: 10.5px;">
-                            <i class="fa fa-info-circle text-info mr-1"></i> Pre-filled from top header selectors.
+                        <span class="small font-weight-bold" style="font-size: 10.5px; color: #059669;">
+                            <i class="fa fa-check-circle mr-1"></i> Locked from academic context
                         </span>
                     </div>
 
@@ -1610,19 +1866,19 @@ textarea.theme-form-control {
                                         <i class="fa fa-bolt text-warning mr-1"></i> Quick Templates:
                                     </span>
                                     <div class="d-flex flex-wrap gap-1 mt-1">
-                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Generate 10 standalone MCQs and 2 directional sets with 3 sub-questions each based on this pattern. Include step-by-step solutions and standard LaTeX math ($...$).">
+                                        <button type="button" class="btn btn-xs ai-prompt-preset-btn" data-preset="Generate 10 standalone MCQs and 2 directional sets with 3 sub-questions each based on this pattern. Include step-by-step solutions and standard LaTeX math ($...$).">
                                             ⚡ 10 Standalone + 2 Directional Sets (3 Qs each)
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 5 high-quality standalone MCQs on this topic with clear options (A-D), accurate correct answers, and detailed step-by-step explanations in LaTeX.">
+                                        <button type="button" class="btn btn-xs ai-prompt-preset-btn" data-preset="Create 5 high-quality standalone MCQs on this topic with clear options (A-D), accurate correct answers, and detailed step-by-step explanations in LaTeX.">
                                             ⚡ 5 Standalone MCQs with Solutions
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Generate 5 Descriptive / Numerical questions with exact answers (e.g. numerical value or formula) and step-by-step solutions. Strictly do not include options." data-format="2">
+                                        <button type="button" class="btn btn-xs ai-prompt-preset-btn" data-preset="Generate 5 Descriptive / Numerical questions with exact answers (e.g. numerical value or formula) and step-by-step solutions. Strictly do not include options." data-format="2">
                                             ⚡ 5 Descriptive / Numerical Qs (No Options)
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Create 1 Directional Question Set with a comprehensive Common Passage, an HTML data table, and 4 linked sub-questions with full explanations.">
+                                        <button type="button" class="btn btn-xs ai-prompt-preset-btn" data-preset="Create 1 Directional Question Set with a comprehensive Common Passage, an HTML data table, and 4 linked sub-questions with full explanations.">
                                             ⚡ 1 Directional Set (Passage &amp; Table)
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary ai-prompt-preset-btn" data-preset="Carefully analyze the attached file's topic, format, formulas, and difficulty. Generate 10 similar questions strictly following this exam pattern.">
+                                        <button type="button" class="btn btn-xs ai-prompt-preset-btn" data-preset="Carefully analyze the attached file's topic, format, formulas, and difficulty. Generate 10 similar questions strictly following this exam pattern.">
                                             ⚡ Generate matching questions from attached file pattern
                                         </button>
                                     </div>
@@ -1633,7 +1889,7 @@ textarea.theme-form-control {
                         {{-- Right Column: Optional Reference File & Preferences --}}
                         <div class="col-lg-5">
                             {{-- File Attachment Dropzone --}}
-                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-color: #cbd5e1 !important;">
                                 <label class="font-weight-bold d-flex align-items-center justify-content-between mb-1" style="font-size: 12px; color: #002C54;">
                                     <span><i class="fa fa-paperclip text-primary mr-1"></i> Reference File / Exam Pattern <span class="text-muted font-weight-normal">(Optional)</span></span>
                                     <span class="text-muted small" style="font-size: 10px;">PDF, PNG, JPG (up to 20MB)</span>
@@ -1646,11 +1902,11 @@ textarea.theme-form-control {
                                         <div class="font-weight-bold text-dark" style="font-size: 11.5px;">Click to upload or drag &amp; drop reference file</div>
                                         <div class="text-muted small" style="font-size: 10px;">Question paper, syllabus notes, screenshots, diagrams, textbook page</div>
                                     </div>
-                                    <div id="ai-gen-file-preview" class="d-none align-items-center justify-content-between p-2 rounded" style="background: #e2e8f0;">
+                                    <div id="ai-gen-file-preview" class="d-none align-items-center justify-content-between p-2 rounded" style="background: #f1f5f9; border: 1px solid #cbd5e1;">
                                         <div class="d-flex align-items-center text-left" style="overflow: hidden;">
                                             <i class="fa fa-file-pdf-o text-danger mr-2" id="ai-gen-file-icon" style="font-size: 20px;"></i>
                                             <div style="min-width: 0;">
-                                                <div class="font-weight-bold text-truncate" id="ai-gen-file-name" style="font-size: 11px; max-width: 180px;">sample.pdf</div>
+                                                <div class="font-weight-bold text-truncate" id="ai-gen-file-name" style="font-size: 11px; max-width: 180px; color: #002C54;">sample.pdf</div>
                                                 <div class="text-muted small" id="ai-gen-file-size" style="font-size: 9.5px;">1.2 MB</div>
                                             </div>
                                         </div>
@@ -1662,21 +1918,21 @@ textarea.theme-form-control {
                             </div>
 
                             {{-- Question Format Preferences --}}
-                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div class="bg-white p-3 rounded border mb-3" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-color: #cbd5e1 !important;">
                                 <label class="font-weight-bold mb-2" style="font-size: 12px; color: #002C54;">
                                     <i class="fa fa-sliders text-primary mr-1"></i> Generation Preferences
                                 </label>
                                 <div class="row">
                                     <div class="col-12 mb-2">
-                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Question Format:</label>
-                                        <select id="ai-gen-format" class="form-control form-control-sm font-weight-bold" style="font-size: 11px; height: 30px; color: #002C54; border-color: #cbd5e1;">
+                                        <label class="small font-weight-bold mb-1" style="font-size: 11px; color: #334155;">Question Format:</label>
+                                        <select id="ai-gen-format" class="form-control form-control-sm font-weight-bold" style="font-size: 11.5px; height: 32px; color: #002C54; border-color: #cbd5e1;">
                                             <option value="1" selected>Objective (MCQ with Options)</option>
                                             <option value="2">Descriptive / Numerical (No Options)</option>
                                         </select>
                                     </div>
                                     <div class="col-6 mb-2">
-                                        <label class="small font-weight-bold text-muted mb-1" style="font-size: 10.5px;">Difficulty Level:</label>
-                                        <select id="ai-gen-difficulty" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
+                                        <label class="small font-weight-bold mb-1" style="font-size: 11px; color: #334155;">Difficulty Level:</label>
+                                        <select id="ai-gen-difficulty" class="form-control form-control-sm" style="font-size: 11.5px; height: 32px; border-color: #cbd5e1; color: #0f172a;">
                                             <option value="Mixed" selected>Mixed (Easy, Medium, Hard)</option>
                                             <option value="Easy">Easy</option>
                                             <option value="Medium">Medium</option>
@@ -1684,11 +1940,11 @@ textarea.theme-form-control {
                                         </select>
                                     </div>
                                     <div class="col-6 mb-2" id="ai-gen-options-count-wrap">
-                                        <label class="small font-weight-bold text-muted mb-1 d-flex align-items-center justify-content-between" style="font-size: 10.5px;">
+                                        <label class="small font-weight-bold mb-1 d-flex align-items-center justify-content-between" style="font-size: 11px; color: #334155;">
                                             <span>Options Format:</span>
-                                            <span id="ai-gen-options-disabled-hint" class="badge badge-secondary d-none" style="font-size: 9px; font-weight: normal;"><i class="fa fa-ban mr-1"></i> Disabled</span>
+                                            <span id="ai-gen-options-disabled-hint" class="badge d-none" style="font-size: 9.5px; font-weight: 600; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;"><i class="fa fa-ban mr-1"></i> Disabled</span>
                                         </label>
-                                        <select id="ai-gen-options-count" class="form-control form-control-sm" style="font-size: 11px; height: 30px;">
+                                        <select id="ai-gen-options-count" class="form-control form-control-sm" style="font-size: 11.5px; height: 32px; border-color: #cbd5e1; color: #0f172a;">
                                             <option value="4" selected>4 Options (A, B, C, D)</option>
                                             <option value="5">5 Options (A, B, C, D, E)</option>
                                         </select>
@@ -1697,7 +1953,7 @@ textarea.theme-form-control {
                                 <div class="mt-1">
                                     <div class="custom-control custom-checkbox small">
                                         <input type="checkbox" class="custom-control-input" id="ai-gen-math-latex" checked disabled>
-                                        <label class="custom-control-label" for="ai-gen-math-latex" style="font-size: 10.5px; color: #334155;">
+                                        <label class="custom-control-label" for="ai-gen-math-latex" style="font-size: 11px; color: #334155; font-weight: 600;">
                                             Strict LaTeX Math Formatting ($...$) for scientific expressions
                                         </label>
                                     </div>
@@ -1707,13 +1963,13 @@ textarea.theme-form-control {
                     </div>
 
                     {{-- Action Button Bar --}}
-                    <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded border">
+                    <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded border" style="border-color: #cbd5e1 !important; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <span class="text-muted small" style="font-size: 11px;">
                             <i class="fa fa-lightbulb-o text-warning mr-1"></i> AI creates original questions according to the syllabus pattern. You can review, load into the manual builder, or save directly.
                         </span>
                         <div>
-                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
-                            <button type="button" id="btn-do-ai-generate" class="btn btn-sm font-weight-bold" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%); color: #ffffff; border: 1px solid #3b82f6; padding: 6px 18px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25);">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" style="font-size: 11.5px; padding: 5px 14px;">Cancel</button>
+                            <button type="button" id="btn-do-ai-generate" class="btn btn-sm font-weight-bold" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 50%, #1e40af 100%); color: #ffffff; border: 1px solid #3b82f6; padding: 6px 20px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 44, 84, 0.25); font-size: 12px;">
                                 <i class="fa fa-magic text-warning mr-1"></i> Generate Questions with AI
                             </button>
                         </div>
@@ -1815,58 +2071,668 @@ textarea.theme-form-control {
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
-    // Global selects
+    // Global inputs & coaching categories
     const globalClassSelect = document.getElementById('global_class_type_id');
     const globalSubjectSelect = document.getElementById('global_subject_id');
+    const globalChapterSelect = document.getElementById('global_chapter_id');
+    const globalTopicSelect = document.getElementById('global_topic_id');
     const globalTypeSelect = document.getElementById('global_question_type_id');
+    const globalLangSelect = document.getElementById('global_language');
+    const globalIsPyqChk = document.getElementById('global_is_pyq');
+    const globalPyqExamInput = document.getElementById('global_pyq_exam');
+    const globalPyqYearInput = document.getElementById('global_pyq_year');
 
-    // Filter subjects dynamically when class changes
-    globalClassSelect?.addEventListener('change', function () {
-        const classId = this.value;
-        if (!classId) return;
+    function getSelectedChapterId() {
+        const val = $('#global_chapter_id').val() || (globalChapterSelect ? globalChapterSelect.value : '');
+        if (!val || val === '__new__') return '';
+        return String(val).trim();
+    }
 
-        fetch(`{{ url('subjectGetData') }}/${classId}`)
-            .then(async res => {
-            const rawText = await res.text();
-            let json = null;
-            try {
-                const jsonStart = rawText.indexOf('{');
-                if (jsonStart !== -1) {
-                    json = JSON.parse(rawText.substring(jsonStart));
-                } else {
-                    json = JSON.parse(rawText);
+    function getSelectedChapterName() {
+        const val = getSelectedChapterId();
+        if (!val) return '';
+        const opt = $('#global_chapter_id option:selected')[0] || (globalChapterSelect ? globalChapterSelect.selectedOptions[0] : null);
+        return opt ? (opt.dataset?.name || opt.text || '').trim() : '';
+    }
+
+    function getSelectedTopicId() {
+        const val = $('#global_topic_id').val() || (globalTopicSelect ? globalTopicSelect.value : '');
+        if (!val || val === '__new__') return '';
+        return String(val).trim();
+    }
+
+    function getSelectedTopicName() {
+        const val = getSelectedTopicId();
+        if (!val) return '';
+        const opt = $('#global_topic_id option:selected')[0] || (globalTopicSelect ? globalTopicSelect.selectedOptions[0] : null);
+        return opt ? (opt.dataset?.name || opt.text || '').trim() : '';
+    }
+
+    // Language switcher logic
+    function setEditorLanguageMode(lang) {
+        if (globalLangSelect) globalLangSelect.value = lang;
+        const manualLang = document.getElementById('manual_language');
+        if (manualLang) manualLang.value = lang;
+
+        // Update active class on toolbar buttons
+        document.querySelectorAll('.btn-lang-switch').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Toggle question boxes
+        const wrapEn = document.getElementById('wrap_manual_q_en');
+        const wrapHi = document.getElementById('wrap_manual_q_hi');
+        const wrapExpEn = document.getElementById('wrap_exp_en');
+        const wrapExpHi = document.getElementById('wrap_exp_hi');
+        const wrapDirHi = document.getElementById('wrap_dir_direction_hi');
+
+        if (lang === 'en') {
+            if (wrapEn) wrapEn.classList.remove('d-none');
+            if (wrapHi) wrapHi.classList.add('d-none');
+            if (wrapExpEn) wrapExpEn.classList.remove('d-none');
+            if (wrapExpHi) wrapExpHi.classList.add('d-none');
+            if (wrapDirHi) wrapDirHi.classList.add('d-none');
+            document.querySelectorAll('.opt-lang-wrap-en').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.opt-lang-wrap-hi').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.dir-subq-hi-wrap').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.dir-subq-en-wrap').forEach(el => el.classList.remove('d-none'));
+        } else if (lang === 'hi') {
+            if (wrapEn) wrapEn.classList.add('d-none');
+            if (wrapHi) wrapHi.classList.remove('d-none');
+            if (wrapExpEn) wrapExpEn.classList.add('d-none');
+            if (wrapExpHi) wrapExpHi.classList.remove('d-none');
+            if (wrapDirHi) wrapDirHi.classList.remove('d-none');
+            document.querySelectorAll('.opt-lang-wrap-en').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.opt-lang-wrap-hi').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.dir-subq-hi-wrap').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.dir-subq-en-wrap').forEach(el => el.classList.add('d-none'));
+            initHindiCKEditors();
+            initAllSubQuestionHindiCKEditors();
+        } else { // bilingual
+            if (wrapEn) wrapEn.classList.remove('d-none');
+            if (wrapHi) wrapHi.classList.remove('d-none');
+            if (wrapExpEn) wrapExpEn.classList.remove('d-none');
+            if (wrapExpHi) wrapExpHi.classList.remove('d-none');
+            if (wrapDirHi) wrapDirHi.classList.remove('d-none');
+            document.querySelectorAll('.opt-lang-wrap-en').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.opt-lang-wrap-hi').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.dir-subq-hi-wrap').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.dir-subq-en-wrap').forEach(el => el.classList.remove('d-none'));
+            initHindiCKEditors();
+            initAllSubQuestionHindiCKEditors();
+        }
+
+        setTimeout(() => {
+            if (window.CKEDITOR && CKEDITOR.instances) {
+                for (let k in CKEDITOR.instances) {
+                    if (CKEDITOR.instances.hasOwnProperty(k)) {
+                        try {
+                            const ed = CKEDITOR.instances[k];
+                            if (ed && ed.container && ed.container.$ && ed.container.$.offsetParent !== null) {
+                                ed.resize('100%', ed.config.height);
+                            }
+                        } catch(e) {}
+                    }
                 }
-            } catch (e) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = rawText;
-                const cleanMsg = (tmp.textContent || tmp.innerText || rawText).trim().replace(/\s+/g, ' ');
-                throw new Error(cleanMsg.substring(0, 300) || 'Invalid server response');
             }
-            return json;
-        })
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    globalSubjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
-                    data.forEach(item => {
+        }, 50);
+
+        updateManualLivePreview();
+        updateDirectionalLivePreview();
+    }
+
+    globalLangSelect?.addEventListener('change', function () {
+        setEditorLanguageMode(this.value);
+    });
+
+    document.querySelectorAll('.btn-lang-switch').forEach(btn => {
+        btn.addEventListener('click', function () {
+            setEditorLanguageMode(this.dataset.lang);
+        });
+    });
+
+    // PYQ Toggle & Auto-check on typing
+    const updatePyqFieldStyles = () => {
+        const isChecked = globalIsPyqChk?.checked;
+        if (globalPyqExamInput) {
+            globalPyqExamInput.style.backgroundColor = isChecked ? '#ffffff' : '#f8fafc';
+            globalPyqExamInput.style.borderColor = isChecked ? '#f59e0b' : '#cbd5e1';
+        }
+        if (globalPyqYearInput) {
+            globalPyqYearInput.style.backgroundColor = isChecked ? '#ffffff' : '#f8fafc';
+            globalPyqYearInput.style.borderColor = isChecked ? '#f59e0b' : '#cbd5e1';
+        }
+    };
+
+    globalIsPyqChk?.addEventListener('change', function () {
+        updatePyqFieldStyles();
+        if (this.checked && !globalPyqExamInput?.value) {
+            globalPyqExamInput?.focus();
+        }
+        syncGlobalToManual();
+        updateManualLivePreview();
+    });
+
+    [globalPyqExamInput, globalPyqYearInput].forEach(inp => {
+        inp?.addEventListener('input', function () {
+            if (this.value.trim() && globalIsPyqChk && !globalIsPyqChk.checked) {
+                globalIsPyqChk.checked = true;
+                updatePyqFieldStyles();
+            }
+        });
+    });
+
+    updatePyqFieldStyles();
+
+    [globalPyqExamInput, globalPyqYearInput].forEach(inp => {
+        inp?.addEventListener('input', function () {
+            syncGlobalToManual();
+            updateManualLivePreview();
+        });
+    });
+
+    // =========================================================================
+    // DYNAMIC CHAPTER & TOPIC MANAGEMENT (STRICT CASCADING & REAL-TIME SYNC)
+    // =========================================================================
+    function loadChaptersForCurrentContext(preselectChapterId = null, preselectTopicId = null) {
+        const classId = ($('#global_class_type_id').val() || (globalClassSelect ? globalClassSelect.value : '') || '').trim();
+        const subjectId = ($('#global_subject_id').val() || (globalSubjectSelect ? globalSubjectSelect.value : '') || '').trim();
+        if (!globalChapterSelect) return;
+
+        // If no Subject is selected, Chapter and Topic MUST be reset
+        if (!subjectId) {
+            globalChapterSelect.innerHTML = `
+                <option value="">-- Select Subject First --</option>
+                <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Chapter...</option>
+            `;
+            globalChapterSelect.value = '';
+            loadTopicsForCurrentContext();
+            syncGlobalToManual();
+            checkAiGenPrerequisites(false);
+            updateManualLivePreview();
+            return;
+        }
+
+        // Show loading state in Chapter dropdown
+        globalChapterSelect.innerHTML = `<option value="">-- Loading Chapters... --</option>`;
+
+        let url = `{{ url('question/get-chapters') }}?class_type_id=${encodeURIComponent(classId)}&subject_id=${encodeURIComponent(subjectId)}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && Array.isArray(res.chapters)) {
+                    // Only preselect if explicitly requested (e.g. initial edit load or just saved new chapter)
+                    const targetVal = (preselectChapterId !== null && preselectChapterId !== undefined) ? String(preselectChapterId) : '';
+                    
+                    globalChapterSelect.innerHTML = `
+                        <option value="">-- Select Chapter --</option>
+                        <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Chapter...</option>
+                    `;
+                    let foundMatch = false;
+                    res.chapters.forEach(ch => {
                         const opt = document.createElement('option');
-                        opt.value = item.id;
-                        opt.textContent = item.name;
-                        globalSubjectSelect.appendChild(opt);
+                        opt.value = ch.id;
+                        opt.dataset.name = ch.name;
+                        opt.textContent = ch.name;
+                        if (targetVal && (targetVal === String(ch.id) || targetVal.toLowerCase() === ch.name.trim().toLowerCase())) {
+                            opt.selected = true;
+                            foundMatch = true;
+                        }
+                        globalChapterSelect.appendChild(opt);
                     });
+
+                    if (!foundMatch && targetVal) {
+                        globalChapterSelect.value = '';
+                    }
+
+                    // Cascading: now reload topics specifically for the currently selected chapter
+                    loadTopicsForCurrentContext(preselectTopicId);
+                    syncGlobalToManual();
+                    checkAiGenPrerequisites(false);
+                    updateManualLivePreview();
+                } else {
+                    globalChapterSelect.innerHTML = `
+                        <option value="">-- No Chapters Found --</option>
+                        <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Chapter...</option>
+                    `;
+                    loadTopicsForCurrentContext();
+                    syncGlobalToManual();
+                    checkAiGenPrerequisites(false);
+                    updateManualLivePreview();
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                globalChapterSelect.innerHTML = `
+                    <option value="">-- Select Chapter --</option>
+                    <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Chapter...</option>
+                `;
+                loadTopicsForCurrentContext();
+            });
+    }
+
+    function loadTopicsForCurrentContext(preselectTopicId = null) {
+        const classId = ($('#global_class_type_id').val() || (globalClassSelect ? globalClassSelect.value : '') || '').trim();
+        const subjectId = ($('#global_subject_id').val() || (globalSubjectSelect ? globalSubjectSelect.value : '') || '').trim();
+        const chapterId = getSelectedChapterId();
+        const chapterName = getSelectedChapterName();
+        if (!globalTopicSelect) return;
+
+        // If no Chapter is selected, Topic MUST be reset
+        if (!chapterId && !chapterName) {
+            globalTopicSelect.innerHTML = `
+                <option value="">-- Select Chapter First --</option>
+                <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Topic...</option>
+            `;
+            globalTopicSelect.value = '';
+            syncGlobalToManual();
+            checkAiGenPrerequisites(false);
+            updateManualLivePreview();
+            return;
+        }
+
+        // Show loading state in Topic dropdown
+        globalTopicSelect.innerHTML = `<option value="">-- Loading Topics... --</option>`;
+
+        let url = `{{ url('question/get-topics') }}?class_type_id=${encodeURIComponent(classId)}&subject_id=${encodeURIComponent(subjectId)}`;
+        if (chapterId) url += `&chapter_id=${encodeURIComponent(chapterId)}`;
+        if (chapterName) url += `&chapter_name=${encodeURIComponent(chapterName)}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success && Array.isArray(res.topics)) {
+                    const targetVal = (preselectTopicId !== null && preselectTopicId !== undefined) ? String(preselectTopicId) : '';
+                    globalTopicSelect.innerHTML = `
+                        <option value="">-- Select Topic --</option>
+                        <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Topic...</option>
+                    `;
+                    let foundMatch = false;
+                    res.topics.forEach(top => {
+                        const opt = document.createElement('option');
+                        opt.value = top.id;
+                        opt.dataset.name = top.name;
+                        opt.dataset.chapterId = top.chapter_id;
+                        opt.textContent = top.name;
+                        if (targetVal && (targetVal === String(top.id) || targetVal.toLowerCase() === top.name.trim().toLowerCase())) {
+                            opt.selected = true;
+                            foundMatch = true;
+                        }
+                        globalTopicSelect.appendChild(opt);
+                    });
+
+                    if (!foundMatch && targetVal) {
+                        globalTopicSelect.value = '';
+                    }
+
+                    syncGlobalToManual();
+                    checkAiGenPrerequisites(false);
+                    updateManualLivePreview();
+                } else {
+                    globalTopicSelect.innerHTML = `
+                        <option value="">-- No Topics Found --</option>
+                        <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Topic...</option>
+                    `;
+                    syncGlobalToManual();
+                    checkAiGenPrerequisites(false);
+                    updateManualLivePreview();
+                }
+            })
+            .catch(() => {
+                globalTopicSelect.innerHTML = `
+                    <option value="">-- Select Topic --</option>
+                    <option value="__new__" style="color: #0284c7; font-weight: 700;">+ Add New Topic...</option>
+                `;
+            });
+    }
+
+    function openQuickAddModal(target = 'chapter') {
+        const classId = ($('#global_class_type_id').val() || globalClassSelect?.value || '').trim();
+        const subjectId = ($('#global_subject_id').val() || globalSubjectSelect?.value || '').trim();
+        const clsName = ($('#global_class_type_id option:selected').text() || (globalClassSelect?.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : '') || '').trim();
+        const subName = ($('#global_subject_id option:selected').text() || (globalSubjectSelect?.selectedOptions[0] ? globalSubjectSelect.selectedOptions[0].text : '') || '').trim();
+
+        if (!classId) {
+            alert('Please select a Target Course / Exam first.');
+            globalClassSelect?.focus();
+            if (globalChapterSelect && globalChapterSelect.value === '__new__') globalChapterSelect.value = '';
+            if (globalTopicSelect && globalTopicSelect.value === '__new__') globalTopicSelect.value = '';
+            return;
+        }
+        if (!subjectId) {
+            alert('Please select a Subject first.');
+            globalSubjectSelect?.focus();
+            if (globalChapterSelect && globalChapterSelect.value === '__new__') globalChapterSelect.value = '';
+            if (globalTopicSelect && globalTopicSelect.value === '__new__') globalTopicSelect.value = '';
+            return;
+        }
+
+        const modalEl = $('#modal-quick-add-chapter-topic');
+        const modalTitle = document.getElementById('modal-chapter-topic-title');
+        const ctxClass = document.getElementById('modal-ctx-class');
+        const ctxSubj = document.getElementById('modal-ctx-subj');
+        const chapGrp = document.getElementById('modal-field-chapter-group');
+        const topGrp = document.getElementById('modal-field-topic-group');
+        const chapInp = document.getElementById('modal-input-chapter-name');
+        const topInp = document.getElementById('modal-input-topic-name');
+        const errEl = document.getElementById('modal-add-error');
+        const topHint = document.getElementById('modal-topic-optional-hint');
+
+        if (ctxClass) ctxClass.textContent = clsName;
+        if (ctxSubj) ctxSubj.textContent = subName;
+        if (errEl) { errEl.textContent = ''; errEl.classList.add('d-none'); }
+
+        if (target === 'chapter') {
+            if (modalTitle) modalTitle.innerHTML = '<i class="fa fa-folder-open-o text-warning mr-1"></i> Add New Chapter (नया अध्याय)';
+            if (chapInp) chapInp.value = '';
+            if (topInp) topInp.value = '';
+            if (topHint) topHint.textContent = '(Optional - add initial topic)';
+            if (chapGrp) chapGrp.classList.remove('d-none');
+            modalEl.data('target-mode', 'chapter');
+            modalEl.modal('show');
+            setTimeout(() => chapInp?.focus(), 400);
+        } else {
+            const chapId = getSelectedChapterId();
+            const chapName = getSelectedChapterName();
+            if (!chapId && !chapName) {
+                alert('Please select or create a Chapter first before adding a Topic.');
+                globalChapterSelect?.focus();
+                if (globalTopicSelect && globalTopicSelect.value === '__new__') globalTopicSelect.value = '';
+                return;
+            }
+            if (modalTitle) modalTitle.innerHTML = `<i class="fa fa-tag text-info mr-1"></i> Add New Topic to <u>${chapName}</u>`;
+            if (chapInp) chapInp.value = chapName;
+            if (chapGrp) chapGrp.classList.add('d-none');
+            if (topInp) topInp.value = '';
+            if (topHint) topHint.textContent = '(Required)';
+            modalEl.data('target-mode', 'topic');
+            modalEl.modal('show');
+            setTimeout(() => topInp?.focus(), 400);
+        }
+    }
+
+    // Modal save button
+    document.getElementById('btn-modal-save-chapter-topic')?.addEventListener('click', function() {
+        const modalEl = $('#modal-quick-add-chapter-topic');
+        const mode = modalEl.data('target-mode') || 'chapter';
+        const classId = ($('#global_class_type_id').val() || globalClassSelect?.value || '').trim();
+        const subjectId = ($('#global_subject_id').val() || globalSubjectSelect?.value || '').trim();
+        const chapInp = document.getElementById('modal-input-chapter-name');
+        const topInp = document.getElementById('modal-input-topic-name');
+        const errEl = document.getElementById('modal-add-error');
+
+        let chapName = chapInp ? chapInp.value.trim() : '';
+        let chapId = (mode === 'topic') ? getSelectedChapterId() : '';
+        const topName = topInp ? topInp.value.trim() : '';
+
+        if (mode === 'chapter' && !chapName) {
+            if (errEl) { errEl.textContent = 'Please enter a Chapter Name.'; errEl.classList.remove('d-none'); }
+            chapInp?.focus();
+            return;
+        }
+        if (mode === 'topic' && !topName) {
+            if (errEl) { errEl.textContent = 'Please enter a Topic Name.'; errEl.classList.remove('d-none'); }
+            topInp?.focus();
+            return;
+        }
+
+        const saveBtn = this;
+        const origText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span> Saving...';
+
+        fetch('{{ url("question/store-chapter-topic") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                class_type_id: classId,
+                subject_id: subjectId,
+                chapter_id: chapId,
+                chapter_name: chapName,
+                topic_name: topName
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origText;
+            if (res.success) {
+                modalEl.modal('hide');
+                if (mode === 'chapter') {
+                    loadChaptersForCurrentContext(res.chapter_id, res.topic_id);
+                } else {
+                    loadTopicsForCurrentContext(res.topic_id);
+                }
+            } else {
+                if (errEl) {
+                    errEl.textContent = res.message || 'Failed to save. Please try again.';
+                    errEl.classList.remove('d-none');
+                }
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origText;
+            if (errEl) {
+                errEl.textContent = 'Network or server error while saving.';
+                errEl.classList.remove('d-none');
+            }
+        });
+    });
+
+    $('#modal-quick-add-chapter-topic').on('hidden.bs.modal', function() {
+        if (globalChapterSelect && globalChapterSelect.value === '__new__') {
+            globalChapterSelect.value = '';
+        }
+        if (globalTopicSelect && globalTopicSelect.value === '__new__') {
+            globalTopicSelect.value = '';
+        }
+        syncGlobalToManual();
+        checkAiGenPrerequisites(false);
+    });
+
+    document.getElementById('btn-quick-add-chapter')?.addEventListener('click', function() {
+        openQuickAddModal('chapter');
+    });
+
+    document.getElementById('btn-quick-add-topic')?.addEventListener('click', function() {
+        openQuickAddModal('topic');
+    });
+
+    $(document).on('change', '#global_chapter_id', function() {
+        if ($(this).val() === '__new__') {
+            openQuickAddModal('chapter');
+        } else {
+            loadTopicsForCurrentContext(null);
+            syncGlobalToManual();
+            checkAiGenPrerequisites(false);
+            updateManualLivePreview();
+        }
+    });
+
+    $(document).on('change', '#global_topic_id', function() {
+        if ($(this).val() === '__new__') {
+            openQuickAddModal('topic');
+        } else {
+            syncGlobalToManual();
+            checkAiGenPrerequisites(false);
+            updateManualLivePreview();
+        }
+    });
+
+    // =========================================================================
+    // AI GENERATOR PREREQUISITES & VALIDATION GUARD
+    // =========================================================================
+    function checkAiGenPrerequisites(showNotice = false) {
+        const classVal = globalClassSelect ? globalClassSelect.value : '';
+        const subjectVal = globalSubjectSelect ? globalSubjectSelect.value : '';
+        const chapVal = getSelectedChapterId() || getSelectedChapterName();
+        const topVal = getSelectedTopicId() || getSelectedTopicName();
+
+        const missing = [];
+        let firstMissingEl = null;
+
+        if (!classVal) {
+            missing.push('Target Course / Exam');
+            if (!firstMissingEl) firstMissingEl = globalClassSelect;
+        }
+        if (!subjectVal) {
+            missing.push('Subject');
+            if (!firstMissingEl) firstMissingEl = globalSubjectSelect;
+        }
+        if (!chapVal) {
+            missing.push('Chapter (अध्याय)');
+            if (!firstMissingEl) firstMissingEl = globalChapterSelect;
+        }
+        if (!topVal) {
+            missing.push('Topic / Sub-topic');
+            if (!firstMissingEl) firstMissingEl = globalTopicSelect;
+        }
+
+        const isReady = (missing.length === 0);
+
+        const heroBtn = document.getElementById('hero-btn-ai-generator');
+        const tbBtn = document.getElementById('btn-open-ai-generator');
+        const statusBadge = document.getElementById('ai-btn-status-badge');
+
+        if (isReady) {
+            if (tbBtn) {
+                tbBtn.classList.add('btn-ai-pulse-glow');
+                tbBtn.style.opacity = '1';
+                tbBtn.style.cursor = 'pointer';
+            }
+            if (heroBtn) {
+                heroBtn.style.opacity = '1';
+            }
+            if (statusBadge) {
+                statusBadge.className = 'badge ml-1 badge-success text-white';
+                statusBadge.innerHTML = '<i class="fa fa-unlock text-white mr-1"></i> Ready';
+            }
+        } else {
+            if (tbBtn) {
+                tbBtn.classList.remove('btn-ai-pulse-glow');
+                tbBtn.style.opacity = '0.85';
+            }
+            if (statusBadge) {
+                statusBadge.className = 'badge ml-1 badge-warning text-dark';
+                statusBadge.innerHTML = `<i class="fa fa-lock mr-1"></i> Fill 4 Fields`;
+            }
+        }
+
+        if (showNotice && !isReady) {
+            const listMsg = missing.map((item, i) => `${i + 1}. ${item}`).join('\n');
+            alert(`⚠️ AI Question Generator shuru karne se pehle ye 4 details bharna anivarya hai:\n\n${listMsg}\n\nAI in details ko Topic & Keywords ke roop me use karke authentic questions formulate karega.`);
+            if (firstMissingEl) {
+                firstMissingEl.focus();
+                firstMissingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstMissingEl.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.4)';
+                firstMissingEl.style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    firstMissingEl.style.boxShadow = '';
+                    firstMissingEl.style.borderColor = '';
+                }, 3000);
+            }
+        }
+
+        return isReady;
+    }
+
+    // Attach click guards to AI generator open buttons
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-trigger-ai-modal');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (checkAiGenPrerequisites(true)) {
+                $('#modal-ai-generator').modal('show');
+            }
+        }
+    });
+
+    // Course change listener (Select2 & Native DOM compatible)
+    $(document).on('change', '#global_class_type_id', function () {
+        const classId = ($(this).val() || '').trim();
+        $('#global_subject_id').html('<option value="">-- Loading Subjects... --</option>');
+        if ($.fn.select2 && $('#global_subject_id').data('select2')) {
+            $('#global_subject_id').trigger('change.select2');
+        }
+        loadChaptersForCurrentContext(null, null);
+        if (!classId) {
+            $('#global_subject_id').html('<option value="">-- Select Subject --</option>');
+            if ($.fn.select2 && $('#global_subject_id').data('select2')) {
+                $('#global_subject_id').trigger('change.select2');
+            }
+            return;
+        }
+
+        $.ajax({
+            url: `{{ url('subjectGetData') }}/${classId}`,
+            type: 'GET',
+            success: function (htmlData) {
+                $('#global_subject_id').html(htmlData);
+                if ($.fn.select2 && $('#global_subject_id').data('select2')) {
+                    $('#global_subject_id').trigger('change.select2');
+                }
+                loadChaptersForCurrentContext(null, null);
+            },
+            error: function () {
+                $('#global_subject_id').html('<option value="">-- Select Subject --</option>');
+                if ($.fn.select2 && $('#global_subject_id').data('select2')) {
+                    $('#global_subject_id').trigger('change.select2');
+                }
+                loadChaptersForCurrentContext(null, null);
+            }
+        });
+    });
+
+    // Subject change listener (Select2 & Native DOM compatible)
+    $(document).on('change', '#global_subject_id', function() {
+        loadChaptersForCurrentContext(null, null);
+    });
+
+    // Initial check on page load
+    $(document).ready(function() {
+        setTimeout(function() {
+            const initChap = '{{ old("chapter_id", $data->chapter_id ?? "") }}';
+            const initTop = '{{ old("topic_id", $data->topic_id ?? "") }}';
+            const currentSubj = ($('#global_subject_id').val() || '').trim();
+            if (currentSubj) {
+                loadChaptersForCurrentContext(initChap || null, initTop || null);
+            } else {
+                loadChaptersForCurrentContext(null, null);
+            }
+        }, 200);
     });
 
     // Sync global values into Manual Form
     const syncGlobalToManual = () => {
         const mClass = document.getElementById('manual_class_type_id');
         const mSubj = document.getElementById('manual_subject_id');
+        const mChapId = document.getElementById('manual_chapter_id');
+        const mTopId = document.getElementById('manual_topic_id');
+        const mChap = document.getElementById('manual_chapter_name');
+        const mTop = document.getElementById('manual_topic_name');
         const mType = document.getElementById('manual_question_type_id');
+        const mLang = document.getElementById('manual_language');
+        const mIsPyq = document.getElementById('manual_is_pyq');
+        const mPyqExam = document.getElementById('manual_pyq_exam');
+        const mPyqYear = document.getElementById('manual_pyq_year');
 
         if (mClass) mClass.value = globalClassSelect?.value || '';
         if (mSubj) mSubj.value = globalSubjectSelect?.value || '';
-        if (mType) mType.value = globalTypeSelect?.value || '1';
+        if (mChapId) mChapId.value = getSelectedChapterId();
+        if (mTopId) mTopId.value = getSelectedTopicId();
+        if (mChap) mChap.value = getSelectedChapterName();
+        if (mTop) mTop.value = getSelectedTopicName();
+        if (mType) mType.value = (globalTypeSelect?.value === '2' ? '2' : '1');
+        if (mLang) mLang.value = globalLangSelect?.value || 'en';
+        if (mIsPyq) mIsPyq.value = globalIsPyqChk?.checked ? '1' : '0';
+        if (mPyqExam) mPyqExam.value = globalPyqExamInput?.value || '';
+        if (mPyqYear) mPyqYear.value = globalPyqYearInput?.value || '';
     };
 
     // Toggle options display & answer mode if Objective (MCQ) vs Descriptive is chosen
@@ -1902,8 +2768,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     globalTypeSelect?.addEventListener('change', function () {
-        const isMcq = (this.value === '1');
+        const isMcq = (this.value === '1' || this.value === '1_5');
         applyQuestionFormatToggle(isMcq);
+        if (this.value === '1_5') {
+            showOption5();
+        }
     });
 
     document.getElementById('manual_descriptive_correct_ans')?.addEventListener('input', function () {
@@ -1940,6 +2809,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const manualCKConfigs = {
         question: {
             height: 125,
+            width: '100%',
             versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
@@ -1949,13 +2819,14 @@ document.addEventListener('DOMContentLoaded', function () {
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
-                { name: 'insert', items: [ 'Table', 'SpecialChar', 'HorizontalRule' ] },
+                { name: 'insert', items: [ 'Table', 'Image', 'SpecialChar', 'HorizontalRule' ] },
                 { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
                 { name: 'tools', items: [ 'Maximize', 'Source' ] }
             ]
         },
         direction: {
             height: 140,
+            width: '100%',
             versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
@@ -1965,13 +2836,14 @@ document.addEventListener('DOMContentLoaded', function () {
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
-                { name: 'insert', items: [ 'Table', 'SpecialChar', 'HorizontalRule' ] },
+                { name: 'insert', items: [ 'Table', 'Image', 'SpecialChar', 'HorizontalRule' ] },
                 { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
                 { name: 'tools', items: [ 'Maximize', 'Source' ] }
             ]
         },
         option: {
             height: 55,
+            width: '100%',
             versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
@@ -1980,13 +2852,14 @@ document.addEventListener('DOMContentLoaded', function () {
             resize_maxHeight: 600,
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
-                { name: 'insert', items: [ 'SpecialChar' ] },
+                { name: 'insert', items: [ 'Image', 'SpecialChar' ] },
                 { name: 'colors', items: [ 'TextColor' ] },
                 { name: 'tools', items: [ 'Source' ] }
             ]
         },
         explanation: {
             height: 75,
+            width: '100%',
             versionCheck: false,
             removePlugins: 'elementspath',
             resize_enabled: true,
@@ -1996,7 +2869,7 @@ document.addEventListener('DOMContentLoaded', function () {
             toolbar: [
                 { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Subscript', 'Superscript', 'RemoveFormat' ] },
                 { name: 'paragraph', items: [ 'NumberedList', 'BulletedList' ] },
-                { name: 'insert', items: [ 'Table', 'SpecialChar' ] },
+                { name: 'insert', items: [ 'Table', 'Image', 'SpecialChar' ] },
                 { name: 'colors', items: [ 'TextColor' ] },
                 { name: 'tools', items: [ 'Source' ] }
             ]
@@ -2007,28 +2880,44 @@ document.addEventListener('DOMContentLoaded', function () {
     // DYNAMIC CKEDITOR HEIGHT ADJUSTMENT (MANUAL DRAG & BUTTON CONTROLS)
     // =========================================================================
     function adjustCKEditorHeight(targetId, delta, resetVal) {
-        if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances[targetId]) {
-            const editor = CKEDITOR.instances[targetId];
-            const contents = editor.ui.space('contents');
-            if (contents) {
-                let current = contents.$.clientHeight || 60;
-                let targetHeight;
-                if (resetVal) {
-                    targetHeight = parseInt(resetVal, 10);
-                } else {
-                    targetHeight = Math.max(35, Math.min(1200, current + delta));
-                }
-                contents.setStyle('height', targetHeight + 'px');
-                editor.fire('resize');
-            }
-        } else {
-            const ta = document.getElementById(targetId);
-            if (ta) {
-                let current = ta.clientHeight || 60;
-                let targetHeight = resetVal ? parseInt(resetVal, 10) : Math.max(35, current + delta);
-                ta.style.height = targetHeight + 'px';
-            }
+        if (!targetId) return;
+        const targetIds = [targetId];
+        if (targetId.startsWith('manual_ans') && !targetId.endsWith('_hi')) {
+            targetIds.push(targetId + '_hi');
+        } else if (targetId === 'manual_question_name') {
+            targetIds.push('manual_question_name_hi');
+        } else if (targetId === 'manual_explanation') {
+            targetIds.push('manual_explanation_hi');
+        } else if (targetId === 'dir_direction') {
+            targetIds.push('dir_direction_hi');
+        } else if (targetId.startsWith('dir_sub_') && !targetId.endsWith('_hi')) {
+            targetIds.push(targetId + '_hi');
         }
+
+        targetIds.forEach(tId => {
+            if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances[tId]) {
+                const editor = CKEDITOR.instances[tId];
+                const contents = editor.ui.space('contents');
+                if (contents) {
+                    let current = contents.$.clientHeight || 60;
+                    let targetHeight;
+                    if (resetVal) {
+                        targetHeight = parseInt(resetVal, 10);
+                    } else {
+                        targetHeight = Math.max(35, Math.min(1200, current + delta));
+                    }
+                    contents.setStyle('height', targetHeight + 'px');
+                    editor.fire('resize');
+                }
+            } else {
+                const ta = document.getElementById(tId);
+                if (ta) {
+                    let current = ta.clientHeight || 60;
+                    let targetHeight = resetVal ? parseInt(resetVal, 10) : Math.max(35, current + delta);
+                    ta.style.height = targetHeight + 'px';
+                }
+            }
+        });
     }
 
     function adjustAllOptionsHeight(delta, resetVal) {
@@ -2083,7 +2972,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function initManualCKEditors() {
         if (!window.CKEDITOR || manualEditorsInitialized) return;
 
-        // Question Statement
+        // Question Statement (English)
         if (document.getElementById('manual_question_name') && !CKEDITOR.instances['manual_question_name']) {
             try {
                 const edQ = CKEDITOR.replace('manual_question_name', manualCKConfigs.question);
@@ -2094,7 +2983,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Options A to D
+        // Options A to D (English)
         ['manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4'].forEach(id => {
             if (document.getElementById(id) && !CKEDITOR.instances[id]) {
                 try {
@@ -2106,13 +2995,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Option E (if visible)
+        // Option E (English) (if visible)
         const col5 = document.getElementById('manual-opt-col-5');
         if (col5 && !col5.classList.contains('d-none')) {
             initOption5CKEditor();
         }
 
-        // Explanation / Solution
+        // Explanation / Solution (English)
         if (document.getElementById('manual_explanation') && !CKEDITOR.instances['manual_explanation']) {
             try {
                 const edExp = CKEDITOR.replace('manual_explanation', manualCKConfigs.explanation);
@@ -2121,6 +3010,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn('CKEditor manual_explanation init error:', e);
             }
         }
+
+        // Always initialize Hindi CKEditors as well
+        initHindiCKEditors();
 
         manualEditorsInitialized = true;
     }
@@ -2137,6 +3029,70 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function initHindiCKEditors() {
+        if (!window.CKEDITOR) return;
+
+        // Question Statement (Hindi)
+        if (document.getElementById('manual_question_name_hi') && !CKEDITOR.instances['manual_question_name_hi']) {
+            try {
+                const edQHi = CKEDITOR.replace('manual_question_name_hi', manualCKConfigs.question);
+                attachCKEvents(edQHi);
+            } catch (e) {
+                console.warn('CKEditor manual_question_name_hi init error:', e);
+            }
+        }
+
+        // Options A to D (Hindi)
+        ['manual_ans1_hi', 'manual_ans2_hi', 'manual_ans3_hi', 'manual_ans4_hi'].forEach(id => {
+            if (document.getElementById(id) && !CKEDITOR.instances[id]) {
+                try {
+                    const edOptHi = CKEDITOR.replace(id, manualCKConfigs.option);
+                    attachCKEvents(edOptHi);
+                } catch (e) {
+                    console.warn(`CKEditor ${id} init error:`, e);
+                }
+            }
+        });
+
+        // Option E (Hindi) (if visible)
+        const col5 = document.getElementById('manual-opt-col-5');
+        if (col5 && !col5.classList.contains('d-none')) {
+            initOption5HindiCKEditor();
+        }
+
+        // Explanation / Solution (Hindi)
+        if (document.getElementById('manual_explanation_hi') && !CKEDITOR.instances['manual_explanation_hi']) {
+            try {
+                const edExpHi = CKEDITOR.replace('manual_explanation_hi', manualCKConfigs.explanation);
+                attachCKEvents(edExpHi);
+            } catch (e) {
+                console.warn('CKEditor manual_explanation_hi init error:', e);
+            }
+        }
+
+        // Direction Passage (Hindi)
+        if (document.getElementById('dir_direction_hi') && !CKEDITOR.instances['dir_direction_hi']) {
+            try {
+                const edDirHi = CKEDITOR.replace('dir_direction_hi', manualCKConfigs.direction);
+                attachCKEvents(edDirHi);
+            } catch (e) {
+                console.warn('CKEditor dir_direction_hi init error:', e);
+            }
+        }
+    }
+
+    function initOption5HindiCKEditor() {
+        if (!window.CKEDITOR) return;
+        if (document.getElementById('manual_ans5_hi') && !CKEDITOR.instances['manual_ans5_hi']) {
+            try {
+                const ed5Hi = CKEDITOR.replace('manual_ans5_hi', manualCKConfigs.option);
+                attachCKEvents(ed5Hi);
+            } catch (e) {
+                console.warn('CKEditor manual_ans5_hi init error:', e);
+            }
+        }
+    }
+
     // =========================================================================
     // OPTION 5 (E) DYNAMIC TOGGLE
     // =========================================================================
@@ -2148,6 +3104,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!colOpt5) return;
         colOpt5.classList.remove('d-none');
         initOption5CKEditor();
+        initOption5HindiCKEditor();
         if (btnToggleOpt5) {
             btnToggleOpt5.innerHTML = '<i class="fa fa-check text-success mr-1"></i> Option E Active';
             btnToggleOpt5.classList.add('disabled');
@@ -2162,8 +3119,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (window.CKEDITOR && CKEDITOR.instances['manual_ans5']) {
             CKEDITOR.instances['manual_ans5'].setData('');
         }
+        if (window.CKEDITOR && CKEDITOR.instances['manual_ans5_hi']) {
+            CKEDITOR.instances['manual_ans5_hi'].setData('');
+        }
         const ta5 = document.getElementById('manual_ans5');
         if (ta5) ta5.value = '';
+        const ta5Hi = document.getElementById('manual_ans5_hi');
+        if (ta5Hi) ta5Hi.value = '';
 
         // If Option E (val 4) was selected as correct answer, reset to Option A (val 0)
         const opt5Radio = document.querySelector('input[name="correct_ans"][value="4"]');
@@ -2315,16 +3277,23 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateManualLivePreview() {
         const previewEl = document.getElementById('manual-live-preview');
         const qText = getManualFieldVal('manual_question_name').trim();
+        const qTextHi = getManualFieldVal('manual_question_name_hi').trim();
         const a1 = getManualFieldVal('manual_ans1').trim();
         const a2 = getManualFieldVal('manual_ans2').trim();
         const a3 = getManualFieldVal('manual_ans3').trim();
         const a4 = getManualFieldVal('manual_ans4').trim();
         const a5 = getManualFieldVal('manual_ans5').trim();
+        const a1Hi = getManualFieldVal('manual_ans1_hi').trim();
+        const a2Hi = getManualFieldVal('manual_ans2_hi').trim();
+        const a3Hi = getManualFieldVal('manual_ans3_hi').trim();
+        const a4Hi = getManualFieldVal('manual_ans4_hi').trim();
+        const a5Hi = getManualFieldVal('manual_ans5_hi').trim();
         const explanation = getManualFieldVal('manual_explanation').trim();
-        const isMcq = (globalTypeSelect?.value === '1');
+        const explanationHi = getManualFieldVal('manual_explanation_hi').trim();
+        const isMcq = (globalTypeSelect?.value === '1' || globalTypeSelect?.value === '1_5');
         const descVal = document.getElementById('manual_descriptive_correct_ans')?.value.trim() || '';
 
-        const isOpt5Visible = colOpt5 && !colOpt5.classList.contains('d-none');
+        const isOpt5Visible = (globalTypeSelect?.value === '1_5') || (colOpt5 && !colOpt5.classList.contains('d-none')) || a5 || a5Hi;
         const correctRadio = document.querySelector('input.manual-correct-radio:checked');
         const correctBadge = document.getElementById('manual-preview-correct-badge');
 
@@ -2352,14 +3321,42 @@ document.addEventListener('DOMContentLoaded', function () {
         const imgPreviewSrc = document.getElementById('manual-image-preview')?.getAttribute('src');
         const hasImg = imgPreviewSrc && !document.getElementById('manual-image-preview-wrapper')?.classList.contains('d-none');
 
-        if (!qText && !a1 && !a2 && !a3 && !a4 && !a5 && !hasImg && !descVal) {
+        if (!qText && !qTextHi && !a1 && !a2 && !a3 && !a4 && !a5 && !hasImg && !descVal) {
             if (previewEl) previewEl.innerHTML = '<div class="text-muted text-center py-4" style="font-size: 11.5px;"><i class="fa fa-info-circle mr-1"></i> Start typing question statement and options or answer to see real-time KaTeX rendered preview...</div>';
             return;
         }
 
         let html = '';
+
+        // Coaching Metadata Header Badges (Chapter, PYQ)
+        const chapterName = getSelectedChapterName();
+        const topicName = getSelectedTopicName();
+        const isPyq = document.getElementById('global_is_pyq')?.checked;
+        const pyqExam = document.getElementById('global_pyq_exam')?.value.trim();
+        const pyqYear = document.getElementById('global_pyq_year')?.value.trim();
+
+        let metaBadgesHtml = '';
+        if (chapterName) {
+            metaBadgesHtml += `<span class="badge border mr-1 mb-1" style="background:#f1f5f9; color:#0f172a; font-size:10px; font-weight:600;"><i class="fa fa-folder-open text-warning mr-1"></i>${escapeHtml(chapterName)}${topicName ? ' • ' + escapeHtml(topicName) : ''}</span>`;
+        }
+        if (isPyq) {
+            metaBadgesHtml += `<span class="badge badge-warning text-dark mr-1 mb-1" style="font-size:10px; font-weight:700;"><i class="fa fa-star text-danger mr-1"></i>PYQ: ${escapeHtml(pyqExam || 'Exam')} ${escapeHtml(pyqYear || '')}</span>`;
+        }
+        if (globalTypeSelect?.value === '1_5') {
+            metaBadgesHtml += `<span class="badge badge-info mr-1 mb-1" style="font-size:10px; font-weight:700;"><i class="fa fa-university mr-1"></i>Banking 5-Opts</span>`;
+        }
+
+        if (metaBadgesHtml) {
+            html += `<div class="d-flex align-items-center flex-wrap mb-2 pb-1 border-bottom" style="gap:4px;">${metaBadgesHtml}</div>`;
+        }
+
         if (qText) {
-            html += `<div class="font-weight-bold mb-3" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">${formatRichExamContent(qText)}</div>`;
+            html += `<div class="font-weight-bold mb-2" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">${formatRichExamContent(qText)}</div>`;
+        }
+        if (qTextHi) {
+            html += `<div class="font-weight-bold mb-3" style="font-size: 12px; color: #0f3460; line-height: 1.6; border-left: 3px solid #38bdf8; padding-left: 8px;">
+                <span class="badge badge-light border text-danger small mr-1" style="font-size: 9px; vertical-align: middle;">हिन्दी</span> ${formatRichExamContent(qTextHi)}
+            </div>`;
         }
 
         if (hasImg) {
@@ -2370,13 +3367,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (isMcq) {
             const options = [
-                { letter: 'A', text: a1, idx: 0 },
-                { letter: 'B', text: a2, idx: 1 },
-                { letter: 'C', text: a3, idx: 2 },
-                { letter: 'D', text: a4, idx: 3 },
+                { letter: 'A', text: a1, textHi: a1Hi, idx: 0 },
+                { letter: 'B', text: a2, textHi: a2Hi, idx: 1 },
+                { letter: 'C', text: a3, textHi: a3Hi, idx: 2 },
+                { letter: 'D', text: a4, textHi: a4Hi, idx: 3 },
             ];
-            if (isOpt5Visible || a5) {
-                options.push({ letter: 'E', text: a5, idx: 4 });
+            if (isOpt5Visible || a5 || a5Hi) {
+                options.push({ letter: 'E', text: a5, textHi: a5Hi, idx: 4 });
             }
 
             html += `<div class="row">`;
@@ -2390,7 +3387,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
                         <span class="badge mr-2" style="${badgeStyle} font-size: 10px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
                         <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#1e293b'}; font-weight: ${isCorrect ? '600' : '400'};">
-                            ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                            <div>${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}</div>
+                            ${opt.textHi ? `<div class="text-muted small mt-1" style="font-size: 11px;"><span class="badge badge-light border py-0 px-1 text-danger mr-1" style="font-size: 8.5px;">हिन्दी</span>${formatRichExamContent(opt.textHi)}</div>` : ''}
                         </div>
                         ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
                     </div>
@@ -2413,9 +3411,11 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
         }
 
-        if (explanation) {
+        if (explanation || explanationHi) {
             html += `<div class="mt-3 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; font-size: 11.5px; color: #92400e;">
-                <strong><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
+                <strong><i class="fa fa-lightbulb-o text-warning mr-1"></i> Solution Hint / Explanation:</strong>
+                ${explanation ? `<div class="mt-1">${formatRichExamContent(explanation)}</div>` : ''}
+                ${explanationHi ? `<div class="mt-1 pt-1 border-top" style="border-color: #fde68a !important;"><span class="badge badge-light border text-danger mr-1" style="font-size: 8.5px;">हिन्दी</span>${formatRichExamContent(explanationHi)}</div>` : ''}
             </div>`;
         }
 
@@ -2427,6 +3427,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.manual-correct-radio').forEach(r => {
         r.addEventListener('change', updateManualLivePreview);
+    });
+
+    ['manual_question_name', 'manual_question_name_hi', 'manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5', 'manual_ans1_hi', 'manual_ans2_hi', 'manual_ans3_hi', 'manual_ans4_hi', 'manual_ans5_hi', 'manual_explanation', 'manual_explanation_hi'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateManualLivePreview);
     });
 
     // Diagram image preview in manual mode
@@ -2545,16 +3549,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const qTypeId = (dataObj.question_type_id !== undefined && dataObj.question_type_id !== null) ? parseInt(dataObj.question_type_id, 10) : (globalTypeSelect?.value === '2' ? 2 : 1);
         const isSubMcq = (qTypeId === 1);
         const qName = dataObj.name ? cleanTextareaValue(dataObj.name) : '';
+        const qNameHi = dataObj.name_hi ? cleanTextareaValue(dataObj.name_hi) : '';
         const ans1 = dataObj.ans1 ? cleanTextareaValue(dataObj.ans1) : '';
         const ans2 = dataObj.ans2 ? cleanTextareaValue(dataObj.ans2) : '';
         const ans3 = dataObj.ans3 ? cleanTextareaValue(dataObj.ans3) : '';
         const ans4 = dataObj.ans4 ? cleanTextareaValue(dataObj.ans4) : '';
         const ans5 = dataObj.ans5 ? cleanTextareaValue(dataObj.ans5) : '';
+        const ans1Hi = dataObj.ans1_hi ? cleanTextareaValue(dataObj.ans1_hi) : '';
+        const ans2Hi = dataObj.ans2_hi ? cleanTextareaValue(dataObj.ans2_hi) : '';
+        const ans3Hi = dataObj.ans3_hi ? cleanTextareaValue(dataObj.ans3_hi) : '';
+        const ans4Hi = dataObj.ans4_hi ? cleanTextareaValue(dataObj.ans4_hi) : '';
+        const ans5Hi = dataObj.ans5_hi ? cleanTextareaValue(dataObj.ans5_hi) : '';
         const correctAns = (dataObj.correct_ans !== undefined && dataObj.correct_ans !== null) ? String(dataObj.correct_ans) : (isSubMcq ? '0' : '');
-        const hasOpt5 = !!(ans5 || (isSubMcq && correctAns === '4'));
+        const hasOpt5 = !!(ans5 || ans5Hi || (isSubMcq && correctAns === '4') || (globalTypeSelect?.value === '1_5'));
         const expl = dataObj.explanation ? cleanTextareaValue(dataObj.explanation) : '';
+        const explHi = dataObj.explanation_hi ? cleanTextareaValue(dataObj.explanation_hi) : '';
         const imgPath = dataObj.image || dataObj.image_path || '';
         const fullImgSrc = imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '{{ asset("") }}/' + imgPath.replace(/^\/+/, '')) : '';
+        const curLang = globalLangSelect?.value || 'en';
+        const isHi = (curLang === 'hi');
+        const isEn = (curLang === 'en');
 
         return `
         <div class="sub-question-card mb-3" id="dir-subq-card-${idx}" data-idx="${idx}">
@@ -2591,7 +3605,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
             <div class="p-3 bg-white">
-                {{-- Statement Textarea --}}
+                {{-- Statement Textareas (English & Hindi) --}}
                 <div class="theme-form-group mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="dir_sub_${idx}_name" class="font-weight-bold mb-0" style="font-size: 11.5px; color: #002C54;">
@@ -2604,7 +3618,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             <button type="button" class="btn btn-xs btn-outline-primary btn-adjust-height" data-target="dir_sub_${idx}_name" data-reset="90" title="Reset Default Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-refresh"></i></button>
                         </div>
                     </div>
-                    <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="Enter question statement or formula...">${escapeHtmlSafe(qName)}</textarea>
+                    <div class="dir-subq-en-wrap ${isHi ? 'd-none' : ''}">
+                        <textarea id="dir_sub_${idx}_name" name="directional_questions[${idx}][name]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement mb-1" placeholder="Enter question statement in English...">${escapeHtmlSafe(qName)}</textarea>
+                    </div>
+                    <div class="dir-subq-hi-wrap ${isEn ? 'd-none' : ''}">
+                        <textarea id="dir_sub_${idx}_name_hi" name="directional_questions[${idx}][name_hi]" rows="2" class="theme-form-control active-math-target dir-sub-q-statement" placeholder="प्रश्न हिन्दी में यहाँ दर्ज करें...">${escapeHtmlSafe(qNameHi)}</textarea>
+                    </div>
                 </div>
 
                 {{-- MCQ Options Section --}}
@@ -2619,10 +3638,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div class="row">
                         ${[
-                            { num: 1, letter: 'A', val: '0', ans: ans1 },
-                            { num: 2, letter: 'B', val: '1', ans: ans2 },
-                            { num: 3, letter: 'C', val: '2', ans: ans3 },
-                            { num: 4, letter: 'D', val: '3', ans: ans4 },
+                            { num: 1, letter: 'A', val: '0', ans: ans1, ansHi: ans1Hi },
+                            { num: 2, letter: 'B', val: '1', ans: ans2, ansHi: ans2Hi },
+                            { num: 3, letter: 'C', val: '2', ans: ans3, ansHi: ans3Hi },
+                            { num: 4, letter: 'D', val: '3', ans: ans4, ansHi: ans4Hi },
                         ].map(opt => `
                             <div class="col-md-6 mb-2">
                                 <div class="option-input-card p-2 border rounded ${(isSubMcq && opt.val === correctAns) ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-${opt.num}" style="background:#ffffff; border: 1px solid #cbd5e1;">
@@ -2642,7 +3661,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                             </label>
                                         </div>
                                     </div>
-                                    <textarea name="directional_questions[${idx}][ans${opt.num}]" id="dir_sub_${idx}_ans${opt.num}" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option ${opt.letter}...">${escapeHtmlSafe(opt.ans)}</textarea>
+                                    <div class="dir-subq-en-wrap ${isHi ? 'd-none' : ''}">
+                                        <textarea name="directional_questions[${idx}][ans${opt.num}]" id="dir_sub_${idx}_ans${opt.num}" rows="1" class="theme-form-control active-math-target dir-subq-field mb-1" placeholder="Option ${opt.letter} (English)...">${escapeHtmlSafe(opt.ans)}</textarea>
+                                    </div>
+                                    <div class="dir-subq-hi-wrap ${isEn ? 'd-none' : ''}">
+                                        <textarea name="directional_questions[${idx}][ans${opt.num}_hi]" id="dir_sub_${idx}_ans${opt.num}_hi" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="विकल्प ${opt.letter} (हिन्दी)...">${escapeHtmlSafe(opt.ansHi)}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         `).join('')}
@@ -2652,9 +3676,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="option-input-card p-2 border rounded ${(isSubMcq && correctAns === '4') ? 'correct-selected' : ''}" id="dir-sub-${idx}-opt-card-5" style="background:#ffffff; border: 1px solid #cbd5e1;">
                                 <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #e2e8f0 !important;">
                                     <div class="d-flex align-items-center">
-                                        <span class="option-label-pill mr-2">E</span>
+                                        <span class="option-label-pill mr-2" style="background:#0284c7;">E</span>
                                         <strong style="font-size: 11px; color: #002C54;">Option E</strong>
-                                        <span class="badge border small ml-1" style="font-size: 9px; background: #f1f5f9; color: #64748b;">Optional</span>
+                                        <span class="badge border small ml-1" style="font-size: 9px; background: #e0f2fe; color: #0369a1;">Banking</span>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="d-flex align-items-center gap-1 mr-2 editor-height-tools">
@@ -2670,7 +3694,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                         </button>
                                     </div>
                                 </div>
-                                <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="Answer option E...">${escapeHtmlSafe(ans5)}</textarea>
+                                <div class="dir-subq-en-wrap ${isHi ? 'd-none' : ''}">
+                                    <textarea name="directional_questions[${idx}][ans5]" id="dir_sub_${idx}_ans5" rows="1" class="theme-form-control active-math-target dir-subq-field mb-1" placeholder="Option E (English)...">${escapeHtmlSafe(ans5)}</textarea>
+                                </div>
+                                <div class="dir-subq-hi-wrap ${isEn ? 'd-none' : ''}">
+                                    <textarea name="directional_questions[${idx}][ans5_hi]" id="dir_sub_${idx}_ans5_hi" rows="1" class="theme-form-control active-math-target dir-subq-field" placeholder="विकल्प E (हिन्दी)...">${escapeHtmlSafe(ans5Hi)}</textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2707,7 +3736,12 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <button type="button" class="btn btn-xs btn-outline-secondary btn-adjust-height" data-target="dir_sub_${idx}_explanation" data-delta="30" title="Increase Height" style="padding: 1px 6px; font-size: 10px; line-height: 1.2;"><i class="fa fa-plus"></i></button>
                                 </div>
                             </div>
-                            <textarea id="dir_sub_${idx}_explanation" name="directional_questions[${idx}][explanation]" rows="2" class="theme-form-control active-math-target dir-subq-field" placeholder="Step-by-step reasoning or formula notes...">${escapeHtmlSafe(expl)}</textarea>
+                            <div class="dir-subq-en-wrap ${isHi ? 'd-none' : ''}">
+                                <textarea id="dir_sub_${idx}_explanation" name="directional_questions[${idx}][explanation]" rows="2" class="theme-form-control active-math-target dir-subq-field mb-1" placeholder="Step-by-step reasoning (English)...">${escapeHtmlSafe(expl)}</textarea>
+                            </div>
+                            <div class="dir-subq-hi-wrap ${isEn ? 'd-none' : ''}">
+                                <textarea id="dir_sub_${idx}_explanation_hi" name="directional_questions[${idx}][explanation_hi]" rows="2" class="theme-form-control active-math-target dir-subq-field" placeholder="हल एवं व्याख्या हिन्दी में दर्ज करें...">${escapeHtmlSafe(explHi)}</textarea>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-5 mb-2">
@@ -2736,7 +3770,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function initSubQuestionCKEditors(idx) {
         if (!window.CKEDITOR) return;
 
-        // Statement
+        // Statement (English)
         const nameId = `dir_sub_${idx}_name`;
         if (document.getElementById(nameId) && !CKEDITOR.instances[nameId]) {
             try {
@@ -2745,13 +3779,30 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.warn(e); }
         }
 
-        // Options A-D
+        // Statement (Hindi)
+        const nameHiId = `dir_sub_${idx}_name_hi`;
+        if (document.getElementById(nameHiId) && !CKEDITOR.instances[nameHiId]) {
+            try {
+                const edHi = CKEDITOR.replace(nameHiId, manualCKConfigs.question);
+                attachCKEvents(edHi);
+            } catch (e) { console.warn(e); }
+        }
+
+        // Options A-D (English & Hindi)
         for (let opt = 1; opt <= 4; opt++) {
             const optId = `dir_sub_${idx}_ans${opt}`;
             if (document.getElementById(optId) && !CKEDITOR.instances[optId]) {
                 try {
                     const ed = CKEDITOR.replace(optId, manualCKConfigs.option);
                     attachCKEvents(ed);
+                } catch (e) { console.warn(e); }
+            }
+
+            const optHiId = `dir_sub_${idx}_ans${opt}_hi`;
+            if (document.getElementById(optHiId) && !CKEDITOR.instances[optHiId]) {
+                try {
+                    const edHi = CKEDITOR.replace(optHiId, manualCKConfigs.option);
+                    attachCKEvents(edHi);
                 } catch (e) { console.warn(e); }
             }
         }
@@ -2766,9 +3817,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     attachCKEvents(ed5);
                 } catch (e) { console.warn(e); }
             }
+
+            const opt5HiId = `dir_sub_${idx}_ans5_hi`;
+            if (document.getElementById(opt5HiId) && !CKEDITOR.instances[opt5HiId]) {
+                try {
+                    const ed5Hi = CKEDITOR.replace(opt5HiId, manualCKConfigs.option);
+                    attachCKEvents(ed5Hi);
+                } catch (e) { console.warn(e); }
+            }
         }
 
-        // Explanation
+        // Explanation (English & Hindi)
         const expId = `dir_sub_${idx}_explanation`;
         if (document.getElementById(expId) && !CKEDITOR.instances[expId]) {
             try {
@@ -2776,6 +3835,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 attachCKEvents(ed);
             } catch (e) { console.warn(e); }
         }
+
+        const expHiId = `dir_sub_${idx}_explanation_hi`;
+        if (document.getElementById(expHiId) && !CKEDITOR.instances[expHiId]) {
+            try {
+                const edHi = CKEDITOR.replace(expHiId, manualCKConfigs.explanation);
+                attachCKEvents(edHi);
+            } catch (e) { console.warn(e); }
+        }
+    }
+
+    function initAllSubQuestionHindiCKEditors() {
+        if (!window.CKEDITOR || !directionalSubQuestions) return;
+        directionalSubQuestions.forEach(item => {
+            initSubQuestionCKEditors(item.idx);
+        });
     }
 
     // Add a new Sub-Question
@@ -2811,15 +3885,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Destroy CKEditors
+        // Destroy CKEditors (both English & Hindi)
         const editorIds = [
             `dir_sub_${idx}_name`,
+            `dir_sub_${idx}_name_hi`,
             `dir_sub_${idx}_ans1`,
+            `dir_sub_${idx}_ans1_hi`,
             `dir_sub_${idx}_ans2`,
+            `dir_sub_${idx}_ans2_hi`,
             `dir_sub_${idx}_ans3`,
+            `dir_sub_${idx}_ans3_hi`,
             `dir_sub_${idx}_ans4`,
+            `dir_sub_${idx}_ans4_hi`,
             `dir_sub_${idx}_ans5`,
-            `dir_sub_${idx}_explanation`
+            `dir_sub_${idx}_ans5_hi`,
+            `dir_sub_${idx}_explanation`,
+            `dir_sub_${idx}_explanation_hi`
         ];
         editorIds.forEach(id => {
             if (window.CKEDITOR && CKEDITOR.instances[id]) {
@@ -2931,6 +4012,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         attachCKEvents(ed5);
                     } catch (e) {}
                 }
+                if (window.CKEDITOR && !CKEDITOR.instances[`dir_sub_${idx}_ans5_hi`]) {
+                    try {
+                        const ed5Hi = CKEDITOR.replace(`dir_sub_${idx}_ans5_hi`, manualCKConfigs.option);
+                        attachCKEvents(ed5Hi);
+                    } catch (e) {}
+                }
                 togOpt5.style.display = 'none';
                 updateDirectionalLivePreview();
             }
@@ -2947,6 +4034,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 col5.classList.add('d-none');
                 if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5`]) {
                     CKEDITOR.instances[`dir_sub_${idx}_ans5`].setData('');
+                }
+                if (window.CKEDITOR && CKEDITOR.instances[`dir_sub_${idx}_ans5_hi`]) {
+                    CKEDITOR.instances[`dir_sub_${idx}_ans5_hi`].setData('');
                 }
                 const togBtn = document.querySelector(`.btn-toggle-subq-opt5[data-idx="${idx}"]`);
                 if (togBtn) togBtn.style.display = '';
@@ -3183,7 +4273,12 @@ document.addEventListener('DOMContentLoaded', function () {
             ${dirText ? `
             <div class="font-weight-bold mb-2" style="font-size: 12px; color: #0f172a !important; line-height: 1.6;">
                 ${formatRichExamContent(dirText)}
-            </div>` : `<div class="small mb-2" style="color: #64748b; font-style: italic;">Enter common passage or DI instructions above...</div>`}
+            </div>` : `<div class="small mb-2" style="color: #64748b; font-style: italic;">Enter common passage or DI instructions in English...</div>`}
+
+            ${dirTextHi ? `
+            <div class="font-weight-bold mb-2 text-danger" style="font-size: 11.5px; line-height: 1.6; border-left: 3px solid #f87171; padding-left: 8px;">
+                <span class="badge badge-light border text-danger small mr-1" style="font-size: 8.5px;">हिन्दी</span> ${formatRichExamContent(dirTextHi)}
+            </div>` : ''}
 
             ${hasDirImg ? `
             <div class="text-center my-2 p-2 bg-white rounded border" style="border-color: #cbd5e1 !important;">
@@ -3205,12 +4300,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const qNoDisplay = qNoInput ? qNoInput.value.trim() : seq;
 
             const qText = getManualFieldVal(`dir_sub_${idx}_name`).trim();
+            const qTextHi = getManualFieldVal(`dir_sub_${idx}_name_hi`).trim();
             const a1 = getManualFieldVal(`dir_sub_${idx}_ans1`).trim();
             const a2 = getManualFieldVal(`dir_sub_${idx}_ans2`).trim();
             const a3 = getManualFieldVal(`dir_sub_${idx}_ans3`).trim();
             const a4 = getManualFieldVal(`dir_sub_${idx}_ans4`).trim();
             const a5 = getManualFieldVal(`dir_sub_${idx}_ans5`).trim();
+            const a1Hi = getManualFieldVal(`dir_sub_${idx}_ans1_hi`).trim();
+            const a2Hi = getManualFieldVal(`dir_sub_${idx}_ans2_hi`).trim();
+            const a3Hi = getManualFieldVal(`dir_sub_${idx}_ans3_hi`).trim();
+            const a4Hi = getManualFieldVal(`dir_sub_${idx}_ans4_hi`).trim();
+            const a5Hi = getManualFieldVal(`dir_sub_${idx}_ans5_hi`).trim();
             const explanation = getManualFieldVal(`dir_sub_${idx}_explanation`).trim();
+            const explanationHi = getManualFieldVal(`dir_sub_${idx}_explanation_hi`).trim();
 
             const isOpt5Visible = !document.getElementById(`dir_sub_${idx}_col_5`)?.classList.contains('d-none');
             const subTypeSelect = document.querySelector(`select[name="directional_questions[${idx}][question_type_id]"]`);
@@ -3240,9 +4342,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 ${qText ? `
-                <div class="font-weight-bold mb-3" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">
+                <div class="font-weight-bold mb-2" style="font-size: 12.5px; color: #002C54; line-height: 1.6;">
                     ${formatRichExamContent(qText)}
-                </div>` : `<div class="small mb-3" style="color: #64748b; font-style: italic;">Enter statement for Sub-Question #${seq}...</div>`}
+                </div>` : ''}
+
+                ${qTextHi ? `
+                <div class="font-weight-bold mb-3" style="font-size: 12px; color: #0f3460; line-height: 1.6; border-left: 3px solid #38bdf8; padding-left: 8px;">
+                    <span class="badge badge-light border text-danger small mr-1" style="font-size: 9px;">हिन्दी</span> ${formatRichExamContent(qTextHi)}
+                </div>` : ''}
+
+                ${!qText && !qTextHi ? `<div class="small mb-3" style="color: #64748b; font-style: italic;">Enter statement for Sub-Question #${seq}...</div>` : ''}
 
                 ${hasSubImg ? `
                 <div class="mb-3 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
@@ -3252,13 +4361,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (isSubMcq) {
                 const options = [
-                    { letter: 'A', text: a1, idx: 0 },
-                    { letter: 'B', text: a2, idx: 1 },
-                    { letter: 'C', text: a3, idx: 2 },
-                    { letter: 'D', text: a4, idx: 3 },
+                    { letter: 'A', text: a1, textHi: a1Hi, idx: 0 },
+                    { letter: 'B', text: a2, textHi: a2Hi, idx: 1 },
+                    { letter: 'C', text: a3, textHi: a3Hi, idx: 2 },
+                    { letter: 'D', text: a4, textHi: a4Hi, idx: 3 },
                 ];
-                if (isOpt5Visible || a5) {
-                    options.push({ letter: 'E', text: a5, idx: 4 });
+                if (isOpt5Visible || a5 || a5Hi) {
+                    options.push({ letter: 'E', text: a5, textHi: a5Hi, idx: 4 });
                 }
 
                 html += `<div class="row">`;
@@ -3273,7 +4382,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="p-2 rounded d-flex align-items-center" style="${bgStyle} transition: all .15s ease;">
                             <span class="badge mr-2" style="${badgeStyle} font-size: 10.5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; flex-shrink: 0;">${opt.letter}</span>
                             <div class="flex-grow-1" style="font-size: 11.5px; color: ${isCorrect ? '#065f46' : '#0f172a'}; font-weight: ${isCorrect ? '700' : '500'}; line-height: 1.45;">
-                                ${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}
+                                <div>${formatRichExamContent(opt.text || '<span class="text-muted">—</span>')}</div>
+                                ${opt.textHi ? `<div class="text-muted small mt-1" style="font-size: 11px;"><span class="badge badge-light border py-0 px-1 text-danger mr-1" style="font-size: 8.5px;">हिन्दी</span>${formatRichExamContent(opt.textHi)}</div>` : ''}
                             </div>
                             ${isCorrect ? '<i class="fa fa-check-circle text-success ml-2" style="font-size: 14px;" title="Correct Answer"></i>' : ''}
                         </div>
@@ -3288,10 +4398,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`;
             }
 
-            if (explanation) {
+            if (explanation || explanationHi) {
                 html += `
                 <div class="mt-2 p-2 rounded" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 3.5px solid #f59e0b; font-size: 11px; color: #92400e; line-height: 1.45;">
-                    <strong><i class="fa fa-lightbulb-o mr-1" style="color: #d97706;"></i> Solution Hint:</strong> ${formatRichExamContent(explanation)}
+                    <strong><i class="fa fa-lightbulb-o mr-1" style="color: #d97706;"></i> Solution Hint / Explanation:</strong>
+                    ${explanation ? `<div class="mt-1">${formatRichExamContent(explanation)}</div>` : ''}
+                    ${explanationHi ? `<div class="mt-1 pt-1 border-top" style="border-color: #fde68a !important;"><span class="badge badge-light border text-danger mr-1" style="font-size: 8.5px;">हिन्दी</span>${formatRichExamContent(explanationHi)}</div>` : ''}
                 </div>`;
             }
 
@@ -3360,7 +4472,7 @@ document.addEventListener('DOMContentLoaded', function () {
         syncGlobalToManual();
 
         if (!globalClassSelect?.value) {
-            alert('Please select a Target Class in the top parameters bar.');
+            alert('Please select a Target Course / Batch in the top parameters bar.');
             globalClassSelect.focus();
             e.preventDefault();
             return false;
@@ -3375,10 +4487,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const mode = document.getElementById('manual_mode')?.value || 'standalone';
         if (mode === 'directional') {
             const dirVal = getManualFieldVal('dir_direction').trim();
-            if (!dirVal) {
-                alert('Please enter the Common Direction / Passage text before saving.');
+            const dirValHi = getManualFieldVal('dir_direction_hi').trim();
+            if (!dirVal && !dirValHi) {
+                alert('Please enter the Common Direction / Passage text (in English or Hindi) before saving.');
                 if (window.CKEDITOR && CKEDITOR.instances['dir_direction']) {
                     CKEDITOR.instances['dir_direction'].focus();
+                } else if (window.CKEDITOR && CKEDITOR.instances['dir_direction_hi']) {
+                    CKEDITOR.instances['dir_direction_hi'].focus();
                 } else {
                     document.getElementById('dir_direction')?.focus();
                 }
@@ -3386,11 +4501,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
 
-            // Check if at least one sub-question has statement
+            // Check if at least one sub-question has statement (English or Hindi)
             let hasValidSubQ = false;
             directionalSubQuestions.forEach(item => {
                 const qStatement = getManualFieldVal(`dir_sub_${item.idx}_name`).trim();
-                if (qStatement) hasValidSubQ = true;
+                const qStatementHi = getManualFieldVal(`dir_sub_${item.idx}_name_hi`).trim();
+                if (qStatement || qStatementHi) hasValidSubQ = true;
             });
 
             if (!hasValidSubQ) {
@@ -3400,12 +4516,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             const qVal = getManualFieldVal('manual_question_name').trim();
-            if (!qVal) {
-                alert('Please enter a Question Statement before saving.');
-                if (CKEDITOR.instances['manual_question_name']) {
+            const qValHi = getManualFieldVal('manual_question_name_hi').trim();
+            if (!qVal && !qValHi) {
+                alert('Please enter a Question Statement (in English or Hindi) before saving.');
+                if (window.CKEDITOR && CKEDITOR.instances['manual_question_name']) {
                     CKEDITOR.instances['manual_question_name'].focus();
+                } else if (window.CKEDITOR && CKEDITOR.instances['manual_question_name_hi']) {
+                    CKEDITOR.instances['manual_question_name_hi'].focus();
                 } else {
-                    document.getElementById('manual_question_name')?.focus();
+                    document.getElementById('manual_question_name')?.focus() || document.getElementById('manual_question_name_hi')?.focus();
                 }
                 e.preventDefault();
                 return false;
@@ -3426,7 +4545,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Reset button handler for standalone
     document.querySelector('#form-manual-question button[type="reset"]')?.addEventListener('click', function (e) {
         setTimeout(() => {
-            ['manual_question_name', 'manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5', 'manual_explanation'].forEach(id => {
+            [
+                'manual_question_name', 'manual_ans1', 'manual_ans2', 'manual_ans3', 'manual_ans4', 'manual_ans5', 'manual_explanation',
+                'manual_question_name_hi', 'manual_ans1_hi', 'manual_ans2_hi', 'manual_ans3_hi', 'manual_ans4_hi', 'manual_ans5_hi', 'manual_explanation_hi'
+            ].forEach(id => {
                 if (window.CKEDITOR && CKEDITOR.instances[id]) {
                     CKEDITOR.instances[id].setData('');
                 }
@@ -4547,7 +5669,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save Bulk Selected Questions
     const handleBulkSave = () => {
         if (!globalClassSelect?.value) {
-            alert('Please select a Target Class in the top parameters bar first.');
+            alert('Please select a Target Course / Batch in the top parameters bar first.');
             globalClassSelect.focus();
             return;
         }
@@ -4872,30 +5994,55 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Sync academic context badges when opening modal
     $('#modal-ai-generator').on('show.bs.modal', function () {
-        const clsName = globalClassSelect && globalClassSelect.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : '';
-        const subName = globalSubjectSelect && globalSubjectSelect.selectedOptions[0] ? globalSubjectSelect.selectedOptions[0].text : '';
+        const clsName = globalClassSelect && globalClassSelect.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : 'Not Selected';
+        const subName = globalSubjectSelect && globalSubjectSelect.selectedOptions[0] ? globalSubjectSelect.selectedOptions[0].text : 'Not Selected';
+        const chapName = getSelectedChapterName() || 'Not Entered';
+        const topName = getSelectedTopicName() || 'Not Entered';
+        const curMode = document.querySelector('input[name="manual_mode_toggle"]:checked')?.value || 'standalone';
+        const curLang = globalLangSelect ? globalLangSelect.value : 'en';
 
         const badgeClass = document.getElementById('ai-gen-badge-class');
         const badgeSubject = document.getElementById('ai-gen-badge-subject');
+        const badgeChapter = document.getElementById('ai-gen-badge-chapter');
+        const badgeTopic = document.getElementById('ai-gen-badge-topic');
+        const badgeMode = document.getElementById('ai-gen-badge-mode');
+        const badgeLang = document.getElementById('ai-gen-badge-lang');
 
-        if (globalClassSelect && globalClassSelect.value) {
-            badgeClass.className = 'badge badge-primary px-2 py-1';
-            badgeClass.style.background = '#002C54';
-            badgeClass.textContent = `Class: ${clsName}`;
-        } else {
-            badgeClass.className = 'badge badge-warning px-2 py-1 text-dark';
-            badgeClass.style.background = '#f59e0b';
-            badgeClass.textContent = 'Class: Not Selected';
+        if (badgeClass) {
+            badgeClass.className = 'badge px-2 py-1';
+            badgeClass.style.cssText = 'background: #002C54 !important; color: #ffffff !important; border: 1px solid #002C54 !important; font-size: 11px; font-weight: 600; border-radius: 3px;';
+            badgeClass.innerHTML = `<i class="fa fa-university mr-1"></i> Course: ${clsName}`;
         }
 
-        if (globalSubjectSelect && globalSubjectSelect.value) {
-            badgeSubject.className = 'badge badge-info px-2 py-1';
-            badgeSubject.style.background = '#0284c7';
-            badgeSubject.textContent = `Subject: ${subName}`;
-        } else {
-            badgeSubject.className = 'badge badge-warning px-2 py-1 text-dark';
-            badgeSubject.style.background = '#f59e0b';
-            badgeSubject.textContent = 'Subject: Not Selected';
+        if (badgeSubject) {
+            badgeSubject.className = 'badge px-2 py-1';
+            badgeSubject.style.cssText = 'background: #0284c7 !important; color: #ffffff !important; border: 1px solid #0284c7 !important; font-size: 11px; font-weight: 600; border-radius: 3px;';
+            badgeSubject.innerHTML = `<i class="fa fa-book mr-1"></i> Subject: ${subName}`;
+        }
+
+        if (badgeChapter) {
+            badgeChapter.className = 'badge px-2 py-1';
+            badgeChapter.style.cssText = 'background: #fef3c7 !important; color: #92400e !important; border: 1px solid #fde68a !important; font-size: 11px; font-weight: 700; border-radius: 3px;';
+            badgeChapter.innerHTML = `<i class="fa fa-folder-open text-warning mr-1"></i> Chapter: ${chapName}`;
+        }
+
+        if (badgeTopic) {
+            badgeTopic.className = 'badge px-2 py-1';
+            badgeTopic.style.cssText = 'background: #eff6ff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; font-size: 11px; font-weight: 700; border-radius: 3px;';
+            badgeTopic.innerHTML = `<i class="fa fa-tag text-primary mr-1"></i> Topic: ${topName}`;
+        }
+
+        if (badgeMode) {
+            badgeMode.className = 'badge px-2 py-1';
+            badgeMode.style.cssText = 'background: #f1f5f9 !important; color: #002C54 !important; border: 1px solid #cbd5e1 !important; font-size: 11px; font-weight: 700; border-radius: 3px;';
+            badgeMode.innerHTML = `<i class="fa fa-sliders text-primary mr-1"></i> Mode: ${curMode === 'directional' ? 'Directional Set (Passage + Qs)' : 'Standalone Questions'}`;
+        }
+
+        if (badgeLang) {
+            const langLabels = { 'en': 'English', 'hi': 'हिन्दी', 'both': 'Bilingual (द्विभाषी)' };
+            badgeLang.className = 'badge px-2 py-1';
+            badgeLang.style.cssText = 'background: #ecfdf5 !important; color: #065f46 !important; border: 1px solid #a7f3d0 !important; font-size: 11px; font-weight: 700; border-radius: 3px;';
+            badgeLang.innerHTML = `<i class="fa fa-language text-success mr-1"></i> Medium: ${langLabels[curLang] || 'English'}`;
         }
 
         // Auto-sync AI modal format with the page's global question type
@@ -4904,6 +6051,16 @@ document.addEventListener('DOMContentLoaded', function () {
             aiFmt.value = globalTypeSelect.value || '1';
         }
         syncAiModalFormat();
+
+        // If prompt textarea is empty, prefill a smart prompt using the exact Chapter, Topic, Mode & Medium
+        const promptInput = document.getElementById('ai-gen-prompt-text');
+        if (promptInput && !promptInput.value.trim()) {
+            if (curMode === 'directional') {
+                promptInput.value = `Create 2 Directional Question Sets on ${chapName} (${topName}) for ${clsName}. Each set must have a comprehensive common passage / scenario, an HTML data table, and 3 linked sub-questions with step-by-step LaTeX solutions.`;
+            } else {
+                promptInput.value = `Generate 10 high-quality standalone MCQs on ${chapName} focusing on ${topName} for ${clsName}. Include accurate options, correct answer, and clear step-by-step LaTeX explanations.`;
+            }
+        }
     });
 
     // Quick Prompt Presets
@@ -4911,7 +6068,14 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const promptInput = document.getElementById('ai-gen-prompt-text');
             if (promptInput) {
-                const preset = this.getAttribute('data-preset');
+                const chapName = getSelectedChapterName();
+                const topName = getSelectedTopicName();
+                const clsName = globalClassSelect && globalClassSelect.selectedOptions[0] ? globalClassSelect.selectedOptions[0].text : '';
+                let preset = this.getAttribute('data-preset');
+                if (chapName) {
+                    preset = preset.replace('this topic', `${chapName}${topName ? ' (' + topName + ')' : ''}`);
+                    preset = preset.replace('this pattern', `Chapter ${chapName}${topName ? ' - ' + topName : ''} for ${clsName}`);
+                }
                 promptInput.value = preset;
                 const fmt = this.getAttribute('data-format');
                 if (fmt) {
@@ -5046,6 +6210,18 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('prompt', promptText);
         if (globalClassSelect && globalClassSelect.value) formData.append('class_type_id', globalClassSelect.value);
         if (globalSubjectSelect && globalSubjectSelect.value) formData.append('subject_id', globalSubjectSelect.value);
+        const selChapId = getSelectedChapterId();
+        const selChapName = getSelectedChapterName();
+        const selTopId = getSelectedTopicId();
+        const selTopName = getSelectedTopicName();
+        if (selChapId) formData.append('chapter_id', selChapId);
+        if (selChapName) formData.append('chapter_name', selChapName);
+        if (selTopId) formData.append('topic_id', selTopId);
+        if (selTopName) formData.append('topic_name', selTopName);
+
+        const curMode = document.querySelector('input[name="manual_mode_toggle"]:checked')?.value || 'standalone';
+        formData.append('mode', curMode);
+        formData.append('language', globalLangSelect?.value || 'en');
         formData.append('question_type_id', document.getElementById('ai-gen-format')?.value || '1');
         formData.append('difficulty', document.getElementById('ai-gen-difficulty')?.value || 'Mixed');
         formData.append('options_count', document.getElementById('ai-gen-options-count')?.value || '4');
@@ -5740,7 +6916,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Batch Confirm & Save Selected to Question Bank
     document.getElementById('btn-ai-staging-save-all')?.addEventListener('click', function () {
         if (!globalClassSelect || !globalClassSelect.value) {
-            alert('Please select a Target Class in the top header before saving questions.');
+            alert('Please select a Target Course / Batch in the top header before saving questions.');
             globalClassSelect?.focus();
             return;
         }
@@ -5766,18 +6942,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isDesc = (qTypeId === 2);
                 questionsToSave.push({
                     name: q.name,
+                    name_hi: q.name_hi || null,
                     question_type_id: qTypeId,
                     ans1: isDesc ? null : (q.ans1 || null),
+                    ans1_hi: isDesc ? null : (q.ans1_hi || null),
                     ans2: isDesc ? null : (q.ans2 || null),
+                    ans2_hi: isDesc ? null : (q.ans2_hi || null),
                     ans3: isDesc ? null : (q.ans3 || null),
+                    ans3_hi: isDesc ? null : (q.ans3_hi || null),
                     ans4: isDesc ? null : (q.ans4 || null),
+                    ans4_hi: isDesc ? null : (q.ans4_hi || null),
                     ans5: isDesc ? null : (q.ans5 || null),
+                    ans5_hi: isDesc ? null : (q.ans5_hi || null),
                     correct_ans: q.correct_ans,
                     explanation: q.explanation || null,
+                    explanation_hi: q.explanation_hi || null,
                     difficulty_level: q.difficulty_level || 'Medium',
+                    chapter_id: q.chapter_id || getSelectedChapterId() || null,
+                    chapter_name: q.chapter_name || getSelectedChapterName() || null,
+                    topic_id: q.topic_id || getSelectedTopicId() || null,
+                    topic_name: q.topic_name || getSelectedTopicName() || null,
+                    language: q.language || (globalLangSelect ? globalLangSelect.value : 'en'),
                     image: q.image || null,
                     group_id: null,
                     direction: null,
+                    direction_hi: null,
                     direction_table: null,
                     sub_question_no: null
                 });
@@ -5789,18 +6978,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     const sqIsDesc = (sqTypeId === 2);
                     questionsToSave.push({
                         name: sq.name,
+                        name_hi: sq.name_hi || null,
                         question_type_id: sqTypeId,
                         ans1: sqIsDesc ? null : (sq.ans1 || null),
+                        ans1_hi: sqIsDesc ? null : (sq.ans1_hi || null),
                         ans2: sqIsDesc ? null : (sq.ans2 || null),
+                        ans2_hi: sqIsDesc ? null : (sq.ans2_hi || null),
                         ans3: sqIsDesc ? null : (sq.ans3 || null),
+                        ans3_hi: sqIsDesc ? null : (sq.ans3_hi || null),
                         ans4: sqIsDesc ? null : (sq.ans4 || null),
+                        ans4_hi: sqIsDesc ? null : (sq.ans4_hi || null),
                         ans5: sqIsDesc ? null : (sq.ans5 || null),
+                        ans5_hi: sqIsDesc ? null : (sq.ans5_hi || null),
                         correct_ans: sq.correct_ans,
                         explanation: sq.explanation || null,
+                        explanation_hi: sq.explanation_hi || null,
                         difficulty_level: sq.difficulty_level || 'Medium',
+                        chapter_id: sq.chapter_id || set.chapter_id || getSelectedChapterId() || null,
+                        chapter_name: sq.chapter_name || set.chapter_name || getSelectedChapterName() || null,
+                        topic_id: sq.topic_id || set.topic_id || getSelectedTopicId() || null,
+                        topic_name: sq.topic_name || set.topic_name || getSelectedTopicName() || null,
+                        language: sq.language || set.language || (globalLangSelect ? globalLangSelect.value : 'en'),
                         image: sq.image || set.image || null,
                         group_id: set.group_id,
                         direction: set.direction,
+                        direction_hi: set.direction_hi || null,
                         direction_table: set.direction_table || null,
                         sub_question_no: sq.sub_question_no || (sIdx + 1)
                     });
@@ -5828,6 +7030,11 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 class_type_id: globalClassSelect.value,
                 subject_id: globalSubjectSelect.value,
+                chapter_id: getSelectedChapterId() || null,
+                chapter_name: getSelectedChapterName() || null,
+                topic_id: getSelectedTopicId() || null,
+                topic_name: getSelectedTopicName() || null,
+                language: globalLangSelect ? globalLangSelect.value : 'en',
                 questions: questionsToSave
             })
         })

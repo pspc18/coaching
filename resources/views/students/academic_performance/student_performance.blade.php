@@ -1168,8 +1168,8 @@
                 {{-- 3. Filter Card --}}
                 <div class="filter-card">
                     <div class="filter-card-header">
-                        <span><i class="fa fa-filter mr-1"></i> Search &amp; Class Filter</span>
-                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Filter performance matrix by class, admission no or keywords</span>
+                        <span><i class="fa fa-filter mr-1"></i> Search &amp; Course Filter</span>
+                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Filter performance matrix by course / batch, admission no or keywords</span>
                     </div>
                     <div class="filter-card-body">
                         <form action="{{ url('student_performance') }}" method="POST" id="perfFilterForm" class="filter-form-row">
@@ -1179,7 +1179,7 @@
                             <div class="filter-group filter-group-class">
                                 <label class="filter-label">Class: <span class="text-danger">*</span></label>
                                 <select name="class_type_id" id="filter_class_type_id" class="filter-select select2" onchange="document.getElementById('perfFilterForm').submit()">
-                                    <option value="">-- All Classes --</option>
+                                    <option value="">-- All Courses / Batches --</option>
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}" {{ (int)($search['class_type_id'] ?? 0) === (int)$type->id ? 'selected' : '' }}>
                                             {{ $type->name }}
@@ -1316,7 +1316,7 @@
                                         <th></th>
                                         <th><input type="text" class="excel-col-filter" data-col="1" placeholder="Filter Adm..."></th>
                                         <th><input type="text" class="excel-col-filter" data-col="2" placeholder="Filter Name..."></th>
-                                        <th><input type="text" class="excel-col-filter" data-col="3" placeholder="Filter Class..."></th>
+                                        <th><input type="text" class="excel-col-filter" data-col="3" placeholder="Filter Course / Batch..."></th>
                                         <th><input type="text" class="excel-col-filter" data-col="4" placeholder="Filter Grade..."></th>
                                         <th><input type="text" class="excel-col-filter" data-col="5" placeholder="Filter Marks..."></th>
                                         <th><input type="text" class="excel-col-filter" data-col="6" placeholder="Filter Att..."></th>
@@ -1519,8 +1519,8 @@
                     <div class="dash-table-card">
                         <div class="dash-empty-state">
                             <div class="empty-icon text-primary"><i class="fa fa-line-chart"></i></div>
-                            <div class="empty-title">Select Class or Search Criteria</div>
-                            <div class="empty-desc">Choose a class from the dropdown above or enter an admission number to view detailed student academic performance matrix.</div>
+                            <div class="empty-title">Select Course / Batch or Search Criteria</div>
+                            <div class="empty-desc">Choose a course from the dropdown above or enter an admission number to view detailed student academic performance matrix.</div>
                         </div>
                     </div>
                 @endif
@@ -1563,7 +1563,7 @@
                     <div class="box-val" id="snapAtt">88.50%</div>
                 </div>
                 <div class="snapshot-stat-box">
-                    <div class="box-lbl">Class Standing</div>
+                    <div class="box-lbl">Course Standing</div>
                     <div class="box-val text-warning" id="snapTopper">Rank -</div>
                 </div>
             </div>

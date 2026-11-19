@@ -753,7 +753,7 @@
         {{-- Class Quick Chips --}}
         <div class="mob-form-group">
             <label class="mob-form-label">
-                <span>Target Class / Batch <span class="req">*</span></span>
+                <span>Target Course / Batch / Batch <span class="req">*</span></span>
                 <span class="text-muted" style="font-size: 8.5px; text-transform:none;">Tap to select</span>
             </label>
             <div class="mob-class-pills-scroll">
@@ -774,7 +774,7 @@
                         id="class_type_id" 
                         name="class_type_id" 
                         required>
-                    <option value="">-- Choose Class / Batch --</option>
+                    <option value="">-- Choose Course / Batch / Batch --</option>
                     @if(!empty($classType))
                         @foreach($classType as $type)
                             <option value="{{ $type->id ?? '' }}" {{ ($selectedClassId == $type->id) ? 'selected' : '' }}>
@@ -808,7 +808,7 @@
                             </option>
                         @endforeach
                     @else
-                        <option value="">-- First Select Class --</option>
+                        <option value="">-- First Select Course --</option>
                     @endif
                 </select>
             </div>
@@ -1132,7 +1132,7 @@ function selectCatPill(cat, btnEl) {
 /* Dynamic Subject Loader */
 function fetchSubjects(classId, selectedSubId) {
     if (!classId) {
-        $('#subject_id').html('<option value="">-- First Select Class --</option>');
+        $('#subject_id').html('<option value="">-- First Select Course --</option>');
         return;
     }
 
@@ -1313,7 +1313,7 @@ $(document).ready(function() {
         var subDate = $('#submission_date').val();
 
         if (!classVal) {
-            alert('Please select Class / Batch.');
+            alert('Please select Course / Batch / Batch.');
             jumpToStep(1);
             $('#class_type_id').focus();
             e.preventDefault();

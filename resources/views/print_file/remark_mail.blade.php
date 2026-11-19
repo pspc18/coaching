@@ -30,7 +30,7 @@ tr {
                                         <th>{{ $item['first_name'] ?? ''}}{{ $item['last_name'] ?? ''}}</th>
                                        </tr>
                                       <tr>
-                                        <th>Class </th>
+                                        <th>Course / Batch</th>
                                         <th>{{ $item['class'] ?? '' }}</th>
                                        </tr>
                                      

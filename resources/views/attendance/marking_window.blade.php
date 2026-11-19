@@ -602,7 +602,7 @@
             {{-- 2. Navigation Tabs (Classes vs Users) --}}
             <div class="att-win-nav-tabs">
                 <a class="att-win-tab-link {{ $activeTab === 'classes' ? 'active' : '' }}" href="{{ url('attendance/marking-window?tab=classes') }}">
-                    <i class="fa fa-graduation-cap"></i> Classes Marking Window
+                    <i class="fa fa-graduation-cap"></i> Courses Marking Window
                     <span class="att-win-tab-badge">{{ $classConfigured }} Configured</span>
                 </a>
                 <a class="att-win-tab-link {{ $activeTab === 'users' ? 'active' : '' }}" href="{{ url('attendance/marking-window?tab=users') }}">
@@ -655,7 +655,7 @@
                     <div class="att-win-card-header">
                         <h3 class="att-win-card-title">
                             <i class="fa fa-table text-info"></i>
-                            {{ $activeTab === 'classes' ? 'Class Wise Attendance Windows' : 'User Wise Attendance Windows' }}
+                            {{ $activeTab === 'classes' ? 'Course Wise Attendance Windows' : 'User Wise Attendance Windows' }}
                         </h3>
                         <div>
                             <span class="att-win-counter-badge">
@@ -671,7 +671,7 @@
                                 <tr>
                                     <th style="width: 44px;" class="text-center">#</th>
                                     @if($activeTab === 'classes')
-                                        <th style="min-width: 180px;">Class Name</th>
+                                        <th style="min-width: 180px;">Course Name</th>
                                     @else
                                         <th style="min-width: 180px;">User Name</th>
                                         <th style="width: 130px;" class="text-center">Role</th>

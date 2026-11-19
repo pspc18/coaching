@@ -588,9 +588,9 @@
                     
                     {{-- Class --}}
                     <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 mb-2">
-                        <label class="qb-filter-label"><i class="fa fa-graduation-cap text-muted mr-1"></i> Class</label>
+                        <label class="qb-filter-label"><i class="fa fa-graduation-cap text-muted mr-1"></i> Course</label>
                         <select class="form-control qb-filter-input select2" id="class_type_id" name="class_type_id">
-                            <option value="">All Classes</option>
+                            <option value="">All Courses / Batches</option>
                             @if(!empty($classType))
                                 @foreach($classType as $type)
                                     <option value="{{ $type->id }}" {{ ($type->id == ($search['class_type_id'] ?? '')) ? 'selected' : '' }}>
@@ -725,7 +725,7 @@
                                 <input type="checkbox" id="qb-select-all" title="Select All on this page" style="transform: scale(1.15); cursor: pointer;">
                             </th>
                             <th style="width: 45px;" class="text-center">#</th>
-                            <th style="width: 140px;">Class &amp; Subject</th>
+                            <th style="width: 140px;">Course &amp; Subject</th>
                             <th style="width: 120px;">Type &amp; Level</th>
                             <th>Question Statement &amp; Context</th>
                             <th style="width: 260px;">Options Preview</th>
@@ -762,6 +762,17 @@
                                     <span class="badge border mt-1" style="background: #f1f5f9; color: #334155; font-size: 10px; font-weight: 600; padding: 3px 6px;">
                                         <i class="fa fa-book mr-1 text-primary"></i> {{ $item->subject_name ?? 'General' }}
                                     </span>
+                                    @if(!empty($item->chapter_name))
+                                        <div class="mt-1" style="font-size: 10.5px; color: #475569;" title="Chapter: {{ $item->chapter_name }}">
+                                            <i class="fa fa-bookmark mr-1" style="color: #d97706;"></i>
+                                            <span class="font-weight-bold">{{ Str::limit($item->chapter_name, 22) }}</span>
+                                            @if(!empty($item->topic_name))
+                                                <div class="text-muted" style="font-size: 9.5px; padding-left: 12px;" title="Topic: {{ $item->topic_name }}">
+                                                    &rsaquo; {{ Str::limit($item->topic_name, 20) }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </td>
 
                                 {{-- 3. Type & Difficulty --}}
@@ -791,18 +802,30 @@
 
                                 {{-- 4. Question Statement & Context --}}
                                 <td>
-                                    {{-- Direction / Group Chip --}}
-                                    @if($isGrouped)
-                                        <div class="mb-1">
-                                            <span class="badge" style="background:#0284c7; color:#ffffff; font-size: 10px; padding: 3px 6px;">
+                                    {{-- Badges row: Direction / PYQ / Marks / Medium --}}
+                                    <div class="mb-1 d-flex flex-wrap align-items-center gap-1">
+                                        @if($isGrouped)
+                                            <span class="badge mr-1" style="background:#0284c7; color:#ffffff; font-size: 10px; padding: 2px 6px;">
                                                 <i class="fa fa-sitemap mr-1"></i> Direction Set: {{ $item->group_id }}
                                                 @if(!empty($item->sub_question_no)) (Q{{ $item->sub_question_no }}) @endif
                                             </span>
-                                            <a href="{{ url('view/question') }}?group_filter={{ urlencode($item->group_id) }}" class="small text-muted ml-1" title="Filter sibling questions in this set">
+                                            <a href="{{ url('view/question') }}?group_filter={{ urlencode($item->group_id) }}" class="small text-muted mr-1" title="Filter sibling questions in this set">
                                                 <i class="fa fa-filter"></i>
                                             </a>
-                                        </div>
-                                    @endif
+                                        @endif
+
+                                        @if(!empty($item->is_pyq))
+                                            <span class="badge border mr-1" style="background:#fffbeb; color:#b45309; border-color:#fde68a; font-size: 9.5px; padding: 2px 5px;" title="Previous Year Question">
+                                                <i class="fa fa-history text-warning"></i> PYQ: {{ $item->pyq_exam ?? 'Exam' }} {{ $item->pyq_year ?? '' }}
+                                            </span>
+                                        @endif
+
+                                        @if(!empty($item->language) && $item->language !== 'en')
+                                            <span class="badge border mr-1" style="background:#f8fafc; color:#334155; font-size: 9.5px; padding: 2px 5px;">
+                                                {{ $item->language === 'hi' ? 'हिन्दी' : 'Bilingual' }}
+                                            </span>
+                                        @endif
+                                    </div>
 
                                     <div class="d-flex align-items-start">
                                         {{-- Diagram Thumbnail --}}
@@ -813,16 +836,34 @@
                                         @endif
 
                                         {{-- Formatted Question Text --}}
-                                        <div class="qb-statement-box flex-grow-1 katex-render-target">
-                                            {!! Helper::cleanHtmlFormat($item->name ?? '') !!}
+                                        <div class="qb-statement-box flex-grow-1">
+                                            @if(!empty($item->name))
+                                                <div class="katex-render-target">
+                                                    {!! Helper::cleanHtmlFormat($item->name) !!}
+                                                </div>
+                                            @endif
+                                            @if(!empty($item->name_hi))
+                                                <div class="mt-1 pt-1 text-dark katex-render-target" style="border-top: 1px dashed #cbd5e1; font-size: 12.5px;">
+                                                    <span class="badge badge-light border text-secondary mr-1" style="font-size: 8.5px; padding: 1px 4px;">HI</span>
+                                                    {!! Helper::cleanHtmlFormat($item->name_hi) !!}
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
 
                                     {{-- Explanation / Solution Snippet (Styled Amber Alert) --}}
-                                    @if(!empty($item->explanation))
+                                    @if(!empty($item->explanation) || !empty($item->explanation_hi))
                                         <div class="qb-solution-hint">
                                             <strong><i class="fa fa-lightbulb-o mr-1"></i> Sol:</strong>
-                                            <span class="katex-render-target">{!! Helper::cleanHtmlFormat($item->explanation) !!}</span>
+                                            @if(!empty($item->explanation))
+                                                <span class="katex-render-target">{!! Helper::cleanHtmlFormat($item->explanation) !!}</span>
+                                            @endif
+                                            @if(!empty($item->explanation_hi))
+                                                <div class="mt-1 text-muted katex-render-target" style="font-size: 11px;">
+                                                    <span class="badge badge-light border mr-1" style="font-size: 8px;">HI</span>
+                                                    {!! Helper::cleanHtmlFormat($item->explanation_hi) !!}
+                                                </div>
+                                            @endif
                                         </div>
                                     @endif
                                 </td>
@@ -833,13 +874,13 @@
                                         <div class="d-flex flex-wrap">
                                             @php
                                                 $opts = [
-                                                    'A' => $item->ans1,
-                                                    'B' => $item->ans2,
-                                                    'C' => $item->ans3,
-                                                    'D' => $item->ans4,
+                                                    'A' => ['en' => $item->ans1, 'hi' => $item->ans1_hi ?? null],
+                                                    'B' => ['en' => $item->ans2, 'hi' => $item->ans2_hi ?? null],
+                                                    'C' => ['en' => $item->ans3, 'hi' => $item->ans3_hi ?? null],
+                                                    'D' => ['en' => $item->ans4, 'hi' => $item->ans4_hi ?? null],
                                                 ];
-                                                if (!empty($item->ans5) || $correctOpt === '4') {
-                                                    $opts['E'] = $item->ans5;
+                                                if (!empty($item->ans5) || !empty($item->ans5_hi) || $correctOpt === '4') {
+                                                    $opts['E'] = ['en' => $item->ans5, 'hi' => $item->ans5_hi ?? null];
                                                 }
                                                 $letters = array_keys($opts);
                                             @endphp
@@ -848,9 +889,14 @@
                                                     $oIndex = array_search($letter, $letters);
                                                     $isCorr = (string)$oIndex === $correctOpt;
                                                 @endphp
-                                                <span class="qb-opt-chip {{ $isCorr ? 'is-correct' : '' }}" title="Option {{ $letter }}: {{ strip_tags($val ?? '') }}">
+                                                <span class="qb-opt-chip {{ $isCorr ? 'is-correct' : '' }}" title="Option {{ $letter }}">
                                                     <strong>{{ $letter }}:</strong> 
-                                                    <span class="katex-render-target">{!! Helper::cleanHtmlFormat($val ?? '—') !!}</span>
+                                                    @if(!empty($val['en']))
+                                                        <span class="katex-render-target">{!! Helper::cleanHtmlFormat($val['en']) !!}</span>
+                                                    @endif
+                                                    @if(!empty($val['hi']))
+                                                        <div class="katex-render-target text-muted" style="font-size: 10px;">{!! Helper::cleanHtmlFormat($val['hi']) !!}</div>
+                                                    @endif
                                                     @if($isCorr) <i class="fa fa-check text-success ml-1"></i> @endif
                                                 </span>
                                             @endforeach
@@ -1154,9 +1200,9 @@
 
                     <div class="row">
                         <div class="col-6 mb-2">
-                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Target Class <span class="text-danger">*</span></label>
+                            <label class="font-weight-bold text-dark mb-1" style="font-size: 11px;">Target Course <span class="text-danger">*</span></label>
                             <select class="form-control form-control-sm" id="omr_modal_class_id" name="class_type_id" required>
-                                <option value="">-- Select Class --</option>
+                                <option value="">-- Select Course --</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
@@ -1254,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('.select2').select2({ theme: 'bootstrap4', width: '100%' });
     }
 
-    // Dynamic Class -> Subject Filter sync (No Duplicates)
+    // Dynamic Course -> Subject Filter sync (No Duplicates)
     const initialSubjectOptionsHtml = $('#subject_id').html();
     $('#class_type_id').off('change').on('change', function () {
         const classId = $(this).val();

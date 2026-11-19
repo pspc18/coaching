@@ -19,7 +19,7 @@
     $Allsubjects = $Allsubjects ?? collect();
     $data2 = $data2 ?? collect();
     $examlist = $examlist ?? collect();
-    $selectedClassName = $classType->firstWhere('id', $requestedClassId)->name ?? 'Class Not Selected';
+    $selectedClassName = $classType->firstWhere('id', $requestedClassId)->name ?? 'Course Not Selected';
     $selectedExamName = $examlist->firstWhere('exam_id', $selectedExamId)->exam_name ?? 'Exam Not Selected';
     $roleId = Session::get('role_id');
     $isPublished = $isPublished ?? false;
@@ -628,9 +628,9 @@
                     <div class="p-4 text-center text-muted bg-white h-100 d-flex flex-column align-items-center justify-content-center">
                         <i class="fa fa-exclamation-circle text-warning mb-2" style="font-size:32px;"></i>
                         <h6 class="font-weight-bold text-dark">No subjects found or selected for {{ $selectedClassName }}</h6>
-                        <p class="text-muted mb-3" style="font-size:12px;">Please assign subjects to this class or select target subjects to continue.</p>
+                        <p class="text-muted mb-3" style="font-size:12px;">Please assign subjects to this course or select target subjects to continue.</p>
                         <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-light border">
-                            <i class="fa fa-arrow-left mr-1"></i> Back to Class Selector
+                            <i class="fa fa-arrow-left mr-1"></i> Back to Course Selector
                         </a>
                     </div>
                 @else
@@ -658,7 +658,7 @@
                                 <button type="button" class="dash-btn dash-btn-outline" onclick="downloadCSV()" title="Export CSV Sheet">
                                     <i class="fa fa-download text-success"></i> CSV
                                 </button>
-                                <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-outline" title="Switch Class or Exam">
+                                <a href="{{ url('fill_marks') }}" class="dash-btn dash-btn-outline" title="Switch Course or Exam">
                                     <i class="fa fa-random text-info"></i> Switch Exam
                                 </a>
                             </div>
@@ -671,13 +671,16 @@
                                     {{-- Row 1: Titles & Subject Group Headers with exact rowspan --}}
                                     <tr class="header-titles-row">
                                         <th rowspan="2" style="width: 36px; text-align: center; vertical-align: middle;">#</th>
-                                        <th rowspan="2" style="width: 85px; text-align: center; vertical-align: middle;">Adm No</th>
-                                        <th rowspan="2" style="min-width: 170px; text-align: left; padding-left: 10px; vertical-align: middle;">Student Name</th>
-                                        <th rowspan="2" style="min-width: 150px; text-align: left; padding-left: 10px; vertical-align: middle;">Father's Name</th>
+                                        <th rowspan="2" style="min-width: 180px; text-align: left; padding-left: 10px; vertical-align: middle;">Student Details</th>
                                         @foreach($subjects as $item)
                                             @php
-                                                $maxVal = $fillMinMaxMarksMap->get($item->id)->exam_maximum_marks ?? 100;
-                                                $minVal = $fillMinMaxMarksMap->get($item->id)->exam_minimum_marks ?? 30;
+                                                $defaultPerSubMax = 100;
+                                                if (!empty($currentExam) && !empty($currentExam->exam_maximum_marks)) {
+                                                    $subsTotal = $subjects->count() > 0 ? $subjects->count() : 1;
+                                                    $defaultPerSubMax = ($subsTotal > 1) ? round($currentExam->exam_maximum_marks / $subsTotal, 2) : $currentExam->exam_maximum_marks;
+                                                }
+                                                $maxVal = $fillMinMaxMarksMap->get($item->id)->exam_maximum_marks ?? $defaultPerSubMax;
+                                                $minVal = $fillMinMaxMarksMap->get($item->id)->exam_minimum_marks ?? round($maxVal * 0.33, 2);
                                             @endphp
                                             <th colspan="4" class="subject-header-col" data-subject-id="{{ $item->id }}" style="border-left: 1px solid rgba(255,255,255,0.25);">
                                                 <i class="fa fa-book mr-1 text-info"></i> {{ $item->sub_name ?: $item->name }}
@@ -702,18 +705,30 @@
                                             data-adm="{{ strtolower($student->admissionNo ?? '') }}" 
                                             data-father="{{ strtolower($student->father_name ?? '') }}">
                                             
-                                            <td class="text-center font-weight-bold text-muted" style="width: 36px;">{{ $key + 1 }}</td>
-                                            <td class="text-center" style="width: 85px;">
-                                                <span class="badge-class">{{ $student->admissionNo }}</span>
-                                            </td>
-                                            <td style="min-width: 170px; text-align:left; padding-left:10px;">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="student-avatar-badge">{{ strtoupper(substr($student->first_name ?? 'S', 0, 1)) }}</span>
-                                                    <span class="font-weight-bold text-dark">{{ $student->first_name }} {{ $student->last_name }}</span>
+                                            <td class="text-center font-weight-bold text-muted" style="width: 36px; vertical-align: middle;">{{ $key + 1 }}</td>
+                                            <td style="min-width: 180px; text-align: left; padding: 4px 8px; vertical-align: middle;">
+                                                <div class="d-flex align-items-center" style="gap: 7px;">
+                                                    <span class="student-avatar-badge flex-shrink-0" style="width: 22px; height: 22px; font-size: 10px;">
+                                                        {{ strtoupper(substr($student->first_name ?? 'S', 0, 1)) }}
+                                                    </span>
+                                                    <div style="line-height: 1.25; min-width: 0;">
+                                                        <div class="d-flex align-items-center" style="gap: 5px; flex-wrap: wrap;">
+                                                            <span class="font-weight-bold text-dark" style="font-size: 11.5px;">
+                                                                {{ $student->first_name }} {{ $student->last_name }}
+                                                            </span>
+                                                            @if(!empty($student->admissionNo))
+                                                                <span class="badge-class" style="font-size: 9.5px; padding: 1px 5px; height: auto;" title="Admission No">
+                                                                    #{{ $student->admissionNo }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        @if(!empty($student->father_name))
+                                                            <div class="text-muted text-truncate" style="font-size: 10px; color: #64748b; margin-top: 1px;" title="Father's Name: {{ $student->father_name }}">
+                                                                <i class="fa fa-user-o mr-1" style="font-size: 8.5px; opacity: 0.7;"></i>{{ $student->father_name }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                            </td>
-                                            <td style="min-width: 150px; text-align:left; padding-left:10px; color:#475569;">
-                                                {{ $student->father_name ?? '-' }}
                                             </td>
                                             
                                             <input type="hidden" name="admission_id[]" value="{{ $student->id }}">
@@ -857,8 +872,13 @@
                                                 @foreach($subjects as $key => $item)
                                                     @php
                                                         $old_value = $fillMinMaxMarksMap->get($item->id);
-                                                        $maxMarks = $old_value->exam_maximum_marks ?? 100;
-                                                        $minMarks = $old_value->exam_minimum_marks ?? 30;
+                                                        $defaultPerSubMax = 100;
+                                                        if (!empty($currentExam) && !empty($currentExam->exam_maximum_marks)) {
+                                                            $subsTotal = $subjects->count() > 0 ? $subjects->count() : 1;
+                                                            $defaultPerSubMax = ($subsTotal > 1) ? round($currentExam->exam_maximum_marks / $subsTotal, 2) : $currentExam->exam_maximum_marks;
+                                                        }
+                                                        $maxMarks = $old_value->exam_maximum_marks ?? $defaultPerSubMax;
+                                                        $minMarks = $old_value->exam_minimum_marks ?? round($maxMarks * 0.33, 2);
                                                     @endphp
                                                     <tr>
                                                         <td class="text-center font-weight-bold text-muted">{{ $key + 1 }}</td>
@@ -905,14 +925,14 @@
 
                 <div class="master-detail-workspace">
                     
-                    {{-- Left Column: Classes Navigator --}}
+                    {{-- Left Column: Courses Navigator --}}
                     <div class="classes-sidebar">
                         <div class="classes-sidebar-header">
-                            <span><i class="fa fa-graduation-cap text-info mr-1"></i> Academic Classes</span>
+                            <span><i class="fa fa-graduation-cap text-info mr-1"></i> Academic Courses</span>
                             <span class="badge badge-light" style="font-size:10px;">{{ count($classType) }}</span>
                         </div>
                         <div class="classes-search-box position-relative">
-                            <input type="text" id="classSearchInput" class="classes-search-input" placeholder="Quick search class...">
+                            <input type="text" id="classSearchInput" class="classes-search-input" placeholder="Quick search course / batch...">
                         </div>
                         <div class="classes-list-container" id="classesList">
                             @foreach($classType as $class)
@@ -934,7 +954,7 @@
                         <div class="exams-panel-header">
                             <h6 class="exams-header-title">
                                 <i class="fa fa-folder-open text-warning"></i>
-                                <span>Assigned Examinations: <strong id="activeClassNameHeader" class="text-primary">{{ $selectedClassName !== 'Class Not Selected' ? $selectedClassName : ($classType->first()->name ?? 'Selected Class') }}</strong></span>
+                                <span>Assigned Examinations: <strong id="activeClassNameHeader" class="text-primary">{{ $selectedClassName !== 'Course Not Selected' ? $selectedClassName : ($classType->first()->name ?? 'Selected Course') }}</strong></span>
                             </h6>
                             <div class="d-flex align-items-center" style="gap:6px;">
                                 <input type="text" id="examSearchInput" class="classes-search-input" placeholder="Filter exams..." style="width:140px; height:24px;">
@@ -946,7 +966,7 @@
                         <div class="exams-panel-body" id="examsContainer">
                             <div class="p-4 text-center text-muted" id="examsLoadingSpinner" style="display:none;">
                                 <div class="spinner-border text-primary spinner-border-sm mr-1"></div>
-                                <span>Loading examinations for selected class...</span>
+                                <span>Loading examinations for selected course...</span>
                             </div>
 
                             <div id="examsTableWrapper">
@@ -1137,7 +1157,7 @@ $(document).ready(function() {
                     $('#examsLoadingSpinner').hide();
                     $('#examsTableWrapper').show();
 
-                    if (res.status && res.exams) {
+                    if ((res.status || res.success) && res.exams) {
                         currentClassExamsCache = res.exams;
                         $('#headerStudentsCount').html('<i class="fa fa-users text-primary mr-1"></i> ' + (res.students_count || 0) + ' Students');
                         $('#headerSubjectsCount').html('<i class="fa fa-book text-success mr-1"></i> ' + (res.subject_count || 0) + ' Subjects');
@@ -1237,7 +1257,7 @@ $(document).ready(function() {
 
         // Initialize exams on page load for default class
         if (currentActiveNavClassId) {
-            var defaultClassName = $('#classesList .class-nav-item.active .class-nav-name span').text().trim() || 'Selected Class';
+            var defaultClassName = $('#classesList .class-nav-item.active .class-nav-name span').text().trim() || 'Selected Course';
             loadExamsForClass(currentActiveNavClassId, defaultClassName);
         }
     @endif

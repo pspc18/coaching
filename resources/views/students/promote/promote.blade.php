@@ -871,7 +871,7 @@
                 <div class="filter-card">
                     <div class="filter-card-header">
                         <span><i class="fa fa-filter mr-1"></i> Student Selection Filter</span>
-                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Select current class to load active students</span>
+                        <span style="font-size: 10px; font-weight: normal; opacity: .85;">Select current course to load active students</span>
                     </div>
                     <div class="filter-card-body">
                         <form action="{{ url('student/promote_add') }}" method="POST" id="promoteSearchForm" class="filter-form-row">
@@ -879,9 +879,9 @@
                             
                             {{-- Class Selection --}}
                             <div class="filter-group filter-group-class">
-                                <label class="filter-label">Current Class: <span class="text-danger">*</span></label>
+                                <label class="filter-label">Current Course / Batch: <span class="text-danger">*</span></label>
                                 <select name="class_type_id" id="class_type_id" class="filter-select select2" required onchange="document.getElementById('promoteSearchForm').submit()">
-                                    <option value="">-- Choose Class --</option>
+                                    <option value="">-- Choose Course / Batch --</option>
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}" {{ (int)($search['class_type_id'] ?? 0) === (int)$type->id ? 'selected' : '' }}>
                                             {{ $type->name }}
@@ -953,9 +953,9 @@
                                         </select>
                                     </div>
 
-                                    {{-- Promote To Class --}}
+                                    {{-- Promote To Course / Batch --}}
                                     <div class="target-field-group target-field-class">
-                                        <label class="target-label">Promote To Class: <span class="text-danger">*</span></label>
+                                        <label class="target-label">Promote To Course / Batch: <span class="text-danger">*</span></label>
                                         <select name="promote_class_type_id" id="promote_class_type_id" class="target-select select2" required>
                                             <option value="">-- Choose Target Session First --</option>
                                         </select>
@@ -965,7 +965,7 @@
                                     <div class="target-field-group">
                                         <label class="target-label">Fees Group Status:</label>
                                         <div class="fees-config-badge" id="feesStatusBadge">
-                                            <i class="fa fa-info-circle text-primary"></i> <span id="feesStatusText">Select Class to Configure Fees</span>
+                                            <i class="fa fa-info-circle text-primary"></i> <span id="feesStatusText">Select Course / Batch to Configure Fees</span>
                                         </div>
                                     </div>
 
@@ -974,7 +974,7 @@
                                 {{-- Warning if no class mapped in target session --}}
                                 <div id="no_class_box" class="alert alert-warning p-2 mt-2 mb-0" style="display: none; font-size: 11px;">
                                     <i class="fa fa-exclamation-triangle mr-1"></i>
-                                    <b>No classes registered for <span id="selected_new_session_text"></span> session.</b> Please add classes for the new session first.
+                                    <b>No courses registered for <span id="selected_new_session_text"></span> session.</b> Please add courses for the new session first.
                                 </div>
                             </div>
                         </div>
@@ -1029,7 +1029,7 @@
                                             <th style="width: 40px; text-align: center;">#</th>
                                             <th style="width: 100px; text-align: center;">Adm. No</th>
                                             <th style="min-width: 200px;">Student Name &amp; Profile</th>
-                                            <th style="width: 120px;">Current Class</th>
+                                            <th style="width: 120px;">Current Course / Batch</th>
                                             <th style="width: 140px; text-align: center;">
                                                 <input type="checkbox" id="select_allFees" checked title="Carry Forward All Pending Dues">
                                                 <span style="margin-left: 2px;">Carry Forward Dues</span>
@@ -1047,7 +1047,7 @@
                                             <th></th>
                                             <th><input type="text" class="excel-col-filter" data-col="1" placeholder="Filter Adm..."></th>
                                             <th><input type="text" class="excel-col-filter" data-col="2" placeholder="Filter Name..."></th>
-                                            <th><input type="text" class="excel-col-filter" data-col="3" placeholder="Filter Class..."></th>
+                                            <th><input type="text" class="excel-col-filter" data-col="3" placeholder="Filter Course / Batch..."></th>
                                             <th><input type="text" class="excel-col-filter" data-col="4" placeholder="Filter Fees..."></th>
                                             <th><input type="text" class="excel-col-filter" data-col="5" placeholder="Filter Roll..."></th>
                                             <th></th>
@@ -1196,14 +1196,14 @@
                         <div class="dash-empty-state">
                             <div class="empty-icon text-muted"><i class="fa fa-users"></i></div>
                             <div class="empty-title">No Students Found</div>
-                            <div class="empty-desc">No active students found in the selected class. Please verify class selection or filter parameters.</div>
+                            <div class="empty-desc">No active students found in the selected course / batch. Please verify class selection or filter parameters.</div>
                         </div>
                     </div>
                 @else
                     <div class="dash-table-card">
                         <div class="dash-empty-state">
                             <div class="empty-icon text-primary"><i class="fa fa-graduation-cap"></i></div>
-                            <div class="empty-title">Select Current Class to Begin Promotion</div>
+                            <div class="empty-title">Select Current Course / Batch to Begin Promotion</div>
                             <div class="empty-desc">Choose a current class from the dropdown filter above to load eligible students for session transfer and fee assignment.</div>
                         </div>
                     </div>
@@ -1220,7 +1220,7 @@
         <div class="modal-content" style="border-radius: 4px; overflow: hidden; border: none; box-shadow: 0 10px 25px rgba(0,0,0,.3);">
             <div class="modal-header" style="background: linear-gradient(135deg, #002C54 0%, #0f3460 100%); color: #ffffff; padding: 10px 14px;">
                 <h5 class="modal-title" style="font-size: 13px; font-weight: 700;">
-                    <i class="fa fa-money mr-1 text-warning"></i> Select Applicable Fees for Promoted Class
+                    <i class="fa fa-money mr-1 text-warning"></i> Select Applicable Fees for Promoted Course
                 </h5>
                 <button type="button" class="close" data-bs-dismiss="modal" style="color: #fff; opacity: 1;">&times;</button>
             </div>
@@ -1234,7 +1234,7 @@
                             <tr class="header-titles-row">
                                 <th style="width: 40px; text-align: center;">Select</th>
                                 <th>Session</th>
-                                <th>Class</th>
+                                <th>Course / Batch</th>
                                 <th>Fees Group</th>
                                 <th style="text-align: right;">Amount (₹)</th>
                             </tr>
@@ -1486,14 +1486,14 @@ $(document).ready(function() {
                 url: "{{ url('get-class-by-session') }}",
                 data: { session_id: new_session_id },
                 success: function(response) {
-                    var options = '<option value="">-- Select Target Class --</option>';
+                    var options = '<option value="">-- Select Target Course / Batch --</option>';
                     if (response.data && response.data.length > 0) {
                         response.data.forEach(function(item) {
                             options += '<option value="' + item.id + '">' + item.name + '</option>';
                         });
                         $('#promote_class_type_id').html(options);
                     } else {
-                        $('#promote_class_type_id').html('<option value="">No Class Found</option>');
+                        $('#promote_class_type_id').html('<option value="">No Course Found</option>');
                         $('#selected_new_session_text').text(session_text);
                         $('#no_class_box').show();
                     }
@@ -1502,7 +1502,7 @@ $(document).ready(function() {
         }
     });
 
-    // 4. Target Class Change & Fees Group Modal Trigger
+    // 4. Target Course / Batch Change & Fees Group Modal Trigger
     $('#promote_class_type_id').on('change', function() {
         var newClass = $(this).val();
         var newSession = $('#new_session_id').val();

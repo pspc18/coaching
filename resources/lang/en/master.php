@@ -41,23 +41,23 @@ return [
     'View Staff Categories' =>  'View Staff Categories',
      
   //Class     
-      'Add Class' =>  'Add Class',
-    'View Class' =>  'View Class',
-    'Edit Class' =>  'View Class',
-    'Class' => 'Class',
+      'Add Class' =>  'Add Course',
+    'View Class' =>  'View Courses',
+    'Edit Class' =>  'Edit Course',
+    'Class' => 'Course / Batch',
     
   //Section  
-     'Add Section' =>  'Add Section',
-    'View Section' =>  'View Section',
-     'Edit Section' => 'Edit Section',
-     'Section' => 'Section',
+     'Add Section' =>  'Add Batch',
+    'View Section' =>  'View Batches',
+     'Edit Section' => 'Edit Batch',
+     'Section' => 'Batch',
      
     
   //Assign Section  
      'Add Section-Class' =>  'Add Section-Class',
     'View Section-Class' =>  'View Section-Class', 
     'Edit Section-class' =>  'Edit Section-class',
-    'Class Type' =>  'Class Type',
+    'Class Type' =>  'Course',
     
  //Subject    
     'Add Subject' => 'Add Subject',
@@ -361,16 +361,16 @@ return [
     'View Sport List' => 'View Sport List',
     'Add Tc Certificate Management' => 'Add Tc Certificate Management',
     'Student UID No.' => 'Student UID No.',
-    'Student Class' => 'Student Class',
+    'Student Class' => 'Course / Batch',
     'SSSM ID No.' => 'SSSM ID No.',
     'Mother s Name' => 'Mother s Name',
     'Date Of Birth' => 'Date Of Birth',
     'Student s Admission No.' => 'Student s Admission No.',
     'Admission Date' => 'Admission Date',
-    'Class In Which Admitted' => 'Class In Which Admitted',
+    'Class In Which Admitted' => 'Course In Which Admitted',
     'Issue Date' => 'Issue Date',
     'Region For Leaving' => 'Region For Leaving',
-    'Class In Which Leaving' => 'Class In Which Leaving',
+    'Class In Which Leaving' => 'Course In Which Leaving',
     'Due If Any' => 'Due If Any',
     'Conduct And Behaviour' => 'Conduct And Behaviour',
     'Medium' => 'Medium',

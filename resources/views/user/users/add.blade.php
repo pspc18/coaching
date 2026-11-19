@@ -750,11 +750,11 @@ $currentBranchId = Session::get('branch_id');
                         </div>
                     </div>
 
-                    {{-- Class Assignment --}}
+                    {{-- Course / Batch Assignment --}}
                     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                         <div class="form-group form-group-compact">
                             <label class="form-label-compact">
-                                <span>Class Assignment</span>
+                                <span>Course / Batch Assignment</span>
                                 <span class="label-note">Optional</span>
                             </label>
                             <div class="compact-multi-box" id="classMulti">

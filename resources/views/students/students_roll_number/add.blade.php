@@ -24,8 +24,8 @@
 		<div class="row mb-2 m-2">
 		    <div class="col-md-4">
 				<div class="form-group">
-					<label for="class" style="color:red;"> Class :*</label>
-					<input type="text" class="form-control @error('name') is-invalid @enderror " id="name" name="name" placeholder=" Class" value="{{old('name')}}">
+					<label for="class" style="color:red;">Course / Batch:*</label>
+					<input type="text" class="form-control @error('name') is-invalid @enderror " id="name" name="name" placeholder="Course / Batch" value="{{old('name')}}">
 					@error('name')
 						<span class="invalid-feedback" role="alert">
 							<strong>{{ $message }}</strong>
@@ -62,7 +62,7 @@
           <thead>
           <tr role="row">
               <th>Sr. No.</th>
-                    <th> Class </th>
+                    <th>Course / Batch</th>
                     <th>section </th>
                     
                      <th>Edit/Delete</th>

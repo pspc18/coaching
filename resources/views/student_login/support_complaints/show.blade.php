@@ -1042,7 +1042,7 @@
 
         {{-- Collapsible Mobile Ticket Information Panel (Clean Light Card Theme, Zero Clipping) --}}
         <div class="mob-ticket-info-panel" id="ticketMetaDrawer">
-            {{-- Full-width Student & Class Strip --}}
+            {{-- Full-width Student & Course / Batch Strip --}}
             <div class="mob-info-student-strip">
                 <div class="mob-info-stu-left">
                     <div class="mob-info-stu-icon">

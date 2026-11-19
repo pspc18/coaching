@@ -823,9 +823,9 @@ $hasActiveFilter = !empty($search['name']) || !empty($search['class_type_id']) |
             </div>
 
             <div class="mob-form-group">
-                <label class="mob-form-label">Class</label>
+                <label class="mob-form-label">Course / Batch</label>
                 <select name="class_type_id" class="mob-form-select">
-                    <option value="">All Classes</option>
+                    <option value="">All Courses / Batches</option>
                     @if(!empty($classType))
                         @foreach($classType as $type)
                             <option value="{{ $type->id }}" {{ (string)($search['class_type_id'] ?? '') === (string)$type->id ? 'selected' : '' }}>

@@ -642,7 +642,7 @@
                 {{-- If Student Tab: Class Selector --}}
                 @if(!$isStaffTab)
                     <div class="form-group-compact">
-                        <label for="class_type_id"><i class="fa fa-building-o"></i> Class:</label>
+                        <label for="class_type_id"><i class="fa fa-graduation-cap"></i> Course:</label>
                         <select name="class_type_id" id="class_type_id" class="form-control-compact select2" style="min-width: 140px;" onchange="document.getElementById('attendanceFilterForm').submit()">
                             @foreach($classes as $class)
                                 <option value="{{ $class->id }}" {{ (string) $classFilter === (string) $class->id ? 'selected' : '' }}>{{ $class->name }}</option>

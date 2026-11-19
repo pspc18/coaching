@@ -677,7 +677,7 @@
         {{-- Fast Actions in Hero --}}
         <div class="mob-actions-bar">
             <button type="button" class="mob-act-btn mob-act-btn-add" id="btnOpenAssignSheet">
-                <i class="fa fa-plus mr-1"></i> + Assign Class Fee
+                <i class="fa fa-plus mr-1"></i> + Assign Course / Batch Fee
             </button>
             <a href="{{ url('feesGroup') }}" class="mob-act-btn mob-act-btn-filter">
                 <i class="fa fa-folder-open mr-1"></i> Fees Group
@@ -689,7 +689,7 @@
     <div class="mob-search-toolbar">
         <div class="mob-search-input-wrap">
             <i class="fa fa-search"></i>
-            <input type="text" id="mobQuickSearchInput" class="mob-search-input" placeholder="Search class name...">
+            <input type="text" id="mobQuickSearchInput" class="mob-search-input" placeholder="Search course name...">
         </div>
         <button type="button" class="mob-filter-btn" id="btnResetFilter" title="Reset Filters">
             <i class="fa fa-refresh"></i> Reset
@@ -792,7 +792,7 @@
                 <div class="mob-empty-icon-circle icon-accent">
                     <i class="fa fa-folder-open-o"></i>
                 </div>
-                <h6 class="mob-empty-title">No Class Fee Structures</h6>
+                <h6 class="mob-empty-title">No Course Fee Structures</h6>
                 <p class="mob-empty-desc">No fees have been assigned to classes yet. Tap the button below to assign your first class fee structure.</p>
                 <button type="button" class="mob-empty-btn mob-empty-btn-add" id="btnEmptyAdd">
                     <i class="fa fa-plus"></i> + Assign First Fee
@@ -806,7 +806,7 @@
         <div class="mob-empty-icon-circle">
             <i class="fa fa-search"></i>
         </div>
-        <h6 class="mob-empty-title">No Matching Classes Found</h6>
+        <h6 class="mob-empty-title">No Matching Courses Found</h6>
         <p class="mob-empty-desc">No class fee structures match your search keyword or selected filter chip.</p>
         <button type="button" class="mob-empty-btn mob-empty-btn-reset" id="btnEmptyReset">
             <i class="fa fa-refresh"></i> Reset Filters
@@ -816,7 +816,7 @@
 </div>
 
 {{-- =========================================================================
-   4. NATIVE BOTTOM SHEET: ASSIGN FEE STRUCTURE TO CLASS
+   4. NATIVE BOTTOM SHEET: Assign Fee Structure to Course / Batch
    ========================================================================= --}}
 <div class="mob-filter-modal-backdrop" id="mobAssignBackdrop"></div>
 <div class="mob-filter-sheet" id="mobAssignSheet">
@@ -835,7 +835,7 @@
             <div class="mob-form-group">
                 <label class="mob-form-label">{{ __('common.Class') }} <span class="text-danger">*</span></label>
                 <select class="mob-form-select" name="class_type_id" required>
-                    <option value="">-- Select Class --</option>
+                    <option value="">-- Select Course / Batch --</option>
                     @if(!empty($classType))
                         @foreach($classType as $type)
                             <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>

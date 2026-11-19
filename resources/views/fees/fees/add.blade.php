@@ -42,7 +42,7 @@
                             <div class="row m-2">
                                 <div class="col-md-2">
                             		<div class="form-group">
-                            			<label>Class</label>
+                            			<label>Course / Batch</label>
                             			<select class="form-control" id="class_type_id" name="class_type_id" >
                             			<option value="">Select</option>
                                          @if(!empty($classType)) 
@@ -107,7 +107,7 @@
                 // dataType: 'json',
                 success: function (data) {
                     if(data == 0){
-                        alert('Please Assign the Fees for this Class !');
+                        alert('Please Assign the Fees for this Course / Batch !');
                         window.location.href = "{{ url('fees_master') }}";
                     }else{
                         

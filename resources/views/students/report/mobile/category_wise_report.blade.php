@@ -537,7 +537,7 @@
         @else
             <div class="mob-empty-feed">
                 <i class="fa fa-graduation-cap fa-2x text-muted mb-2"></i>
-                <h6>No Classes Found</h6>
+                <h6>No Courses Found</h6>
                 <p>No class records configured for this session.</p>
             </div>
         @endif

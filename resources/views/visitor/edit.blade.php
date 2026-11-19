@@ -603,7 +603,7 @@ $currentDate = !empty($data->date) ? date('Y-m-d', strtotime($data->date)) : dat
                                             <div class="input-action-group">
                                                 <span class="input-action-prepend"><i class="fa fa-building-o"></i></span>
                                                 <select class="form-control" id="class_type_id" name="class_type_id">
-                                                    <option value="">Select Class</option>
+                                                    <option value="">Select Course / Batch</option>
                                                     @if(!empty($getTypeclass))
                                                         @foreach($getTypeclass as $type)
                                                             <option value="{{ $type->id ?? '' }}" {{ ($type->id == old('class_type_id', $data->class_type_id)) ? 'selected' : '' }}>

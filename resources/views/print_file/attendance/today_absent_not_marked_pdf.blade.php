@@ -118,7 +118,7 @@
         <thead>
             <tr>
                 <th style="width: 5%;">S.No.</th>
-                <th style="width: 11%;">Class</th>
+                <th style="width: 11%;">Course / Batch</th>
                 <th style="width: 11%;">Admission No</th>
                 <th style="width: 13%;">Attendance UID</th>
                 <th style="width: 22%;">Student Name</th>

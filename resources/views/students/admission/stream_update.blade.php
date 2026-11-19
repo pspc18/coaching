@@ -1060,9 +1060,9 @@ select.excel-col-filter option {
                     <div class="filter-card-body">
                         <form action="{{ url('stream_update') }}" method="GET" id="streamClassForm" class="filter-form-row">
                             <div class="filter-group-class">
-                                <label class="filter-label">Select Target Class: <span class="text-danger">*</span></label>
+                                <label class="filter-label">Select Target Course / Batch: <span class="text-danger">*</span></label>
                                 <select name="class_type_id" class="filter-select select2" required onchange="document.getElementById('streamClassForm').submit()">
-                                    <option value="">-- Choose Class --</option>
+                                    <option value="">-- Choose Course / Batch --</option>
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}" {{ (int)$type->id === (int)($search['class_type_id'] ?? 0) ? 'selected' : '' }}>
                                             {{ $type->name }}
@@ -1354,7 +1354,7 @@ select.excel-col-filter option {
                         <div class="dash-empty-state">
                             <div class="empty-icon text-primary"><i class="fa fa-filter"></i></div>
                             <div class="empty-title">Please Select a Class to Begin</div>
-                            <div class="empty-desc">Choose a class from the dropdown above to load students and stream subjects.</div>
+                            <div class="empty-desc">Choose a course from the dropdown above to load students and stream subjects.</div>
                         </div>
                     </div>
                 @endif
@@ -1438,7 +1438,7 @@ select.excel-col-filter option {
                     </div>
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px 12px; font-size: 11.5px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <span class="text-muted">Target Class:</span>
+                            <span class="text-muted">Target Course / Batch:</span>
                             <strong class="text-dark">{{ $selectedClass->name ?? 'Not Selected' }}</strong>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">

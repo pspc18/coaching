@@ -33,7 +33,7 @@
                         <div class="col-md-12"><h5>Select Criteria</h5><hr></div>
                         <div class="col-md-3">
                     		<div class="form-group">
-                    			<label>Class</label>
+                    			<label>Course / Batch</label>
                     			<select class="form-control" id="class_type_id" name="class_type_id" >
                     			<option>Select</option>
                                  @if(!empty($classType)) 
@@ -108,7 +108,7 @@
                                   <th><input type="checkbox" id="select_all"  class="checkbox"> &nbsp; All</th>
                                   <th>Adm.No.</th>
                                    <th>Name</th>
-                                   <th>Class</th>
+                                   <th>Course / Batch</th>
                                   <th>F Name</th>
                                   <th>Gender</th>
                                   <th>Mobile</th>

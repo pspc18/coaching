@@ -61,7 +61,7 @@
         <td colspan="7">
             <div class="dash-empty-state">
                 <div class="empty-icon"><i class="fa fa-graduation-cap"></i></div>
-                <div class="empty-title">No Classes Found</div>
+                <div class="empty-title">No Courses Found</div>
                 <div class="empty-desc">No academic classes found matching criteria. Click "+ Add New Class" or "⚡ Quick Bulk Import" to create classes.</div>
             </div>
         </td>

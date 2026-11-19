@@ -27,7 +27,7 @@
                   <thead class="bg-primary">
                   <tr role="row">
                       <th>Sr. No.</th>
-                      <th>Class</th>
+                      <th>Course / Batch</th>
                       <th>Section</th>
                       <th>Subject</th>
                       <th>Homework Date</th>
@@ -83,7 +83,7 @@
                     <p><i class="fa fa-calendar-plus-o"></i> <b>Evaluation Date:</b> 12/05/2021</p>
                     <p><b>Created By:</b> Shyam Sir</p>
                     <p><b>Evaluated By:</b> Shyam Sir</p>
-                    <p><b>Class:</b> Class 1</p>
+                    <p><b>Course / Batch:</b> Class 1</p>
                     <p><b>Section:</b> A</p>
                     <p><b>Subject:</b> English</p>
                     <p><b>Status:</b> Complete</p>

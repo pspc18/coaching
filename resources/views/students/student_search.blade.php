@@ -143,7 +143,7 @@
                     <!--                        <th>Name</th>-->
                     <!--                        <th>Mobile</th>-->
                     <!--                        <th>Email</th>-->
-                    <!--                        <th>Class</th>-->
+                    <!--                        <th>Course / Batch</th>-->
                     <!--                        <th>Stream</th>-->
                     <!--                        <th>Aadhaar</th>-->
                     <!--                        <th>Address</th>-->

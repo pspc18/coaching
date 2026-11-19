@@ -5,7 +5,7 @@
                        <th>Sr.No.</th>
                        <th class="text-center">Admission No. </th>
                        <th>Name</th>
-                       <th>Class </th>
+                       <th>Course / Batch</th>
                       <th>Father Name</th>
                       <th>Mother Name</th>
                       <th>Mobile</th>

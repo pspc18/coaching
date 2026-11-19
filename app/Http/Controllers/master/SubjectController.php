@@ -2,238 +2,16 @@
 
 namespace App\Http\Controllers\master;
 
-use Illuminate\Validation\Validator; 
-use App\Models\User;
-use App\Models\Subject;
 use App\Models\Master\AllSubjects;
-use App\Models\ClassType;
+use App\Models\CourseSubject;
 use Session;
-use Hash;
-use Str;
 use DB;
 use Redirect;
-use Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    public function add(Request $request)
-    {
-        $branchId = Session::get('branch_id');
-        $sessionId = Session::get('session_id');
-        $classTypeId = $request->class_type_id ?? '';
-
-        if ($request->action === 'get_class_subjects') {
-            $assignedSubjects = Subject::where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->where('class_type_id', $classTypeId)
-                ->pluck('name')
-                ->all();
-
-            return response()->json([
-                'status' => 'success',
-                'assigned' => $assignedSubjects,
-            ]);
-        }
-
-        if ($request->isMethod('post') && ($request->has('add_subject') || $request->has('class_type_id'))) {
-            $request->validate([
-                'class_type_id' => 'required',
-            ]);
-
-            $addSubjects = (array) ($request->add_subject ?? []);
-
-            Subject::whereNotIn('name', $addSubjects)
-                ->where('class_type_id', $request->class_type_id)
-                ->where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->delete();
-
-            if (!empty($addSubjects)) {
-                foreach ($addSubjects as $key => $item) {
-                    $string = trim($item);
-                    $ucfirstString = ucwords(strtolower($string), '\',. ');
-                    $other_subject = AllSubjects::where('name', $ucfirstString)->first();
-                    $otherVal = $other_subject ? ($other_subject->other_subject ?? 0) : 0;
-
-                    $existing = Subject::where('name', $item)
-                        ->where('class_type_id', $request->class_type_id)
-                        ->where('session_id', $sessionId)
-                        ->where('branch_id', $branchId)
-                        ->first();
-
-                    if (!empty($existing)) {
-                        $existing->update([
-                            'deleted_at' => null,
-                            'other_subject' => $otherVal,
-                            'sort_by' => $key + 1
-                        ]);
-                    } else {
-                        Subject::create([
-                            'user_id' => Session::get('id'),
-                            'session_id' => $sessionId,
-                            'branch_id' => $branchId,
-                            'name' => $item,
-                            'other_subject' => $otherVal,
-                            'sort_by' => $key + 1,
-                            'class_type_id' => $request->class_type_id,
-                        ]);
-                    }
-                }
-            }
-            if ($request->ajax()) {
-                return response()->json(['status' => 'success', 'message' => 'Subjects assigned to class successfully.']);
-            }
-            return redirect('add_subject')->with('message', 'Subjects assigned to class successfully.');
-        }
-
-        // Fetch assigned subjects query
-        $assignedQuery = Subject::where('session_id', $sessionId)
-            ->where('branch_id', $branchId);
-
-        if (!empty($classTypeId) && $classTypeId !== 'all') {
-            $assignedQuery->where('class_type_id', $classTypeId);
-        }
-
-        $allAssigned = $assignedQuery->orderBy('sort_by', 'ASC')->orderBy('id', 'ASC')->get();
-        $classTypes = ClassType::where('session_id', $sessionId)
-            ->where('branch_id', $branchId)
-            ->orderBy('orderBy', 'ASC')
-            ->get();
-
-        $allMasterSubjects = AllSubjects::where('session_id', $sessionId)
-            ->where('branch_id', $branchId)
-            ->whereNull('deleted_at')
-            ->orderBy('name', 'ASC')
-            ->get();
-
-        // Calculate KPI summary
-        $totalAssignedCount = $allAssigned->count();
-        $mainAssignedCount = $allAssigned->where('other_subject', 0)->count();
-        $otherAssignedCount = $allAssigned->where('other_subject', 1)->count();
-        $distinctClassesAssigned = Subject::where('session_id', $sessionId)
-            ->where('branch_id', $branchId)
-            ->distinct('class_type_id')
-            ->count('class_type_id');
-
-        $kpis = [
-            'total_assigned' => $totalAssignedCount,
-            'main_assigned' => $mainAssignedCount,
-            'other_assigned' => $otherAssignedCount,
-            'classes_covered' => $distinctClassesAssigned,
-        ];
-
-        $search = trim((string) ($request->search ?? ''));
-        $searchId = trim((string) ($request->search_id ?? ''));
-        $searchName = trim((string) ($request->search_name ?? ''));
-        $categoryFilter = (string) ($request->category ?? 'all');
-        $page = max(1, (int) ($request->page ?? 1));
-        $perPage = (int) ($request->per_page ?? 25);
-        if (!in_array($perPage, [10, 25, 50, 100, -1], true)) {
-            $perPage = 25;
-        }
-
-        $filteredRows = $allAssigned->filter(function ($item) use ($search, $searchId, $searchName, $categoryFilter) {
-            if ($searchId !== '' && stripos((string)$item->id, $searchId) === false) {
-                return false;
-            }
-            if ($searchName !== '' && stripos((string)$item->name, $searchName) === false) {
-                return false;
-            }
-            if ($search !== '') {
-                $nameMatch = stripos($item->name, $search) !== false;
-                $idMatch = stripos((string)$item->id, $search) !== false;
-                if (!$nameMatch && !$idMatch) return false;
-            }
-            if ($categoryFilter === 'main' && (int)$item->other_subject !== 0) return false;
-            if ($categoryFilter === 'other' && (int)$item->other_subject !== 1) return false;
-            return true;
-        })->values();
-
-        $totalFiltered = $filteredRows->count();
-        $totalPages = ($perPage === -1 || $totalFiltered === 0) ? 1 : (int) ceil($totalFiltered / $perPage);
-        $page = min($page, max(1, $totalPages));
-        $pageRows = ($perPage === -1) ? $filteredRows : $filteredRows->slice(($page - 1) * $perPage, $perPage)->values();
-        $fromRecord = $totalFiltered > 0 ? (($page - 1) * ($perPage === -1 ? $totalFiltered : $perPage) + 1) : 0;
-        $toRecord = $totalFiltered > 0 ? min($page * ($perPage === -1 ? $totalFiltered : $perPage), $totalFiltered) : 0;
-
-        $pagination = [
-            'current_page' => $page,
-            'per_page' => $perPage,
-            'total_records' => $totalFiltered,
-            'total_pages' => $totalPages,
-            'from' => $fromRecord,
-            'to' => $toRecord,
-        ];
-
-        if ($request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'html' => view('master.subject.add_subject_rows', [
-                    'rows' => $pageRows,
-                    'classTypes' => $classTypes->keyBy('id')
-                ])->render(),
-                'pagination' => $pagination,
-                'kpis' => $kpis
-            ]);
-        }
-
-        $searchArr = [
-            'class_type_id' => $classTypeId,
-            'class_type_filter' => ''
-        ];
-
-        return view('master.subject.add_subject', [
-            'rows' => $pageRows,
-            'section' => $allAssigned,
-            'search' => $searchArr,
-            'classTypes' => $classTypes,
-            'allMasterSubjects' => $allMasterSubjects,
-            'pagination' => $pagination,
-            'kpis' => $kpis,
-            'searchId' => $searchId,
-            'searchName' => $searchName,
-            'classTypeId' => $classTypeId,
-            'perPage' => $perPage,
-            'categoryFilter' => $categoryFilter,
-        ]);
-    }
-
-    public function selectClass(Request $request)
-    {
-        return $this->add($request);
-    }
-
-    public function edit(Request $request, $id)
-    {
-        $data = Subject::find($id);
-        if ($request->isMethod('post')) {
-            $request->validate([
-                'subject' => 'required',
-                'class_type_id' => 'required',
-            ]);
-            $check = Subject::where('id', '<>', $id)
-                ->where('class_type_id', $request->class_type_id)
-                ->where('name', $request->subject)
-                ->where('branch_id', Session::get('branch_id'))
-                ->where('session_id', Session::get('session_id'))
-                ->get();
-
-            if (count($check) == 0) {
-                $data->session_id = Session::get('session_id');
-                $data->branch_id = Session::get('branch_id');
-                $data->class_type_id = $request->class_type_id;
-                $data->name = $request->subject;
-                $data->save();
-            } else {
-                return redirect::to('add_subject')->with('error', 'This subject already added for this class.');
-            }
-            return redirect::to('add_subject')->with('message', 'Subject Edited Successfully.');
-        }
-        return view('master.subject.edit_subject', ['data' => $data]);
-    }
-
     public function createSubjects(Request $request)
     {
         $branchId = Session::get('branch_id');
@@ -270,17 +48,17 @@ class SubjectController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
 
-        // Calculate assigned class count for each master subject
-        $subjectCounts = Subject::where('branch_id', $branchId)
+        // Calculate assigned course count for each master subject
+        $subjectCounts = CourseSubject::where('branch_id', $branchId)
             ->where('session_id', $sessionId)
-            ->select('name', DB::raw('count(distinct class_type_id) as class_count'))
-            ->groupBy('name')
-            ->pluck('class_count', 'name');
+            ->select('subject_name', DB::raw('count(distinct course_id) as course_count'))
+            ->groupBy('subject_name')
+            ->pluck('course_count', 'subject_name');
 
         $totalSubjects = $allData->count();
         $mainSubjects = $allData->where('other_subject', 0)->count();
         $otherSubjects = $allData->where('other_subject', 1)->count();
-        $totalAssignments = Subject::where('branch_id', $branchId)->where('session_id', $sessionId)->count();
+        $totalAssignments = CourseSubject::where('branch_id', $branchId)->where('session_id', $sessionId)->count();
 
         $kpis = [
             'total_subjects' => $totalSubjects,
@@ -354,39 +132,11 @@ class SubjectController extends Controller
     public function deleteCreateSubject(Request $request)
     {
         $id = $request->delete_id;
-        AllSubjects::find($id)->delete();
+        $sub = AllSubjects::find($id);
+        if ($sub) {
+            $sub->delete();
+        }
         return redirect::to('create_subject')->with('message', 'Subject Deleted Successfully.');
-    }
-
-    public function delete(Request $request)
-    {
-        $id = $request->delete_id;
-        $subj = Subject::find($id);
-        if ($subj) {
-            $subj->delete();
-        }
-
-        if ($request->ajax()) {
-            return response()->json(['status' => 'success', 'message' => 'Subject removed from class successfully.']);
-        }
-        return redirect::to('add_subject')->with('message', 'Subject Deleted Successfully.');
-    }
-
-
-    public function subjectOrderBy(Request $request)
-    {
-        if ($request->isMethod('post')) {
-            if (!empty($request->subject_id)) {
-                foreach ($request->subject_id as $key => $item) {
-                    $data = Subject::find($request->subject_id[$key]);
-                    if ($data) {
-                        $data->sort_by = $request->sort_by[$key];
-                        $data->save();
-                    }
-                }
-            }
-            return response()->json(['status' => 'success', 'message' => 'Order Updated Successfully.']);
-        }
     }
 
     public function multiEditSubjects(Request $request)

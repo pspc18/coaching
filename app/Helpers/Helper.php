@@ -1071,6 +1071,30 @@ class Helper{
         return $query->get();
     }
 
+    public static function courses()
+    {
+        return \App\Models\Course::where('branch_id', Session::get('branch_id'))
+            ->where('session_id', Session::get('session_id'))
+            ->where('status', 1)
+            ->orderBy('orderBy', 'ASC')
+            ->orderBy('name', 'ASC')
+            ->get();
+    }
+
+    public static function batches($course_id = null)
+    {
+        $query = \App\Models\Batch::with('course')
+            ->where('branch_id', Session::get('branch_id'))
+            ->where('session_id', Session::get('session_id'))
+            ->where('status', 1);
+
+        if (!empty($course_id)) {
+            $query->where('course_id', $course_id);
+        }
+
+        return $query->orderBy('orderBy', 'ASC')->orderBy('id', 'ASC')->get();
+    }
+
     public static function studentexamview(){
         return \App\Models\exam\Exam::where('session_id', Session::get('session_id'))
             ->where('branch_id', Session::get('branch_id'))
@@ -1322,8 +1346,16 @@ class Helper{
    }
    
    public static function getStreamSubjects($class_type_id){
-       $streamSubjects = Subject::where('class_type_id',$class_type_id)->orderBy('id', 'ASC')->get();
-       return $streamSubjects;
+       $courseSubjects = \App\Models\CourseSubject::where('course_id', $class_type_id)->orderBy('sort_by', 'ASC')->get();
+       if ($courseSubjects->isNotEmpty()) {
+           return $courseSubjects->map(function($cs) {
+               return (object)[
+                   'id' => $cs->subject_id ?? $cs->id,
+                   'name' => $cs->subject_name,
+               ];
+           });
+       }
+       return Subject::where('class_type_id',$class_type_id)->orderBy('id', 'ASC')->get();
    }
    
 

@@ -765,7 +765,7 @@ $billCounterVal = !empty($BillCounter) ? $BillCounter : null;
         {{-- Quick Class Horizontal Pills & Dropdown --}}
         <div class="mob-form-group {{ $student_fields->contains('class_type_id') ? '' : 'd-none' }}">
             <label class="mob-form-label">
-                <span>Class Applying For @if(($student_fields_required['class_type_id'] ?? 1) == 0)<span class="req">*</span>@endif</span>
+                <span>Course / Batch Applying For @if(($student_fields_required['class_type_id'] ?? 1) == 0)<span class="req">*</span>@endif</span>
                 <span style="font-size:9px; color:#0284c7; font-weight:700;">Tap to select</span>
             </label>
             @if(!empty($classType) && count($classType) > 0)
@@ -778,7 +778,7 @@ $billCounterVal = !empty($BillCounter) ? $BillCounter : null;
                 </div>
             @endif
             <select class="mob-select" name="class_type_id" id="mob_class_type_id">
-                <option value="">-- Select Class --</option>
+                <option value="">-- Select Course / Batch --</option>
                 @if(!empty($classType))
                     @foreach($classType as $type)
                         <option value="{{ $type->id ?? '' }}" data-orderby="{{ $type->orderBy ?? '' }}" {{ (old('class_type_id') == $type->id) ? 'selected' : '' }}>

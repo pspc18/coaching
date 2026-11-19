@@ -455,9 +455,9 @@
                     
                     {{-- Class Selection --}}
                     <div class="col-md-3 form-group mb-2">
-                        <label><i class="fa fa-graduation-cap text-primary"></i> Class <span class="text-danger">*</span></label>
+                        <label><i class="fa fa-graduation-cap text-primary"></i> Course <span class="text-danger">*</span></label>
                         <select class="form-control select2" name="class_type_id" id="class_type_id" required>
-                            <option value="">-- Select Class --</option>
+                            <option value="">-- Select Course --</option>
                             @foreach($classType as $class)
                                 <option value="{{ $class->id }}" {{ $selectedClassId === (int)$class->id ? 'selected' : '' }}>
                                     {{ $class->name }}
@@ -533,7 +533,7 @@
             <div class="report-kpi-card">
                 <div class="report-kpi-icon" style="background:#fef3c7; color:#d97706;"><i class="fa fa-trophy"></i></div>
                 <div class="report-kpi-info">
-                    <div class="report-kpi-label">{{ $summary['topper_label'] ?? 'Class Topper' }}</div>
+                    <div class="report-kpi-label">{{ $summary['topper_label'] ?? 'Course Topper' }}</div>
                     <div class="report-kpi-value" style="font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">
                         {{ $summary['topper_name'] ?? '-' }}
                     </div>
@@ -775,16 +775,53 @@ $(document).ready(function() {
         });
     });
 
+    // Dynamic Exam Change -> Load Subjects for that specific exam
+    $('#exam_id').on('change', function() {
+        var baseurl = "{{ url('/') }}";
+        var classId = $('#class_type_id').val();
+        var examId = $(this).val();
+        if (!classId) return;
+
+        var url = baseurl + '/subjectGetData/' + classId + (examId ? '?exam_id=' + examId : '');
+        $.ajax({
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            url: url,
+            success: function(data) {
+                $('#subject_id').html(data);
+                // Auto-select all subjects of the exam
+                var allVals = [];
+                $('#subject_id option').each(function() {
+                    if ($(this).val()) allVals.push($(this).val());
+                });
+                $('#subject_id').val(allVals);
+                if ($.fn.select2) {
+                    $('#subject_id').trigger('change.select2');
+                }
+            }
+        });
+    });
+
     if ($('#class_type_id').val() !== '' && $('#subject_id option').length === 0) {
         var baseurl = "{{ url('/') }}";
         var classId = $('#class_type_id').val();
+        var examId = $('#exam_id').val();
+        var url = baseurl + '/subjectGetData/' + classId + (examId ? '?exam_id=' + examId : '');
         $.ajax({
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            url: baseurl + '/subjectGetData/' + classId,
+            url: url,
             success: function(data) {
                 $('#subject_id').html(data);
                 if (selectedSubjectIds && selectedSubjectIds.length) {
                     $('#subject_id').val(selectedSubjectIds).trigger('change');
+                } else {
+                    var allVals = [];
+                    $('#subject_id option').each(function() {
+                        if ($(this).val()) allVals.push($(this).val());
+                    });
+                    $('#subject_id').val(allVals);
+                    if ($.fn.select2) {
+                        $('#subject_id').trigger('change.select2');
+                    }
                 }
             }
         });

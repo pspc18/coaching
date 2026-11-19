@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ClassType extends Model
 {
        use SoftDeletes;
-	protected $table = "class_types"; //table name
+	protected $table = "courses"; // Maps to coaching courses
 	
  public static function countClasss(){
         $data = ClassType::where('session_id',Session::get('session_id'))->whereNull('deleted_at');

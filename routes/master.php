@@ -18,7 +18,8 @@ Route::match(['get'],'master_dashboard', 'master\DashboardController@dashboard')
 
 //Subject
  Route::match(['get','post'],'create_subject', 'master\SubjectController@createSubjects');
- Route::match(['get','post'],'add_subject', 'master\SubjectController@add');
+ Route::match(['get','post'],'delete_create_subject', 'master\SubjectController@deleteCreateSubject');
+ Route::get('add_subject', function() { return redirect('course_subjects'); });
  Route::match(['get','post'],'multi_edit_subject', 'master\SubjectController@multiEditSubjects');
 
 
@@ -26,12 +27,24 @@ Route::match(['get'],'master_dashboard', 'master\DashboardController@dashboard')
 Route::match(['get','post'],'viewBranch', 'master\BranchController@viewBranch');
  Route::match(['get','post'],'editBranch/{id}', 'master\BranchController@editBranch');
  Route::match(['get','post'],'addBranch', 'master\BranchController@addBranch');
+
+ //Courses (Coaching Model)
+ Route::match(['get','post'],'courses', 'master\CourseController@index');
+ Route::match(['get','post'],'course_add', 'master\CourseController@add');
+ Route::match(['get','post'],'course_edit/{id}', 'master\CourseController@edit');
+ Route::match(['get','post'],'course_delete', 'master\CourseController@delete');
+
+ //Batches (Morning / Evening Shifts & Timings)
+ Route::match(['get','post'],'batches', 'master\BatchController@index');
+ Route::match(['get','post'],'batch_add', 'master\BatchController@add');
+ Route::match(['get','post'],'batch_edit/{id}', 'master\BatchController@edit');
+ Route::match(['get','post'],'batch_delete', 'master\BatchController@delete');
+
+ //Course Subjects Assignment
+ Route::match(['get','post'],'course_subjects', 'master\CourseSubjectController@assign');
  
- //Class
- Route::match(['get','post'],'add_class', 'master\ClassController@add');
-Route::match(['get','post'],'edit_class/{id}', 'master\ClassController@edit'); 
-Route::match(['get','post'],'class_delete', 'master\ClassController@delete');
-Route::match(['get','post'],'save-selected-classes', 'master\ClassController@saveSelectedClasses');
+ // Legacy Class Route -> redirect to Courses
+ Route::get('add_class', function() { return redirect('courses'); });
 
 // Support Complaints
 Route::get('complaints-management', 'master\SupportComplaintController@index');

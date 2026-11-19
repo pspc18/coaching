@@ -240,7 +240,7 @@
                         <tr>
                             <th>Select</th>
                             <th>Session</th>
-                            <th>Class</th>
+                            <th>Course / Batch</th>
                             <th>Fees Group</th>
                             <th>Amount</th>
                         </tr>

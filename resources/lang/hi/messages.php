@@ -63,7 +63,7 @@ return [
     'Father/Husband Name' =>  'पिता/पति नाम',
     'Employee Qualification' =>  'कर्मचारी योग्यता',
     'Date of Joining' =>  'शामिल होने की तिथि',
-    'Class' =>  'कक्षा',
+    'Class' =>  'कोर्स / बैच',
     'Section' =>  'खंड',
     'User Name' =>  'उपयोगकर्ता नाम',
     'Password' =>  'पासवर्ड',

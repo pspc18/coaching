@@ -448,14 +448,14 @@ $responses = $responses ?? [];
                                 </div>
                             </div>
 
-                            {{-- Class Applying For --}}
+                            {{-- Course / Batch Applying For --}}
                             <div class="col-md-6 col-12">
                                 <div class="form-group-compact">
                                     <label class="form-label-compact">
-                                        <span>Class Applying For</span>
+                                        <span>Course / Batch Applying For</span>
                                     </label>
                                     <select class="form-control select2" id="class_type_id" name="class_type_id">
-                                        <option value="">-- Select Class --</option>
+                                        <option value="">-- Select Course / Batch --</option>
                                         @if(!empty($getTypeclass))
                                             @foreach($getTypeclass as $type)
                                                 <option value="{{ $type->id ?? '' }}" {{ (old('class_type_id') == $type->id) ? 'selected' : '' }}>

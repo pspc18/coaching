@@ -113,7 +113,7 @@
 		</div>
 		<div class="col-md-3">
 			<div class="form-group">
-				<label>Class:</label>
+				<label>Course / Batch:</label>
 				<select class="form-control" id="classs" name="classs" value="">
                 <option value="0">NURSERY</option>
                 <option value="1">Frist Class</option>

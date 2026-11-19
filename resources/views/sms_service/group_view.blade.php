@@ -42,7 +42,7 @@ $classType = Helper::classType();
                        	
                     <div class="col-md-3 class_type_id">
                 		<div class="form-group">
-                			<label>Class</label>
+                			<label>Course / Batch</label>
                 			<select class="form-control select2" id="class_type_id" name="class_type_id" >
                 			<option value="">Select</option>
                              @if(!empty($classType)) 
@@ -70,7 +70,7 @@ $classType = Helper::classType();
                                     <th>
                                         Sr.No.
                                         <!--<input class="ml-3" type="checkbox" id="all_checkbox" checked></th>-->
-                                    <th>Class</th>
+                                    <th>Course / Batch</th>
                                     <th>Group Name</th>
                                     <th>Group Id</th>
                                     <th>Action</th>

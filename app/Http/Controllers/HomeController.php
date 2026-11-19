@@ -129,41 +129,57 @@ class HomeController extends Controller
     }
     
     public function subjectGetData(Request $request, $id){ 
-        $data = array();    
         if(!empty($id)){
-            $subject = Subject::where('class_type_id', $id);
-              if(Session::get('role_id') == 2)
+            $subject = Subject::where('class_type_id', $id)->whereNull('deleted_at');
+            if(Session::get('role_id') == 2)
             {
-                
-                      $checkClassTeacher= null;
-                 $subjects = TeacherSubject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('teacher_id',Session::get('teacher_id'))->where('class_type_id', $id)->groupBy('subject_id')->get();
-              
-                
-              if(empty($checkClassTeacher))
-              {
-              if(!empty($subjects))
-              {
-                   $att = array();
-                  foreach($subjects as $item)
-                  {
-                      $att[] = $item->subject_id;
-                  }
-                  
-                  $subject =$subject->whereIn('id',$att);
-              }
-                
+                $checkClassTeacher= null;
+                $subjects = TeacherSubject::where('session_id',Session::get('session_id'))->where('branch_id',Session::get('branch_id'))->where('teacher_id',Session::get('teacher_id'))->where('class_type_id', $id)->groupBy('subject_id')->get();
+                if(empty($checkClassTeacher))
+                {
+                    if(!empty($subjects))
+                    {
+                        $att = array();
+                        foreach($subjects as $item)
+                        {
+                            $att[] = $item->subject_id;
+                        }
+                        $subject =$subject->whereIn('id',$att);
+                    }
+                }
             }
+
+            if ($request->filled('exam_id')) {
+                $exam = \App\Models\exam\Exam::find($request->exam_id);
+                if ($exam && !empty($exam->selected_subject_ids)) {
+                    $subject = $subject->whereIn('id', $exam->selected_subject_ids);
+                }
             }
           
-            $subject = $subject->get();
+            $subject = $subject->orderBy('sort_by', 'ASC')->orderBy('name', 'ASC')->get();
+            if ($subject->isEmpty()) {
+                $csQuery = \App\Models\CourseSubject::where('course_id', $id);
+                if ($request->filled('exam_id')) {
+                    $exam = \App\Models\exam\Exam::find($request->exam_id);
+                    if ($exam && !empty($exam->selected_subject_ids)) {
+                        $csQuery->whereIn('id', $exam->selected_subject_ids);
+                    }
+                }
+                $subject = $csQuery->orderBy('sort_by', 'ASC')->orderBy('subject_name', 'ASC')->get();
+            }
          
+            if ($request->wantsJson() || $request->header('Accept') === 'application/json' || $request->input('format') === 'json') {
+                return response()->json($subject);
+            }
+
             $subjectData ='<option value="">Select</option>';
             foreach($subject as $item){
                 $subjectData.='
                 <option value="'.$item['id'].'">'.$item['name'].'</option>';
             }
-            echo $subjectData;
+            return response($subjectData);
         } 
+        return response()->json([]);
     }  
     public function sectionDataId(Request $request){
          

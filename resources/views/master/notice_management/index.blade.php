@@ -910,7 +910,7 @@ select.excel-col-filter option {
                                         <select class="excel-col-filter" id="filter-audience" title="Filter by Audience">
                                             <option value="" {{ empty($search['audience_type']) ? 'selected' : '' }}>All Audiences</option>
                                             <option value="role" {{ ($search['audience_type'] ?? '') === 'role' ? 'selected' : '' }}>By Role</option>
-                                            <option value="class" {{ ($search['audience_type'] ?? '') === 'class' ? 'selected' : '' }}>By Class</option>
+                                            <option value="class" {{ ($search['audience_type'] ?? '') === 'class' ? 'selected' : '' }}>By Course / Batch</option>
                                             <option value="specific" {{ ($search['audience_type'] ?? '') === 'specific' ? 'selected' : '' }}>Specific People</option>
                                         </select>
                                     </th>

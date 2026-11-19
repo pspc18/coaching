@@ -714,7 +714,7 @@ select.excel-col-filter option {
                                             @elseif($val == 'Student Name')
                                                 <th style="min-width: 140px;">{{ __('Student Name') }}</th>
                                             @elseif($val == 'Class')
-                                                <th style="min-width: 95px;">{{ __('Class') }}</th>
+                                                <th style="min-width: 140px;">{{ __('Course & Batch') }}</th>
                                             @elseif($val == 'Date Of .Birth')
                                                 <th style="min-width: 100px;">{{ __('DOB') }}</th>
                                             @elseif($val == 'Date Of Admission')
@@ -767,12 +767,13 @@ select.excel-col-filter option {
                                             @elseif($val == 'Class')
                                                 <th>
                                                     <select class="excel-col-filter" id="filter-class">
-                                                        <option value="">All Classes</option>
-                                                        @if(!empty($classType))
-                                                            @foreach($classType as $type)
-                                                                <option value="{{ strtolower($type->name ?? '') }}">{{ $type->name ?? '' }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                        <option value="">All Courses</option>
+                                                        @php
+                                                            $filterCourses = \App\Models\Course::where('branch_id', Session::get('branch_id'))->where('session_id', Session::get('session_id'))->where('status', 1)->orderBy('orderBy', 'ASC')->orderBy('name', 'ASC')->get();
+                                                        @endphp
+                                                        @foreach($filterCourses as $fc)
+                                                            <option value="{{ $fc->id }}">{{ $fc->name }}</option>
+                                                        @endforeach
                                                     </select>
                                                 </th>
                                             @elseif($val == 'Mobile' || $val == 'Mobile No.' || $val == 'Mobile No')
@@ -918,20 +919,7 @@ select.excel-col-filter option {
     </div>
 </div>
 
-{{-- 2. Edit Student AJAX Modal --}}
-<div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white py-2">
-                <h5 class="modal-title font-size-14"><i class="fa fa-edit mr-1"></i> Admission Edit</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-3" id="editStudentContent">
-                <div class="text-center py-4"><i class="fa fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted font-size-12">Loading student details...</p></div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 {{-- 3. Push Notification Modal --}}
 <div class="modal fade" id="pushNotificationModal" tabindex="-1" aria-hidden="true">
@@ -1381,27 +1369,7 @@ $(document).on('click', '.deleteData', function() {
 });
 </script>
 
-{{-- Quick Edit AJAX Modal --}}
-<script>
-const admissionBaseUrl = @json(url('/'));
 
-$(document).on("click", ".openEditModal", function () {
-    var id = $(this).data("id");
-    $("#editStudentContent").html('<div class="text-center py-4"><i class="fa fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted font-size-12">Loading form...</p></div>');
-    $("#editStudentModal").modal("show");
-
-    $.ajax({
-        url: admissionBaseUrl + "/admissionEdit/" + id,
-        type: "GET",
-        success: function(data) {
-            $("#editStudentContent").html(data);
-        },
-        error: function() {
-            $("#editStudentContent").html('<div class="alert alert-danger">Failed to load student details.</div>');
-        }
-    });
-});
-</script>
 
 {{-- Image Upload / Rotate / Delete Modal --}}
 <script>

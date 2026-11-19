@@ -62,7 +62,7 @@
 <style>
 /* ==========================================================================
    ARISE ERP - STAFF ATTENDANCE REGISTER MATRIX THEME
-   - Exact Alignment with Today Absent Class-Wise & StudentList Layout
+   - Exact Alignment with Today Absent Course-Wise & StudentList Layout
    - Viewport Auto-Adjust (calc(100vh - var(--header-height) - 16px))
    - Auto Expanding Table Viewport (.table-scroll-container)
    - Dual Frozen Left Columns (BioMax & Staff Name)

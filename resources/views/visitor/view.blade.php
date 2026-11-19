@@ -434,7 +434,7 @@ select.excel-col-filter option {
     color: #ffffff !important;
 }
 
-/* Student & Class */
+/* Student & Course / Batch */
 .student-info-box {
     display: flex;
     flex-direction: column;
@@ -815,7 +815,7 @@ select.excel-col-filter option {
                                 <tr class="header-titles-row">
                                     <th style="width: 44px;" class="text-center">#</th>
                                     <th style="min-width: 200px;">Visitor Details</th>
-                                    <th style="min-width: 170px;">Student &amp; Class</th>
+                                    <th style="min-width: 170px;">Student &amp; Course / Batch</th>
                                     <th style="min-width: 160px;">ID &amp; Aadhaar No.</th>
                                     <th style="min-width: 130px;">Visit Date</th>
                                     <th style="min-width: 220px;">Purpose / Remark</th>
@@ -835,7 +835,7 @@ select.excel-col-filter option {
                                     <th>
                                         <div class="d-flex gap-1">
                                             <select class="excel-col-filter" id="filter-class" title="Filter by Class">
-                                                <option value="">All Classes</option>
+                                                <option value="">All Courses / Batches</option>
                                                 @foreach($classType as $type)
                                                     <option value="{{ $type->id }}" {{ ($type->id == ($search['class_type_id'] ?? '')) ? 'selected' : '' }}>{{ $type->name }}</option>
                                                 @endforeach

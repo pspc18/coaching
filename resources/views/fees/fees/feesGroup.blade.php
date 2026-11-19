@@ -519,7 +519,7 @@ select.excel-col-filter option {
         <div class="fg-hero-text">
             <span class="fg-kicker"><i class="fa fa-money mr-1"></i>Fees Management</span>
             <h1 class="fg-title">{{ __('fees.Fees Group') }}</h1>
-            <p class="fg-subtitle">Configure fee heads, refund eligibility, and class-wise payment groupings</p>
+            <p class="fg-subtitle">Configure fee heads, refund eligibility, and course-wise payment groupings</p>
         </div>
 
         {{-- Hero Metric Badges --}}

@@ -629,7 +629,7 @@
     {{-- 2. Navigation Tabs (Classes vs Users) --}}
     <div class="mob-tabs-bar">
         <a class="mob-tab-btn {{ !$isUserTab ? 'active' : '' }}" href="{{ url('attendance/marking-window?tab=classes') }}">
-            <i class="fa fa-graduation-cap"></i> Classes Window
+            <i class="fa fa-graduation-cap"></i> Courses Window
         </a>
         <a class="mob-tab-btn {{ $isUserTab ? 'active' : '' }}" href="{{ url('attendance/marking-window?tab=users') }}">
             <i class="fa fa-users"></i> Users Window

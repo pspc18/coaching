@@ -635,7 +635,7 @@
                 <div class="dash-card-header d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center" style="gap: 8px;">
                         <i class="fa fa-list-alt text-light" style="font-size: 13px;"></i>
-                        <h2 class="dash-card-title">Academic Classes & Grades Directory</h2>
+                        <h2 class="dash-card-title">Academic Courses & Grades Directory</h2>
                     </div>
                     <div class="d-flex align-items-center" style="gap: 8px;">
                         <span class="badge-total-records" id="badgeTotalRecords">
@@ -655,7 +655,7 @@
                         <thead>
                             <tr class="header-titles-row">
                                 <th style="width: 65px;" class="text-center">#ID</th>
-                                <th style="min-width: 180px;">Class Name</th>
+                                <th style="min-width: 180px;">Course Name</th>
                                 <th style="width: 120px;" class="text-center">Sort Order</th>
                                 <th style="width: 140px;" class="text-center">Enrolled Students</th>
                                 <th style="width: 130px;" class="text-center">Fees Heads</th>

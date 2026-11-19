@@ -390,7 +390,7 @@ select.excel-col-filter option {
                                         <tr class="header-titles-row">
                                             <th style="width: 58px;" class="text-center">Adm No</th>
                                             <th>Student Details</th>
-                                            <th style="width: 75px;" class="text-center">Class</th>
+                                            <th style="width: 85px;" class="text-center">Course</th>
                                             <th style="width: 65px;" class="text-center">Type</th>
                                             <th style="width: 32px;" class="text-center"><i class="fa fa-filter"></i></th>
                                         </tr>

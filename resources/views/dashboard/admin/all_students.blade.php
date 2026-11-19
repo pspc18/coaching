@@ -21,7 +21,7 @@
                                     <tr>
                                         <th>Sr.No.</th>
                                         <th>St. Name </th>
-                                        <th>Class</th>
+                                        <th>Course / Batch</th>
                                         <th>F. Name</th>
                                         <th>M. Name</th>
                                         <th>Mob. No.</th>                                  

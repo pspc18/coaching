@@ -1373,10 +1373,10 @@ select.excel-col-filter option {
                                 <input type="text" class="excel-col-filter" id="filter-title" placeholder="Filter title / topic..." value="{{ $search['title'] ?? '' }}">
                             </th>
 
-                            {{-- Class Filter --}}
+                            {{-- Course / Batch Filter --}}
                             <th>
                                 <select class="excel-col-filter" id="filter-class">
-                                    <option value="">All Classes</option>
+                                    <option value="">All Courses / Batches</option>
                                     @if(!empty($classType))
                                         @foreach($classType as $type)
                                             <option value="{{ $type->id }}" {{ ($search['class_type_id'] ?? '') == $type->id ? 'selected' : '' }}>

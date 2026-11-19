@@ -568,7 +568,7 @@
             <div class="hero-stat-badge badge-blue" title="Total Roles Available">
                 <i class="fa fa-users"></i> Roles: <b>{{ count($rolesList) }}</b>
             </div>
-            <div class="hero-stat-badge badge-blue" title="Total Classes Available">
+            <div class="hero-stat-badge badge-blue" title="Total Courses Available">
                 <i class="fa fa-graduation-cap"></i> Classes: <b>{{ count($classesList) }}</b>
             </div>
             <div class="hero-stat-badge badge-green" title="Total Registered Staff">
@@ -793,7 +793,7 @@
                         </div>
                     </label>
 
-                    {{-- 2. Whole Class --}}
+                    {{-- 2. Whole Course / Batch --}}
                     <label class="audience-card-label">
                         <input type="radio" name="audience_type" value="class" {{ old('audience_type') === 'class' ? 'checked' : '' }}>
                         <div class="audience-card-content">

@@ -195,7 +195,7 @@
                     <div class="dash-card">
                         <div class="dash-card-header">
                             <div class="dash-card-header-text">
-                                <h3 class="dash-card-title"><i class="fa fa-bar-chart text-warning mr-1"></i> Class-Wise Attendance Today</h3>
+                                <h3 class="dash-card-title"><i class="fa fa-bar-chart text-warning mr-1"></i> Course-Wise Attendance Today</h3>
                                 <p class="dash-card-desc">Section & class distribution for current session</p>
                             </div>
                         </div>

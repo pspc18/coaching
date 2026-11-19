@@ -145,7 +145,7 @@
                 <th style="width: 24px;" class="text-center">#</th>
                 <th style="width: 50px;" class="text-center">Reg. No</th>
                 <th style="width: 95px;">Student Name</th>
-                <th style="width: 65px;">Class</th>
+                <th style="width: 65px;">Course / Batch</th>
                 <th style="width: 85px;">Father Name</th>
                 <th style="width: 65px;">Mobile No</th>
                 <th style="width: 55px;" class="text-center">Reg. Date</th>

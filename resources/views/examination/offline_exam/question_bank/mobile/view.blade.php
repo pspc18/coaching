@@ -1101,9 +1101,9 @@
         <div class="mob-sheet-body">
             <div class="mob-form-grid-2">
                 <div>
-                    <label class="mob-form-label">Class</label>
+                    <label class="mob-form-label">Course / Batch</label>
                     <select class="mob-form-select" name="class_type_id" id="sheetFilterClass">
-                        <option value="">All Classes</option>
+                        <option value="">All Courses / Batches</option>
                         @if(!empty($classType))
                             @foreach($classType as $type)
                                 <option value="{{ $type->id }}" {{ ($type->id == ($search['class_type_id'] ?? '')) ? 'selected' : '' }}>
@@ -1348,7 +1348,7 @@ $(document).ready(function() {
         window.location.href = url.toString();
     });
 
-    // Dynamic Class -> Subject linking
+    // Dynamic Course -> Subject linking
     $('#sheetFilterClass').on('change', function() {
         const classId = $(this).val();
         if (!classId) return;

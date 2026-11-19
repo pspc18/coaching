@@ -807,7 +807,7 @@
     <div class="att-mob-select-row">
         @if(!$isStaffTab)
             <select id="mobClassSelect" class="att-mob-select">
-                <option value="">-- Select Class --</option>
+                <option value="">-- Select Course / Batch --</option>
                 @foreach($classes as $class)
                     <option value="{{ $class->id }}" {{ (string)request('class_type_id') === (string)$class->id ? 'selected' : '' }}>
                         {{ $class->name }}

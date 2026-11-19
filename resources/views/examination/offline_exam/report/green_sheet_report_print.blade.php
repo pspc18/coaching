@@ -26,7 +26,7 @@
             border-collapse: collapse;
         }
 
-        /* Class Wise Result   */
+        /* Course Wise Result   */
         .collapse4 {
             border-collapse: collapse;
         }

@@ -24,7 +24,7 @@
               <th>Sr. No.</th>
                     <th>Student Name</th>
                     <th>Father's Name</th>
-                    <th>Class</th>
+                    <th>Course / Batch</th>
                     <!--<th>Total Amount</th>
                     <th>Discount</th>-->
                     <th>Paid Amount</th>

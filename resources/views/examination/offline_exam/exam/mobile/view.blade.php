@@ -326,7 +326,7 @@
     {{-- 2. Real-Time Search Bar --}}
     <div class="mob-search-wrap">
         <i class="fa fa-search mob-search-icon"></i>
-        <input type="text" id="mobExamSearch" class="mob-search-input" placeholder="Search exam name, class, term..." autocomplete="off">
+        <input type="text" id="mobExamSearch" class="mob-search-input" placeholder="Search exam name, course / batch, term..." autocomplete="off">
     </div>
 
     {{-- Result Counter --}}
@@ -450,7 +450,7 @@
                     <table class="table table-sm table-bordered mb-0" style="font-size:11.5px;">
                         <thead>
                             <tr class="bg-light">
-                                <th>Class</th>
+                                <th>Course / Batch</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>

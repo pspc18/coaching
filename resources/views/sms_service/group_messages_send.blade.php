@@ -38,7 +38,7 @@ $classType = Helper::classType();
                        	
                     <div class="col-md-3 class_type_id" >
                 		<div class="form-group">
-                			<label>Class</label>
+                			<label>Course / Batch</label>
                 			<select class="form-control @error('class_type_id') is-invalid @enderror select2" id="class_type_id" name="class_type_id" >
                 			<option value="">Select</option>
                              @if(!empty($classType)) 

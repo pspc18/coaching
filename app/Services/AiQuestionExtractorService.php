@@ -694,9 +694,40 @@ EOT;
 
         $className = !empty($context['class_name']) ? $context['class_name'] : 'Standard / Competitive Level';
         $subjectName = !empty($context['subject_name']) ? $context['subject_name'] : 'General Examination';
+        $chapterName = !empty($context['chapter_name']) ? trim($context['chapter_name']) : '';
+        $topicName = !empty($context['topic_name']) ? trim($context['topic_name']) : '';
+        $mode = !empty($context['mode']) ? strtolower(trim($context['mode'])) : 'standalone';
+        $language = !empty($context['language']) ? strtolower(trim($context['language'])) : 'en';
         $diffPref = !empty($context['difficulty']) ? $context['difficulty'] : 'Mixed (Easy, Medium, Hard)';
         $optionsCount = !empty($context['options_count']) ? (int)$context['options_count'] : 4;
         $questionTypeId = !empty($context['question_type_id']) ? (int)$context['question_type_id'] : 1;
+
+        $chapterTopicContext = "";
+        if (!empty($chapterName)) {
+            $chapterTopicContext .= "- Chapter (अध्याय): {$chapterName}\n";
+        }
+        if (!empty($topicName)) {
+            $chapterTopicContext .= "- Topic / Sub-topic: {$topicName}\n";
+        }
+        if (!empty($chapterName) || !empty($topicName)) {
+            $chapterTopicContext .= "CRITICAL SYLLABUS CONSTRAINT: All generated questions MUST strictly cover Chapter '{$chapterName}' and Topic '{$topicName}'. Treat these as mandatory primary keywords and core concepts for questions, formulas, and solutions.\n";
+        }
+
+        if ($mode === 'directional') {
+            $modeInstruction = "- Target Mode: DIRECTIONAL SET MODE (COMMON PASSAGE + LINKED SUB-QUESTIONS).\n  CRITICAL MODE CONSTRAINT: You MUST generate ONLY Directional Question Set(s) with a rich Common Narrative / Comprehension Passage / Case Study / Data Interpretation Table in 'direction' and linked sub-questions in 'sub_questions' array. 'standalone_questions' array MUST BE EMPTY ([]). DO NOT generate standalone questions.";
+        } elseif ($mode === 'standalone') {
+            $modeInstruction = "- Target Mode: STANDALONE QUESTIONS MODE.\n  CRITICAL MODE CONSTRAINT: You MUST generate ONLY independent questions in 'standalone_questions' array. 'directional_sets' array MUST BE EMPTY ([]). DO NOT generate directional sets.";
+        } else {
+            $modeInstruction = "- Target Mode: Balanced (Standalone & Directional Sets as requested in user prompt).";
+        }
+
+        if ($language === 'both' || $language === 'bilingual') {
+            $languageInstruction = "- Medium / Language: BILINGUAL (द्विभाषी - English + Hindi).\n  CRITICAL BILINGUAL REQUIREMENT: Provide both English and authentic Hindi for all items:\n  - English statement in 'name' AND Hindi translation in 'name_hi'.\n  - English options in 'ans1'..'ans5' AND Hindi options in 'ans1_hi'..'ans5_hi'.\n  - English explanation in 'explanation' AND Hindi in 'explanation_hi'.\n  - For directional sets, English passage in 'direction' AND Hindi in 'direction_hi'.";
+        } elseif ($language === 'hi') {
+            $languageInstruction = "- Medium / Language: HINDI MEDIUM (हिन्दी माध्यम).\n  CRITICAL HINDI REQUIREMENT: All questions, options, and explanations MUST be written in authentic Hindi (Devanagari script) with standard technical / mathematical terminology. Set 'name_hi' (and 'name'), 'ans1_hi'..'ans5_hi' (and 'ans1'..'ans5'), 'explanation_hi', and 'direction_hi' in Hindi.";
+        } else {
+            $languageInstruction = "- Medium / Language: English Medium.";
+        }
 
         // Detect if user prompt or context requires Descriptive / Numerical (No Options)
         $lowerPrompt = mb_strtolower($userPrompt);
@@ -731,10 +762,13 @@ You are an elite, highly trained Academic Examination Question Creator AI for sc
 USER INSTRUCTIONS / PROMPT:
 "{{USER_PROMPT}}"
 
-ACADEMIC CONTEXT:
+ACADEMIC CONTEXT & KEYWORDS:
 - Target Class / Level: {{CLASS_NAME}}
 - Subject: {{SUBJECT_NAME}}
+{{CHAPTER_TOPIC_CONTEXT}}
 - Target Difficulty: {{DIFF_PREF}}
+{{MODE_INSTRUCTION}}
+{{LANGUAGE_INSTRUCTION}}
 {{FORMAT_ACADEMIC_CONTEXT}}
 
 CORE OBJECTIVE:
@@ -945,7 +979,10 @@ JSON;
                 '{{USER_PROMPT}}',
                 '{{CLASS_NAME}}',
                 '{{SUBJECT_NAME}}',
+                '{{CHAPTER_TOPIC_CONTEXT}}',
                 '{{DIFF_PREF}}',
+                '{{MODE_INSTRUCTION}}',
+                '{{LANGUAGE_INSTRUCTION}}',
                 '{{FORMAT_ACADEMIC_CONTEXT}}',
                 '{{FORMAT_GUIDELINES_STANDALONE}}',
                 '{{FORMAT_GUIDELINES_DIRECTIONAL}}',
@@ -958,7 +995,10 @@ JSON;
                 $userPrompt,
                 $className,
                 $subjectName,
+                $chapterTopicContext,
                 $diffPref,
+                $modeInstruction,
+                $languageInstruction,
                 $formatAcademicContext,
                 $formatGuidelinesStandalone,
                 $formatGuidelinesDirectional,
@@ -1062,12 +1102,26 @@ JSON;
                     $sq['ans5'] = null;
                     $sq['correct_option_letter'] = null;
                 }
+
+                $sq['chapter_name'] = !empty($chapterName) ? $chapterName : ($sq['chapter_name'] ?? null);
+                $sq['topic_name'] = !empty($topicName) ? $topicName : ($sq['topic_name'] ?? null);
+                $sq['language'] = !empty($language) ? $language : ($sq['language'] ?? 'en');
+                if ($language === 'hi' && !empty($sq['name_hi']) && empty($sq['name'])) {
+                    $sq['name'] = $sq['name_hi'];
+                }
             }
             unset($sq);
 
             // Post-processing 2: Directional Sets (Tables, Unique Group IDs, Diagrams)
             $timestamp = date('Ymd-His');
             foreach ($data['directional_sets'] as $sIdx => &$set) {
+                $set['chapter_name'] = !empty($chapterName) ? $chapterName : ($set['chapter_name'] ?? null);
+                $set['topic_name'] = !empty($topicName) ? $topicName : ($set['topic_name'] ?? null);
+                $set['language'] = !empty($language) ? $language : ($set['language'] ?? 'en');
+                if ($language === 'hi' && !empty($set['direction_hi']) && empty($set['direction'])) {
+                    $set['direction'] = $set['direction_hi'];
+                }
+
                 if (empty($set['group_id'])) {
                     $set['group_id'] = 'DIR-' . $timestamp . '-' . strtoupper(Str::random(4)) . '-' . ($sIdx + 1);
                 }
@@ -1129,6 +1183,13 @@ JSON;
                         $sq['ans4'] = null;
                         $sq['ans5'] = null;
                         $sq['correct_option_letter'] = null;
+                    }
+
+                    $sq['chapter_name'] = !empty($chapterName) ? $chapterName : ($sq['chapter_name'] ?? null);
+                    $sq['topic_name'] = !empty($topicName) ? $topicName : ($sq['topic_name'] ?? null);
+                    $sq['language'] = !empty($language) ? $language : ($sq['language'] ?? 'en');
+                    if ($language === 'hi' && !empty($sq['name_hi']) && empty($sq['name'])) {
+                        $sq['name'] = $sq['name_hi'];
                     }
                 }
                 unset($sq);

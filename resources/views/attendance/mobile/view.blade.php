@@ -1200,7 +1200,7 @@
     </div>
     <div class="mob-picker-sheet-search">
         <i class="fa fa-search"></i>
-        <input type="text" class="mob-picker-search-input" id="searchClassInput" placeholder="Search class name in real-time...">
+        <input type="text" class="mob-picker-search-input" id="searchClassInput" placeholder="Search course name in real-time...">
     </div>
     <div class="mob-picker-items-list" id="classListItems">
         @foreach($classes as $c)

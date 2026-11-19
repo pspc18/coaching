@@ -23,7 +23,7 @@
                     <th class="text-center" style="width: 45px;">#</th>
                     <th style="width: 110px;">Adm No.</th>
                     <th>Student &amp; Parent Details</th>
-                    <th style="width: 90px;">Class</th>
+                    <th style="width: 90px;">Course / Batch</th>
                     <th style="width: 130px;">Receipt / Inv</th>
                     <th class="text-center" style="width: 100px;">Date</th>
                     <th style="width: 140px;">Payment Mode / Ref</th>

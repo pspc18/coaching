@@ -225,7 +225,7 @@ $setting = Helper::getSetting();
         var classval = $('#class_type_id').val();
         var examVal = $('#exam_id').val();
         if(classval == ""){
-           toastr.error('Please select a class ');
+           toastr.error('Please select a course / batch ');
         }else if(examVal == ""){
             toastr.error('Please select a exam ');
         }else{

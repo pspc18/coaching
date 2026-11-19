@@ -660,9 +660,9 @@
                 @csrf
                 <div class="filter-form-row">
                     <div class="form-group-compact">
-                        <label class="form-label-compact">Select Class <span class="req">*</span></label>
+                        <label class="form-label-compact">Select Course <span class="req">*</span></label>
                         <select class="dash-select" id="class_type_id" name="class_type_id" required>
-                            <option value="">-- Choose Class --</option>
+                            <option value="">-- Choose Course --</option>
                             @if(!empty($classType))
                                 @foreach($classType as $type)
                                     <option value="{{ $type->id }}" {{ ($type->id == $currentClassId) ? 'selected' : '' }}>
@@ -779,7 +779,7 @@
         {{-- 6. Initial Empty State --}}
         <div id="initialEmptyBox" class="empty-box">
             <i class="fa fa-filter"></i>
-            <div class="empty-box-title">Select Class &amp; Examination</div>
+            <div class="empty-box-title">Select Course &amp; Examination</div>
             <div class="empty-box-desc">Choose a class and exam batch above to view eligible students and generate admit cards.</div>
         </div>
 
@@ -787,7 +787,7 @@
         <div id="noStudentsBox" class="empty-box" style="display:none;">
             <i class="fa fa-user-times"></i>
             <div class="empty-box-title">No Active Students Found</div>
-            <div class="empty-box-desc">There are no active admissions enrolled in the selected class for this session.</div>
+            <div class="empty-box-desc">There are no active admissions enrolled in the selected course for this session.</div>
         </div>
 
         {{-- 8. Desktop Table View --}}
@@ -906,7 +906,7 @@ $(document).ready(function() {
         }, 3200);
     }
 
-    // 1. Dependent Dropdown: When Class changes, fetch Exams for that Class
+    // 1. Dependent Dropdown: When Course changes, fetch Exams for that Course
     $('#class_type_id').on('change', function() {
         var classId = $(this).val();
         var $examSelect = $('#exam_id');
@@ -985,7 +985,7 @@ $(document).ready(function() {
         var examId = $('#exam_id').val();
 
         if (!classId) {
-            showToast('Please select a class first.', 'warning');
+            showToast('Please select a course first.', 'warning');
             return;
         }
         if (!examId) {
@@ -1251,7 +1251,7 @@ $(document).ready(function() {
         var selectedIds = getSelectedStudentIds();
 
         if (!classId || !examId) {
-            showToast('Please select Class and Examination.', 'warning');
+            showToast('Please select Course and Examination.', 'warning');
             return;
         }
 
@@ -1284,7 +1284,7 @@ $(document).ready(function() {
         var sId = $(this).data('id');
 
         if (!classId || !examId) {
-            showToast('Please select Class and Examination.', 'warning');
+            showToast('Please select Course and Examination.', 'warning');
             return;
         }
 

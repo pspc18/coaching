@@ -25,7 +25,7 @@ $setting = Helper::getSetting();
                             <div class="row">
                             <div class="col-md-3">
                                <div class="form-group">
-                                  <label class="text-danger">{{ __('messages.Class') }}*</label>
+                                  <label class="text-danger">Course*</label>
                                   <select class="select2 form-control @error('class_type_id') is-invalid @enderror " id="class_type_id" name="class_type_id">
                                      <option value="">{{ __('messages.Select') }}</option>
                                      @if(!empty($classType))

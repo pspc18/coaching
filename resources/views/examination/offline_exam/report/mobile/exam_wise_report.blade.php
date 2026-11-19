@@ -243,7 +243,7 @@
             <div class="mob-form-group">
                 <label class="mob-label"><i class="fa fa-graduation-cap text-primary"></i> Class <span class="text-danger">*</span></label>
                 <select name="class_type_id" id="mob_class_type_id" class="mob-select" required>
-                    <option value="">-- Select Class --</option>
+                    <option value="">-- Select Course / Batch --</option>
                     @foreach($classType as $class)
                         <option value="{{ $class->id }}" {{ $selectedClassId === (int)$class->id ? 'selected' : '' }}>
                             {{ $class->name }}

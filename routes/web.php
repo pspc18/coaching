@@ -664,6 +664,9 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::post('question/upload-diagram', 'offline_exam\QuestionController@uploadDiagram');
 	Route::post('question/clean-watermark', 'offline_exam\QuestionController@cleanWatermark');
 	Route::post('question/recreate-chart', 'offline_exam\QuestionController@recreateChart');
+	Route::get('question/get-chapters', 'offline_exam\QuestionController@getChapters');
+	Route::get('question/get-topics', 'offline_exam\QuestionController@getTopics');
+	Route::post('question/store-chapter-topic', 'offline_exam\QuestionController@storeChapterTopic');
 
 	
 	

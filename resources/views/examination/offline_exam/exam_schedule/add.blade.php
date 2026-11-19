@@ -528,11 +528,10 @@
             <div class="control-grid">
                 {{-- Class Selection --}}
                 <div class="form-group-custom">
-                    <label class="form-label-custom">
-                        Class <span class="req">*</span>
+                    <label class="form-label-custom">Course / Batch <span class="req">*</span>
                     </label>
                     <select class="form-select-custom select2" id="class_type_id" name="class_type_id" required>
-                        <option value="">-- Select Class --</option>
+                        <option value="">-- Select Course / Batch --</option>
                         @if(!empty($classType))
                             @foreach($classType as $type)
                                 <option value="{{ $type->id }}" {{ (string)$type->id === (string)$selectedClassId ? 'selected' : '' }}>
@@ -767,7 +766,7 @@ $(document).ready(function () {
     var csrfToken = $('meta[name="csrf-token"]').attr('content');
     var baseurl = "{{ url('/') }}";
 
-    // 1. Dynamic Exams load on Class Change
+    // 1. Dynamic Exams load on Course Change
     $('#class_type_id').on('change', function () {
         var classId = $(this).val();
         var $examSelect = $('#exam_id');
@@ -792,7 +791,7 @@ $(document).ready(function () {
             },
             error: function () {
                 $examSelect.html('<option value="">-- Failed to load exams --</option>');
-                toastr.error('Unable to fetch examinations for selected class.');
+                toastr.error('Unable to fetch examinations for selected course.');
             }
         });
     });
@@ -803,7 +802,7 @@ $(document).ready(function () {
         var examId = $('#exam_id').val();
 
         if (!classId) {
-            toastr.warning('Please select a Class.');
+            toastr.warning('Please select a Course / Batch.');
             return;
         }
         if (!examId) {
@@ -830,7 +829,7 @@ $(document).ready(function () {
                     toastr.success('Schedule loaded successfully.');
                 } else {
                     renderEmptyUI();
-                    toastr.info('No subjects found assigned to this class.');
+                    toastr.info('No subjects found assigned to this course.');
                 }
             },
             error: function () {
@@ -1042,7 +1041,7 @@ $(document).ready(function () {
         var examId = $('#hidden_exam_id').val() || $('#exam_id').val();
 
         if (!classId || !examId) {
-            toastr.error('Please select Class and Examination before saving.');
+            toastr.error('Please select Course / Batch and Examination before saving.');
             return;
         }
 

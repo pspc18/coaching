@@ -1282,9 +1282,9 @@ body.sheet-open {
 
     <div class="mob-sheet-scroll-body">
         <div class="mob-form-group">
-            <label class="mob-form-label">Class</label>
+            <label class="mob-form-label">Course / Batch</label>
             <select name="class_type_id" class="mob-form-select">
-                <option value="">-- All Classes --</option>
+                <option value="">-- All Courses / Batches --</option>
                 @if(!empty($classType))
                     @foreach($classType as $class)
                         <option value="{{ $class->id }}" {{ (int)($search['class_type_id'] ?? 0) === (int)$class->id ? 'selected' : '' }}>

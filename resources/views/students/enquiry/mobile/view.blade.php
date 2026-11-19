@@ -906,7 +906,7 @@
 <div class="mob-search-toolbar">
     <div class="mob-search-input-wrap">
         <i class="fa fa-search search-icon"></i>
-        <input type="text" class="mob-search-input" id="mobEnquirySearchInput" placeholder="Search by name, mobile, father, class..." autocomplete="off">
+        <input type="text" class="mob-search-input" id="mobEnquirySearchInput" placeholder="Search by name, mobile, father, course / batch..." autocomplete="off">
         <i class="fa fa-times-circle mob-search-clear" id="mobSearchClearBtn"></i>
     </div>
 
@@ -1168,9 +1168,9 @@
     </div>
     <div class="mob-sheet-body">
         <div class="mob-form-group">
-            <label class="mob-form-label">Class</label>
+            <label class="mob-form-label">Course / Batch</label>
             <select class="mob-form-select" id="sheetFilterClass">
-                <option value="">All Classes</option>
+                <option value="">All Courses / Batches</option>
                 @if(!empty($classType))
                     @foreach($classType as $type)
                         <option value="{{ strtolower($type->name ?? '') }}">{{ $type->name ?? '' }}</option>
@@ -1312,7 +1312,7 @@
                     <td id="detName">-</td>
                 </tr>
                 <tr>
-                    <th>Class</th>
+                    <th>Course / Batch</th>
                     <td id="detClass">-</td>
                 </tr>
                 <tr>

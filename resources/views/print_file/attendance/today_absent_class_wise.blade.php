@@ -785,7 +785,7 @@ select.excel-col-filter option {
 
                     <div class="absent-hero-actions">
                         @if(count($rows) > 0)
-                            <a href="{{ route('attendance.today.absent-class-wise.pdf', ['date' => $reportDate->format('Y-m-d'), 'class_type_id' => $selectedClassIds]) }}" 
+                            <a href="{{ route('attendance.today.absent-course-wise.pdf', ['date' => $reportDate->format('Y-m-d'), 'class_type_id' => $selectedClassIds]) }}" 
                                target="_blank" 
                                class="dash-btn dash-btn-pdf"
                                title="Download official PDF report">
@@ -808,7 +808,7 @@ select.excel-col-filter option {
                         <span style="font-size: 10px; font-weight: normal; opacity: .85;">Pick any date &amp; filter multiple classes</span>
                     </div>
                     <div class="filter-card-body">
-                        <form method="GET" action="{{ route('attendance.today.absent-class-wise') }}" id="absentFilterForm">
+                        <form method="GET" action="{{ route('attendance.today.absent-course-wise') }}" id="absentFilterForm">
                             <div class="filter-form-row">
                                 
                                 {{-- Date Picker --}}
@@ -827,7 +827,7 @@ select.excel-col-filter option {
                                 {{-- Class Selection Dropdown --}}
                                 <div class="filter-group-main">
                                     <div class="filter-label">
-                                        <span>Select Target Class(es):</span>
+                                        <span>Select Target Course / Batch(es):</span>
                                         <div class="filter-helper-links">
                                             <a href="javascript:void(0);" id="btnSelectAllClasses" class="filter-helper-link">Select All</a>
                                             <span>&bull;</span>
@@ -850,13 +850,13 @@ select.excel-col-filter option {
                                     </button>
                                     
                                     @if(!empty($selectedClassIds) || $reportDate->format('Y-m-d') !== now()->toDateString())
-                                        <a href="{{ route('attendance.today.absent-class-wise') }}" class="btn-filter-reset" title="Clear all filters">
+                                        <a href="{{ route('attendance.today.absent-course-wise') }}" class="btn-filter-reset" title="Clear all filters">
                                             <i class="fa fa-refresh mr-1"></i> Reset
                                         </a>
                                     @endif
 
                                     @if(count($rows) > 0)
-                                        <a href="{{ route('attendance.today.absent-class-wise.pdf', ['date' => $reportDate->format('Y-m-d'), 'class_type_id' => $selectedClassIds]) }}" 
+                                        <a href="{{ route('attendance.today.absent-course-wise.pdf', ['date' => $reportDate->format('Y-m-d'), 'class_type_id' => $selectedClassIds]) }}" 
                                            target="_blank" 
                                            class="dash-btn dash-btn-pdf" 
                                            style="height: 28px;">
@@ -898,7 +898,7 @@ select.excel-col-filter option {
                                 {{-- Top Header Titles Row --}}
                                 <tr class="header-titles-row">
                                     <th style="width: 45px; text-align: center;">#</th>
-                                    <th style="width: 120px;">Class</th>
+                                    <th style="width: 120px;">Course / Batch</th>
                                     <th style="width: 110px; text-align: center;">Adm No</th>
                                     <th style="min-width: 170px;">Student Name</th>
                                     <th style="min-width: 150px;">Father's Name</th>
@@ -915,7 +915,7 @@ select.excel-col-filter option {
                                     </th>
                                     <th>
                                         <select class="excel-col-filter" data-col-index="1">
-                                            <option value="">All Classes</option>
+                                            <option value="">All Courses / Batches</option>
                                             @php
                                                 $uniqueClasses = $rows->pluck('class_name')->filter()->unique()->sort();
                                             @endphp

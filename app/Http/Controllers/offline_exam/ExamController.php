@@ -8,6 +8,9 @@ use App\Models\exam\AssignExam;
 use App\Models\exam\AssignQuestion;
 use App\Models\Subject;
 use App\Models\Admission;
+use App\Models\OmrResult;
+use App\Models\exam\FillMarks;
+use App\Models\exam\FillMinMaxMarks;
 use App\Models\Notification;
 use App\Services\FcmDirectService;
 use DB;
@@ -47,36 +50,10 @@ class ExamController extends Controller
         }
 
         if (!empty($classTypeId)) {
-            $query->whereExists(function($q) use ($classTypeId, $sessionId, $branchId) {
-                $q->select(DB::raw(1))
-                  ->from('assign_exams')
-                  ->whereColumn('assign_exams.exam_id', 'exams.id')
-                  ->where('assign_exams.class_type_id', $classTypeId)
-                  ->where('assign_exams.session_id', $sessionId)
-                  ->where('assign_exams.branch_id', $branchId)
-                  ->whereNull('assign_exams.deleted_at');
-            });
+            $query->where('exams.class_type_id', $classTypeId);
         }
 
-        if ($status === 'assigned') {
-            $query->whereExists(function($q) use ($sessionId, $branchId) {
-                $q->select(DB::raw(1))
-                  ->from('assign_exams')
-                  ->whereColumn('assign_exams.exam_id', 'exams.id')
-                  ->where('assign_exams.session_id', $sessionId)
-                  ->where('assign_exams.branch_id', $branchId)
-                  ->whereNull('assign_exams.deleted_at');
-            });
-        } elseif ($status === 'unassigned') {
-            $query->whereNotExists(function($q) use ($sessionId, $branchId) {
-                $q->select(DB::raw(1))
-                  ->from('assign_exams')
-                  ->whereColumn('assign_exams.exam_id', 'exams.id')
-                  ->where('assign_exams.session_id', $sessionId)
-                  ->where('assign_exams.branch_id', $branchId)
-                  ->whereNull('assign_exams.deleted_at');
-            });
-        } elseif ($status === 'published' && Schema::hasTable('exam_result_publications')) {
+        if ($status === 'published' && Schema::hasTable('exam_result_publications')) {
             $query->whereExists(function($q) use ($sessionId, $branchId) {
                 $q->select(DB::raw(1))
                   ->from('exam_result_publications')
@@ -84,24 +61,14 @@ class ExamController extends Controller
                   ->where('exam_result_publications.session_id', $sessionId)
                   ->where('exam_result_publications.branch_id', $branchId);
             });
-        } elseif ($status === 'pending') {
-            $query->whereExists(function($q) use ($sessionId, $branchId) {
+        } elseif ($status === 'pending' && Schema::hasTable('exam_result_publications')) {
+            $query->whereNotExists(function($q) use ($sessionId, $branchId) {
                 $q->select(DB::raw(1))
-                  ->from('assign_exams')
-                  ->whereColumn('assign_exams.exam_id', 'exams.id')
-                  ->where('assign_exams.session_id', $sessionId)
-                  ->where('assign_exams.branch_id', $branchId)
-                  ->whereNull('assign_exams.deleted_at');
+                  ->from('exam_result_publications')
+                  ->whereColumn('exam_result_publications.exam_id', 'exams.id')
+                  ->where('exam_result_publications.session_id', $sessionId)
+                  ->where('exam_result_publications.branch_id', $branchId);
             });
-            if (Schema::hasTable('exam_result_publications')) {
-                $query->whereNotExists(function($q) use ($sessionId, $branchId) {
-                    $q->select(DB::raw(1))
-                      ->from('exam_result_publications')
-                      ->whereColumn('exam_result_publications.exam_id', 'exams.id')
-                      ->where('exam_result_publications.session_id', $sessionId)
-                      ->where('exam_result_publications.branch_id', $branchId);
-                });
-            }
         }
 
         // Total Count for Pagination
@@ -112,8 +79,24 @@ class ExamController extends Controller
         }
         $offset = ($page - 1) * $perPage;
 
-        // Fetch ONLY Requested Page Slice
-        $data = $query->select('exams.id', 'exams.name', 'exams.exam_date', 'exams.exam_term_id', DB::raw("NULL as exam_term_name"))
+        // Fetch ONLY Requested Page Slice with joined Class
+        $data = $query->leftJoin('class_types', 'class_types.id', '=', 'exams.class_type_id')
+            ->select(
+                'exams.id',
+                'exams.name',
+                'exams.code',
+                'exams.exam_code',
+                'exams.class_type_id',
+                'exams.exam_date',
+                'exams.subject_id',
+                'exams.subject_ids',
+                'exams.number_of_questions',
+                'exams.exam_maximum_marks',
+                'exams.exam_term_id',
+                'exams.created_at',
+                'class_types.name as class_name',
+                DB::raw("NULL as exam_term_name")
+            )
             ->orderBy('exams.id', 'DESC')
             ->skip($offset)
             ->take($perPage)
@@ -121,21 +104,7 @@ class ExamController extends Controller
 
         $examIds = $data->pluck('id')->toArray();
         $examNames = $data->pluck('name');
-
-        // Batch load assigned classes only for current page slice
-        $allAssignedClasses = collect();
-        if (!empty($examIds)) {
-            $allAssignedClasses = AssignExam::query()
-                ->join('class_types', 'class_types.id', '=', 'assign_exams.class_type_id')
-                ->whereIn('assign_exams.exam_id', $examIds)
-                ->where('assign_exams.session_id', $sessionId)
-                ->where('assign_exams.branch_id', $branchId)
-                ->whereNull('assign_exams.deleted_at')
-                ->select('assign_exams.exam_id', 'assign_exams.class_type_id', 'assign_exams.exam_date', 'class_types.name as class_name')
-                ->groupBy('assign_exams.exam_id', 'assign_exams.class_type_id', 'assign_exams.exam_date', 'class_types.name')
-                ->get()
-                ->groupBy('exam_id');
-        }
+        $allSubjects = \App\Models\CourseSubject::pluck('subject_name', 'id')->toArray() + \App\Models\CourseSubject::pluck('subject_name', 'subject_id')->toArray() + Subject::pluck('name', 'id')->toArray();
 
         // Batch load result publication statuses only for current page slice
         $publishedSet = [];
@@ -144,11 +113,16 @@ class ExamController extends Controller
                 ->whereIn('exam_id', $examIds)
                 ->where('session_id', $sessionId)
                 ->where('branch_id', $branchId)
-                ->select('exam_id', 'class_type_id')
+                ->select('exam_id', 'class_type_id', 'published_at')
                 ->get();
 
             foreach ($publishedRecords as $pr) {
-                $publishedSet[$pr->exam_id . '_' . $pr->class_type_id] = true;
+                $rawDate = $pr->published_at;
+                $publishedSet[$pr->exam_id] = [
+                    'is_published' => true,
+                    'published_at' => $rawDate ? Carbon::parse($rawDate)->format('d M Y') : 'Published',
+                    'published_date_iso' => $rawDate ? Carbon::parse($rawDate)->format('Y-m-d') : null,
+                ];
             }
         }
 
@@ -164,26 +138,35 @@ class ExamController extends Controller
             }
 
             $exam->copy_name = $baseName . '-' . $nextNumber;
-            
-            $examClasses = $allAssignedClasses->get($exam->id, collect());
-            foreach ($examClasses as $assignedClass) {
-                $assignedClass->is_published = !empty($publishedSet[$exam->id . '_' . $assignedClass->class_type_id]);
+
+            // Result publication status
+            $pubInfo = $publishedSet[$exam->id] ?? null;
+            $exam->is_published = !empty($pubInfo);
+            $exam->published_at = $pubInfo['published_at'] ?? null;
+            $exam->published_date_iso = $pubInfo['published_date_iso'] ?? null;
+
+            // Subjects list
+            $subIds = $exam->selected_subject_ids;
+            $subNames = [];
+            foreach ($subIds as $sId) {
+                if (isset($allSubjects[$sId])) {
+                    $subNames[] = $allSubjects[$sId];
+                }
             }
-            $exam->assigned_classes = $examClasses;
+            $exam->subject_names = $subNames;
         }
 
         // Overall Global KPI Stats
         $statsTotalExams = Exam::where('session_id', $sessionId)->where('branch_id', $branchId)->whereNull('deleted_at')->count();
-        $statsAssignedClasses = AssignExam::where('session_id', $sessionId)->where('branch_id', $branchId)->whereNull('deleted_at')->count();
         $statsPublished = 0;
         if (Schema::hasTable('exam_result_publications')) {
             $statsPublished = DB::table('exam_result_publications')->where('session_id', $sessionId)->where('branch_id', $branchId)->count();
         }
-        $statsPending = max(0, $statsAssignedClasses - $statsPublished);
+        $statsPending = max(0, $statsTotalExams - $statsPublished);
 
         $stats = [
             'total' => $statsTotalExams,
-            'assigned' => $statsAssignedClasses,
+            'assigned' => $statsTotalExams,
             'published' => $statsPublished,
             'pending' => $statsPending,
         ];
@@ -228,14 +211,388 @@ class ExamController extends Controller
         ]);
     }
 
+    public function uploadOmr(Request $request)
+    {
+        $classTypeId = (int) ($request->input('class_type_id') ?: $request->input('class_name', 0));
+        $examId = (int) $request->input('exam_id', 0);
+        $branchId = Session::get('branch_id');
+        $sessionId = Session::get('session_id');
+
+        // If AJAX request or extract payload sent to upload_omr, delegate to extractOmr
+        if ($request->isMethod('post') && ($request->ajax() || $request->expectsJson() || $request->hasFile('image'))) {
+            return $this->extractOmr($request);
+        }
+
+        // Auto-detect class_type_id from exam_id if not explicitly provided
+        if (empty($classTypeId) && !empty($examId)) {
+            $examLookup = Exam::find($examId);
+            if ($examLookup && !empty($examLookup->class_type_id)) {
+                $classTypeId = (int) $examLookup->class_type_id;
+            } else {
+                $assignLookup = AssignExam::where('exam_id', $examId)->whereNull('deleted_at')->first();
+                if ($assignLookup && !empty($assignLookup->class_type_id)) {
+                    $classTypeId = (int) $assignLookup->class_type_id;
+                }
+            }
+        }
+
+        $classType = Helper::classType();
+        $selectedExam = null;
+
+        // Fetch all exams for dropdown
+        $allExams = Exam::where('session_id', $sessionId)
+            ->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
+            ->withCount('results')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($examId > 0) {
+            $selectedExam = Exam::where('id', $examId)->whereNull('deleted_at')->first();
+        }
+
+        // Metrics & KPI calculations
+        $totalScannedToday = OmrResult::whereDate('created_at', Carbon::today())->count();
+        $avgAccuracy = round((float) (OmrResult::whereDate('created_at', Carbon::today())->avg('percentage') ?? 0), 1);
+        $totalEvaluatedCount = OmrResult::count();
+
+        // Recent Scans Queue
+        $recentScans = OmrResult::with(['exam', 'student'])
+            ->when($examId > 0, function($q) use ($examId) {
+                $q->where('exam_id', $examId);
+            })
+            ->latest('id')
+            ->take(25)
+            ->get();
+
+        return Helper::view('examination.offline_exam.omr.upload_omr', [
+            'classType' => $classType,
+            'allExams' => $allExams,
+            'selectedExam' => $selectedExam,
+            'recentScans' => $recentScans,
+            'totalScannedToday' => $totalScannedToday,
+            'avgAccuracy' => $avgAccuracy,
+            'totalEvaluatedCount' => $totalEvaluatedCount,
+            'search' => [
+                'class_type_id' => $classTypeId,
+                'exam_id' => $examId,
+            ],
+        ]);
+    }
+
+    public function extractOmr(Request $request)
+    {
+        $validated = $request->validate([
+            'exam_id' => 'required|integer',
+            'image' => 'required|file|image|max:15360',
+            'detected_roll' => 'nullable|string|max:40',
+            'detected_answers' => 'nullable',
+        ]);
+
+        $exam = Exam::where('id', $validated['exam_id'])->whereNull('deleted_at')->firstOrFail();
+        $sessionId = Session::get('session_id') ?: $exam->session_id;
+        $branchId = Session::get('branch_id') ?: $exam->branch_id;
+        $userId = Session::get('id') ?: 1;
+
+        $imageFile = $request->file('image');
+        $originalFileName = $imageFile->getClientOriginalName();
+        $fileExt = $imageFile->getClientOriginalExtension() ?: 'png';
+        $savedFileName = 'omr_' . time() . '_' . Str::random(8) . '.' . $fileExt;
+
+        $destPath = public_path('uploads/omr_scans');
+        if (!file_exists($destPath)) {
+            @mkdir($destPath, 0777, true);
+        }
+        $imageFile->move($destPath, $savedFileName);
+        $storedRelativePath = 'uploads/omr_scans/' . $savedFileName;
+
+        // 1. Roll Number Resolution
+        $rollNumber = trim((string)$request->input('detected_roll', ''));
+        if (in_array($rollNumber, ['', '------', '000000', '00000', 'null', 'undefined'])) {
+            $rollNumber = '';
+        }
+
+        // If no roll number detected via bubbles, extract candidate digits from filename
+        if (empty($rollNumber)) {
+            if (preg_match('/\b(STU[-_]?\d+|\d{3,8})\b/i', $originalFileName, $matches)) {
+                $rollNumber = strtoupper(str_replace('_', '-', $matches[1]));
+            }
+        }
+
+        // 2. Student Matching in admissions table
+        $student = null;
+        if (!empty($rollNumber)) {
+            $cleanNumeric = preg_replace('/\D/', '', $rollNumber);
+            $trimmedNumeric = ltrim($cleanNumeric, '0');
+
+            $studentQuery = Admission::whereNull('deleted_at')
+                ->where(function($q) use ($rollNumber, $cleanNumeric, $trimmedNumeric) {
+                    $q->where('roll_no', $rollNumber)
+                      ->orWhere('exam_roll_no', $rollNumber)
+                      ->orWhere('admissionNo', $rollNumber)
+                      ->orWhere('id', $rollNumber);
+                    if (!empty($cleanNumeric)) {
+                        $q->orWhere('roll_no', $cleanNumeric)
+                          ->orWhere('admissionNo', $cleanNumeric);
+                    }
+                    if (!empty($trimmedNumeric) && $trimmedNumeric !== $cleanNumeric) {
+                        $q->orWhere('roll_no', $trimmedNumeric)
+                          ->orWhere('admissionNo', $trimmedNumeric)
+                          ->orWhere('id', (int)$trimmedNumeric);
+                    }
+                });
+
+            if (!empty($exam->class_type_id)) {
+                $studentQuery->orderByRaw('CASE WHEN class_type_id = ? THEN 0 ELSE 1 END', [$exam->class_type_id]);
+            }
+            $student = $studentQuery->first();
+        }
+
+        if ($student) {
+            if (empty($rollNumber)) {
+                $rollNumber = $student->roll_no ?: ($student->admissionNo ?: ($student->exam_roll_no ?: 'STU-' . $student->id));
+            }
+            $studentName = trim($student->first_name . ' ' . $student->last_name);
+            $studentPhone = $student->mobile;
+            $admissionId = $student->id;
+        } else {
+            if (empty($rollNumber)) {
+                $rollNumber = 'STU-' . rand(1001, 9999);
+            }
+            $studentName = 'Unregistered Student';
+            $studentPhone = null;
+            $admissionId = null;
+        }
+
+        // 3. Question Count & Answer Key
+        $totalQuestions = (int) ($exam->number_of_questions ?: 50);
+        $rawKey = $exam->answer_key;
+        if (is_string($rawKey)) {
+            $rawKey = json_decode($rawKey, true) ?: [];
+        }
+        $answerKey = is_array($rawKey) ? $rawKey : [];
+
+        $marksPerCorrect = (float) ($exam->marks_per_correct ?? 1.0);
+        $marksPerIncorrect = (float) ($exam->marks_per_incorrect ?? 0.0);
+        if ($marksPerCorrect <= 0) $marksPerCorrect = 1.0;
+
+        // Parse detected answers passed from optical scanner
+        $rawPassed = $request->input('detected_answers');
+        if (is_string($rawPassed)) {
+            $rawPassed = json_decode($rawPassed, true) ?: [];
+        }
+        $passedAnswers = is_array($rawPassed) ? $rawPassed : [];
+
+        $extractedAnswers = [];
+        $correctCount = 0;
+        $incorrectCount = 0;
+        $blankCount = 0;
+        $options = ['A', 'B', 'C', 'D'];
+
+        for ($i = 1; $i <= $totalQuestions; $i++) {
+            $correctOption = $answerKey[$i] ?? $answerKey[(string)$i] ?? null;
+            if (!empty($correctOption)) {
+                $correctOption = strtoupper(trim((string)$correctOption));
+            }
+
+            $userOption = null;
+            if (isset($passedAnswers[$i - 1])) {
+                $item = $passedAnswers[$i - 1];
+                $userOption = is_array($item) ? ($item['value'] ?? $item['answer'] ?? null) : $item;
+                if ($userOption === '—' || $userOption === '?' || $userOption === '' || $userOption === null) {
+                    $userOption = null;
+                } else {
+                    $userOption = strtoupper(trim((string)$userOption));
+                    if (!in_array($userOption, $options)) {
+                        $userOption = null;
+                    }
+                }
+            } elseif (isset($passedAnswers[(string)$i])) {
+                $userOption = strtoupper(trim((string)$passedAnswers[(string)$i]));
+                if (!in_array($userOption, $options)) $userOption = null;
+            }
+
+            $status = 'blank';
+            $isCorrect = false;
+
+            if (!empty($userOption)) {
+                $status = 'detected';
+                if (!empty($correctOption) && $userOption === $correctOption) {
+                    $correctCount++;
+                    $isCorrect = true;
+                } else {
+                    $incorrectCount++;
+                    $isCorrect = false;
+                }
+            } else {
+                $blankCount++;
+            }
+
+            $extractedAnswers[] = [
+                'question' => $i,
+                'answer' => $userOption,
+                'correct_answer' => $correctOption,
+                'is_correct' => $isCorrect,
+                'status' => $status,
+                'confidence' => 0.95,
+            ];
+        }
+
+        $totalMarks = $totalQuestions * $marksPerCorrect;
+        $obtainedMarks = max(0, round(($correctCount * $marksPerCorrect) - ($incorrectCount * $marksPerIncorrect), 2));
+        $percentage = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 2) : 0;
+
+        // 4. Record to omr_results
+        DB::beginTransaction();
+        try {
+            $omrResult = OmrResult::updateOrCreate(
+                [
+                    'exam_id' => $exam->id,
+                    'unique_id' => $rollNumber,
+                ],
+                [
+                    'admission_id' => $admissionId,
+                    'correct_answers' => $correctCount,
+                    'incorrect_answers' => $incorrectCount,
+                    'blank_answers' => $blankCount,
+                    'total_marks' => $totalMarks,
+                    'obtained_marks' => $obtainedMarks,
+                    'percentage' => $percentage,
+                    'extracted_answers' => $extractedAnswers,
+                    'extraction_confidence' => 0.9500,
+                    'source_filename' => $originalFileName,
+                    'scanned_by_user_id' => $userId,
+                ]
+            );
+
+            // Compute Rank
+            $rank = OmrResult::where('exam_id', $exam->id)->where('obtained_marks', '>', $obtainedMarks)->count() + 1;
+            $omrResult->update(['rank' => $rank]);
+
+            // 5. UPLOAD MARKS DIRECTLY TO EXAM (FillMarks & FillMinMaxMarks)
+            $marksUploaded = false;
+            if ($student) {
+                $classTypeId = (int) ($student->class_type_id ?: ($exam->class_type_id ?: 0));
+                $subjectId = (int) ($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
+
+                if ($subjectId <= 0 && $classTypeId > 0) {
+                    $firstSub = Subject::where('class_type_id', $classTypeId)->whereNull('deleted_at')->first();
+                    if ($firstSub) $subjectId = $firstSub->id;
+                }
+
+                if ($classTypeId > 0 && $subjectId > 0) {
+                    // FillMinMaxMarks
+                    $minMax = FillMinMaxMarks::withTrashed()
+                        ->where('exam_id', $exam->id)
+                        ->where('class_type_id', $classTypeId)
+                        ->where('subject_id', $subjectId)
+                        ->where('session_id', $sessionId)
+                        ->where('branch_id', $branchId)
+                        ->first();
+
+                    if (!$minMax) {
+                        $minMax = new FillMinMaxMarks();
+                        $minMax->exam_id = $exam->id;
+                        $minMax->class_type_id = $classTypeId;
+                        $minMax->subject_id = $subjectId;
+                        $minMax->session_id = $sessionId;
+                        $minMax->branch_id = $branchId;
+                        $minMax->user_id = $userId;
+                    }
+                    $minMax->exam_maximum_marks = $totalMarks;
+                    $minMax->exam_minimum_marks = round($totalMarks * 0.33, 2);
+                    $minMax->deleted_at = null;
+                    $minMax->save();
+
+                    // FillMarks
+                    $fillMark = FillMarks::withTrashed()
+                        ->where('exam_id', $exam->id)
+                        ->where('admission_id', $student->id)
+                        ->where('class_type_id', $classTypeId)
+                        ->where('subject_id', $subjectId)
+                        ->where('session_id', $sessionId)
+                        ->where('branch_id', $branchId)
+                        ->first();
+
+                    if (!$fillMark) {
+                        $fillMark = new FillMarks();
+                        $fillMark->exam_id = $exam->id;
+                        $fillMark->admission_id = $student->id;
+                        $fillMark->class_type_id = $classTypeId;
+                        $fillMark->course_id = $student->course_id ?: $exam->course_id;
+                        $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                        $fillMark->subject_id = $subjectId;
+                        $fillMark->session_id = $sessionId;
+                        $fillMark->branch_id = $branchId;
+                        $fillMark->user_id = $userId;
+                    }
+
+                    $fillMark->student_marks = $obtainedMarks;
+                    $fillMark->r_marks = (string)$correctCount;
+                    $fillMark->w_marks = (string)$incorrectCount;
+                    $fillMark->l_marks = (string)$blankCount;
+                    $fillMark->exam_maximum_marks = (string)$totalMarks;
+                    $fillMark->fill_min_max_marks_id = $minMax->id;
+                    $fillMark->deleted_at = null;
+                    $fillMark->save();
+
+                    $marksUploaded = true;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'OMR sheet evaluated successfully' . ($marksUploaded ? ' and marks uploaded to exam record.' : '.'),
+                'marks_uploaded' => $marksUploaded,
+                'roll_number' => $rollNumber,
+                'student_name' => $studentName,
+                'student_phone' => $studentPhone,
+                'admission_matched' => (bool)$student,
+                'question_count' => $totalQuestions,
+                'detected_count' => $correctCount + $incorrectCount,
+                'answers' => $extractedAnswers,
+                'image_url' => asset($storedRelativePath),
+                'result' => [
+                    'id' => $omrResult->id,
+                    'unique_id' => $rollNumber,
+                    'student_name' => $studentName,
+                    'admission_matched' => (bool)$student,
+                    'correct_answers' => $correctCount,
+                    'incorrect_answers' => $incorrectCount,
+                    'blank_answers' => $blankCount,
+                    'total_marks' => number_format($totalMarks, 2),
+                    'obtained_marks' => number_format($obtainedMarks, 2),
+                    'percentage' => $percentage,
+                    'rank' => $rank,
+                    'source_filename' => $originalFileName,
+                    'marks_uploaded' => $marksUploaded,
+                    'created_at' => $omrResult->created_at->format('d M Y, h:i A'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'OMR processing failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function publishResult(Request $request)
     {
         $request->validate([
             'exam_id' => 'required|integer',
             'class_type_id' => 'required|integer',
+            'publish_date' => 'nullable|date',
+            'action' => 'nullable|string',
         ]);
 
         if (!Schema::hasTable('exam_result_publications')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Result publication setup is pending. Please run database migrations.'], 400);
+            }
             return Redirect::to('view/exam')->with('error', 'Result publication setup is pending. Please run database migrations.');
         }
 
@@ -243,6 +600,12 @@ class ExamController extends Controller
         $sessionId = (int) Session::get('session_id');
         $examId = (int) $request->exam_id;
         $classTypeId = (int) $request->class_type_id;
+        $action = $request->input('action', 'publish');
+
+        $selectedDate = $request->filled('publish_date') ? $request->input('publish_date') : date('Y-m-d');
+        $publishDateTime = Carbon::parse($selectedDate)->setTime(Carbon::now()->hour, Carbon::now()->minute, Carbon::now()->second);
+        $publishDateOnly = Carbon::parse($selectedDate)->format('Y-m-d');
+        $formattedDate = Carbon::parse($selectedDate)->format('d M Y');
 
         $exam = Exam::query()
             ->where('id', $examId)
@@ -250,15 +613,53 @@ class ExamController extends Controller
             ->where('session_id', $sessionId)
             ->first();
 
-        $assignmentExists = AssignExam::query()
+        $assignment = AssignExam::query()
             ->where('exam_id', $examId)
             ->where('class_type_id', $classTypeId)
             ->where('branch_id', $branchId)
             ->where('session_id', $sessionId)
-            ->exists();
+            ->whereNull('deleted_at')
+            ->first();
 
-        if (!$exam || !$assignmentExists) {
+        if (!$exam || !$assignment) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Exam or assigned class not found.'], 404);
+            }
             return Redirect::to('view/exam')->with('error', 'Exam or assigned class not found.');
+        }
+
+        // Action: update_date
+        if ($action === 'update_date') {
+            DB::beginTransaction();
+            try {
+                DB::table('exam_result_publications')
+                    ->where('exam_id', $examId)
+                    ->where('class_type_id', $classTypeId)
+                    ->where('branch_id', $branchId)
+                    ->where('session_id', $sessionId)
+                    ->update([
+                        'published_at' => $publishDateTime,
+                        'updated_at' => now(),
+                    ]);
+
+                $assignment->result_declaration_date = $publishDateOnly;
+                $assignment->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => "Publish date updated to {$formattedDate} successfully.",
+                    'is_published' => true,
+                    'exam_id' => $examId,
+                    'class_type_id' => $classTypeId,
+                    'publish_date' => $formattedDate,
+                    'publish_date_iso' => $publishDateOnly,
+                ]);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Failed to update publish date: ' . $e->getMessage()], 500);
+            }
         }
 
         $hasResultData = DB::table('fill_marks')
@@ -280,18 +681,11 @@ class ExamController extends Controller
             ->exists();
 
         if (!$hasResultData) {
-            return Redirect::to('view/exam')->with('error', 'Result cannot be published because marks have not been entered for this class.');
-        }
-
-        $alreadyPublished = DB::table('exam_result_publications')
-            ->where('exam_id', $examId)
-            ->where('class_type_id', $classTypeId)
-            ->where('branch_id', $branchId)
-            ->where('session_id', $sessionId)
-            ->exists();
-
-        if ($alreadyPublished) {
-            return Redirect::to('view/exam')->with('message', 'Result is already published for this class.');
+            $msg = 'Result cannot be published because marks have not been entered for this class.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            return Redirect::to('view/exam')->with('error', $msg);
         }
 
         $students = Admission::query()
@@ -302,21 +696,29 @@ class ExamController extends Controller
             ->get();
 
         $title = 'Exam Result Published';
-        $body = "Your result for {$exam->name} has been published. Open Exam Result to view your result.";
+        $body = "Your result for {$exam->name} has been published on {$formattedDate}. Open Exam Result to view your marksheet.";
         $now = now();
 
         DB::beginTransaction();
         try {
-            DB::table('exam_result_publications')->insert([
-                'exam_id' => $examId,
-                'class_type_id' => $classTypeId,
-                'branch_id' => $branchId,
-                'session_id' => $sessionId,
-                'published_by' => (int) Session::get('id'),
-                'published_at' => $now,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            DB::table('exam_result_publications')->updateOrInsert(
+                [
+                    'exam_id' => $examId,
+                    'class_type_id' => $classTypeId,
+                    'branch_id' => $branchId,
+                    'session_id' => $sessionId,
+                ],
+                [
+                    'published_by' => (int) Session::get('id'),
+                    'published_at' => $publishDateTime,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+
+            // Keep assign_exams.result_declaration_date in sync
+            $assignment->result_declaration_date = $publishDateOnly;
+            $assignment->save();
 
             foreach ($students as $student) {
                 Notification::create([
@@ -344,6 +746,9 @@ class ExamController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Result could not be published: ' . $e->getMessage()], 500);
+            }
             return Redirect::to('view/exam')->with('error', 'Result could not be published. ' . $e->getMessage());
         }
 
@@ -380,16 +785,18 @@ class ExamController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => "Result published successfully. Students notified: {$students->count()}.",
+                'message' => "Result published successfully on {$formattedDate}. Students notified: {$students->count()}.",
                 'is_published' => true,
                 'exam_id' => $examId,
-                'class_type_id' => $classTypeId
+                'class_type_id' => $classTypeId,
+                'publish_date' => $formattedDate,
+                'publish_date_iso' => $publishDateOnly,
             ]);
         }
 
         return Redirect::to('view/exam')->with(
             'message',
-            "Result published successfully. Students notified: {$students->count()}. Push sent: {$pushSent}. Failed: {$pushFailed}."
+            "Result published successfully on {$formattedDate}. Students notified: {$students->count()}. Push sent: {$pushSent}. Failed: {$pushFailed}."
         );
     }
 
@@ -434,6 +841,13 @@ class ExamController extends Controller
             ->where('branch_id', $branchId)
             ->where('session_id', $sessionId)
             ->delete();
+
+        AssignExam::where('exam_id', $examId)
+            ->where('class_type_id', $classTypeId)
+            ->where('branch_id', $branchId)
+            ->where('session_id', $sessionId)
+            ->whereNull('deleted_at')
+            ->update(['result_declaration_date' => null]);
 
         if (!$deleted) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -510,6 +924,7 @@ class ExamController extends Controller
         $request->validate([
             'exam_id' => 'required|integer',
             'name' => 'required|string|max:255',
+            'class_type_id' => 'required|integer',
             'exam_date' => 'required|date',
         ]);
 
@@ -519,56 +934,88 @@ class ExamController extends Controller
             ->first();
 
         if (!$sourceExam) {
-            return Redirect::to('view/exam')->with('error', 'Exam not found.');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Source examination not found.'], 404);
+            }
+            return Redirect::to('view/exam')->with('error', 'Examination not found.');
         }
 
         DB::beginTransaction();
 
         try {
+            $targetClassId = (int) $request->class_type_id;
             $copiedExam = $sourceExam->replicate();
             $copiedExam->name = trim($request->name);
             $copiedExam->exam_date = $request->exam_date;
-            $copiedExam->user_id = Session::get('id');
+            $copiedExam->class_type_id = $targetClassId;
+            $copiedExam->course_id = $targetClassId;
+
+            // Generate fresh unique scanner code
+            do {
+                $newCode = 'EXAM-' . strtoupper(Str::random(6));
+            } while (Exam::where('code', $newCode)->orWhere('exam_code', $newCode)->exists());
+
+            $copiedExam->code = $newCode;
+            $copiedExam->exam_code = $newCode;
+            $copiedExam->result_status = 'not_scheduled';
+            $copiedExam->user_id = Session::get('id') ?: 1;
             $copiedExam->session_id = Session::get('session_id');
             $copiedExam->branch_id = Session::get('branch_id');
             $copiedExam->deleted_at = null;
             $copiedExam->save();
 
-            $assignments = AssignExam::where('exam_id', $sourceExam->id)
+            // Replicate questions if any (Question Bank or Online Exam)
+            $sourceQuestions = AssignQuestion::where('exam_id', $sourceExam->id)
                 ->where('session_id', Session::get('session_id'))
                 ->where('branch_id', Session::get('branch_id'))
-                ->get()
-                ->unique('class_type_id');
-
-            foreach ($assignments as $assignment) {
-                $copiedAssignment = $assignment->replicate();
-                $copiedAssignment->exam_id = $copiedExam->id;
-                $copiedAssignment->user_id = Session::get('id');
-                $copiedAssignment->session_id = Session::get('session_id');
-                $copiedAssignment->branch_id = Session::get('branch_id');
-                $copiedAssignment->deleted_at = null;
-                $copiedAssignment->save();
+                ->get();
+            foreach ($sourceQuestions as $sq) {
+                $copiedQ = $sq->replicate();
+                $copiedQ->exam_id = $copiedExam->id;
+                $copiedQ->class_type_id = $targetClassId;
+                $copiedQ->user_id = Session::get('id') ?: 1;
+                $copiedQ->session_id = Session::get('session_id');
+                $copiedQ->branch_id = Session::get('branch_id');
+                $copiedQ->deleted_at = null;
+                $copiedQ->save();
             }
 
+            // Create exactly ONE independent AssignExam record for the target class
+            $copiedAssignment = new AssignExam();
+            $copiedAssignment->exam_id = $copiedExam->id;
+            $copiedAssignment->class_type_id = $targetClassId;
+            $copiedAssignment->exam_date = $request->exam_date;
+            $copiedAssignment->result_declaration_date = null;
+            $copiedAssignment->user_id = Session::get('id') ?: 1;
+            $copiedAssignment->session_id = Session::get('session_id');
+            $copiedAssignment->branch_id = Session::get('branch_id');
+            $copiedAssignment->deleted_at = null;
+            $copiedAssignment->save();
+
             DB::commit();
+
+            $targetClassModel = DB::table('class_types')->where('id', $targetClassId)->first();
+            $className = $targetClassModel->name ?? ('Class ' . $targetClassId);
+            $targetClassModel = DB::table('courses')->where('id', $targetClassId)->first();
+            $className = $targetClassModel->name ?? ('Course ' . $targetClassId);
+            $msg = 'Exam "' . $copiedExam->name . '" duplicated successfully for Course ' . $className . ' with independent code ' . $newCode . '.';
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Exam copied successfully with the same assigned classes.',
-                    'exam_id' => $copiedExam->id
+                    'message' => $msg,
+                    'exam_id' => $copiedExam->id,
                 ]);
             }
 
-            return Redirect::to('view/exam')->with('message', 'Exam copied successfully with the same assigned classes.');
+            return Redirect::to('view/exam')->with('message', $msg);
         } catch (\Exception $e) {
             DB::rollBack();
 
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => 'Exam could not be copied. ' . $e->getMessage()], 422);
+                return response()->json(['status' => 'error', 'message' => 'Exam could not be duplicated: ' . $e->getMessage()], 422);
             }
-
-            return Redirect::to('view/exam')->with('error', 'Exam could not be copied. ' . $e->getMessage());
+            return Redirect::to('view/exam')->with('error', 'Exam could not be duplicated: ' . $e->getMessage());
         }
     }
     
@@ -670,6 +1117,8 @@ class ExamController extends Controller
                 'name' => 'required|string|max:255',
                 'class_type_id' => 'required|integer',
                 'subject_id' => 'nullable|integer',
+                'subject_ids' => 'nullable|array',
+                'subject_ids.*' => 'integer',
                 'code' => 'nullable|string|max:100',
                 'exam_date' => 'nullable|date',
                 'number_of_questions' => 'nullable|integer|min:0|max:100',
@@ -823,7 +1272,8 @@ class ExamController extends Controller
                 // Mode 1: Normal Offline Exam
                 $creationMode = 'normal';
                 $numQuestions = max(0, (int) ($request->input('number_of_questions', $isEdit ? ($add->number_of_questions ?? 0) : 0)));
-                $maxMarks = (float) ($request->input('exam_maximum_marks', $validated['exam_maximum_marks'] ?? ($isEdit ? ($add->exam_maximum_marks ?? 100) : 100)));
+                $perSubMarks = (float) ($request->input('exam_maximum_marks', $validated['exam_maximum_marks'] ?? ($isEdit ? ($add->exam_maximum_marks ?? 100) : 100)));
+                $maxMarks = $perSubMarks;
                 $marksPerCorrect = 1.0;
                 $marksPerIncorrect = 0.0;
                 $finalAnswerKey = [];
@@ -837,7 +1287,24 @@ class ExamController extends Controller
                 $add->code = $code;
                 $add->exam_code = $code;
                 $add->class_type_id = $request->class_type_id;
-                $add->subject_id = $request->subject_id;
+
+                $finalSubjectIds = [];
+                if ($isOnline) {
+                    $singleSub = $request->subject_id ? (int)$request->subject_id : null;
+                    $finalSubjectIds = $singleSub ? [$singleSub] : [];
+                    $add->subject_id = $singleSub;
+                    $add->subject_ids = !empty($finalSubjectIds) ? $finalSubjectIds : null;
+                } else {
+                    $rawSubjectIds = $request->input('subject_ids', []);
+                    if (!empty($rawSubjectIds)) {
+                        $finalSubjectIds = array_values(array_filter(array_map('intval', (array)$rawSubjectIds)));
+                    } elseif ($request->filled('subject_id')) {
+                        $finalSubjectIds = [(int)$request->subject_id];
+                    }
+                    $add->subject_ids = !empty($finalSubjectIds) ? $finalSubjectIds : null;
+                    $add->subject_id = count($finalSubjectIds) === 1 ? $finalSubjectIds[0] : null;
+                }
+
                 $add->exam_term_id = $request->exam_term_id;
                 $add->exam_date = $examDate;
                 $add->number_of_questions = $numQuestions;
@@ -845,6 +1312,10 @@ class ExamController extends Controller
                 $add->exam_creation_mode = $creationMode;
                 $add->marks_per_correct = $marksPerCorrect;
                 $add->marks_per_incorrect = $marksPerIncorrect;
+                if ($creationMode === 'normal') {
+                    $subCount = count($finalSubjectIds);
+                    $maxMarks = ($subCount > 1) ? round($perSubMarks * $subCount, 2) : $perSubMarks;
+                }
                 $add->exam_maximum_marks = $maxMarks;
                 $add->answer_key = $finalAnswerKey;
                 if (in_array($creationMode, ['question_bank', 'online'])) {
@@ -861,22 +1332,18 @@ class ExamController extends Controller
                 if (!$isEdit) {
                     $add->result_status = 'not_scheduled';
                 }
+                $add->class_type_id = $request->class_type_id;
                 $add->description = $request->description;
                 $add->save();
 
                 $assignment = AssignExam::withTrashed()
                     ->where('exam_id', $add->id)
-                    ->where('class_type_id', $request->class_type_id)
                     ->where('session_id', $sessionId)
                     ->where('branch_id', $branchId)
                     ->first();
 
                 if (!$assignment) {
-                    $existingAssignment = AssignExam::where('exam_id', $add->id)
-                        ->where('session_id', $sessionId)
-                        ->where('branch_id', $branchId)
-                        ->first();
-                    $assignment = $existingAssignment ?: new AssignExam;
+                    $assignment = new AssignExam;
                 }
 
                 $assignment->exam_id = $add->id;
@@ -887,6 +1354,11 @@ class ExamController extends Controller
                 $assignment->user_id = Session::get('id') ?: 1;
                 $assignment->deleted_at = null;
                 $assignment->save();
+
+                // Enforce strict 1 Exam = 1 Class
+                AssignExam::where('exam_id', $add->id)
+                    ->where('id', '!=', $assignment->id)
+                    ->delete();
 
                 if (in_array($creationMode, ['question_bank', 'online'])) {
                     AssignQuestion::where('exam_id', $add->id)->delete();
@@ -910,7 +1382,11 @@ class ExamController extends Controller
                 $actionWord = $isEdit ? 'updated' : 'created';
 
                 if ($isEdit) {
-                    return Redirect::to('edit/exam/' . $add->id)
+                    $redirectUrl = 'edit/exam/' . $add->id;
+                    if ($request->filled('class_type_id')) {
+                        $redirectUrl .= '?class_type_id=' . $request->class_type_id;
+                    }
+                    return Redirect::to($redirectUrl)
                         ->with('message', 'Exam "' . $add->name . '" updated successfully.');
                 }
 
@@ -927,16 +1403,26 @@ class ExamController extends Controller
         $preloadedQuestions = [];
         $preloadedClassId = null;
         $preloadedSubjectId = null;
+        $preloadedSubjectIds = [];
+        $preloadedExamDate = null;
 
         if (!empty($examId)) {
             $savedExam = Exam::where('id', $examId)->first();
             if ($savedExam) {
-                $preloadedClassId = $savedExam->class_type_id;
+                $preloadedClassId = $request->filled('class_type_id') ? (int)$request->input('class_type_id') : $savedExam->class_type_id;
                 $preloadedSubjectId = $savedExam->subject_id ?? null;
+                $preloadedSubjectIds = $savedExam->selected_subject_ids;
 
-                if (!empty($savedExam->class_type_id)) {
-                    $subjects = Subject::where('class_type_id', $savedExam->class_type_id)->whereNull('deleted_at')->get();
+                if (!empty($preloadedClassId)) {
+                    $subjects = Subject::where('class_type_id', $preloadedClassId)->whereNull('deleted_at')->get();
                 }
+
+                $assignmentForClass = AssignExam::where('exam_id', $savedExam->id)
+                    ->where('class_type_id', $preloadedClassId)
+                    ->where('session_id', $sessionId)
+                    ->where('branch_id', $branchId)
+                    ->first();
+                $preloadedExamDate = ($assignmentForClass && !empty($assignmentForClass->exam_date)) ? $assignmentForClass->exam_date : null;
 
                 // Preload questions from savedExam->online_questions
                 if (!empty($savedExam->online_questions)) {
@@ -1044,7 +1530,10 @@ class ExamController extends Controller
                 }
 
                 if ($preloadedClassId) {
-                    $subjects = Subject::where('class_type_id', $preloadedClassId)->whereNull('deleted_at')->get();
+                    $subjects = \App\Models\CourseSubject::where('course_id', $preloadedClassId)->get();
+                    if ($subjects->isEmpty()) {
+                        $subjects = Subject::where('class_type_id', $preloadedClassId)->whereNull('deleted_at')->get();
+                    }
                 }
             }
         }
@@ -1052,7 +1541,7 @@ class ExamController extends Controller
         $examCode = $savedExam ? ($savedExam->code ?: ($savedExam->exam_code ?: ('EXAM-' . strtoupper(Str::random(6))))) : ('EXAM-' . strtoupper(Str::random(6)));
         $classType = Helper::ClassType();
 
-        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId'));
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate'));
     } 
     
     public function editExam(Request $request, $id){
@@ -1061,168 +1550,10 @@ class ExamController extends Controller
     } 
     
     public function assignExam(Request $request, $id){
-        $examId = $id;
-        $data2 = Exam::where('id', $id)->first();
-
-        if (!$data2) {
-            if ($request->ajax()) {
-                return response()->json(['status' => 'error', 'message' => 'Exam not found.'], 404);
-            }
-            return redirect::to('view/exam')->with('error', 'Exam not found.');
+        if ($request->ajax()) {
+            return response()->json(['status' => 'info', 'message' => 'Each examination belongs to a single class. To conduct this exam for another class, duplicate the exam.'], 200);
         }
-
-        $sessionId = Session::get('session_id');
-        $branchId = Session::get('branch_id');
-
-        $AssignExam = AssignExam::select('assign_exams.*', 'class_types.name as class_name')
-            ->leftJoin('class_types', 'class_types.id', 'assign_exams.class_type_id')
-            ->where('assign_exams.exam_id', $id)
-            ->where('assign_exams.session_id', $sessionId)
-            ->where('assign_exams.branch_id', $branchId)
-            ->whereNull('assign_exams.deleted_at')
-            ->orderBy('class_types.id', 'ASC')
-            ->get();
-        
-        if ($request->isMethod('post')) {
-            if ($request->input('submit_action') === 'global') {
-                $request->validate([
-                    'exam_date' => 'required|date',
-                ]);
-            } elseif ($request->filled('assign_id')) {
-                $request->validate([
-                    'exam_date' => 'required|date',
-                ]);
-            } else {
-                $request->validate([
-                    'class_type_id' => 'required',
-                    'exam_date' => 'required|date',
-                ]);
-            }
-
-            // 1. Bulk Apply Date to All
-            if ($request->input('submit_action') === 'global') {
-                $updated = AssignExam::where('exam_id', $examId)
-                    ->where('session_id', $sessionId)
-                    ->where('branch_id', $branchId)
-                    ->whereNull('deleted_at')
-                    ->update(['exam_date' => $request->exam_date]);
-
-                $msg = $updated > 0
-                    ? 'Exam date applied to all (' . $updated . ') assigned classes successfully.'
-                    : 'No assigned classes found to update.';
-
-                if ($request->ajax()) {
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => $msg,
-                        'updated_count' => $updated,
-                        'exam_date' => $request->exam_date,
-                        'formatted_date' => date('d-m-Y', strtotime($request->exam_date))
-                    ]);
-                }
-
-                return redirect::to('assign/exam/' . $examId)->with('message', $msg);
-            }
-
-            // 2. Inline update for an existing assignment
-            if ($request->filled('assign_id')) {
-                $assignment = AssignExam::where('id', $request->assign_id)
-                    ->where('exam_id', $examId)
-                    ->where('session_id', $sessionId)
-                    ->where('branch_id', $branchId)
-                    ->first();
-
-                if (!$assignment) {
-                    if ($request->ajax()) {
-                        return response()->json(['status' => 'error', 'message' => 'Assignment not found.'], 404);
-                    }
-                    return redirect::to('assign/exam/' . $examId)->with('error', 'Assignment not found !');
-                }
-
-                $assignment->exam_date = $request->exam_date;
-                $assignment->save();
-
-                if ($request->ajax()) {
-                    $className = DB::table('class_types')->where('id', $assignment->class_type_id)->value('name') ?? 'Class';
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'Exam date updated successfully for ' . $className . '.',
-                        'data' => [
-                            'id' => $assignment->id,
-                            'class_type_id' => $assignment->class_type_id,
-                            'class_name' => $className,
-                            'exam_date' => $assignment->exam_date,
-                            'formatted_date' => date('d-m-Y', strtotime($assignment->exam_date))
-                        ]
-                    ]);
-                }
-
-                return redirect::to('assign/exam/' . $examId)->with('message', 'Exam date updated successfully.');
-            }
-
-            // 3. Add or restore assignment for a class
-            $old = AssignExam::withTrashed()
-                ->where('class_type_id', $request->class_type_id)
-                ->where('exam_id', $examId)
-                ->where('session_id', $sessionId)
-                ->where('branch_id', $branchId)
-                ->first();
-
-            $className = DB::table('class_types')->where('id', $request->class_type_id)->value('name') ?? 'Class';
-
-            if (!empty($old)) {
-                if ($old->trashed()) {
-                    $old->restore();
-                }
-                $old->exam_date = $request->exam_date;
-                $old->save();
-
-                if ($request->ajax()) {
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'Exam date updated successfully for ' . $className . '.',
-                        'is_new' => false,
-                        'data' => [
-                            'id' => $old->id,
-                            'class_type_id' => $old->class_type_id,
-                            'class_name' => $className,
-                            'exam_date' => $old->exam_date,
-                            'formatted_date' => date('d-m-Y', strtotime($old->exam_date))
-                        ]
-                    ]);
-                }
-
-                return redirect::to('assign/exam/' . $examId)->with('message', 'Exam date updated successfully.');
-            }
-
-            $add = new AssignExam;
-            $add->user_id = Session::get('id');
-            $add->session_id = $sessionId;
-            $add->branch_id = $branchId;
-            $add->class_type_id = $request->class_type_id;
-            $add->exam_id = $examId;
-            $add->exam_date = $request->exam_date;
-            $add->save();
-
-            if ($request->ajax()) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Class ' . $className . ' assigned to exam successfully.',
-                    'is_new' => true,
-                    'data' => [
-                        'id' => $add->id,
-                        'class_type_id' => $add->class_type_id,
-                        'class_name' => $className,
-                        'exam_date' => $add->exam_date,
-                        'formatted_date' => date('d-m-Y', strtotime($add->exam_date))
-                    ]
-                ]);
-            }
-
-            return redirect::to('assign/exam/' . $examId)->with('message', 'Exam Assigned Successfully.');
-        }
-
-        return view('examination.offline_exam.exam.assign', ['AssignExam' => $AssignExam, 'data' => $data2]);
+        return Redirect::to('view/exam')->with('message', 'Each examination belongs to a single class. To conduct this exam for another class, duplicate the exam.');
     }
 
     public function deleteAssignExam(Request $request){

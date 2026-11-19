@@ -897,7 +897,7 @@ select.excel-col-filter option {
                                 <tr class="header-titles-row">
                                     <th class="text-center col-sr">#</th>
                                     <th class="col-adm">Adm No.</th>
-                                    <th class="col-class">Class</th>
+                                    <th class="col-class">Course / Batch</th>
                                     <th class="col-name">Student Name</th>
                                     <th class="col-father">Father / Mobile</th>
                                     <th class="text-right col-total">Total Fee</th>
@@ -926,7 +926,7 @@ select.excel-col-filter option {
                                     {{-- 3. Class Filter --}}
                                     <th class="col-class">
                                         <select class="excel-col-filter" id="filter-class" title="Class">
-                                            <option value="">All Classes</option>
+                                            <option value="">All Courses / Batches</option>
                                             @if(!empty($classType))
                                                 @foreach($classType as $class)
                                                     <option value="{{ $class->id }}" {{ ($search['class_type_id'] ?? '') == $class->id ? 'selected' : '' }}>

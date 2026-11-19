@@ -27,3 +27,6 @@ yarn-error.log
 Thumbs.db
 /schoolimage
 /public/schoolimage
+/scratch
+/public/uploads/
+/app/Scripts/__pycache__/

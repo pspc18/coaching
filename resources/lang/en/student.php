@@ -139,6 +139,9 @@ return [
     	'Discount' => 'Discount',
     	'Assign Amount' => 'Assign Amount',
     
+    'Class' => 'Course / Batch',
+    'Class Type' => 'Course',
+    'Class / Section' => 'Course / Batch',
 ];
 
 

@@ -446,7 +446,7 @@
             </div>
             <div class="mob-kpi-box">
                 <div class="mob-kpi-val">{{ count($classType ?? []) }}</div>
-                <div class="mob-kpi-lbl">Total Classes</div>
+                <div class="mob-kpi-lbl">Total Courses</div>
             </div>
             <div class="mob-kpi-box">
                 <div class="mob-kpi-val"><i class="fa fa-bolt text-warning"></i> POS</div>

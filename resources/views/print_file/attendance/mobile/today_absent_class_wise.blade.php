@@ -576,7 +576,7 @@
 
         {{-- Date Navigator Bar --}}
         <div class="mob-abs-date-nav">
-            <a href="{{ route('attendance.today.absent-class-wise', ['date' => $yesterdayStr, 'class_type_id' => $selectedClassIds]) }}" class="mob-date-arrow" title="Previous Day">
+            <a href="{{ route('attendance.today.absent-course-wise', ['date' => $yesterdayStr, 'class_type_id' => $selectedClassIds]) }}" class="mob-date-arrow" title="Previous Day">
                 <i class="fa fa-chevron-left"></i>
             </a>
 
@@ -589,7 +589,7 @@
                 <i class="fa fa-caret-down text-muted" style="font-size: 11px;"></i>
             </div>
 
-            <a href="{{ route('attendance.today.absent-class-wise', ['date' => $tomorrowStr, 'class_type_id' => $selectedClassIds]) }}" class="mob-date-arrow" title="Next Day">
+            <a href="{{ route('attendance.today.absent-course-wise', ['date' => $tomorrowStr, 'class_type_id' => $selectedClassIds]) }}" class="mob-date-arrow" title="Next Day">
                 <i class="fa fa-chevron-right"></i>
             </a>
         </div>
@@ -622,7 +622,7 @@
         {{-- Fast Action Bar --}}
         <div class="mob-abs-actions-bar">
             @if($absentCount > 0)
-                <a href="{{ route('attendance.today.absent-class-wise.pdf', ['date' => $currentDateStr, 'class_type_id' => $selectedClassIds]) }}" target="_blank" class="mob-act-btn btn-act-pdf">
+                <a href="{{ route('attendance.today.absent-course-wise.pdf', ['date' => $currentDateStr, 'class_type_id' => $selectedClassIds]) }}" target="_blank" class="mob-act-btn btn-act-pdf">
                     <i class="fa fa-file-pdf-o"></i> Download PDF
                 </a>
             @endif
@@ -630,7 +630,7 @@
                 <i class="fa fa-sliders"></i> Date &amp; Classes
             </button>
             @if(!empty($selectedClassIds) || $currentDateStr !== $todayStr)
-                <a href="{{ route('attendance.today.absent-class-wise') }}" class="mob-act-btn btn-act-filter" style="flex: 0 0 34px;" title="Reset Filters">
+                <a href="{{ route('attendance.today.absent-course-wise') }}" class="mob-act-btn btn-act-filter" style="flex: 0 0 34px;" title="Reset Filters">
                     <i class="fa fa-refresh"></i>
                 </a>
             @endif
@@ -752,7 +752,7 @@
         <button type="button" class="mob-sheet-close" id="btnCloseFilterSheet">&times;</button>
     </div>
 
-    <form method="GET" action="{{ route('attendance.today.absent-class-wise') }}" id="absentFilterForm">
+    <form method="GET" action="{{ route('attendance.today.absent-course-wise') }}" id="absentFilterForm">
         <div class="mob-sheet-body">
             {{-- Date Section --}}
             <div style="margin-bottom: 12px;">
@@ -770,7 +770,7 @@
             <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                     <label style="font-size: 10.5px; font-weight: 800; color: #334155; text-transform: uppercase; margin: 0;">
-                        <i class="fa fa-graduation-cap text-primary"></i> Target Classes
+                        <i class="fa fa-graduation-cap text-primary"></i> Target Course / Batches
                     </label>
                     <div style="display: flex; gap: 4px;">
                         <button type="button" class="btn btn-xs btn-outline-primary" id="btnSelectAllClasses" style="font-size: 9.5px; padding: 2px 6px;">Check All</button>

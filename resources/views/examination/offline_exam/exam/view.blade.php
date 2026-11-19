@@ -479,6 +479,117 @@ select.excel-col-filter option {
 }
 
 /* Assigned Classes & Schedules */
+.sub-classes-table-wrapper {
+    overflow-x: auto;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+.sub-classes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+.sub-classes-table thead th {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 4px 8px !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    height: 24px !important;
+}
+.sub-classes-table thead th:last-child {
+    border-right: none !important;
+}
+.sub-classes-table tbody td {
+    padding: 4px 8px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-right: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    background: transparent !important;
+}
+.sub-classes-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+.sub-classes-table tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+/* Marks Action Dropdown */
+.btn-marks-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    height: 23px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #002C54;
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s ease;
+    white-space: nowrap;
+}
+.btn-marks-action:hover, .btn-marks-action:focus {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+.btn-marks-action:hover i, .btn-marks-action:focus i {
+    color: #38bdf8 !important;
+}
+
+/* Sub-table Parallel Edit Button */
+.btn-subtable-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    height: 23px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #92400e;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all .15s ease;
+    white-space: nowrap;
+}
+.btn-subtable-edit:hover, .btn-subtable-edit:focus {
+    background: #d97706;
+    color: #ffffff;
+    border-color: #d97706;
+}
+.btn-subtable-edit:hover i, .btn-subtable-edit:focus i {
+    color: #ffffff !important;
+}
+.sub-classes-table .dropdown-menu {
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+.sub-classes-table .dropdown-item {
+    font-size: 11px;
+    color: #1e293b;
+    padding: 6px 12px;
+    transition: background .15s ease;
+}
+.sub-classes-table .dropdown-item:hover {
+    background: #f1f5f9;
+    color: #002C54;
+}
+
 .exam-classes-wrap {
     display: flex;
     flex-direction: column;
@@ -1138,12 +1249,14 @@ select.excel-col-filter option {
                     <thead>
                         {{-- Row 1: Header Titles (Always Sticky at Top: 0) --}}
                         <tr class="header-titles-row">
-                            <th style="width: 50px; text-align: center;">S.No.</th>
-                            <th style="text-align: left; padding-left: 10px; min-width: 220px;">Exam Name &amp; Date</th>
-                            <th style="text-align: left; padding-left: 10px; width: 130px;">Exam Term</th>
-                            <th style="text-align: left; padding-left: 10px; min-width: 260px;">Assigned Classes &amp; Schedules</th>
-                            <th style="width: 150px; text-align: center;">Result Status</th>
-                            <th class="fixed_action_head" style="width: 175px; text-align: center;">Actions</th>
+                            <th style="width: 45px; text-align: center;">S.No.</th>
+                            <th style="text-align: left; padding-left: 10px; min-width: 190px;">Exam Name &amp; Scanner Code</th>
+                            <th style="text-align: left; padding-left: 10px; width: 140px;">Course</th>
+                            <th style="text-align: left; padding-left: 10px; min-width: 170px;">Included Subject(s)</th>
+                            <th style="width: 115px; text-align: center;">Exam Date</th>
+                            <th style="width: 140px; text-align: center;">Result Published</th>
+                            <th style="width: 125px; text-align: center;">Marks Entry</th>
+                            <th class="fixed_action_head" style="width: 115px; text-align: center;">Actions</th>
                         </tr>
 
                         {{-- Row 2: In-Column Dark Navy Excel Filters (Sticky Top: 36px) --}}
@@ -1155,25 +1268,21 @@ select.excel-col-filter option {
                                 <input type="text" class="excel-col-filter col-filter-name" placeholder="Filter exam name..." autocomplete="off">
                             </th>
 
-                            {{-- Filter: Exam Term --}}
-                            <th>
-                                <select class="excel-col-filter col-filter-term">
-                                    <option value="">All Terms</option>
-                                    @foreach($examTerms ?? [] as $term)
-                                        <option value="{{ $term->id }}">{{ $term->name }}</option>
-                                    @endforeach
-                                </select>
-                            </th>
-
                             {{-- Filter: Assigned Class --}}
                             <th>
                                 <select class="excel-col-filter col-filter-class">
-                                    <option value="">All Classes</option>
+                                    <option value="">All Courses</option>
                                     @foreach($classType ?? [] as $cl)
                                         <option value="{{ $cl->id }}">{{ $cl->name }}</option>
                                     @endforeach
                                 </select>
                             </th>
+
+                            {{-- Column: Subjects (no filter needed) --}}
+                            <th style="text-align: center; color: rgba(255,255,255,0.4); font-size: 10.5px;">-</th>
+
+                            {{-- Column: Exam Date (no filter needed) --}}
+                            <th style="text-align: center; color: rgba(255,255,255,0.4); font-size: 10.5px;">-</th>
 
                             {{-- Filter: Status --}}
                             <th>
@@ -1181,10 +1290,11 @@ select.excel-col-filter option {
                                     <option value="">All Status</option>
                                     <option value="published">Published</option>
                                     <option value="pending">Pending</option>
-                                    <option value="assigned">Assigned</option>
-                                    <option value="unassigned">Unassigned</option>
                                 </select>
                             </th>
+
+                            {{-- Column: Marks Entry (no filter needed) --}}
+                            <th style="text-align: center; color: rgba(255,255,255,0.4); font-size: 10.5px;">-</th>
 
                             {{-- Filter: Reset --}}
                             <th class="fixed_action_filter">
@@ -1241,42 +1351,72 @@ select.excel-col-filter option {
 
 {{-- Centered Copy Exam Modal --}}
 <div class="modal fade" id="copyExamModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px;">
-        <div class="modal-content" style="border-radius: 4px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px;">
+        <div class="modal-content" style="border-radius: 4px; border: 1px solid #002C54; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
             <form id="formCopyExam" action="{{ url('copy/exam') }}" method="post">
                 @csrf
-                <div class="modal-header-navy">
+                <div class="modal-header-navy d-flex align-items-center justify-content-between" style="background:#002C54; color:#fff; padding:10px 16px;">
                     <div>
-                        <h5 class="modal-title">
-                            <i class="fa fa-copy text-info"></i> Duplicate Examination
+                        <h5 class="modal-title font-weight-bold mb-0" style="font-size:14px; color:#fff;">
+                            <i class="fa fa-copy text-info mr-1"></i> Duplicate Examination
                         </h5>
-                        <span class="modal-subtitle">Offline Examination Setup &bull; Clone Structure</span>
+                        <span class="modal-subtitle" style="font-size:10.5px; opacity:0.8; color:#e0f2fe;">Create an independent exam for the selected course</span>
                     </div>
-                    <button type="button" class="theme-delete-close" data-dismiss="modal" aria-label="Close">
-                        <i class="fa fa-times"></i>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity:0.9; outline:none;">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
+                
                 <div class="modal-body p-3" style="background:#ffffff;">
                     <input type="hidden" id="copy_exam_id" name="exam_id">
                     
+                    {{-- New Exam Title --}}
                     <div class="form-group mb-2">
-                        <label style="font-size: 11.5px; font-weight: 700; color: #334155;">New Exam Title <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="copy_exam_name" name="name" maxlength="255" required style="height: 30px; font-size: 12px; border-radius: 2px; border: 1px solid #cbd5e1;">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                            New Examination Title <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="copy_exam_name" name="name" maxlength="255" required 
+                               placeholder="Enter new examination title..."
+                               style="height: 32px; font-size: 12px; border-radius: 3px; border: 1px solid #cbd5e1; font-weight: 600; color: #002C54;">
+                    </div>
+
+                    {{-- Target Course / Batch Selection --}}
+                    <div class="form-group mb-2">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                            <i class="fa fa-graduation-cap text-primary mr-1"></i> Target Course <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control" id="copy_class_type_id" name="class_type_id" required
+                                style="height: 32px; font-size: 12px; border-radius: 3px; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 500;">
+                            <option value="">-- Select Target Course --</option>
+                            @foreach($classType ?? [] as $cl)
+                                <option value="{{ $cl->id }}">{{ $cl->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="text-muted mt-1" style="font-size: 10.5px;">
+                            Select the course for this copied exam.
+                        </div>
                     </div>
                     
-                    <div class="form-group mb-2">
-                        <label style="font-size: 11.5px; font-weight: 700; color: #334155;">Exam Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="copy_exam_date" name="exam_date" required style="height: 30px; font-size: 12px; border-radius: 2px; border: 1px solid #cbd5e1;">
+                    {{-- Exam Date --}}
+                    <div class="form-group mb-3">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                            <i class="fa fa-calendar-check-o text-primary mr-1"></i> Scheduled Examination Date <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="copy_exam_date" name="exam_date" required 
+                               style="height: 32px; font-size: 12px; border-radius: 3px; border: 1px solid #cbd5e1; color: #0f172a;">
                     </div>
-                    
-                    <div class="alert alert-info py-2 px-3 mb-0 mt-2" style="font-size: 10.5px; border-radius: 2px; border-left: 3px solid #0284c7; background: #f0f9ff; color: #0369a1;">
-                        <i class="fa fa-info-circle mr-1"></i> The new duplicated exam will inherit assigned classes and schedules. Marks will remain unpopulated for fresh scoring.
+
+                    {{-- Explanatory Notice --}}
+                    <div class="alert alert-info py-2 px-3 mb-0" style="font-size: 11px; border-radius: 3px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;">
+                        <i class="fa fa-info-circle mr-1 text-primary"></i> 
+                        The duplicated exam will be created as a completely independent record with its own scanner code, questions, and marksheets. You can edit subjects and questions for this course anytime without affecting the original exam.
                     </div>
                 </div>
-                <div class="modal-footer py-2 px-3 bg-light d-flex justify-content-end" style="border-top: 1px solid #e2e8f0; gap: 8px;">
-                    <button type="button" class="theme-btn-cancel" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-modal-navy-submit" id="btnSubmitCopy">
-                        <i class="fa fa-copy"></i> Duplicate Exam
+
+                <div class="modal-footer py-2 px-3 bg-light d-flex justify-content-between align-items-center" style="border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="dash-btn" style="background:#e2e8f0; color:#1e293b; border:1px solid #cbd5e1; padding:3px 12px; font-size:11.5px;" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-modal-navy-submit" id="btnSubmitCopy" style="background:#002C54; color:#fff; border:1px solid #001f3f; padding:4px 16px; font-size:11.5px; font-weight:600; border-radius:3px;">
+                        <i class="fa fa-copy mr-1"></i> Duplicate Exam
                     </button>
                 </div>
             </form>
@@ -1442,9 +1582,19 @@ $(document).ready(function(){
     // Bind Copy Modal Data (Delegated)
     $(document).on('click', '.copyExamData', function(e) {
         e.preventDefault();
-        $('#copy_exam_id').val($(this).data('id'));
-        $('#copy_exam_name').val($(this).data('name'));
-        $('#copy_exam_date').val($(this).data('date'));
+        var btn = $(this);
+        var examId = btn.data('id');
+        var examName = btn.data('name');
+        var examDate = btn.data('date');
+        var classId = btn.data('class-id');
+
+        $('#copy_exam_id').val(examId);
+        $('#copy_exam_name').val(examName);
+        $('#copy_exam_date').val(examDate);
+        if (classId) {
+            $('#copy_class_type_id').val(classId);
+        }
+
         $('#copyExamModal').modal('show');
     });
 
@@ -1485,40 +1635,117 @@ $(document).ready(function(){
         });
     });
 
-    // AJAX 1-Click Toggle for Result Publication inside centered modal
-    $(document).on('click', '.btn-ajax-toggle-publish', function(e) {
+    // Open Single Publish Result Modal (Delegated)
+    $(document).on('click', '.openPublishModalBtn', function(e) {
         e.preventDefault();
         var btn = $(this);
-        var examId = btn.data('exam-id');
-        var classTypeId = btn.data('class-type-id');
-        var actionUrl = btn.data('action-url');
+        var examId = btn.data('id');
+        var examName = btn.data('name');
+        var classId = btn.data('class-id');
+        var className = btn.data('class-name');
+        var isPublished = btn.data('published') == 1;
+        var pubDate = btn.data('date') || '{{ date("Y-m-d") }}';
+
+        $('#pub_modal_exam_id').val(examId);
+        $('#pub_modal_class_id').val(classId);
+        $('#pub_modal_exam_title').text(examName);
+        $('#pub_modal_class_name').text(className);
+        $('#pub_modal_date').val(pubDate);
+
+        if (isPublished) {
+            $('#pub_modal_status_badge').html('<span class="badge badge-success px-2 py-1" style="font-size:10.5px; background:#10b981;"><i class="fa fa-check-circle mr-1"></i> Published</span>');
+            $('#pub_modal_btn_unpublish').show();
+            $('#pub_modal_btn_submit').removeClass('btn-success').addClass('btn-primary').html('<i class="fa fa-calendar-check-o mr-1"></i> Update Date').data('action', 'update_date');
+        } else {
+            $('#pub_modal_status_badge').html('<span class="badge badge-secondary px-2 py-1" style="font-size:10.5px; background:#94a3b8;"><i class="fa fa-clock-o mr-1"></i> Not Published</span>');
+            $('#pub_modal_btn_unpublish').hide();
+            $('#pub_modal_btn_submit').removeClass('btn-primary').addClass('btn-success').html('<i class="fa fa-paper-plane mr-1"></i> Publish Result').data('action', 'publish');
+        }
+
+        $('#publishResultModal').modal('show');
+    });
+
+    // Submit Publish / Update Date
+    $(document).on('click', '#pub_modal_btn_submit', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var examId = $('#pub_modal_exam_id').val();
+        var classId = $('#pub_modal_class_id').val();
+        var publishDate = $('#pub_modal_date').val();
+        var action = btn.data('action') || 'publish';
         var originalHtml = btn.html();
 
-        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+        if (!publishDate) {
+            notify('error', 'Please select a publish date.');
+            return;
+        }
+
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Saving...');
 
         $.ajax({
-            url: actionUrl,
+            url: '{{ route("exam.result.publish") }}',
             type: 'POST',
             data: {
                 _token: '{{ csrf_token() }}',
                 exam_id: examId,
-                class_type_id: classTypeId
+                class_type_id: classId,
+                publish_date: publishDate,
+                action: action
             },
             dataType: 'json',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function(res) {
-                btn.prop('disabled', false);
+                btn.prop('disabled', false).html(originalHtml);
+                $('#publishResultModal').modal('hide');
                 if (res.status === 'success') {
                     notify('success', res.message);
                     fetchExams(currentPage);
                 } else {
-                    btn.html(originalHtml);
-                    notify('error', res.message || 'Publication status update failed.');
+                    notify('error', res.message || 'Failed to publish result.');
                 }
             },
-            error: function() {
+            error: function(xhr) {
                 btn.prop('disabled', false).html(originalHtml);
-                notify('error', 'Network error while updating result publication.');
+                var err = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error publishing result.';
+                notify('error', err);
+            }
+        });
+    });
+
+    // Unpublish Result
+    $(document).on('click', '#pub_modal_btn_unpublish', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var examId = $('#pub_modal_exam_id').val();
+        var classId = $('#pub_modal_class_id').val();
+        var originalHtml = btn.html();
+
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Unpublishing...');
+
+        $.ajax({
+            url: '{{ route("exam.result.reset-publication") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                exam_id: examId,
+                class_type_id: classId
+            },
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(res) {
+                btn.prop('disabled', false).html(originalHtml);
+                $('#publishResultModal').modal('hide');
+                if (res.status === 'success') {
+                    notify('success', res.message);
+                    fetchExams(currentPage);
+                } else {
+                    notify('error', res.message || 'Failed to unpublish result.');
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false).html(originalHtml);
+                var err = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error unpublishing result.';
+                notify('error', err);
             }
         });
     });

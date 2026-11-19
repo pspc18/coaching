@@ -17,12 +17,12 @@
     $assignedClassIds = !empty($AssignExam) ? $AssignExam->pluck('class_type_id')->filter()->toArray() : [];
 @endphp
 
-@section('title', 'Assign Exam Classes - Arise ERP')
+@section('title', 'Assign Exam Courses / Batches - Arise ERP')
 
 @section('styles')
 <style>
 /* ==========================================================================
-   ARISE ERP - ASSIGN EXAM TO CLASSES (ADMIN SIGNATURE THEME)
+   ARISE ERP - ASSIGN EXAM TO COURSES / BATCHES (ADMIN SIGNATURE THEME)
    - Palette: Arise Dark Navy (#002C54 to #0f3460), Sky Blue (#0284c7)
    - Layout: Sharp 2px-3px border-radius, compact responsive viewport
    - Dual View: Modern interactive table for desktop, executive card stack for mobile
@@ -874,7 +874,7 @@
         {{-- Top Hero Banner --}}
         <div class="assign-hero">
             <div>
-                <span class="assign-hero-kicker">Examination Panel &bull; Class Assignment</span>
+                <span class="assign-hero-kicker">Examination Panel &bull; Course / Batch Assignment</span>
                 <h1 class="assign-hero-title">
                     <i class="fa fa-tag"></i>
                     <span>{{ $data->name ?? 'Exam' }}</span>
@@ -888,7 +888,7 @@
                     @endif
                 </h1>
                 <p class="assign-hero-sub">
-                    Manage class assignments, customize exam dates per class, or bulk-sync scheduled dates in real time.
+                    Manage class assignments, customize exam dates per course / batch, or bulk-sync scheduled dates in real time.
                 </p>
             </div>
             <div class="assign-hero-actions">
@@ -925,7 +925,7 @@
                 </div>
                 <div class="kpi-meta">
                     <span class="kpi-val" id="kpiTotalAssigned">{{ $totalAssigned }}</span>
-                    <span class="kpi-lbl">Total Assigned Classes</span>
+                    <span class="kpi-lbl">Total Assigned Courses / Batches</span>
                 </div>
             </div>
             <div class="kpi-card">
@@ -950,12 +950,12 @@
 
         {{-- Operations Grid: Assign New Class + Bulk Apply Date --}}
         <div class="ops-grid">
-            {{-- Card 1: Assign Class Form --}}
+            {{-- Card 1: Assign Course / Batch Form --}}
             <div class="dash-card">
                 <div class="dash-card-header">
                     <h3 class="dash-card-title">
                         <i class="fa fa-plus-circle text-primary"></i>
-                        <span>Assign Class to Exam</span>
+                        <span>Assign Course / Batch to Exam</span>
                     </h3>
                     <span class="text-muted" style="font-size:10.5px;">Real-time AJAX Save</span>
                 </div>
@@ -968,7 +968,7 @@
                             <div class="form-group-compact">
                                 <label class="form-label-compact">Select Class <span class="req">*</span></label>
                                 <select class="dash-select" id="new_class_type_id" name="class_type_id" required>
-                                    <option value="">-- Choose Class --</option>
+                                    <option value="">-- Choose Course / Batch --</option>
                                     @if(!empty($classType))
                                         @foreach($classType as $type)
                                             @php
@@ -988,13 +988,13 @@
                             <div class="form-group-compact">
                                 <button type="submit" id="btnAssignSingle" class="dash-btn dash-btn-primary" style="height:30px;">
                                     <i class="fa fa-check"></i>
-                                    <span>Assign Class</span>
+                                    <span>Assign Course / Batch</span>
                                 </button>
                             </div>
                         </div>
                     </form>
                     <span class="hint-text">
-                        Assign an individual class to this exam. You can customize dates per class or bulk apply below.
+                        Assign an individual course / batch to this exam. You can customize dates per class or bulk apply below.
                     </span>
                 </div>
             </div>
@@ -1004,7 +1004,7 @@
                 <div class="dash-card-header">
                     <h3 class="dash-card-title">
                         <i class="fa fa-calendar-check text-warning"></i>
-                        <span>Apply Date to All Classes</span>
+                        <span>Apply Date to All Courses / Batches</span>
                     </h3>
                     <span class="text-muted" style="font-size:10.5px;">Bulk Tool</span>
                 </div>
@@ -1050,8 +1050,8 @@
             {{-- Empty State (Hidden when items exist) --}}
             <div id="rosterEmptyState" class="empty-roster" style="{{ $totalAssigned > 0 ? 'display:none;' : '' }}">
                 <i class="fa fa-folder-open"></i>
-                <div class="empty-roster-title">No Classes Assigned Yet</div>
-                <div class="empty-roster-desc">Select a class from the form above and click "Assign Class" to get started.</div>
+                <div class="empty-roster-title">No Courses / Batches Assigned Yet</div>
+                <div class="empty-roster-desc">Select a class from the form above and click "Assign Course / Batch" to get started.</div>
             </div>
 
             {{-- 1. Desktop Table View --}}
@@ -1060,7 +1060,7 @@
                     <thead>
                         <tr>
                             <th style="width: 45px; text-align: center;">#</th>
-                            <th>Class Name</th>
+                            <th>Course Name</th>
                             <th style="width: 280px;">Scheduled Exam Date</th>
                             <th style="width: 130px; text-align: center;">Status</th>
                             <th style="width: 90px; text-align: center;">Action</th>
@@ -1107,7 +1107,7 @@
                                         @endif
                                     </td>
                                     <td style="text-align: center;">
-                                        <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="{{ $item->id }}" data-name="{{ $item->class_name ?? 'Class' }}" title="Unassign Class">
+                                        <button type="button" class="dash-btn dash-btn-sm dash-btn-danger btn-unassign-trigger" data-id="{{ $item->id }}" data-name="{{ $item->class_name ?? 'Class' }}" title="Unassign Course / Batch">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </td>
@@ -1190,7 +1190,7 @@
                     </div>
                     <div class="theme-delete-headings">
                         <h5 class="theme-delete-title" id="unassignModalLabel">Confirm Unassignment</h5>
-                        <p class="theme-delete-subtitle">Examination &bull; Class Assignment</p>
+                        <p class="theme-delete-subtitle">Examination &bull; Course / Batch Assignment</p>
                     </div>
                 </div>
                 <button type="button" class="theme-delete-close" data-dismiss="modal" aria-label="Close" title="Cancel">
@@ -1215,7 +1215,7 @@
                             <span class="badge" style="font-size:10.5px; background:#002C54; color:#fff;">{{ $data->name ?? 'Exam' }}</span>
                         </div>
                         <div class="theme-delete-info-row">
-                            <span class="theme-delete-info-label"><i class="fa fa-graduation-cap mr-1 text-primary"></i> Target Class:</span>
+                            <span class="theme-delete-info-label"><i class="fa fa-graduation-cap mr-1 text-primary"></i> Target Course / Batch:</span>
                             <strong class="theme-delete-info-val text-primary" id="unassignModalClassVal">-</strong>
                         </div>
                         <div class="theme-delete-info-row border-0 pb-0">
@@ -1233,7 +1233,7 @@
                 <div class="theme-delete-footer">
                     <button type="button" class="theme-btn-cancel" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="theme-btn-confirm-delete" id="btnConfirmUnassign">
-                        <i class="fa fa-trash mr-1"></i> Yes, Unassign Class
+                        <i class="fa fa-trash mr-1"></i> Yes, Unassign Course / Batch
                     </button>
                 </div>
             </form>
@@ -1252,7 +1252,7 @@
                     </div>
                     <div class="theme-delete-headings">
                         <h5 class="theme-delete-title" id="bulkModalLabel">Bulk Date Synchronization</h5>
-                        <p class="theme-delete-subtitle">Apply Date to All Assigned Classes</p>
+                        <p class="theme-delete-subtitle">Apply Date to All Assigned Courses / Batches</p>
                     </div>
                 </div>
                 <button type="button" class="theme-delete-close" data-dismiss="modal" aria-label="Close" title="Cancel">
@@ -1263,7 +1263,7 @@
                 <div class="theme-navy-avatar">
                     <i class="fa fa-bolt"></i>
                 </div>
-                <p class="theme-delete-prompt">Apply uniform exam date across all assigned classes?</p>
+                <p class="theme-delete-prompt">Apply uniform exam date across all assigned courses / batches?</p>
                 <h6 class="theme-delete-item-title" id="bulkModalDatePreviewTitle">Date: --</h6>
                 
                 <div class="theme-delete-info-card">
@@ -1276,14 +1276,14 @@
                         <strong class="theme-delete-info-val text-primary" id="bulkModalDatePreview">-</strong>
                     </div>
                     <div class="theme-delete-info-row border-0 pb-0">
-                        <span class="theme-delete-info-label"><i class="fa fa-layer-group mr-1 text-primary"></i> Total Classes:</span>
+                        <span class="theme-delete-info-label"><i class="fa fa-layer-group mr-1 text-primary"></i> Total Courses:</span>
                         <span class="theme-delete-info-val font-weight-bold" id="bulkModalCountPreview">{{ $totalAssigned }} Classes</span>
                     </div>
                 </div>
 
                 <div class="theme-navy-alert">
                     <i class="fa fa-info-circle" style="margin-top:2px;"></i>
-                    <span>This operation will update the exam schedule date for all assigned classes simultaneously.</span>
+                    <span>This operation will update the exam schedule date for all assigned courses / batches simultaneously.</span>
                 </div>
             </div>
 
@@ -1381,7 +1381,7 @@ $(document).ready(function() {
         var examDate = $('#new_exam_date').val();
 
         if (!classId) {
-            showToast('Please select a class to assign.', 'error');
+            showToast('Please select a course / batch to assign.', 'error');
             return;
         }
         if (!examDate) {
@@ -1399,7 +1399,7 @@ $(document).ready(function() {
                 'X-Requested-With': 'XMLHttpRequest'
             },
             success: function(res) {
-                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Class');
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Course / Batch');
                 if (res.status === 'success') {
                     showToast(res.message, 'success');
 
@@ -1516,7 +1516,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Class');
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Assign Course / Batch');
                 var err = xhr.responseJSON ? xhr.responseJSON.message : 'Server error occurred.';
                 showToast(err, 'error');
             }

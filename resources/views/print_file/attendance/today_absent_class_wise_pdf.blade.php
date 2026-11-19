@@ -63,7 +63,7 @@
     @include('print_file.print_header')
 
     <div class="report-title">
-        <h2>Today's Absent Class-Wise Report</h2>
+        <h2>Today's Absent Course-Wise Report</h2>
         <p>{{ $reportDate->format('d M Y') }}</p>
     </div>
 
@@ -80,7 +80,7 @@
         <thead>
             <tr>
                 <th style="width: 5%;">S.No.</th>
-                <th style="width: 12%;">Class</th>
+                <th style="width: 12%;">Course / Batch</th>
                 <!--<th style="width: 12%;">Admission No</th>-->
                 <!--<th style="width: 14%;">Attendance UID</th>-->
                 <th style="width: 22%;">Student Name</th>

@@ -12,7 +12,7 @@
                                     <th>Name</th>
                                     @if(!empty($data))
                                     @if($data[0]->role_id == 3)
-                                    <th>Class</th>
+                                    <th>Course / Batch</th>
                                     @endif
                                     @endif
                                     <th>F Name</th>

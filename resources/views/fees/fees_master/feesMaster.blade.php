@@ -975,7 +975,7 @@ input:checked + .matrix-switch-slider:before {
             <h1 class="dash-hero-title">
                 <i class="fa fa-sliders"></i> {{ __('fees.Fees Master') }}
             </h1>
-            <span class="dash-hero-subtitle">Define class fee structures, assign fees to students, and manage fee master configurations</span>
+            <span class="dash-hero-subtitle">Define course fee structures, assign fees to students, and manage fee master configurations</span>
         </div>
 
         {{-- Metric Counter Pills --}}
@@ -1014,7 +1014,7 @@ input:checked + .matrix-switch-slider:before {
     {{-- 2. Equal-Height Split Workspace --}}
     <div class="dash-split-wrap">
 
-        {{-- Left Form Column (Assign Fee Structure to Class - Equal Height Card) --}}
+        {{-- Left Form Column (Assign Fee Structure to Course / Batch - Equal Height Card) --}}
         <div class="fg-col-form">
             <div class="equal-card">
                 <div class="dash-card-header">
@@ -1029,14 +1029,14 @@ input:checked + .matrix-switch-slider:before {
                     @csrf
 
                     <div class="form-scroll-container">
-                        {{-- Select Class --}}
+                        {{-- Select Course / Batch --}}
                         <div class="form-group-compact">
                             <label class="form-label-compact">
-                                <span>{{ __('common.Class') }} <span class="req-star">*</span></span>
-                                <span class="label-note">Select target class</span>
+                                <span>Course <span class="req-star">*</span></span>
+                                <span class="label-note">Select target course</span>
                             </label>
                             <select class="form-control-compact @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" required>
-                                <option value="">-- Select Class --</option>
+                                <option value="">-- Select Course --</option>
                                 @if(!empty($classType))
                                     @foreach($classType as $type)
                                         <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
@@ -1129,10 +1129,10 @@ input:checked + .matrix-switch-slider:before {
             <div class="equal-card">
                 <div class="dash-card-header">
                     <h3 class="dash-card-title">
-                        <i class="fa fa-list text-info"></i> Class Fee Master Directory
+                        <i class="fa fa-list text-info"></i> Course Fee Master Directory
                     </h3>
                     <span class="badge-total-records">
-                        Total Classes: <b>{{ count($groupedByClass ?? []) }}</b>
+                        Total Courses: <b>{{ count($groupedByClass ?? []) }}</b>
                     </span>
                 </div>
 
@@ -1143,7 +1143,7 @@ input:checked + .matrix-switch-slider:before {
                             {{-- Row 1: Header Titles --}}
                             <tr class="header-titles-row">
                                 <th style="width: 45px; text-align: center;">#</th>
-                                <th style="width: 150px;">{{ __('common.Class') }}</th>
+                                <th style="width: 150px;">Course</th>
                                 <th>Assigned Fee Heads & Amounts</th>
                                 <th style="width: 110px; text-align: right;">Total Fee</th>
                                 <th style="width: 70px; text-align: center;">{{ __('messages.Action') }}</th>
@@ -1153,10 +1153,10 @@ input:checked + .matrix-switch-slider:before {
                             <tr class="excel-filter-row">
                                 <th></th>
                                 <th>
-                                    <input type="text" id="filter_class" class="excel-col-filter" placeholder="Search class...">
+                                    <input type="text" id="filter_class" class="excel-col-filter" placeholder="Search Course / Batch...">
                                 </th>
                                 <th colspan="2" style="font-size: 10px; color: #93c5fd; font-weight: normal; vertical-align: middle;">
-                                    <i class="fa fa-info-circle mr-1"></i> Type above to filter configured classes instantly
+                                    <i class="fa fa-info-circle mr-1"></i> Type above to filter configured courses instantly
                                 </th>
                                 <th style="text-align: center;">
                                     <button type="button" class="btn-reset-filters" id="btn_clear_filters" title="Reset Filter">
@@ -1225,13 +1225,13 @@ input:checked + .matrix-switch-slider:before {
                                         <div class="table-actions">
                                             @if(isset($classesWithCollectedFees[$classTypeId]))
                                                 <span class="table-btn btn-action-locked" 
-                                                      title="Fees already collected for student(s) of this class. Fee structure cannot be edited.">
+                                                      title="Fees already collected for student(s) of this course / batch. Fee structure cannot be edited.">
                                                     <i class="fa fa-lock"></i>
                                                 </span>
                                             @else
                                                 <a href="{{ url('feesMasterEdit/' . $classTypeId) }}" 
                                                    class="table-btn btn-action-edit {{ Helper::permissioncheck(11)->edit ? '' : 'd-none' }}" 
-                                                   title="Edit Class Fee Structure">
+                                                   title="Edit Course Fee Structure">
                                                     <i class="fa fa-edit"></i>
                                                 </a>
                                             @endif
@@ -1245,8 +1245,8 @@ input:checked + .matrix-switch-slider:before {
                                             <div style="width:50px; height:50px; border-radius:2px; background:#e0f2fe; border:1px dashed #7dd3fc; display:flex; align-items:center; justify-content:center; font-size:20px; color:#0284c7; margin-bottom:10px;">
                                                 <i class="fa fa-folder-open-o"></i>
                                             </div>
-                                            <div style="font-size:13px; font-weight:700; color:#002C54; margin-bottom:3px;">No Class Fee Structures Configured Yet</div>
-                                            <div style="font-size:11px; color:#64748b;">Use the form on the left to assign fees to your first class.</div>
+                                            <div style="font-size:13px; font-weight:700; color:#002C54; margin-bottom:3px;">No Course Fee Structures Configured Yet</div>
+                                            <div style="font-size:11px; color:#64748b;">Use the form on the left to assign fees to your first course / batch.</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -1259,8 +1259,8 @@ input:checked + .matrix-switch-slider:before {
                                         <div style="width:48px; height:48px; border-radius:2px; background:#f8fafc; border:1px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:20px; color:#64748b; margin-bottom:10px;">
                                             <i class="fa fa-search"></i>
                                         </div>
-                                        <div style="font-size:12.5px; font-weight:700; color:#002C54; margin-bottom:3px;">No Matching Classes Found</div>
-                                        <div style="font-size:11px; color:#64748b; margin-bottom:10px;">No class fee records match your search filter.</div>
+                                        <div style="font-size:12.5px; font-weight:700; color:#002C54; margin-bottom:3px;">No Matching Courses Found</div>
+                                        <div style="font-size:11px; color:#64748b; margin-bottom:10px;">No course fee records match your search filter.</div>
                                         <button type="button" class="dash-btn dash-btn-secondary" id="btn_clear_empty_filters" style="height:26px; font-size:11px;">
                                             <i class="fa fa-refresh mr-1"></i> Clear Filter
                                         </button>
@@ -1338,7 +1338,7 @@ input:checked + .matrix-switch-slider:before {
                             Bulk Assign Fees to Students
                         </h5>
                         <div class="theme-modal-subtitle">
-                            Select class and assign fee heads in bulk to enrolled students
+                            Select course and assign fee heads in bulk to enrolled students
                         </div>
                     </div>
                 </div>
@@ -1354,9 +1354,9 @@ input:checked + .matrix-switch-slider:before {
                     <div class="theme-filter-card">
                         <div class="row g-2 align-items-end">
                             <div class="col-md-4">
-                                <label class="theme-filter-label">Select Class <span class="text-danger">*</span></label>
+                                <label class="theme-filter-label">Select Course <span class="text-danger">*</span></label>
                                 <select class="form-control-compact w-100" id="bulk_class_type_id" name="class_type_id" required style="height:28px; font-size:11.5px; border-radius:2px;">
-                                    <option value="">-- Choose Class --</option>
+                                    <option value="">-- Choose Course --</option>
                                     @if(!empty($classType))
                                         @foreach($classType as $type)
                                             <option value="{{ $type->id }}">{{ $type->name ?? '' }}</option>
@@ -1393,7 +1393,7 @@ input:checked + .matrix-switch-slider:before {
                                 <tbody id="tbody_students_list">
                                     <tr>
                                         <td colspan="6" class="text-center py-4 text-muted" style="font-size:11.5px;">
-                                            <i class="fa fa-info-circle text-info mr-1"></i> Please select a class above to load enrolled students.
+                                            <i class="fa fa-info-circle text-info mr-1"></i> Please select a course above to load enrolled students.
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1525,7 +1525,7 @@ $(document).ready(function() {
         var bulk_admission_no = ($('#bulk_admission_no').val() || '').trim();
 
         if (!class_type_id) {
-            $('#tbody_students_list').html('<tr><td colspan="6" class="text-center py-4 text-muted" style="font-size:11.5px;"><i class="fa fa-info-circle text-info mr-1"></i> Please select a class above to load enrolled students.</td></tr>');
+            $('#tbody_students_list').html('<tr><td colspan="6" class="text-center py-4 text-muted" style="font-size:11.5px;"><i class="fa fa-info-circle text-info mr-1"></i> Please select a course above to load enrolled students.</td></tr>');
             $('#bulk_fees_master_ids').html('').trigger('change');
             $('#students_selected_counter').text('0');
             return;

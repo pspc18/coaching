@@ -22,12 +22,33 @@ class Exam extends Model
         'is_online' => 'boolean',
         'answer_key' => 'array',
         'online_questions' => 'array',
+        'subject_ids' => 'array',
         'marks_per_correct' => 'decimal:2',
         'marks_per_incorrect' => 'decimal:2',
         'result_declaration_at' => 'datetime',
         'duration' => 'integer',
         'exam_creation_mode' => 'string',
     ];
+
+    /**
+     * Get the array of selected subject IDs for this exam.
+     * Fallback to subject_id if subject_ids is not set.
+     */
+    public function getSelectedSubjectIdsAttribute(): array
+    {
+        $raw = $this->subject_ids;
+        if (!empty($raw)) {
+            $list = is_array($raw) ? $raw : (json_decode($raw, true) ?: []);
+            $list = array_values(array_filter(array_map('intval', $list)));
+            if (!empty($list)) {
+                return $list;
+            }
+        }
+        if (!empty($this->subject_id)) {
+            return [(int) $this->subject_id];
+        }
+        return [];
+    }
 
     public function Subject()
     {

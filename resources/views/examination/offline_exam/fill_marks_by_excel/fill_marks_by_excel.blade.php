@@ -837,14 +837,14 @@
                     @elseif($isUploadMode)
                         <i class="fa fa-cloud-upload text-info"></i> Step 2: Upload Spreadsheet for <strong>{{ $selectedClassName }} &bull; {{ $selectedExamName }}</strong>
                     @else
-                        <i class="fa fa-th-list text-info"></i> Step 1: Select Academic Class &amp; Examination
+                        <i class="fa fa-th-list text-info"></i> Step 1: Select Academic Course &amp; Examination
                     @endif
                 </h6>
 
                 <div class="dash-card-tools d-flex align-items-center" style="gap: 6px;">
                     @if($isUploadMode)
                         <a href="{{ url('fill-marks-by-excel') }}" class="dash-btn dash-btn-outline" style="height:23px; font-size:10.5px;">
-                            <i class="fa fa-arrow-left mr-1"></i> Switch Class / Exam
+                            <i class="fa fa-arrow-left mr-1"></i> Switch Course / Exam
                         </a>
                         <span class="badge-target-meta">
                             <i class="fa fa-users mr-1"></i> {{ $studentsCount ?? 0 }} Students
@@ -854,7 +854,7 @@
                         </span>
                     @elseif(!$isMappingMode)
                         <span class="badge-total-records">
-                            <i class="fa fa-graduation-cap mr-1"></i> {{ count($classType) }} Classes Available
+                            <i class="fa fa-graduation-cap mr-1"></i> {{ count($classType) }} Courses Available
                         </span>
                     @endif
 
@@ -882,15 +882,15 @@
                 @if(!$isUploadMode && !$isMappingMode)
                     <div class="master-detail-workspace">
                         
-                        {{-- Left Column: Classes Navigator --}}
+                        {{-- Left Column: Courses Navigator --}}
                         <div class="classes-sidebar">
                             <div class="classes-sidebar-header">
-                                <span><i class="fa fa-graduation-cap text-info mr-1"></i> Academic Classes</span>
+                                <span><i class="fa fa-graduation-cap text-info mr-1"></i> Academic Courses</span>
                                 <span class="badge badge-light" style="font-size:10px;">{{ count($classType) }}</span>
                             </div>
                             <div class="classes-search-box position-relative">
                                 <i class="fa fa-search classes-search-icon"></i>
-                                <input type="text" id="classSearchInput" class="classes-search-input" placeholder="Quick search class...">
+                                <input type="text" id="classSearchInput" class="classes-search-input" placeholder="Quick search course / batch...">
                             </div>
                             <div class="classes-list-container" id="classesList">
                                 @foreach($classType as $class)
@@ -1107,7 +1107,7 @@
                         </span>
                     @else
                         <span style="font-size: 11px; color: #cbd5e1;">
-                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Click any Class on the left to instantly filter and view its examinations on the right.
+                            <i class="fa fa-lightbulb-o text-warning mr-1"></i> Click any Course on the left to instantly filter and view its examinations on the right.
                         </span>
                     @endif
                 </div>
@@ -1127,7 +1127,7 @@
                         </button>
                     @elseif($isUploadMode)
                         <a href="{{ url('fill-marks-by-excel') }}" class="dash-btn dash-btn-outline">
-                            <i class="fa fa-arrow-left mr-1"></i> Switch Class
+                            <i class="fa fa-arrow-left mr-1"></i> Switch Course
                         </a>
                         <a href="{{ url('fill_marks?class_type_id='.$classTypeId.'&exam_id='.$examId) }}" class="dash-btn dash-btn-outline">
                             <i class="fa fa-pencil-square-o mr-1"></i> Manual Marks
@@ -1210,7 +1210,7 @@ $(document).ready(function () {
             var emptyHtml = '<div class="p-5 text-center text-muted">' +
                 '<i class="fa fa-calendar-times-o mb-2" style="font-size:32px; color:#cbd5e1; display:block;"></i>' +
                 '<h6 style="font-weight:700; color:#0f172a; font-size:13px;">No Examinations Assigned to ' + className + '</h6>' +
-                '<p style="font-size:11px; color:#64748b; margin-bottom:12px;">This class has not been assigned to any exams yet.</p>' +
+                '<p style="font-size:11px; color:#64748b; margin-bottom:12px;">This course has not been assigned to any exams yet.</p>' +
                 '<a href="{{ url('view/exam') }}" class="dash-btn dash-btn-light" style="background:#002C54; color:#fff !important;">' +
                     '<i class="fa fa-plus-circle mr-1"></i> Assign Exams in Exam Setup' +
                 '</a>' +

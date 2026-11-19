@@ -631,7 +631,7 @@ $billCounterVal = !empty($BillCounter->counter) ? ($BillCounter->counter + 1) : 
         {{-- Quick Class Horizontal Pills --}}
         <div class="mob-form-group">
             <label class="mob-form-label">
-                <span>Class Applying For</span>
+                <span>Course / Batch Applying For</span>
                 <span style="font-size:9px; color:#0284c7; font-weight:700;">Tap to select</span>
             </label>
             @if(!empty($getTypeclass) && count($getTypeclass) > 0)

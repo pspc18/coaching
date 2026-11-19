@@ -10,13 +10,29 @@
   $preloadedQuestions = $preloadedQuestions ?? [];
   $preloadedClassId = $preloadedClassId ?? '';
   $preloadedSubjectId = $preloadedSubjectId ?? '';
+  $preloadedSubjectIds = $preloadedSubjectIds ?? [];
+  $preloadedExamDate = $preloadedExamDate ?? null;
 
   $previewAnswerKey = old('answer_key', $formExam->answer_key ?? []);
   if (is_string($previewAnswerKey)) {
       $previewAnswerKey = json_decode($previewAnswerKey, true) ?: [];
   }
   $previewSubjectId = old('subject_id', $formExam->subject_id ?? $preloadedSubjectId);
-  $previewClassId = old('class_type_id', $formExam->class_type_id ?? $preloadedClassId);
+  $previewClassId = old('class_type_id', !empty($preloadedClassId) ? $preloadedClassId : ($formExam->class_type_id ?? ''));
+  $previewSubjectIds = old('subject_ids', !empty($preloadedSubjectIds) ? $preloadedSubjectIds : ($formExam ? $formExam->selected_subject_ids : []));
+  if (!is_array($previewSubjectIds)) {
+      $previewSubjectIds = [];
+  }
+  $previewSubjectIds = array_values(array_filter(array_map('intval', $previewSubjectIds)));
+
+  $perSubInitialMarks = 100;
+  if (!empty($formExam) && !empty($formExam->exam_maximum_marks)) {
+      $savedSubsCount = !empty($previewSubjectIds) ? count($previewSubjectIds) : 1;
+      $perSubInitialMarks = ($savedSubsCount > 1) ? round($formExam->exam_maximum_marks / $savedSubsCount, 2) : $formExam->exam_maximum_marks;
+  }
+  $previewPerSubMarks = old('exam_maximum_marks', $perSubInitialMarks);
+  $initialEffectiveSubs = !empty($previewSubjectIds) ? count($previewSubjectIds) : 1;
+  $previewTotalMarks = ($initialEffectiveSubs > 1) ? round($previewPerSubMarks * $initialEffectiveSubs, 2) : $previewPerSubMarks;
 
   // Determine initial mode
   $initialQuestions = old('online_questions', $formExam->online_questions ?? $preloadedQuestions);
@@ -1236,6 +1252,7 @@ textarea.theme-form-control {
             @csrf
             @if(!empty($formExam->id))
                 <input type="hidden" name="exam_id" value="{{ $formExam->id }}">
+                <input type="hidden" name="origin_class_type_id" value="{{ $previewClassId ?? '' }}">
             @endif
             <input type="hidden" name="action_type" id="form-action-type" value="save">
             <input type="hidden" name="is_online" id="exam-is-online" value="{{ ($initialMode === 'online' || !empty($formExam->is_online)) ? '1' : '0' }}">
@@ -1255,7 +1272,7 @@ textarea.theme-form-control {
                             <span class="mode-badge-pill">Excel / Manual</span>
                         </div>
                         <p class="mode-card-desc">
-                            Exam Name, Date, Class & optional PDF paper. Marks Excel ya Manual entry se upload honge.
+                            Exam name, date, class &amp; optional PDF paper. Marks uploaded via Excel or manual entry.
                         </p>
                     </div>
                 </label>
@@ -1272,7 +1289,7 @@ textarea.theme-form-control {
                             <span class="mode-badge-pill">Print OMR</span>
                         </div>
                         <p class="mode-card-desc">
-                            Total questions count dalo, PDF paper attach karo, answer key set karo aur Printable OMR Sheet generate karo.
+                            Set total question count, attach PDF paper, configure answer key, and generate printable OMR sheet.
                         </p>
                     </div>
                 </label>
@@ -1289,7 +1306,7 @@ textarea.theme-form-control {
                             <span class="mode-badge-pill">Paper + OMR</span>
                         </div>
                         <p class="mode-card-desc">
-                            Question Bank se questions select karo, automatic answer key sync karo aur Question Paper + OMR Sheet print karo.
+                            Select questions from Question Bank, auto-sync answer key, and print Question Paper + OMR Sheet.
                         </p>
                     </div>
                 </label>
@@ -1306,7 +1323,7 @@ textarea.theme-form-control {
                             <span class="mode-badge-pill">No OMR (CBT)</span>
                         </div>
                         <p class="mode-card-desc">
-                            Question Bank se questions browse & add karo. Student online exam panel par test denge. OMR Sheet nahi hogi.
+                            Browse &amp; add questions from Question Bank. Students take digital test via online exam panel (no OMR).
                         </p>
                     </div>
                 </label>
@@ -1342,28 +1359,66 @@ textarea.theme-form-control {
                             </div>
 
                             <div class="row">
-                                {{-- Target Class --}}
+                                {{-- Target Course --}}
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
-                                        <label for="class_type_id">Target Class <span class="text-danger">*</span></label>
-                                        <select class="theme-form-control @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" required>
-                                            <option value="">-- Select Class --</option>
-                                            @if(!empty($classType))
-                                                @foreach($classType as $type)
-                                                    <option value="{{ $type->id }}" {{ (old('class_type_id', $previewClassId) == $type->id) ? 'selected' : '' }}>
-                                                        {{ $type->name ?? '' }}
-                                                    </option>
-                                                @endforeach
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="class_type_id" class="mb-0">
+                                                Target Course <span class="text-danger">*</span>
+                                            </label>
+                                            @if(!empty($formExam->id))
+                                                <span class="badge badge-light border text-muted" style="font-size: 10px; font-weight: 600; background: #f1f5f9; border-color: #cbd5e1;">
+                                                    <i class="fa fa-lock text-warning mr-1"></i> Read-Only in Edit Mode
+                                                </span>
                                             @endif
-                                        </select>
-                                        @error('class_type_id')<span class="text-danger small">{{ $message }}</span>@enderror
+                                        </div>
+
+                                        @if(!empty($formExam->id))
+                                            {{-- In Edit Mode: Non-editable / Read-Only Target Course --}}
+                                            <select class="theme-form-control" id="class_type_id" disabled style="background-color: #f8fafc; cursor: not-allowed; color: #002C54; font-weight: 600; border: 1px solid #cbd5e1;">
+                                                @if(!empty($classType))
+                                                    @foreach($classType as $type)
+                                                        <option value="{{ $type->id }}" {{ ($previewClassId == $type->id) ? 'selected' : '' }}>
+                                                            {{ $type->name ?? '' }}
+                                                        </option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                            <input type="hidden" name="class_type_id" value="{{ $previewClassId }}">
+                                            <div class="theme-hint text-muted small mt-1" style="font-size: 10.5px;">
+                                                <i class="fa fa-info-circle text-info"></i> Target course is locked for this exam. To conduct this exam for another course, duplicate this exam from the Examination List.
+                                            </div>
+                                        @else
+                                            {{-- In Create Mode: Fully Editable --}}
+                                            <select class="theme-form-control @error('class_type_id') is-invalid @enderror" id="class_type_id" name="class_type_id" required>
+                                                <option value="">-- Select Course --</option>
+                                                @if(!empty($classType))
+                                                    @foreach($classType as $type)
+                                                        <option value="{{ $type->id }}" {{ (old('class_type_id', $previewClassId) == $type->id) ? 'selected' : '' }}>
+                                                            {{ $type->name ?? '' }}
+                                                        </option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                            @error('class_type_id')<span class="text-danger small">{{ $message }}</span>@enderror
+                                        @endif
                                     </div>
                                 </div>
 
-                                {{-- Subject --}}
+                                {{-- Examination Date --}}
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
-                                        <label for="subject_id">Subject <span class="text-muted">(Optional)</span></label>
+                                        <label for="exam-date">Date of Exam <span class="text-danger">*</span></label>
+                                        <input type="date" id="exam-date" name="exam_date" class="theme-form-control" value="{{ old('exam_date', !empty($preloadedExamDate) ? (is_object($preloadedExamDate) ? $preloadedExamDate->format('Y-m-d') : date('Y-m-d', strtotime($preloadedExamDate))) : ((!empty($formExam) && !empty($formExam->exam_date)) ? (is_object($formExam->exam_date) ? $formExam->exam_date->format('Y-m-d') : $formExam->exam_date) : date('Y-m-d'))) }}" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Single Subject Selector (Shown ONLY for Mode 4: Online CBT Exam) --}}
+                            <div class="row" id="subject-single-wrapper" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
+                                <div class="col-md-12">
+                                    <div class="theme-form-group">
+                                        <label for="subject_id">Paper Subject <span class="text-danger">*</span></label>
                                         <select class="theme-form-control" id="subject_id" name="subject_id">
                                             <option value="">-- Select Subject --</option>
                                             @if(!empty($subjects))
@@ -1374,21 +1429,61 @@ textarea.theme-form-control {
                                                 @endforeach
                                             @endif
                                         </select>
+                                        <div class="theme-hint"><i class="fa fa-info-circle text-info"></i> Online CBT is conducted for a single subject paper.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Multi-Subject Selection for Offline / OMR / Paper Exam --}}
+                            <div class="row" id="subject-multi-wrapper" style="{{ $initialMode === 'online' ? 'display: none;' : '' }}">
+                                <div class="col-12">
+                                    <div class="theme-form-group mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="mb-0 font-weight-bold" style="color: #1e293b; font-size: 13px;">
+                                                <i class="fa fa-book text-primary mr-1"></i> Included Exam Subjects
+                                                <span class="badge ml-1" id="subject-selected-count-badge" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; border-radius:12px; padding:3px 8px;">
+                                                    All Selected
+                                                </span>
+                                            </label>
+                                            <div class="btn-group btn-group-xs" role="group">
+                                                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2" id="btn-select-all-subjects" style="font-size: 11px; height: 22px;">
+                                                    <i class="fa fa-check-square-o mr-1"></i> Select All
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" id="btn-deselect-all-subjects" style="font-size: 11px; height: 22px;">
+                                                    <i class="fa fa-square-o mr-1"></i> Clear All
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="subjects-checklist-container" id="subjects-checklist-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; max-height: 160px; overflow-y: auto;">
+                                            <div class="d-flex flex-wrap" id="subjects-chips-list" style="gap: 8px;">
+                                                @if(!empty($subjects) && $subjects->count() > 0)
+                                                    @foreach($subjects as $sub)
+                                                        @php
+                                                            $isChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
+                                                        @endphp
+                                                        <label class="subject-chip-item {{ $isChecked ? 'active' : '' }}" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:5px; background:{{ $isChecked ? '#eff6ff' : '#ffffff' }}; border:1px solid {{ $isChecked ? '#3b82f6' : '#cbd5e1' }}; font-size:12px; font-weight:{{ $isChecked ? '600' : '500' }}; color:{{ $isChecked ? '#1d4ed8' : '#334155' }}; margin:0; cursor:pointer;">
+                                                            <input type="checkbox" name="subject_ids[]" value="{{ $sub->id }}" data-name="{{ $sub->name }}" class="exam-subject-checkbox" {{ $isChecked ? 'checked' : '' }} style="margin:0; accent-color:#2563eb;">
+                                                            <span>{{ $sub->name }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                @else
+                                                    <span class="text-muted small p-1" id="subjects-empty-notice">
+                                                        <i class="fa fa-info-circle"></i> Select a Target Course above to load its subjects automatically.
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="theme-hint mt-1 text-muted" style="font-size:11px;">
+                                            <i class="fa fa-lightbulb-o text-warning"></i> By default all course subjects are included. Uncheck any subject to exclude it from this exam.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                {{-- Examination Date --}}
-                                <div class="col-md-6">
-                                    <div class="theme-form-group">
-                                        <label for="exam-date">Date of Exam <span class="text-danger">*</span></label>
-                                        <input type="date" id="exam-date" name="exam_date" class="theme-form-control" value="{{ old('exam_date', (!empty($formExam) && !empty($formExam->exam_date)) ? (is_object($formExam->exam_date) ? $formExam->exam_date->format('Y-m-d') : $formExam->exam_date) : date('Y-m-d')) }}" required>
-                                    </div>
-                                </div>
-
                                 {{-- Exam Code --}}
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="theme-form-group">
                                         <label for="exam-code">Exam Code</label>
                                         <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly>
@@ -1401,9 +1496,17 @@ textarea.theme-form-control {
                             <div class="row" id="pane-mode-normal-marks" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
                                 <div class="col-md-6">
                                     <div class="theme-form-group">
-                                        <label for="exam-max-marks">Maximum Marks <span class="text-danger">*</span></label>
-                                        <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ old('exam_maximum_marks', $formExam->exam_maximum_marks ?? 100) }}" min="1" max="9999" step="0.5">
-                                        <div class="theme-hint">Total maximum marks for offline exam</div>
+                                        <label for="exam-max-marks">Maximum Marks (Per Subject) <span class="text-danger">*</span></label>
+                                        <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ $previewPerSubMarks }}" min="1" max="9999" step="0.5">
+                                        <div class="theme-hint" id="exam-max-marks-hint" style="color: #475569; font-weight: 500;">
+                                            <i class="fa fa-calculator text-primary"></i> <span id="max-marks-calc-text">
+                                                @if($initialEffectiveSubs > 1)
+                                                    {{ $previewPerSubMarks }} per subject &times; {{ $initialEffectiveSubs }} subjects = <strong>{{ $previewTotalMarks }} Total Marks</strong>
+                                                @else
+                                                    Total Marks: <strong>{{ $previewTotalMarks }}</strong> (Marks per subject)
+                                                @endif
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -1598,7 +1701,7 @@ textarea.theme-form-control {
                                 </div>
                                 <div class="row g-2 mb-2">
                                     <div class="col-6">
-                                        <span class="meta-label">Target Class:</span> <span id="normal-summary-class" class="meta-value">--</span>
+                                        <span class="meta-label">Target Course:</span> <span id="normal-summary-class" class="meta-value">--</span>
                                     </div>
                                     <div class="col-6">
                                         <span class="meta-label">Subject:</span> <span id="normal-summary-subject" class="meta-value">All Subjects</span>
@@ -1609,7 +1712,13 @@ textarea.theme-form-control {
                                         <span class="meta-label">Exam Date:</span> <span id="normal-summary-date" class="meta-value">{{ date('d M Y') }}</span>
                                     </div>
                                     <div class="col-6">
-                                        <span class="meta-label">Max Marks:</span> <span id="normal-summary-max-marks" class="badge badge-success px-2 font-weight-bold" style="font-size: 11px;">100</span>
+                                        <span class="meta-label">Total Marks:</span> <span id="normal-summary-max-marks" class="badge badge-success px-2 font-weight-bold" style="font-size: 11px;">
+                                            @if($initialEffectiveSubs > 1)
+                                                {{ $previewTotalMarks }} <span style="font-size: 9.5px; opacity: 0.9; font-weight: normal;">({{ $previewPerSubMarks }} &times; {{ $initialEffectiveSubs }})</span>
+                                            @else
+                                                {{ $previewTotalMarks }}
+                                            @endif
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -1893,9 +2002,9 @@ textarea.theme-form-control {
             {{-- Filter Bar --}}
             <div class="modal-filter-bar">
                 <div style="min-width: 160px;">
-                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Class:</label>
+                    <label class="small font-weight-bold mb-0" style="font-size: 10px; color: #1e293b;">Course / Batch:</label>
                     <select id="modal-filter-class" class="theme-form-control">
-                        <option value="">-- All Classes --</option>
+                        <option value="">-- All Courses / Batches --</option>
                         @if(!empty($classType))
                             @foreach($classType as $type)
                                 <option value="{{ $type->id }}" {{ $previewClassId == $type->id ? 'selected' : '' }}>
@@ -2060,9 +2169,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const updateNormalSummary = () => {
         const nameVal = (nameInput?.value || 'Untitled Examination').trim();
         const classText = classSelect?.options[classSelect.selectedIndex]?.text || '--';
-        const subText = subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'All Subjects';
+        
+        let subText = 'All Subjects';
+        const allCbs = document.querySelectorAll('.exam-subject-checkbox');
+        const checkedCbs = Array.from(document.querySelectorAll('.exam-subject-checkbox:checked'));
+        const selectedCount = checkedCbs.length;
+
+        if (currentMode === 'online') {
+            subText = subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'No Subject Selected';
+        } else {
+            if (allCbs.length === 0) {
+                subText = 'All Subjects';
+            } else if (checkedCbs.length === allCbs.length) {
+                subText = `All Subjects (${checkedCbs.length})`;
+            } else if (checkedCbs.length === 0) {
+                subText = 'None Selected (0)';
+            } else if (checkedCbs.length <= 3) {
+                subText = checkedCbs.map(cb => cb.dataset.name).join(', ');
+            } else {
+                subText = checkedCbs.slice(0, 2).map(cb => cb.dataset.name).join(', ') + ` +${checkedCbs.length - 2} more`;
+            }
+        }
+
         const dateVal = dateInput?.value || '';
-        const maxMarks = document.getElementById('exam-max-marks')?.value || '100';
+        const perSubVal = parseFloat(document.getElementById('exam-max-marks')?.value || '100') || 0;
+
+        let effectiveCount = 1;
+        if (currentMode === 'online') {
+            effectiveCount = 1;
+        } else if (allCbs.length > 0) {
+            effectiveCount = selectedCount;
+        }
+
+        const totalMarks = Math.round(effectiveCount * perSubVal * 100) / 100;
+
+        const calcHintText = document.getElementById('max-marks-calc-text');
+        if (calcHintText) {
+            if (effectiveCount > 1) {
+                calcHintText.innerHTML = `${perSubVal} per subject &times; ${effectiveCount} subjects = <strong>${totalMarks} Total Marks</strong>`;
+            } else if (effectiveCount === 1) {
+                calcHintText.innerHTML = `Total Marks: <strong>${totalMarks}</strong> (1 subject)`;
+            } else {
+                calcHintText.innerHTML = `<span class="text-danger">0 subjects selected (Total: 0 Marks)</span>`;
+            }
+        }
 
         const sTitle = document.getElementById('normal-summary-name');
         const sClass = document.getElementById('normal-summary-class');
@@ -2074,7 +2224,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sClass) sClass.textContent = classText;
         if (sSub) sSub.textContent = subText;
         if (sDate) sDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '{{ date('d M Y') }}';
-        if (sMarks) sMarks.textContent = maxMarks;
+        if (sMarks) {
+            if (effectiveCount > 1) {
+                sMarks.innerHTML = `${totalMarks} <span style="font-size: 9.5px; opacity: 0.9; font-weight: normal;">(${perSubVal} &times; ${effectiveCount})</span>`;
+            } else {
+                sMarks.textContent = `${totalMarks}`;
+            }
+        }
     };
 
     const renderOnlineExamPreview = () => {
@@ -2176,6 +2332,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const paneQBank = document.getElementById('pane-mode-question-bank');
         const qbankDerivedKeyBox = document.getElementById('qbank-derived-answer-key-box');
         const onlineNoticeBox = document.getElementById('online-exam-notice-box');
+        const subjectSingleWrapper = document.getElementById('subject-single-wrapper');
+        const subjectMultiWrapper = document.getElementById('subject-multi-wrapper');
+
+        if (mode === 'online') {
+            if (subjectSingleWrapper) subjectSingleWrapper.style.display = 'block';
+            if (subjectMultiWrapper) subjectMultiWrapper.style.display = 'none';
+        } else {
+            if (subjectSingleWrapper) subjectSingleWrapper.style.display = 'none';
+            if (subjectMultiWrapper) subjectMultiWrapper.style.display = 'block';
+        }
 
         if (paneNormalMarks) paneNormalMarks.style.display = (mode === 'normal') ? 'flex' : 'none';
         if (paneOmrScoring) paneOmrScoring.style.display = (mode === 'normal') ? 'none' : 'flex';
@@ -2303,12 +2469,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const labels = ['A', 'B', 'C', 'D'];
         let svg = '';
 
-        // Calculate number of 25-question blocks and center them dynamically
+        // Question blocks start from left margin (aligned with roll number and answers header at x=70)
         const totalBlocks = Math.max(1, Math.ceil(count / 25));
         const blockWidth = 155;
-        const blockGap = 15;
-        const totalGridWidth = totalBlocks * blockWidth + (totalBlocks - 1) * blockGap;
-        const startX = Math.round((800 - totalGridWidth) / 2);
+        const blockGap = 13.5;
+        const startX = 70;
 
         for (let block = 0; block < totalBlocks; block++) {
             const blockStart = block * 25 + 1;
@@ -2379,7 +2544,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const updatePaperHeader = () => {
         const nameVal = nameInput?.value?.trim() || 'Untitled Examination';
         const classText = classSelect?.options[classSelect.selectedIndex]?.text || '--';
-        const subText = subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'All Subjects';
+        
+        let subText = 'All Subjects';
+        if (currentMode === 'online') {
+            subText = subjectSelect?.options[subjectSelect.selectedIndex]?.text || 'All Subjects';
+        } else {
+            const allCbs = document.querySelectorAll('.exam-subject-checkbox');
+            const checkedCbs = Array.from(document.querySelectorAll('.exam-subject-checkbox:checked'));
+            if (allCbs.length > 0 && checkedCbs.length === allCbs.length) {
+                subText = `All Subjects (${checkedCbs.length})`;
+            } else if (checkedCbs.length > 0) {
+                subText = checkedCbs.map(cb => cb.dataset.name).join(', ');
+            }
+        }
+
         const dateVal = dateInput?.value || '';
         const marksCorrect = parseFloat(marksCorrectInput?.value || 1.0) || 1.0;
         const marksIncorrect = parseFloat(marksIncorrectInput?.value || 0.0) || 0.0;
@@ -2413,29 +2591,165 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('exam-max-marks')?.addEventListener('input', updateNormalSummary);
     document.getElementById('exam-duration-input')?.addEventListener('input', renderOnlineExamPreview);
 
+    // -------------------------------------------------------------
+    // Multi-Subject Selection Handlers
+    // -------------------------------------------------------------
+    const chipsContainer = document.getElementById('subjects-chips-list');
+
+    const updateSubjectSelectionBadge = () => {
+        const badge = document.getElementById('subject-selected-count-badge');
+        const allCbs = document.querySelectorAll('.exam-subject-checkbox');
+        const checkedCbs = document.querySelectorAll('.exam-subject-checkbox:checked');
+        if (!badge) return;
+
+        if (allCbs.length === 0) {
+            badge.textContent = '0 Selected';
+            badge.style.background = '#f1f5f9';
+            badge.style.color = '#64748b';
+        } else if (checkedCbs.length === allCbs.length) {
+            badge.textContent = `All Selected (${checkedCbs.length})`;
+            badge.style.background = '#e0f2fe';
+            badge.style.color = '#0369a1';
+        } else if (checkedCbs.length === 0) {
+            badge.textContent = 'None Selected (0)';
+            badge.style.background = '#fee2e2';
+            badge.style.color = '#b91c1c';
+        } else {
+            badge.textContent = `${checkedCbs.length} of ${allCbs.length} Selected`;
+            badge.style.background = '#fef3c7';
+            badge.style.color = '#92400e';
+        }
+    };
+
+    const onSubjectCheckboxChange = function() {
+        const parentLabel = this.closest('.subject-chip-item');
+        if (parentLabel) {
+            if (this.checked) {
+                parentLabel.classList.add('active');
+                parentLabel.style.background = '#eff6ff';
+                parentLabel.style.borderColor = '#3b82f6';
+                parentLabel.style.color = '#1d4ed8';
+                parentLabel.style.fontWeight = '600';
+            } else {
+                parentLabel.classList.remove('active');
+                parentLabel.style.background = '#ffffff';
+                parentLabel.style.borderColor = '#cbd5e1';
+                parentLabel.style.color = '#334155';
+                parentLabel.style.fontWeight = '500';
+            }
+        }
+        updateSubjectSelectionBadge();
+        updatePaperHeader();
+        updateNormalSummary();
+    };
+
+    const attachSubjectCheckboxListeners = () => {
+        document.querySelectorAll('.exam-subject-checkbox').forEach(cb => {
+            cb.removeEventListener('change', onSubjectCheckboxChange);
+            cb.addEventListener('change', onSubjectCheckboxChange);
+        });
+    };
+
+    document.getElementById('btn-select-all-subjects')?.addEventListener('click', () => {
+        document.querySelectorAll('.exam-subject-checkbox').forEach(cb => {
+            cb.checked = true;
+            const parentLabel = cb.closest('.subject-chip-item');
+            if (parentLabel) {
+                parentLabel.classList.add('active');
+                parentLabel.style.background = '#eff6ff';
+                parentLabel.style.borderColor = '#3b82f6';
+                parentLabel.style.color = '#1d4ed8';
+                parentLabel.style.fontWeight = '600';
+            }
+        });
+        updateSubjectSelectionBadge();
+        updatePaperHeader();
+        updateNormalSummary();
+    });
+
+    document.getElementById('btn-deselect-all-subjects')?.addEventListener('click', () => {
+        document.querySelectorAll('.exam-subject-checkbox').forEach(cb => {
+            cb.checked = false;
+            const parentLabel = cb.closest('.subject-chip-item');
+            if (parentLabel) {
+                parentLabel.classList.remove('active');
+                parentLabel.style.background = '#ffffff';
+                parentLabel.style.borderColor = '#cbd5e1';
+                parentLabel.style.color = '#334155';
+                parentLabel.style.fontWeight = '500';
+            }
+        });
+        updateSubjectSelectionBadge();
+        updatePaperHeader();
+        updateNormalSummary();
+    });
+
     // Dynamic Class to Subject Loading
     classSelect?.addEventListener('change', function () {
         const classId = this.value;
-        updatePaperHeader();
-        if (!classId) return;
+        if (!classId) {
+            if (chipsContainer) {
+                chipsContainer.innerHTML = '<span class="text-muted small p-1" id="subjects-empty-notice"><i class="fa fa-info-circle"></i> Select a Target Course above to load its subjects automatically.</span>';
+            }
+            if (subjectSelect) {
+                subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
+            }
+            updateSubjectSelectionBadge();
+            updatePaperHeader();
+            updateNormalSummary();
+            return;
+        }
 
-        fetch(`{{ url('subjectGetData') }}/${classId}`)
+        if (chipsContainer) {
+            chipsContainer.innerHTML = '<span class="text-muted small p-1"><i class="fa fa-spinner fa-spin mr-1"></i> Loading course subjects...</span>';
+        }
+
+        fetch(`{{ url('subjectGetData') }}/${classId}`, {
+            headers: { 'Accept': 'application/json' }
+        })
             .then(res => res.json())
             .then(data => {
-                let html = '<option value="">-- Select Subject --</option>';
-                if (Array.isArray(data)) {
+                let singleHtml = '<option value="">-- Select Subject --</option>';
+                let chipsHtml = '';
+                if (Array.isArray(data) && data.length > 0) {
                     data.forEach(item => {
-                        html += `<option value="${item.id}">${item.name}</option>`;
+                        singleHtml += `<option value="${item.id}">${item.name}</option>`;
+                        // By default, ALL subjects are checked!
+                        chipsHtml += `
+                            <label class="subject-chip-item active" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:5px; background:#eff6ff; border:1px solid #3b82f6; font-size:12px; font-weight:600; color:#1d4ed8; margin:0; cursor:pointer;">
+                                <input type="checkbox" name="subject_ids[]" value="${item.id}" data-name="${item.name}" class="exam-subject-checkbox" checked style="margin:0; accent-color:#2563eb;">
+                                <span>${item.name}</span>
+                            </label>
+                        `;
                     });
+                } else {
+                    chipsHtml = '<span class="text-muted small p-1"><i class="fa fa-exclamation-circle text-warning"></i> No subjects configured for this course.</span>';
                 }
-                subjectSelect.innerHTML = html;
+
+                if (chipsContainer) chipsContainer.innerHTML = chipsHtml;
+                if (subjectSelect) subjectSelect.innerHTML = singleHtml;
                 const modalSub = document.getElementById('modal-filter-subject');
-                if (modalSub) modalSub.innerHTML = html;
+                if (modalSub) modalSub.innerHTML = singleHtml;
+
+                attachSubjectCheckboxListeners();
+                updateSubjectSelectionBadge();
+                updatePaperHeader();
+                updateNormalSummary();
             })
-            .catch(err => console.warn('Subject load error:', err));
+            .catch(err => {
+                console.warn('Subject load error:', err);
+                if (chipsContainer) chipsContainer.innerHTML = '<span class="text-danger small p-1">Failed to load subjects.</span>';
+            });
     });
 
-    subjectSelect?.addEventListener('change', updatePaperHeader);
+    attachSubjectCheckboxListeners();
+    updateSubjectSelectionBadge();
+
+    subjectSelect?.addEventListener('change', () => {
+        updatePaperHeader();
+        updateNormalSummary();
+        renderOnlineExamPreview();
+    });
 
     // Render Question Bank Selected Questions Cards & Paper Preview
     const renderQBankExam = () => {
@@ -2645,7 +2959,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="text-center py-5 text-muted">
                         <i class="fa fa-folder-open-o fa-2x mb-2 text-secondary"></i>
                         <p class="mb-0 font-weight-bold" style="color: #1e293b;">No questions found matching the selected filters.</p>
-                        <p class="small text-muted">Try selecting another class or subject, or clearing search keywords.</p>
+                        <p class="small text-muted">Try selecting another course or subject, or clearing search keywords.</p>
                     </div>`;
                     modalFetchedQuestions = [];
                     updateModalBadge();
@@ -3040,6 +3354,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial Render Sequence
     // -------------------------------------------------------------
     switchMode(currentMode);
+    updateSubjectSelectionBadge();
     renderOMRPreview();
     if (selectedQuestions.length > 0) {
         renderQBankExam();

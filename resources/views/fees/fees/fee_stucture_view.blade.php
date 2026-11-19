@@ -32,7 +32,7 @@
                  
                 <div class="col-md-4">
             		<div class="form-group">
-            			<label>Class</label>
+            			<label>Course / Batch</label>
             			<select class="form-control" id="class_type_id" name="class_type_id" >
             			<option value="">Select</option>
                          @if(!empty($classType)) 
@@ -60,7 +60,7 @@
                   <thead>
                   <tr role="row">
                       <th>Sr.No.</th>
-                      <th>Class</th>
+                      <th>Course / Batch</th>
                        <th>Title</th>
                       <th>Fees</th>
                       <th>Action</th>
