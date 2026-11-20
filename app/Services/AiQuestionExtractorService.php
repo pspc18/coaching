@@ -636,6 +636,42 @@ EOT;
         $referenceDocNote = "";
         $uploadedRefImage = null;
 
+        $lowerPrompt = mb_strtolower($userPrompt);
+
+        // Detect if user prompt requests creation of SIMILAR / NEW / FRESH questions inspired by reference
+        $isSimilarRequest = (
+            strpos($lowerPrompt, 'similar') !== false ||
+            strpos($lowerPrompt, 'dusra') !== false ||
+            strpos($lowerPrompt, 'doosra') !== false ||
+            strpos($lowerPrompt, 'naya') !== false ||
+            strpos($lowerPrompt, 'naye') !== false ||
+            strpos($lowerPrompt, 'new') !== false ||
+            strpos($lowerPrompt, 'fresh') !== false ||
+            strpos($lowerPrompt, 'create') !== false ||
+            strpos($lowerPrompt, 'generate') !== false ||
+            strpos($lowerPrompt, 'banao') !== false ||
+            strpos($lowerPrompt, 'like this') !== false ||
+            strpos($lowerPrompt, 'jaisa') !== false ||
+            strpos($lowerPrompt, 'jaise') !== false ||
+            strpos($lowerPrompt, 'is pattern par') !== false ||
+            strpos($lowerPrompt, 'is tarah ka') !== false ||
+            strpos($lowerPrompt, 'another') !== false ||
+            strpos($lowerPrompt, 'different') !== false ||
+            strpos($lowerPrompt, 'based on this') !== false ||
+            strpos($lowerPrompt, 'inspired') !== false
+        );
+
+        $isExactExtractRequest = (
+            strpos($lowerPrompt, 'extract') !== false ||
+            strpos($lowerPrompt, 'transcribe') !== false ||
+            strpos($lowerPrompt, 'ocr') !== false ||
+            strpos($lowerPrompt, 'as it is') !== false ||
+            strpos($lowerPrompt, 'same to same') !== false ||
+            strpos($lowerPrompt, 'nikalo') !== false ||
+            strpos($lowerPrompt, 'nikal do') !== false ||
+            strpos($lowerPrompt, 'copy') !== false
+        );
+
         if (!empty($filePath) && file_exists($filePath)) {
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
             if ($ext === 'pdf') {
@@ -648,14 +684,27 @@ EOT;
                         ]
                     ];
                     $extractedDiagrams = $this->extractDiagramsFromPdf($filePath);
-                    $referenceDocNote = "A REFERENCE PDF DOCUMENT IS ATTACHED. Carefully analyze its syllabus, structure, question difficulty, patterns, and terminology. Generate questions following this pattern and the user's specific instructions.";
+                    if ($isSimilarRequest && !$isExactExtractRequest) {
+                        $referenceDocNote = <<<'NOTE'
+A REFERENCE PDF DOCUMENT IS ATTACHED AS INSPIRATION ONLY.
+CRITICAL MANDATE - SYNTHESIZE BRAND NEW SIMILAR QUESTIONS (DO NOT EXTRACT / TRANSCRIBE):
+The user explicitly asked to create a "SIMILAR" / "NEW" question based on this reference.
+1. DO NOT extract, copy, or transcribe the existing questions printed in the document!
+2. Create BRAND NEW, ORIGINAL questions with fresh context, new numerical data, and original options following this pattern.
+3. If this is a Directional Set (Data Interpretation, Case Study), provide the complete new dataset in "direction_table" as a clean HTML table AND generate a clean vector SVG chart in "diagram_svg". Set "diagram_id": null.
+NOTE;
+                    } elseif ($isExactExtractRequest) {
+                        $referenceDocNote = "A REFERENCE PDF DOCUMENT IS ATTACHED. The user requested to extract questions from it. Carefully extract and transcribe the exact questions, passages, tables, and options as printed in the document.";
+                    } else {
+                        $referenceDocNote = "A REFERENCE PDF DOCUMENT IS ATTACHED. Carefully analyze its syllabus, structure, question difficulty, patterns, and terminology. If the user prompt asks for similar/new questions, synthesize new questions with fresh data (do not copy). If the user asks to extract, transcribe verbatim.";
+                    }
                 }
             } else {
                 $imgPayload = $this->prepareImagePayload($filePath);
                 if ($imgPayload['success']) {
                     $mediaParts[] = $imgPayload['data'];
 
-                    // Save a copy in public uploads for diagram attachment
+                    // Save a copy in public uploads for diagram attachment if extract mode
                     $filename = 'ai_ref_' . time() . '_' . Str::random(6) . '.' . ($ext ?: 'jpg');
                     $destDir = public_path('uploads/questions');
                     if (!file_exists($destDir)) {
@@ -671,13 +720,46 @@ EOT;
                             'image_path' => $uploadedRefImage
                         ]
                     ];
-                    $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. Carefully analyze its contents, style, formulas, and pattern. If any question or directional set references or requires this image/diagram, set \"diagram_id\": \"diag_img_1\" and \"has_diagram\": true.";
+
+                    if ($isSimilarRequest && !$isExactExtractRequest) {
+                        $referenceDocNote = <<<'NOTE'
+A REFERENCE IMAGE IS ATTACHED AS INSPIRATION ONLY.
+CRITICAL MANDATE - SYNTHESIZE BRAND NEW SIMILAR QUESTIONS (STRICTLY NO TRANSCRIPTION / EXTRACTION):
+The user explicitly asked to CREATE A NEW / SIMILAR QUESTION inspired by this reference (e.g. "similar question ka ek dusra question similar create kro", "create a similar question based on this").
+
+1. STRICTLY FORBIDDEN TO EXTRACT OR TRANSCRIBE:
+   - Do NOT translate, OCR, extract, or copy the exact questions or numbers printed in the attached image!
+   - The user already has the questions in the image. They want a FRESH, ORIGINAL, PARALLEL question set testing similar concepts!
+
+2. BRAND NEW CONTEXT, SCENARIO & VALUES:
+   - Create a NEW story/context with DIFFERENT entities and DIFFERENT numerical data.
+   - For example:
+     * If the reference shows a Double Bar Graph of "Admissions in School A and School B from 2012 to 2016", your new question must use a NEW context like "Number of Vehicles Produced by Plants X and Y from 2018 to 2022" or "College Enrollments in Science vs Arts", with completely new, clean, realistic numbers!
+     * If the reference is a Geometry triangle, change the vertex labels, dimensions, and angle measures!
+     * If the reference is a Number System divisibility question, change the numbers and divisor constraints!
+
+3. FOR DIRECTIONAL SETS (DATA INTERPRETATION / PASSAGES):
+   - "direction": A clear narrative introducing the NEW context and dataset.
+   - "direction_table": You MUST provide the full new tabular data in a clean HTML table:
+     <table class="table table-bordered table-sm text-center"><thead>...</thead><tbody>...</tbody></table>
+   - "diagram_svg": You MUST generate a clean, responsive vector SVG chart (e.g. double bar chart, line graph, or pie chart) with viewBox="0 0 550 260" displaying the NEW data visually!
+   - DO NOT set "diagram_id": "diag_img_1" (set "diagram_id": null and "has_diagram": true). The attached image is an old photo with printed test questions; attaching it to the new question set is strictly forbidden!
+
+4. SUB-QUESTIONS:
+   - Formulate new sub-questions covering similar analytical angles (e.g. Percentage More/Less, Ratio between categories, Average, Trend differences).
+   - Ensure all options (ans1-ans4), correct answer, and LaTeX explanations are 100% mathematically accurate and derived from your NEW dataset.
+NOTE;
+                    } elseif ($isExactExtractRequest) {
+                        $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. The user requested to EXTRACT / TRANSCRIBE questions from it. Carefully extract and transcribe the exact questions, passages, tables, and options as printed in the image. If any question relies on this image/diagram, set \"diagram_id\": \"diag_img_1\" and \"has_diagram\": true.";
+                    } else {
+                        $referenceDocNote = "A REFERENCE IMAGE IS ATTACHED. If the user prompt asks to create 'similar' / 'new' / 'another' questions: DO NOT copy or extract the printed questions; synthesize fresh questions with new data, an HTML table and/or new SVG diagram, and set \"diagram_id\": null. If the user prompt asks to extract or transcribe the document's questions: Extract the exact questions as printed.";
+                    }
                 }
             }
         }
 
         $diagramsCatalogPrompt = "";
-        if (!empty($extractedDiagrams)) {
+        if (!empty($extractedDiagrams) && (!$isSimilarRequest || $isExactExtractRequest)) {
             $diagramsCatalogPrompt = "DOCUMENT EXTRACTED DIAGRAMS CATALOG:\n";
             $diagramsCatalogPrompt .= "The reference document was pre-scanned and the following diagrams were extracted:\n";
             foreach ($extractedDiagrams as $d) {
@@ -690,6 +772,8 @@ EOT;
             $diagramsCatalogPrompt .= "\nDIAGRAM & TABLE MAPPING RULES:\n";
             $diagramsCatalogPrompt .= "1. If a question or directional set refers to or depends on an extracted diagram/chart/figure above, set \"diagram_id\" to its exact ID (e.g. \"{$extractedDiagrams[0]['id']}\") and \"has_diagram\": true.\n";
             $diagramsCatalogPrompt .= "2. If questions contain data tables, matrix, or charts, convert all tabular data to clean HTML <table>...</table> as specified below.\n\n";
+        } elseif ($isSimilarRequest && !empty($extractedDiagrams)) {
+            $diagramsCatalogPrompt = "NOTE ON ATTACHED REFERENCE: The user has requested a BRAND NEW SIMILAR question. DO NOT reference or link the attached old image/diagram ID. Instead, synthesize your own new data table in 'direction_table' and/or new vector SVG chart in 'diagram_svg'. Set 'diagram_id': null.\n\n";
         }
 
         $className = !empty($context['class_name']) ? $context['class_name'] : 'Standard / Competitive Level';
@@ -727,6 +811,54 @@ EOT;
             $languageInstruction = "- Medium / Language: HINDI MEDIUM (हिन्दी माध्यम).\n  CRITICAL HINDI REQUIREMENT: All questions, options, and explanations MUST be written in authentic Hindi (Devanagari script) with standard technical / mathematical terminology. Set 'name_hi' (and 'name'), 'ans1_hi'..'ans5_hi' (and 'ans1'..'ans5'), 'explanation_hi', and 'direction_hi' in Hindi.";
         } else {
             $languageInstruction = "- Medium / Language: English Medium.";
+        }
+
+        // Detect if user prompt requests diagrams / figures / charts
+        $lowerPrompt = mb_strtolower($userPrompt);
+        $isDiagramRequested = (
+            strpos($lowerPrompt, 'diagram') !== false ||
+            strpos($lowerPrompt, 'figure') !== false ||
+            strpos($lowerPrompt, 'fig') !== false ||
+            strpos($lowerPrompt, 'image') !== false ||
+            strpos($lowerPrompt, 'drawing') !== false ||
+            strpos($lowerPrompt, 'chart') !== false ||
+            strpos($lowerPrompt, 'graph') !== false ||
+            strpos($lowerPrompt, 'visual') !== false ||
+            strpos($lowerPrompt, 'flowchart') !== false ||
+            strpos($lowerPrompt, 'venn') !== false ||
+            strpos($lowerPrompt, 'geometry') !== false ||
+            strpos($lowerPrompt, 'triangle') !== false ||
+            strpos($lowerPrompt, 'circle') !== false ||
+            strpos($lowerPrompt, 'polygon') !== false ||
+            strpos($lowerPrompt, 'circuit') !== false ||
+            strpos($lowerPrompt, 'chitra') !== false ||
+            strpos($lowerPrompt, 'aakriti') !== false ||
+            strpos($lowerPrompt, 'rekha') !== false
+        );
+
+        if ($isDiagramRequested) {
+            $diagramInstruction = <<<'DIAG'
+- SPECIAL INSTRUCTION - MANDATORY VECTOR SVG DIAGRAM GENERATION:
+  THE USER HAS EXPLICITLY REQUESTED DIAGRAMS / FIGURES / VISUAL QUESTIONS!
+  YOU MUST GENERATE ONE OR MORE QUESTIONS WITH HIGH-QUALITY EMBEDDED VECTOR SVG DIAGRAMS!
+  Do NOT say you cannot create images. You CAN generate clean, complete, professional Scalable Vector Graphics (SVG) code!
+  For every diagrammatic question:
+  - Provide complete, valid SVG vector graphics inside the "diagram_svg" JSON property (e.g. "<svg viewBox=\"0 0 500 220\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>").
+  - Set "has_diagram": true and "diagram_id": null.
+  - The SVG must be clean, responsive with viewBox (e.g. viewBox="0 0 500 220"), xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
+  - Explicitly refer to the diagram in the question statement (e.g., "In the given figure / diagram below...", "Refer to the diagram below to find...").
+  - Make the diagram academically meaningful to solve the question:
+    * For Number System / Divisibility / Arithmetic: Draw a Division Ladder, Factor Tree diagram, Number Line with tick marks and intervals, or Remainder Venn diagram.
+    * For Geometry / Mensuration: Draw triangles, circles, chords, parallel lines with transversals, labeled vertices (A, B, C, D), angle arcs, and dimension labels.
+    * For Reasoning: Draw Venn diagrams, series pattern figures, or dice projections.
+    * For Physics / Chemistry: Draw circuit diagrams, ray diagrams, or molecular layouts.
+DIAG;
+        } else {
+            $diagramInstruction = <<<'DIAG'
+- DIAGRAM / VISUAL FIGURES GUIDELINE:
+  If a question naturally requires or strongly benefits from a visual diagram (e.g. Geometry, Mensuration, Coordinate Geometry, Trigonometric Heights & Distances, Circuits, Ray Diagrams, Venn Diagrams, Flowcharts, or Data Interpretation Charts):
+  Generate a clean vector SVG graphic inside the "diagram_svg" field (with viewBox, xmlns, clean shapes and labels), set "has_diagram": true, and reference the figure in the question.
+DIAG;
         }
 
         // Detect if user prompt or context requires Descriptive / Numerical (No Options)
@@ -770,6 +902,7 @@ ACADEMIC CONTEXT & KEYWORDS:
 {{MODE_INSTRUCTION}}
 {{LANGUAGE_INSTRUCTION}}
 {{FORMAT_ACADEMIC_CONTEXT}}
+{{DIAGRAM_INSTRUCTION}}
 
 CORE OBJECTIVE:
 Synthesize high-quality, authentic, examination-grade questions adhering strictly to the user's prompt.
@@ -793,9 +926,21 @@ STRICT GUIDELINES:
      (or embed it directly inside "name").
    - Never leave tables empty or summarized with "...". Include complete rows and numbers.
 
-3. DIAGRAMS & ILLUSTRATIONS:
-   - If a question or directional set references a diagram, figure, chart, geometry drawing, or graph from the attached reference document, set "diagram_id" to the matching diagram ID and "has_diagram": true.
-   - If no diagram is referenced, set "diagram_id": null and "has_diagram": false.
+3. DIAGRAMS & VECTOR ILLUSTRATIONS (MANDATORY WHEN REQUESTED OR FOR VISUAL TOPICS):
+   - GENERATING NEW VECTOR DIAGRAMS (SVG):
+     When the user prompt requests diagrams, figures, charts, drawings, or when the subject/topic naturally requires or benefits from visual illustration (e.g. Geometry triangles/circles/angles, Mensuration 2D/3D shapes, Coordinate Geometry, Number Lines, Factor Trees, Division Ladders, Venn Diagrams, Flowcharts, Data Interpretation Charts, Physics circuits/optics):
+     YOU MUST GENERATE A STANDALONE, COMPLETE, CLEAN VECTOR SVG IN "diagram_svg"!
+     - The SVG must be responsive with viewBox (e.g. viewBox="0 0 500 220" or "0 0 450 300"), xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
+     - Set "has_diagram": true and "diagram_id": null.
+     - The question statement ("name") must refer to the figure (e.g. "In the given diagram below...", "Refer to the figure below...").
+   - REFERENCE DOCUMENT DIAGRAMS:
+     * EXTRACT MODE: If the user asked to EXTRACT questions from an attached reference, set "diagram_id" to the matching ID (e.g. "diag_img_1") and "has_diagram": true.
+     * SIMILAR QUESTION MODE: If the user asked to CREATE SIMILAR / NEW questions, DO NOT link the reference document ("diagram_id": null). Instead, generate your own new data in "direction_table" and/or new vector SVG chart in "diagram_svg".
+   - If no diagram is required or generated, set "diagram_svg": null, "diagram_id": null, and "has_diagram": false.
+
+4. EXPLANATION QUALITY & ZERO INTERNAL SCRATCHPAD (STRICT!):
+   - The "explanation" field must be a 100% finished, authoritative, textbook-grade pedagogical solution.
+   - STRICTLY FORBIDDEN: Do NOT include internal stream-of-consciousness, trial-and-error thoughts, calculations testing multiple values, or self-correction monologue (e.g. "Wait, let us re-evaluate...", "Let's change question values...", "Wait! 41+4=45...", "Let's test x=5..."). Solve and verify all math internally FIRST, and output ONLY the clean, final step-by-step mathematical proof and explanation.
 
 {{FORMAT_GUIDELINES_STANDALONE}}
 
@@ -805,6 +950,7 @@ STRICT GUIDELINES:
      <table class="table table-bordered table-sm text-center"><thead><tr>...</tr></thead><tbody>...</tbody></table>
      (If no table is needed, set to null).
    - "has_diagram": boolean.
+   - "diagram_svg": Complete SVG vector string or null.
    - "diagram_id": string or null.
    - "sub_questions": An array of questions that depend on this common direction/passage.
 {{FORMAT_GUIDELINES_DIRECTIONAL}}
@@ -826,6 +972,7 @@ SCHEMA:
       "direction_table": null,
       "has_diagram": false,
       "diagram_id": null,
+      "diagram_svg": null,
       "sub_questions": [
 {{SUBQ_SAMPLE_JSON}}
       ]
@@ -843,10 +990,11 @@ PROMPT_TEMPLATE;
    - "table": HTML <table> string if this question contains a data table, otherwise null.
    - "has_diagram": boolean.
    - "diagram_id": string or null.
+   - "diagram_svg": Complete clean SVG string if diagram is present, otherwise null.
    - "ans1", "ans2", "ans3", "ans4", "ans5": MUST STRICTLY BE NULL! DO NOT GENERATE OPTIONS!
    - "correct_ans": Provide the exact mathematical result, numerical answer (e.g. "10", "42.5", "-7"), single formula/fraction (e.g. "x/10", "3/4"), or short concise string answer. NEVER output option indices like "0", "1", "2" or option letters!
    - "correct_option_letter": MUST BE NULL.
-   - "explanation": Comprehensive, pedagogically sound, step-by-step mathematical solution / derivation leading directly to this exact answer.
+   - "explanation": Comprehensive, pedagogically sound, step-by-step mathematical solution / derivation leading directly to this exact answer (NO internal scratchpad notes).
    - "difficulty_level": "Easy", "Medium", or "Hard".
 GUIDELINE;
 
@@ -857,6 +1005,7 @@ GUIDELINE;
      - "question_type_id": 2 (Descriptive / Numerical).
      - "has_diagram": boolean.
      - "diagram_id": string or null.
+     - "diagram_svg": SVG string or null.
      - "ans1", "ans2", "ans3", "ans4", "ans5": MUST STRICTLY BE NULL! NO OPTIONS!
      - "correct_ans": Exact expected numerical value or formula answer string (e.g. "10", "42.5", "x/10").
      - "correct_option_letter": MUST BE NULL.
@@ -866,11 +1015,12 @@ GUIDELINE;
 
             $standaloneSampleJson = <<<'JSON'
     {
-      "name": "Solve for x: $3x + 15 = 45$...",
+      "name": "In the given diagram below, determine the numerical value of $x$: $3x + 15 = 45$...",
       "question_type_id": 2,
       "table": null,
-      "has_diagram": false,
+      "has_diagram": true,
       "diagram_id": null,
+      "diagram_svg": "<svg viewBox=\"0 0 500 200\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"500\" height=\"200\" fill=\"#f8fafc\" rx=\"8\" stroke=\"#cbd5e1\" stroke-width=\"1.5\"/><text x=\"250\" y=\"50\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"bold\" fill=\"#002c54\" text-anchor=\"middle\">Algebraic Representation</text></svg>",
       "ans1": null,
       "ans2": null,
       "ans3": null,
@@ -890,6 +1040,7 @@ JSON;
           "question_type_id": 2,
           "has_diagram": false,
           "diagram_id": null,
+          "diagram_svg": null,
           "ans1": null,
           "ans2": null,
           "ans3": null,
@@ -905,17 +1056,18 @@ JSON;
             $formatAcademicContext = "- Target Question Format: OBJECTIVE (MULTIPLE CHOICE QUESTIONS - MCQ)\n- Default Options Count: {$optionsCount} options per MCQ";
             $formatGuidelinesStandalone = <<<'GUIDELINE'
 4. STANDALONE QUESTIONS (OBJECTIVE / MCQ):
-   - "name": Clear, self-contained question statement.
+   - "name": Clear, self-contained question statement (reference diagram if present).
    - "question_type_id": 1 (Objective / MCQ).
    - "table": HTML <table> string if this question contains a data table, otherwise null.
    - "has_diagram": boolean.
    - "diagram_id": string or null.
+   - "diagram_svg": Complete clean SVG string if diagram is present, otherwise null.
    - "ans1", "ans2", "ans3", "ans4": Clear, distinct, unambiguous option texts (with LaTeX if mathematical).
    - "ans5": Provide Option E if 5 options are requested (e.g. Banking exams), otherwise null.
    - Do NOT include letter prefixes like "(A)" or "A." inside the option text.
    - "correct_ans": Zero-based index string ("0" for ans1/A, "1" for ans2/B, "2" for ans3/C, "3" for ans4/D, "4" for ans5/E).
    - "correct_option_letter": Corresponding letter ("A", "B", "C", "D", or "E").
-   - "explanation": Comprehensive, pedagogically sound, step-by-step solution / derivation.
+   - "explanation": Comprehensive, pedagogically sound, step-by-step solution / derivation (NO internal scratchpad notes).
    - "difficulty_level": "Easy", "Medium", or "Hard".
 GUIDELINE;
 
@@ -926,6 +1078,7 @@ GUIDELINE;
      - "question_type_id": 1.
      - "has_diagram": boolean.
      - "diagram_id": string or null.
+     - "diagram_svg": SVG string or null.
      - "ans1", "ans2", "ans3", "ans4", "ans5" (if applicable).
      - "correct_ans": "0", "1", "2", "3", or "4".
      - "correct_option_letter": "A", "B", "C", "D", or "E".
@@ -935,20 +1088,21 @@ GUIDELINE;
 
             $standaloneSampleJson = <<<'JSON'
     {
-      "name": "Question statement with LaTeX...",
+      "name": "In the given figure / diagram below, find the missing digit $x$ such that the number is divisible by 72: $789x5314y$...",
       "question_type_id": 1,
       "table": null,
-      "has_diagram": false,
+      "has_diagram": true,
       "diagram_id": null,
-      "ans1": "Option A text",
-      "ans2": "Option B text",
-      "ans3": "Option C text",
-      "ans4": "Option D text",
+      "diagram_svg": "<svg viewBox=\"0 0 500 200\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"500\" height=\"200\" fill=\"#f8fafc\" rx=\"8\" stroke=\"#cbd5e1\" stroke-width=\"1.5\"/><text x=\"250\" y=\"45\" font-family=\"sans-serif\" font-size=\"16\" font-weight=\"bold\" fill=\"#002c54\" text-anchor=\"middle\">Divisibility Rule of 72</text><line x1=\"80\" y1=\"80\" x2=\"420\" y2=\"80\" stroke=\"#2563eb\" stroke-width=\"2\"/><text x=\"250\" y=\"120\" font-family=\"sans-serif\" font-size=\"14\" fill=\"#0f172a\" text-anchor=\"middle\">Number: 789x5314y</text></svg>",
+      "ans1": "-1",
+      "ans2": "0",
+      "ans3": "2",
+      "ans4": "3",
       "ans5": null,
-      "correct_ans": "0",
-      "correct_option_letter": "A",
-      "explanation": "Step-by-step explanation...",
-      "difficulty_level": "Medium"
+      "correct_ans": "2",
+      "correct_option_letter": "C",
+      "explanation": "To check divisibility by 72, the number must be divisible by both 8 and 9 since 8 and 9 are coprime factors...",
+      "difficulty_level": "Hard"
     }
 JSON;
 
@@ -959,6 +1113,7 @@ JSON;
           "question_type_id": 1,
           "has_diagram": false,
           "diagram_id": null,
+          "diagram_svg": null,
           "ans1": "Option A text",
           "ans2": "Option B text",
           "ans3": "Option C text",
@@ -984,6 +1139,7 @@ JSON;
                 '{{MODE_INSTRUCTION}}',
                 '{{LANGUAGE_INSTRUCTION}}',
                 '{{FORMAT_ACADEMIC_CONTEXT}}',
+                '{{DIAGRAM_INSTRUCTION}}',
                 '{{FORMAT_GUIDELINES_STANDALONE}}',
                 '{{FORMAT_GUIDELINES_DIRECTIONAL}}',
                 '{{STANDALONE_SAMPLE_JSON}}',
@@ -991,6 +1147,16 @@ JSON;
             ],
             [
                 $referenceDocNote,
+                $diagramsCatalogPrompt,
+                $userPrompt,
+                $className,
+                $subjectName,
+                $chapterTopicContext,
+                $diffPref,
+                $modeInstruction,
+                $languageInstruction,
+                $formatAcademicContext,
+                $diagramInstruction,
                 $diagramsCatalogPrompt,
                 $userPrompt,
                 $className,
@@ -1057,21 +1223,24 @@ JSON;
 
             // Post-processing 1: Standalone Questions (Tables & Diagrams)
             foreach ($data['standalone_questions'] as &$sq) {
-                // Attach diagram image if matched
-                $matchedDiag = null;
-                if (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']])) {
-                    $matchedDiag = $diagramsById[$sq['diagram_id']];
-                } elseif (!empty($sq['has_diagram']) && !empty($extractedDiagrams)) {
-                    $matchedDiag = $extractedDiagrams[0];
-                } elseif (!empty($uploadedRefImage)) {
-                    $matchedDiag = $extractedDiagrams[0] ?? null;
-                }
-
-                if ($matchedDiag) {
-                    $sq['image'] = $matchedDiag['image_path'];
+                // Newly generated vector SVG diagram takes top priority
+                $svgSavedPath = $this->processAndSaveSvgDiagram($sq, 'ai_diag_sq');
+                if ($svgSavedPath) {
+                    $sq['image'] = $svgSavedPath;
+                    $sq['has_diagram'] = true;
+                } elseif (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']]) && !$isSimilarRequest) {
+                    $sq['image'] = $diagramsById[$sq['diagram_id']]['image_path'];
+                    $sq['has_diagram'] = true;
+                } elseif (!empty($sq['has_diagram']) && !empty($extractedDiagrams) && !$isSimilarRequest) {
+                    $sq['image'] = $extractedDiagrams[0]['image_path'];
                     $sq['has_diagram'] = true;
                 } else {
                     $sq['image'] = $sq['image'] ?? null;
+                }
+
+                // Clean explanation scratchpad if model leaked internal monologue
+                if (!empty($sq['explanation'])) {
+                    $sq['explanation'] = $this->cleanAiExplanation($sq['explanation']);
                 }
 
                 // Append table to name if standalone question has a separate table property
@@ -1081,27 +1250,8 @@ JSON;
                     }
                 }
 
-                // Descriptive / Numerical sanitization
-                if ($isDescriptiveMode || (!empty($sq['question_type_id']) && (int)$sq['question_type_id'] === 2)) {
-                    $sq['question_type_id'] = 2;
-                    $cAnsStr = trim((string)($sq['correct_ans'] ?? ''));
-                    if (in_array($cAnsStr, ['0', '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E'], true)) {
-                        $idxMap = [
-                            '0' => 'ans1', '1' => 'ans2', '2' => 'ans3', '3' => 'ans4', '4' => 'ans5',
-                            'A' => 'ans1', 'B' => 'ans2', 'C' => 'ans3', 'D' => 'ans4', 'E' => 'ans5'
-                        ];
-                        $key = $idxMap[$cAnsStr] ?? null;
-                        if ($key && !empty($sq[$key])) {
-                            $sq['correct_ans'] = $sq[$key];
-                        }
-                    }
-                    $sq['ans1'] = null;
-                    $sq['ans2'] = null;
-                    $sq['ans3'] = null;
-                    $sq['ans4'] = null;
-                    $sq['ans5'] = null;
-                    $sq['correct_option_letter'] = null;
-                }
+                // Normalize options and correct answer
+                $this->normalizeQuestionOptionsAndAnswers($sq, $isDescriptiveMode);
 
                 $sq['chapter_name'] = !empty($chapterName) ? $chapterName : ($sq['chapter_name'] ?? null);
                 $sq['topic_name'] = !empty($topicName) ? $topicName : ($sq['topic_name'] ?? null);
@@ -1129,18 +1279,16 @@ JSON;
                     $set['sub_questions'] = [];
                 }
 
-                // Match diagram for directional set
-                $matchedSetDiag = null;
-                if (!empty($set['diagram_id']) && isset($diagramsById[$set['diagram_id']])) {
-                    $matchedSetDiag = $diagramsById[$set['diagram_id']];
-                } elseif (!empty($set['has_diagram']) && !empty($extractedDiagrams)) {
-                    $matchedSetDiag = $extractedDiagrams[0];
-                } elseif (!empty($uploadedRefImage)) {
-                    $matchedSetDiag = $extractedDiagrams[0] ?? null;
-                }
-
-                if ($matchedSetDiag) {
-                    $set['image'] = $matchedSetDiag['image_path'];
+                // Newly generated vector SVG diagram for the set takes top priority
+                $setSvgPath = $this->processAndSaveSvgDiagram($set, 'ai_diag_set');
+                if ($setSvgPath) {
+                    $set['image'] = $setSvgPath;
+                    $set['has_diagram'] = true;
+                } elseif (!empty($set['diagram_id']) && isset($diagramsById[$set['diagram_id']]) && !$isSimilarRequest) {
+                    $set['image'] = $diagramsById[$set['diagram_id']]['image_path'];
+                    $set['has_diagram'] = true;
+                } elseif (!empty($set['has_diagram']) && !empty($extractedDiagrams) && !$isSimilarRequest) {
+                    $set['image'] = $extractedDiagrams[0]['image_path'];
                     $set['has_diagram'] = true;
                 } else {
                     $set['image'] = $set['image'] ?? null;
@@ -1152,8 +1300,12 @@ JSON;
                     $sq['direction'] = $set['direction'] ?? null;
                     $sq['direction_table'] = $set['direction_table'] ?? null;
 
-                    // Match sub-question specific diagram or fallback to set diagram
-                    if (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']])) {
+                    // Match sub-question specific diagram, newly generated SVG, or fallback to set image
+                    $subQSvgPath = $this->processAndSaveSvgDiagram($sq, 'ai_diag_subq');
+                    if ($subQSvgPath) {
+                        $sq['image'] = $subQSvgPath;
+                        $sq['has_diagram'] = true;
+                    } elseif (!empty($sq['diagram_id']) && isset($diagramsById[$sq['diagram_id']]) && !$isSimilarRequest) {
                         $sq['image'] = $diagramsById[$sq['diagram_id']]['image_path'];
                         $sq['has_diagram'] = true;
                     } elseif (!empty($set['image'])) {
@@ -1163,27 +1315,13 @@ JSON;
                         $sq['image'] = $sq['image'] ?? null;
                     }
 
-                    // Descriptive / Numerical sanitization
-                    if ($isDescriptiveMode || (!empty($sq['question_type_id']) && (int)$sq['question_type_id'] === 2)) {
-                        $sq['question_type_id'] = 2;
-                        $cAnsStr = trim((string)($sq['correct_ans'] ?? ''));
-                        if (in_array($cAnsStr, ['0', '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E'], true)) {
-                            $idxMap = [
-                                '0' => 'ans1', '1' => 'ans2', '2' => 'ans3', '3' => 'ans4', '4' => 'ans5',
-                                'A' => 'ans1', 'B' => 'ans2', 'C' => 'ans3', 'D' => 'ans4', 'E' => 'ans5'
-                            ];
-                            $key = $idxMap[$cAnsStr] ?? null;
-                            if ($key && !empty($sq[$key])) {
-                                $sq['correct_ans'] = $sq[$key];
-                            }
-                        }
-                        $sq['ans1'] = null;
-                        $sq['ans2'] = null;
-                        $sq['ans3'] = null;
-                        $sq['ans4'] = null;
-                        $sq['ans5'] = null;
-                        $sq['correct_option_letter'] = null;
+                    // Clean sub-question explanation scratchpad
+                    if (!empty($sq['explanation'])) {
+                        $sq['explanation'] = $this->cleanAiExplanation($sq['explanation']);
                     }
+
+                    // Normalize options and correct answer
+                    $this->normalizeQuestionOptionsAndAnswers($sq, $isDescriptiveMode);
 
                     $sq['chapter_name'] = !empty($chapterName) ? $chapterName : ($sq['chapter_name'] ?? null);
                     $sq['topic_name'] = !empty($topicName) ? $topicName : ($sq['topic_name'] ?? null);
@@ -1399,6 +1537,184 @@ JSON;
             Log::warning("PDF diagram extraction warning: " . $e->getMessage());
         }
         return [];
+    }
+
+    /**
+     * Inspects question or directional set payload for vector SVG/HTML diagram code, decodes HTML entities,
+     * validates and formats the SVG, saves it into public/uploads/questions, and assigns the relative path.
+     */
+    protected function processAndSaveSvgDiagram(array &$item, string $prefix = 'ai_diag'): ?string
+    {
+        $raw = $item['diagram_svg'] ?? ($item['diagram_html'] ?? null);
+
+        // If not found in dedicated diagram keys, check if embedded in name or direction
+        if (empty($raw)) {
+            $haystack = ($item['name'] ?? '') . ' ' . ($item['direction'] ?? '');
+            if (preg_match('/(<svg[\s\S]*?<\/svg>)/i', $haystack, $m)) {
+                $raw = $m[1];
+            } elseif (preg_match('/(&lt;svg[\s\S]*?&lt;\/svg&gt;)/i', $haystack, $m)) {
+                $raw = $m[1];
+            }
+        }
+
+        if (empty($raw) || !is_string($raw)) {
+            return null;
+        }
+
+        // Strip markdown code fences if present (```xml, ```svg, ```html, or ```)
+        $raw = trim($raw);
+        $raw = preg_replace('/^```(?:xml|svg|html)?\s*/i', '', $raw);
+        $raw = preg_replace('/\s*```$/', '', $raw);
+
+        // Decode HTML entities (handles &lt;svg, &quot;, &#39;, &amp;, etc.)
+        $decoded = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (strpos($decoded, '&lt;svg') !== false) {
+            $decoded = html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        // Locate <svg ... </svg>
+        if (preg_match('/<svg[\s\S]*?<\/svg>/i', $decoded, $match)) {
+            $svg = trim($match[0]);
+
+            // Ensure XML namespace xmlns="http://www.w3.org/2000/svg"
+            if (stripos($svg, 'xmlns=') === false) {
+                $svg = preg_replace('/<svg\b/i', '<svg xmlns="http://www.w3.org/2000/svg"', $svg, 1);
+            }
+
+            // Ensure viewBox exists for clean responsive rendering
+            if (stripos($svg, 'viewBox=') === false && stripos($svg, 'width=') === false) {
+                $svg = preg_replace('/<svg\b/i', '<svg viewBox="0 0 500 250"', $svg, 1);
+            }
+
+            // Save file to public/uploads/questions
+            $dir = public_path('uploads/questions');
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+
+            $filename = $prefix . '_' . time() . '_' . Str::random(8) . '.svg';
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $filename;
+            @file_put_contents($fullPath, $svg);
+
+            $relativePath = 'uploads/questions/' . $filename;
+            $item['image'] = $relativePath;
+            $item['has_diagram'] = true;
+            $item['diagram_svg'] = $svg;
+
+            // Clean out embedded SVG from name / direction so question text stays clean and focused
+            if (!empty($item['name'])) {
+                $item['name'] = trim(preg_replace('/<svg[\s\S]*?<\/svg>/i', '', $item['name']));
+                $item['name'] = trim(preg_replace('/&lt;svg[\s\S]*?&lt;\/svg&gt;/i', '', $item['name']));
+            }
+            if (!empty($item['direction'])) {
+                $item['direction'] = trim(preg_replace('/<svg[\s\S]*?<\/svg>/i', '', $item['direction']));
+                $item['direction'] = trim(preg_replace('/&lt;svg[\s\S]*?&lt;\/svg&gt;/i', '', $item['direction']));
+            }
+
+            return $relativePath;
+        }
+
+        return null;
+    }
+
+    /**
+     * Cleans up any trailing scratchpad, trial-and-error reasoning, or internal monologue
+     * that LLMs might sometimes leak into the solution/explanation field.
+     */
+    protected function cleanAiExplanation(?string $text): ?string
+    {
+        if (empty($text) || !is_string($text)) {
+            return $text;
+        }
+
+        // If model dumped internal monologue/scratchpad starting with "Wait, let us..." or "Let's change question values..."
+        $scratchpadPattern = '/\s*(?:Wait[,!]?\s*(?:let\s+us|let\'s|if|we)|Let\'s\s+(?:change\s+question|stick\s+to|re-check|re-evaluate|adjust\s+options|set\s+option|test\s+x))[\s\S]*$/i';
+        $cleaned = preg_replace($scratchpadPattern, '', $text);
+
+        return !empty(trim($cleaned)) ? trim($cleaned) : $text;
+    }
+
+    /**
+     * Normalizes MCQ options and correct answer across various Gemini output shapes.
+     */
+    protected function normalizeQuestionOptionsAndAnswers(array &$q, bool $isDescriptiveMode): void
+    {
+        // 1. If options returned as array under 'options' or 'choices'
+        if (empty($q['ans1']) && (!empty($q['options']) || !empty($q['choices']))) {
+            $opts = !empty($q['options']) && is_array($q['options']) ? $q['options'] : ($q['choices'] ?? []);
+            if (is_array($opts)) {
+                $q['ans1'] = isset($opts[0]) ? (string)$opts[0] : null;
+                $q['ans2'] = isset($opts[1]) ? (string)$opts[1] : null;
+                $q['ans3'] = isset($opts[2]) ? (string)$opts[2] : null;
+                $q['ans4'] = isset($opts[3]) ? (string)$opts[3] : null;
+                $q['ans5'] = isset($opts[4]) ? (string)$opts[4] : null;
+            }
+        }
+
+        // 2. Descriptive / Numerical mode
+        if ($isDescriptiveMode || (!empty($q['question_type_id']) && (int)$q['question_type_id'] === 2)) {
+            $q['question_type_id'] = 2;
+            $rawAns = $q['correct_ans'] ?? ($q['correct_answer'] ?? ($q['correct_option'] ?? ($q['answer'] ?? null)));
+            $cAnsStr = trim((string)$rawAns);
+            if (in_array($cAnsStr, ['0', '1', '2', '3', '4', 'A', 'B', 'C', 'D', 'E'], true)) {
+                $idxMap = [
+                    '0' => 'ans1', '1' => 'ans2', '2' => 'ans3', '3' => 'ans4', '4' => 'ans5',
+                    'A' => 'ans1', 'B' => 'ans2', 'C' => 'ans3', 'D' => 'ans4', 'E' => 'ans5'
+                ];
+                $key = $idxMap[$cAnsStr] ?? null;
+                if ($key && !empty($q[$key])) {
+                    $q['correct_ans'] = (string)$q[$key];
+                } else {
+                    $q['correct_ans'] = $cAnsStr;
+                }
+            } else {
+                $q['correct_ans'] = $cAnsStr;
+            }
+            $q['ans1'] = null;
+            $q['ans2'] = null;
+            $q['ans3'] = null;
+            $q['ans4'] = null;
+            $q['ans5'] = null;
+            $q['correct_option_letter'] = null;
+            return;
+        }
+
+        // 3. Objective / MCQ mode
+        $q['question_type_id'] = 1;
+        $rawAns = $q['correct_ans'] ?? ($q['correct_answer'] ?? ($q['correct_option'] ?? ($q['answer'] ?? null)));
+        if ($rawAns !== null && $rawAns !== '') {
+            $rawAnsStr = trim((string)$rawAns);
+            $upper = strtoupper($rawAnsStr);
+            if (in_array($upper, ['A', 'B', 'C', 'D', 'E'], true)) {
+                $letterMap = ['A' => '0', 'B' => '1', 'C' => '2', 'D' => '3', 'E' => '4'];
+                $q['correct_ans'] = $letterMap[$upper];
+                $q['correct_option_letter'] = $upper;
+            } elseif (in_array($rawAnsStr, ['0', '1', '2', '3', '4'], true)) {
+                $idxMap = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                $q['correct_ans'] = $rawAnsStr;
+                $q['correct_option_letter'] = $idxMap[$rawAnsStr];
+            } else {
+                // Check if raw answer matches the text of one of the options
+                $matchedIdx = null;
+                for ($i = 1; $i <= 5; $i++) {
+                    if (isset($q['ans' . $i]) && trim((string)$q['ans' . $i]) === $rawAnsStr) {
+                        $matchedIdx = $i - 1;
+                        break;
+                    }
+                }
+                if ($matchedIdx !== null) {
+                    $idxMap = ['0' => 'A', '1' => 'B', '2' => 'C', '3' => 'D', '4' => 'E'];
+                    $q['correct_ans'] = (string)$matchedIdx;
+                    $q['correct_option_letter'] = $idxMap[(string)$matchedIdx];
+                } else {
+                    $q['correct_ans'] = '0';
+                    $q['correct_option_letter'] = 'A';
+                }
+            }
+        } else {
+            $q['correct_ans'] = '0';
+            $q['correct_option_letter'] = 'A';
+        }
     }
 
     /**

@@ -3206,34 +3206,47 @@ document.addEventListener('DOMContentLoaded', function () {
         let text = String(raw).trim();
         if (!text) return '';
 
-        // 1. Unescape safe HTML tags if they were escaped as &lt;br&gt;, &lt;b&gt;, etc.
-        text = text.replace(/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6])(?:\s+[^&>]*)?)&gt;/gi, '<$1>');
+        // 1. Unescape safe HTML tags including SVG tags if they were escaped as &lt;br&gt;, &lt;svg&gt;, etc.
+        text = text.replace(/&lt;(\/?(?:br|b|strong|i|em|u|sub|sup|table|thead|tbody|tr|th|td|p|div|span|ul|ol|li|hr|h[1-6]|svg|g|path|circle|ellipse|rect|polygon|polyline|line|text|tspan|defs|marker|style|image)(?:\s+[^&>]*)?)&gt;/gi, '<$1>');
 
-        // 2. Unescape quotes in tag attributes if escaped
-        text = text.replace(/<(table|div|span|p|tr|td|th)([^>]*)&quot;([^>]*)>/gi, '<$1$2"$3>');
+        // 2. Unescape quotes in attributes if escaped
+        text = text.replace(/&quot;/g, '"');
+        text = text.replace(/&#39;/g, "'");
 
-        // 3. Temporarily protect math blocks ($...$, $$...$$, \(...\), \[...\]) before transforms
+        // 3. Temporarily protect SVG vector graphic blocks before linebreaks/markdown transforms
+        const svgBlocks = [];
+        text = text.replace(/(<svg[\s\S]*?<\/svg>)/gi, function(match) {
+            svgBlocks.push(match);
+            return `###SVG_BLOCK_${svgBlocks.length - 1}###`;
+        });
+
+        // 4. Temporarily protect math blocks ($...$, $$...$$, \(...\), \[...\]) before transforms
         const mathBlocks = [];
         text = text.replace(/(\$\$[\s\S]*?\$\$|\$[^\$\n\r]+?\$|\\\(.*?\\\)|\\[[\s\S]*?\\])/g, function(match) {
             mathBlocks.push(match);
             return `###MATH_BLOCK_${mathBlocks.length - 1}###`;
         });
 
-        // 4. Convert markdown bold **bold** to <strong>bold</strong>
+        // 5. Convert markdown bold **bold** to <strong>bold</strong>
         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-        // 5. Convert markdown italic *italic* to <em>italic</em>
+        // 6. Convert markdown italic *italic* to <em>italic</em>
         text = text.replace(/(^|[^\*])\*([^\*\s][^\*]*?)\*(?!\*)/g, '$1<em>$2</em>');
 
-        // 6. Normalize existing <br> tags & literal \n (protecting LaTeX math)
+        // 7. Normalize existing <br> tags & literal \n (protecting LaTeX math & SVG)
         text = text.replace(/(?<!\\)\\n(?![a-zA-Z])/g, '<br>');
         text = text.replace(/<br\s*\/?>\s*\r?\n?/gi, '<br>');
 
-        // 7. Convert plain newlines (\n) to <br> (skip if preceded by block level tag)
+        // 8. Convert plain newlines (\n) to <br> (skip if preceded by block level tag)
         text = text.replace(/([^>])\r?\n/g, '$1<br>');
         text = text.replace(/\n/g, '<br>');
 
-        // 8. Restore protected math blocks
+        // 9. Restore protected SVG blocks
+        text = text.replace(/###SVG_BLOCK_(\d+)###/g, function(_, idx) {
+            return svgBlocks[parseInt(idx, 10)] || '';
+        });
+
+        // 10. Restore protected math blocks
         text = text.replace(/###MATH_BLOCK_(\d+)###/g, function(_, idx) {
             return mathBlocks[parseInt(idx, 10)] || '';
         });
@@ -3360,8 +3373,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (hasImg) {
-            html += `<div class="mb-3 text-center p-2 rounded" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                <img src="${imgPreviewSrc}" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
+            html += `<div class="mb-3 text-center p-2 rounded bg-white" style="border: 1px solid #cbd5e1;">
+                <img src="${imgPreviewSrc}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
             </div>`;
         }
 
@@ -6362,10 +6375,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 ${imgUrl ? `
-                <div class="mb-2 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
-                    <img src="${imgUrl}" style="max-height: 130px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
-                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Attached Diagram / Figure</div>
-                </div>` : ''}
+                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important;">
+                    <img src="${imgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
+                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
+                </div>` : (q.diagram_svg ? `
+                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
+                    ${q.diagram_svg}
+                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                </div>` : '')}
 
                 ${isDesc ? `
                 {{-- Expected Answer Box for Descriptive / Numerical Question --}}
@@ -6449,9 +6466,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     ${setImgUrl ? `
                     <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
-                        <img src="${setImgUrl}" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram">
+                        <img src="${setImgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram">
                         <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
-                    </div>` : ''}
+                    </div>` : (set.diagram_svg ? `
+                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
+                        ${set.diagram_svg}
+                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                    </div>` : '')}
 
                     ${set.direction_table ? `<div class="mt-2 table-responsive">${set.direction_table}</div>` : ''}
                 </div>
@@ -6482,9 +6503,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
 
                             ${sqImgUrl ? `
-                            <div class="my-2 text-center p-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
-                                <img src="${sqImgUrl}" style="max-height: 110px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
-                            </div>` : ''}
+                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
+                                <img src="${sqImgUrl}" style="max-height: 200px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
+                            </div>` : (sq.diagram_svg ? `
+                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 220px; overflow: auto;">
+                                ${sq.diagram_svg}
+                            </div>` : '')}
 
                             ${sqIsDesc ? `
                             <div class="p-1 px-2 mb-1 rounded d-flex align-items-center" style="background: #ecfdf5; border: 1px solid #059669;">
