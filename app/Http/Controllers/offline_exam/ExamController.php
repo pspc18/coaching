@@ -227,6 +227,7 @@ class ExamController extends Controller
     {
         $classTypeId = (int) ($request->input('class_type_id') ?: $request->input('class_name', 0));
         $examId = (int) $request->input('exam_id', 0);
+        $batchIdInput = $request->input('batch_id');
         $branchId = Session::get('branch_id');
         $sessionId = Session::get('session_id');
 
@@ -251,8 +252,34 @@ class ExamController extends Controller
         $classType = Helper::classType();
         $selectedExam = null;
 
+        if ($examId > 0) {
+            $selectedExam = Exam::with(['classType', 'batch'])->where('id', $examId)->whereNull('deleted_at')->first();
+            if ($selectedExam && empty($classTypeId)) {
+                $classTypeId = (int) $selectedExam->class_type_id;
+            }
+        }
+
+        // Batches for the selected Course / Class
+        $batches = collect();
+        if ($classTypeId > 0) {
+            $batches = DB::table('batches')
+                ->where('class_type_id', $classTypeId)
+                ->whereNull('deleted_at')
+                ->orderBy('name', 'asc')
+                ->get();
+        }
+
+        // Determine active batch selection
+        $selectedBatchId = 0; // 0 = All Batches
+        if ($batchIdInput !== null && $batchIdInput !== '') {
+            $selectedBatchId = ($batchIdInput === 'all' || (int)$batchIdInput === 0) ? 0 : (int)$batchIdInput;
+        } elseif ($selectedExam && !empty($selectedExam->batch_id)) {
+            $selectedBatchId = (int) $selectedExam->batch_id;
+        }
+
         // Fetch all exams for dropdown
-        $allExamsQuery = Exam::whereNull('deleted_at')
+        $allExamsQuery = Exam::with(['classType', 'batch'])
+            ->whereNull('deleted_at')
             ->withCount('results')
             ->orderBy('id', 'desc');
         if ($branchId) {
@@ -260,14 +287,12 @@ class ExamController extends Controller
                 $q->where('branch_id', $branchId)->orWhereNull('branch_id');
             });
         }
-        $allExams = $allExamsQuery->get();
-
-        if ($examId > 0) {
-            $selectedExam = Exam::where('id', $examId)->whereNull('deleted_at')->first();
-            if ($selectedExam && empty($classTypeId)) {
-                $classTypeId = (int) $selectedExam->class_type_id;
-            }
+        if ($classTypeId > 0) {
+            $allExamsQuery->where(function($q) use ($classTypeId) {
+                $q->where('class_type_id', $classTypeId)->orWhereNull('class_type_id');
+            });
         }
+        $allExams = $allExamsQuery->get();
 
         // Fetch enrolled class students & any existing marks/evaluations
         $students = collect([]);
@@ -275,15 +300,16 @@ class ExamController extends Controller
         $existingOmrMap = collect();
 
         if ($classTypeId > 0) {
-            $studentsQuery = Admission::where('class_type_id', $classTypeId)
+            $studentsQuery = Admission::with(['classType', 'batch'])
+                ->where('class_type_id', $classTypeId)
                 ->whereNull('deleted_at');
             if ($branchId) {
                 $studentsQuery->where(function($q) use ($branchId) {
                     $q->where('branch_id', $branchId)->orWhereNull('branch_id');
                 });
             }
-            if ($selectedExam && !empty($selectedExam->batch_id)) {
-                $studentsQuery->where('batch_id', $selectedExam->batch_id);
+            if (!empty($selectedBatchId)) {
+                $studentsQuery->where('batch_id', $selectedBatchId);
             }
             $students = $studentsQuery
                 ->orderByRaw('CASE WHEN roll_no IS NOT NULL AND roll_no != "" THEN 0 ELSE 1 END, CAST(roll_no AS UNSIGNED) ASC, CAST(admissionNo AS UNSIGNED) ASC, first_name ASC')
@@ -323,6 +349,8 @@ class ExamController extends Controller
 
         return Helper::view('examination.offline_exam.omr.upload_omr', [
             'classType' => $classType,
+            'batches' => $batches,
+            'selectedBatchId' => $selectedBatchId,
             'allExams' => $allExams,
             'selectedExam' => $selectedExam,
             'students' => $students,
@@ -334,6 +362,7 @@ class ExamController extends Controller
             'totalEvaluatedCount' => $totalEvaluatedCount,
             'search' => [
                 'class_type_id' => $classTypeId,
+                'batch_id' => $selectedBatchId,
                 'exam_id' => $examId,
             ],
         ]);

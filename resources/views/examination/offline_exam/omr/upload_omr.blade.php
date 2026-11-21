@@ -4,8 +4,10 @@
 
 @php
     $classType = $classType ?? Helper::classType();
+    $batches = $batches ?? collect();
     $search = $search ?? [];
     $requestedClassId = (int) ($search['class_type_id'] ?? 0);
+    $selectedBatchId = (int) ($search['batch_id'] ?? ($selectedBatchId ?? 0));
     $selectedExamId = (int) ($search['exam_id'] ?? 0);
     $allExams = $allExams ?? collect();
     $selectedExam = $selectedExam ?? null;
@@ -517,6 +519,7 @@
                     </div>
                     <div class="omr-card-body py-2">
                         <div class="row g-2 mb-2">
+                            {{-- 1. Target Course / Class --}}
                             <div class="col-sm-6">
                                 <label for="omr-class-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
                                     Target Course / Class <span class="text-danger">*</span>
@@ -530,7 +533,24 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- 2. Target Batch --}}
                             <div class="col-sm-6">
+                                <label for="omr-batch-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
+                                    Target Batch
+                                </label>
+                                <select id="omr-batch-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1; background: #ffffff;">
+                                    <option value="all" {{ empty($selectedBatchId) ? 'selected' : '' }}>-- All Batches --</option>
+                                    @foreach($batches as $b)
+                                        <option value="{{ $b->id }}" {{ $selectedBatchId == $b->id ? 'selected' : '' }}>
+                                            {{ $b->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- 3. Examination (Full Width so Code & Name Fit Fully) --}}
+                            <div class="col-12 mt-1">
                                 <label for="omr-exam-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
                                     Examination <span class="text-danger">*</span>
                                 </label>
@@ -543,6 +563,7 @@
                                             $incorrectM = (float) ($ex->marks_per_incorrect ?: 0.0);
                                             $keyCount = is_array($ex->answer_key) ? count($ex->answer_key) : 0;
                                             $eCode = $ex->code ?: ($ex->exam_code ?: 'EXAM-'.$ex->id);
+                                            $batchName = $ex->batch ? $ex->batch->name : 'All Batches';
                                             $isSelected = ($selectedExam && $selectedExam->id == $ex->id);
                                         @endphp
                                         <option value="{{ $ex->id }}"
@@ -554,9 +575,11 @@
                                             data-maxmarks="{{ $ex->exam_maximum_marks ?: ($qCount * $correctM) }}"
                                             data-class="{{ $ex->classType ? $ex->classType->name : 'All Classes' }}"
                                             data-classid="{{ $ex->class_type_id }}"
+                                            data-batchid="{{ $ex->batch_id ?: 0 }}"
+                                            data-batchname="{{ $batchName }}"
                                             data-keycount="{{ $keyCount }}"
                                             {{ $isSelected ? 'selected' : '' }}>
-                                            {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q | {{ $ex->classType ? $ex->classType->name : 'All' }})
+                                            {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q &bull; {{ $batchName }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -566,12 +589,28 @@
                         {{-- Selected Exam Info Pill --}}
                         <div id="omr-selected-exam-badge" class="{{ $selectedExam ? '' : 'd-none' }} mt-2 p-2 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 11px;">
                             <div class="d-flex justify-content-between align-items-center font-weight-bold">
-                                <span id="omr-badge-title" class="text-dark">{{ $selectedExam ? $selectedExam->name : '' }}</span>
-                                <span id="omr-badge-code" class="font-mono text-primary font-weight-bold">{{ $selectedExam ? ($selectedExam->code ?: $selectedExam->exam_code) : '' }}</span>
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                    <span id="omr-badge-title" class="text-dark font-weight-bold" style="font-size: 12.5px;">{{ $selectedExam ? $selectedExam->name : '' }}</span>
+                                    <span id="omr-badge-batch" class="badge badge-primary px-2 py-1" style="font-size: 9.5px; background: #002C54;">
+                                        <i class="fa fa-users mr-1"></i>{{ $selectedExam && $selectedExam->batch ? $selectedExam->batch->name : (!empty($selectedBatchId) ? ($batches->firstWhere('id', $selectedBatchId)->name ?? 'Selected Batch') : 'All Batches') }}
+                                    </span>
+                                </div>
+                                <span id="omr-badge-code" class="font-mono text-primary font-weight-bold" style="font-size: 12px;">{{ $selectedExam ? ($selectedExam->code ?: $selectedExam->exam_code) : '' }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center text-muted mt-1" style="font-size: 10.5px;">
-                                <span id="omr-badge-questions"><i class="fa fa-list-ol mr-1"></i> {{ $selectedExam ? ($selectedExam->number_of_questions ?: 50) . ' Questions' : '' }}</span>
-                                <span id="omr-badge-scheme" class="font-weight-bold text-success"><i class="fa fa-tag mr-1"></i> Marks: +{{ $selectedExam ? ($selectedExam->marks_per_correct ?: 1.0) : 1 }}/-{{ $selectedExam ? ($selectedExam->marks_per_incorrect ?: 0.0) : 0 }}</span>
+                                <span id="omr-badge-questions">
+                                    <i class="fa fa-list-ol mr-1"></i> {{ $selectedExam ? ($selectedExam->number_of_questions ?: 50) . ' Questions' : '' }}
+                                    @if($selectedExam && $selectedExam->exam_maximum_marks)
+                                        &bull; Max: <b>{{ number_format($selectedExam->exam_maximum_marks, 2) }}</b> M
+                                    @endif
+                                </span>
+                                @php
+                                    $posMarks = $selectedExam ? (float)($selectedExam->marks_per_correct ?: 1.0) : 1.0;
+                                    $negMarks = $selectedExam ? abs((float)($selectedExam->marks_per_incorrect ?: 0.0)) : 0.0;
+                                @endphp
+                                <span id="omr-badge-scheme" class="font-weight-bold text-success">
+                                    <i class="fa fa-tag mr-1"></i> Marks: +{{ number_format($posMarks, 2) }} / -{{ number_format($negMarks, 2) }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -702,6 +741,8 @@
                                 <tr id="student-row-{{ $stu->id }}" 
                                     class="student-omr-row {{ $isDone ? 'table-success row-scanned' : '' }}" 
                                     data-student-id="{{ $stu->id }}" 
+                                    data-batch-id="{{ $stu->batch_id }}"
+                                    data-batch-name="{{ $stu->batch ? $stu->batch->name : '' }}"
                                     data-roll-no="{{ $rollClean }}" 
                                     data-admission-no="{{ $admClean }}" 
                                     data-numeric-roll="{{ $cleanNumeric }}"
@@ -730,6 +771,9 @@
                                                 </div>
                                                 <div class="text-muted small" style="font-size: 10.5px;">
                                                     Adm: <b>{{ $stu->admissionNo ?: 'N/A' }}</b>
+                                                    @if($stu->batch)
+                                                        &bull; <span class="badge badge-light border text-primary font-weight-bold" style="font-size: 9.5px; padding: 1px 5px;"><i class="fa fa-users mr-1"></i>{{ $stu->batch->name }}</span>
+                                                    @endif
                                                     @if(!empty($stu->father_name))
                                                         &bull; S/O {{ $stu->father_name }}
                                                     @endif
@@ -1004,6 +1048,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const classSelect = document.getElementById('omr-class-select');
+    const batchSelect = document.getElementById('omr-batch-select');
     const examSelect = document.getElementById('omr-exam-select');
     const fileInput = document.getElementById('omr-image-input');
     const dropzone = document.getElementById('omr-upload-dropzone');
@@ -1013,6 +1058,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const badgeBox = document.getElementById('omr-selected-exam-badge');
     const badgeTitle = document.getElementById('omr-badge-title');
+    const badgeBatch = document.getElementById('omr-badge-batch');
     const badgeCode = document.getElementById('omr-badge-code');
     const badgeQuestions = document.getElementById('omr-badge-questions');
     const badgeScheme = document.getElementById('omr-badge-scheme');
@@ -1067,23 +1113,35 @@ document.addEventListener('DOMContentLoaded', function () {
     if (classSelect) {
         classSelect.addEventListener('change', function () {
             const classId = this.value;
-            const curExamOpt = getSelectedExamOption();
-            let examParam = '';
-            if (curExamOpt && curExamOpt.value && (!curExamOpt.dataset.classid || curExamOpt.dataset.classid == classId)) {
-                examParam = `&exam_id=${curExamOpt.value}`;
-            }
-            window.location.href = `{{ url('upload_omr') }}?class_type_id=${classId}${examParam}`;
+            window.location.href = `{{ url('upload_omr') }}?class_type_id=${classId}`;
         });
     }
 
-    // 2. Exam dropdown change handler: reloads with ?class_type_id=...&exam_id=...
+    // 2. Batch dropdown change handler: reloads with ?class_type_id=...&batch_id=...
+    if (batchSelect) {
+        batchSelect.addEventListener('change', function () {
+            const batchVal = this.value;
+            const classId = classSelect ? classSelect.value : '';
+            const curExamOpt = getSelectedExamOption();
+            let url = `{{ url('upload_omr') }}?`;
+            if (classId) url += `class_type_id=${classId}&`;
+            if (batchVal && batchVal !== 'all') url += `batch_id=${batchVal}&`;
+            if (curExamOpt && curExamOpt.value) url += `exam_id=${curExamOpt.value}`;
+            window.location.href = url.replace(/[?&]$/, '');
+        });
+    }
+
+    // 3. Exam dropdown change handler: reloads with ?exam_id=...&class_type_id=...&batch_id=...
     if (examSelect) {
         examSelect.addEventListener('change', function () {
             const opt = getSelectedExamOption();
             if (this.value && opt) {
                 const classId = opt.dataset.classid || (classSelect ? classSelect.value : '');
-                const classParam = classId ? `class_type_id=${classId}&` : '';
-                window.location.href = `{{ url('upload_omr') }}?${classParam}exam_id=${this.value}`;
+                const batchId = opt.dataset.batchid || (batchSelect ? batchSelect.value : '');
+                let url = `{{ url('upload_omr') }}?exam_id=${this.value}`;
+                if (classId) url += `&class_type_id=${classId}`;
+                if (batchId && batchId !== '0' && batchId !== 'all') url += `&batch_id=${batchId}`;
+                window.location.href = url;
             }
         });
     }

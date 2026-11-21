@@ -60,6 +60,11 @@ class Exam extends Model
         return $this->belongsTo(ClassType::class, 'class_type_id');
     }
 
+    public function batch()
+    {
+        return $this->belongsTo(\App\Models\Batch::class, 'batch_id');
+    }
+
     public function results()
     {
         return $this->hasMany(OmrResult::class, 'exam_id');
