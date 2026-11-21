@@ -252,15 +252,59 @@ class ExamController extends Controller
         $selectedExam = null;
 
         // Fetch all exams for dropdown
-        $allExams = Exam::where('session_id', $sessionId)
-            ->where('branch_id', $branchId)
-            ->whereNull('deleted_at')
+        $allExamsQuery = Exam::whereNull('deleted_at')
             ->withCount('results')
-            ->orderBy('id', 'desc')
-            ->get();
+            ->orderBy('id', 'desc');
+        if ($branchId) {
+            $allExamsQuery->where(function($q) use ($branchId) {
+                $q->where('branch_id', $branchId)->orWhereNull('branch_id');
+            });
+        }
+        $allExams = $allExamsQuery->get();
 
         if ($examId > 0) {
             $selectedExam = Exam::where('id', $examId)->whereNull('deleted_at')->first();
+            if ($selectedExam && empty($classTypeId)) {
+                $classTypeId = (int) $selectedExam->class_type_id;
+            }
+        }
+
+        // Fetch enrolled class students & any existing marks/evaluations
+        $students = collect([]);
+        $existingMarksMap = collect();
+        $existingOmrMap = collect();
+
+        if ($classTypeId > 0) {
+            $studentsQuery = Admission::where('class_type_id', $classTypeId)
+                ->whereNull('deleted_at');
+            if ($branchId) {
+                $studentsQuery->where(function($q) use ($branchId) {
+                    $q->where('branch_id', $branchId)->orWhereNull('branch_id');
+                });
+            }
+            if ($selectedExam && !empty($selectedExam->batch_id)) {
+                $studentsQuery->where('batch_id', $selectedExam->batch_id);
+            }
+            $students = $studentsQuery
+                ->orderByRaw('CASE WHEN roll_no IS NOT NULL AND roll_no != "" THEN 0 ELSE 1 END, CAST(roll_no AS UNSIGNED) ASC, CAST(admissionNo AS UNSIGNED) ASC, first_name ASC')
+                ->get();
+
+            if ($examId > 0 && $students->isNotEmpty()) {
+                $studentIds = $students->pluck('id')->toArray();
+
+                $existingMarksMap = DB::table('fill_marks')
+                    ->where('exam_id', $examId)
+                    ->whereIn('admission_id', $studentIds)
+                    ->whereNull('deleted_at')
+                    ->get()
+                    ->keyBy('admission_id');
+
+                $existingOmrMap = DB::table('omr_results')
+                    ->where('exam_id', $examId)
+                    ->whereIn('admission_id', $studentIds)
+                    ->get()
+                    ->keyBy('admission_id');
+            }
         }
 
         // Metrics & KPI calculations
@@ -281,6 +325,9 @@ class ExamController extends Controller
             'classType' => $classType,
             'allExams' => $allExams,
             'selectedExam' => $selectedExam,
+            'students' => $students,
+            'existingMarksMap' => $existingMarksMap,
+            'existingOmrMap' => $existingOmrMap,
             'recentScans' => $recentScans,
             'totalScannedToday' => $totalScannedToday,
             'avgAccuracy' => $avgAccuracy,

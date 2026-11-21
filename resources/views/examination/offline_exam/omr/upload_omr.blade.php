@@ -9,6 +9,9 @@
     $selectedExamId = (int) ($search['exam_id'] ?? 0);
     $allExams = $allExams ?? collect();
     $selectedExam = $selectedExam ?? null;
+    $students = $students ?? collect();
+    $existingMarksMap = $existingMarksMap ?? collect();
+    $existingOmrMap = $existingOmrMap ?? collect();
     $recentScans = $recentScans ?? collect();
     $totalScannedToday = $totalScannedToday ?? 0;
     $avgAccuracy = $avgAccuracy ?? 0;
@@ -508,40 +511,57 @@
                             <h2 class="omr-card-title">
                                 <i class="fa fa-leanpub text-primary"></i> 1. Select Target Examination
                             </h2>
-                            <p class="omr-card-desc">Answer key, question count, and marking scheme will follow this exam.</p>
+                            <p class="omr-card-desc">Answer key, question count, and student roster will follow this exam.</p>
                         </div>
                         <span class="badge badge-primary px-2 py-1" style="font-size: 10px; background: #002C54;">Step 1</span>
                     </div>
                     <div class="omr-card-body py-2">
-                        <label for="omr-exam-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
-                            Examination <span class="text-danger">*</span>
-                        </label>
-                        <select id="omr-exam-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1; background: #ffffff;">
-                            <option value="">-- Choose an examination --</option>
-                            @foreach($allExams as $ex)
-                                @php
-                                    $qCount = (int) ($ex->number_of_questions ?: 50);
-                                    $correctM = (float) ($ex->marks_per_correct ?: 1.0);
-                                    $incorrectM = (float) ($ex->marks_per_incorrect ?: 0.0);
-                                    $keyCount = is_array($ex->answer_key) ? count($ex->answer_key) : 0;
-                                    $eCode = $ex->code ?: ($ex->exam_code ?: 'EXAM-'.$ex->id);
-                                    $isSelected = ($selectedExam && $selectedExam->id == $ex->id);
-                                @endphp
-                                <option value="{{ $ex->id }}"
-                                    data-name="{{ $ex->name }}"
-                                    data-code="{{ $eCode }}"
-                                    data-questions="{{ $qCount }}"
-                                    data-correct="{{ $correctM }}"
-                                    data-incorrect="{{ $incorrectM }}"
-                                    data-maxmarks="{{ $ex->exam_maximum_marks ?: ($qCount * $correctM) }}"
-                                    data-class="{{ $ex->classType ? $ex->classType->name : 'All Classes' }}"
-                                    data-classid="{{ $ex->class_type_id }}"
-                                    data-keycount="{{ $keyCount }}"
-                                    {{ $isSelected ? 'selected' : '' }}>
-                                    {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q | +{{ $correctM }}/-{{ $incorrectM }} | {{ $ex->classType ? $ex->classType->name : 'All' }})
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="row g-2 mb-2">
+                            <div class="col-sm-6">
+                                <label for="omr-class-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
+                                    Target Course / Class <span class="text-danger">*</span>
+                                </label>
+                                <select id="omr-class-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1; background: #ffffff;">
+                                    <option value="">-- Choose Course / Class --</option>
+                                    @foreach($classType as $ct)
+                                        <option value="{{ $ct->id }}" {{ $requestedClassId == $ct->id ? 'selected' : '' }}>
+                                            {{ $ct->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="omr-exam-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
+                                    Examination <span class="text-danger">*</span>
+                                </label>
+                                <select id="omr-exam-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1; background: #ffffff;">
+                                    <option value="">-- Choose Examination --</option>
+                                    @foreach($allExams as $ex)
+                                        @php
+                                            $qCount = (int) ($ex->number_of_questions ?: 50);
+                                            $correctM = (float) ($ex->marks_per_correct ?: 1.0);
+                                            $incorrectM = (float) ($ex->marks_per_incorrect ?: 0.0);
+                                            $keyCount = is_array($ex->answer_key) ? count($ex->answer_key) : 0;
+                                            $eCode = $ex->code ?: ($ex->exam_code ?: 'EXAM-'.$ex->id);
+                                            $isSelected = ($selectedExam && $selectedExam->id == $ex->id);
+                                        @endphp
+                                        <option value="{{ $ex->id }}"
+                                            data-name="{{ $ex->name }}"
+                                            data-code="{{ $eCode }}"
+                                            data-questions="{{ $qCount }}"
+                                            data-correct="{{ $correctM }}"
+                                            data-incorrect="{{ $incorrectM }}"
+                                            data-maxmarks="{{ $ex->exam_maximum_marks ?: ($qCount * $correctM) }}"
+                                            data-class="{{ $ex->classType ? $ex->classType->name : 'All Classes' }}"
+                                            data-classid="{{ $ex->class_type_id }}"
+                                            data-keycount="{{ $keyCount }}"
+                                            {{ $isSelected ? 'selected' : '' }}>
+                                            {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q | {{ $ex->classType ? $ex->classType->name : 'All' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
 
                         {{-- Selected Exam Info Pill --}}
                         <div id="omr-selected-exam-badge" class="{{ $selectedExam ? '' : 'd-none' }} mt-2 p-2 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 11px;">
@@ -595,8 +615,15 @@
                             </div>
                         </div>
 
-                        <div id="omr-status-box" class="mt-2 py-1 px-2 rounded font-weight-bold" style="background: #f1f5f9; border: 1px solid #e2e8f0; font-size: 11px; color: #475569;">
-                            <i class="fa fa-info-circle mr-1"></i> <span id="omr-status-text">Select an exam to enable sheet upload.</span>
+                        <div id="omr-status-box" class="mt-2 py-1 px-2 rounded font-weight-bold" style="{{ $selectedExam ? 'background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;' : 'background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569;' }} font-size: 11px;">
+                            <i class="fa {{ $selectedExam ? 'fa-check-circle text-success' : 'fa-info-circle' }} mr-1"></i> 
+                            <span id="omr-status-text">
+                                @if($selectedExam)
+                                    Target Exam: <b>{{ $selectedExam->name }}</b> ({{ $selectedExam->number_of_questions ?: 50 }} Q &bull; Code: {{ $selectedExam->code ?: ($selectedExam->exam_code ?: 'EXAM-'.$selectedExam->id) }}). <b>{{ $students->count() }}</b> enrolled student(s) loaded. Ready to upload OMR sheets.
+                                @else
+                                    Select an examination to enable sheet upload.
+                                @endif
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -611,13 +638,16 @@
             <div class="omr-card-header" style="background: #ffffff; border-bottom: 2px solid #002C54; padding: 10px 14px;">
                 <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
                     <h2 class="omr-card-title" style="font-size: 14px; font-weight: 700; color: #002C54;">
-                        <i class="fa fa-table text-primary"></i> 3. Staged OMR Sheets Preview &amp; Verification
+                        <i class="fa fa-users text-primary"></i> 3. Class Enrolled Students &amp; OMR Verification Matrix
                     </h2>
-                    <span class="badge badge-light px-2 py-1 border" id="badge-staged-total" style="font-size: 11px; background: #ffffff; color: #0f172a; border-color: #cbd5e1;">
-                        Total Staged: <b id="count-staged-total">0</b>
+                    <span class="badge badge-light px-2 py-1 border" id="badge-enrolled-total" style="font-size: 11px; background: #ffffff; color: #0f172a; border-color: #cbd5e1;">
+                        Enrolled: <b id="count-enrolled-total">{{ $students->count() }}</b>
                     </span>
                     <span class="badge badge-success px-2 py-1" id="badge-staged-matched" style="font-size: 11px; background: #16a34a;">
-                        Matched: <b id="count-staged-matched">0</b>
+                        Scanned: <b id="count-staged-matched">{{ $existingOmrMap->count() }}</b>
+                    </span>
+                    <span class="badge badge-secondary px-2 py-1" id="badge-staged-pending" style="font-size: 11px; background: #64748b;">
+                        Pending: <b id="count-staged-pending">{{ max(0, $students->count() - $existingOmrMap->count()) }}</b>
                     </span>
                     <span class="badge badge-warning px-2 py-1 text-dark" id="badge-staged-unmatched" style="font-size: 11px; background: #facc15;">
                         Needs Review: <b id="count-staged-unmatched">0</b>
@@ -626,8 +656,8 @@
                 
                 {{-- Final Submit & Clear Buttons --}}
                 <div class="d-flex align-items-center" style="gap: 8px;">
-                    <button type="button" id="btn-clear-staged" class="btn btn-sm" disabled title="Clear all staged extractions">
-                        <i class="fa fa-trash-o"></i> Clear List
+                    <button type="button" id="btn-clear-staged" class="btn btn-sm" disabled title="Clear scanned extractions">
+                        <i class="fa fa-trash-o"></i> Clear Scans
                     </button>
                     <button type="button" id="btn-final-submit" class="btn btn-sm" disabled title="Final Submit and Commit marks to exam">
                         <i class="fa fa-check-circle"></i> Final Submit &amp; Save Marks (<span id="btn-save-count">0</span>)
@@ -639,27 +669,171 @@
                 <table class="omr-table" id="omr-staging-table">
                     <thead>
                         <tr>
-                            <th style="width: 32px; text-align: center;">
-                                <input type="checkbox" id="staged-select-all" checked>
+                            <th style="width: 34px; text-align: center;">
+                                <input type="checkbox" id="staged-select-all" title="Select / Deselect all scanned">
                             </th>
                             <th style="width: 40px; text-align: center;">#</th>
-                            <th style="width: 52px; text-align: center;">Sheet</th>
-                            <th style="min-width: 140px;">File Name</th>
-                            <th style="min-width: 130px;">Detected Roll #</th>
-                            <th style="min-width: 180px;">Student Match</th>
+                            <th style="min-width: 170px;">Enrolled Student Details</th>
+                            <th style="min-width: 100px; text-align: center;">Roll # / Adm</th>
+                            <th style="width: 55px; text-align: center;">Sheet</th>
+                            <th style="min-width: 130px;">File Name</th>
+                            <th style="min-width: 110px; text-align: center;">Detected Roll #</th>
                             <th style="min-width: 110px; text-align: center;">Questions</th>
-                            <th style="min-width: 140px; text-align: center;">Score &amp; Marks</th>
-                            <th style="min-width: 95px; text-align: center;">Status</th>
-                            <th style="min-width: 110px; text-align: right;">Actions</th>
+                            <th style="min-width: 130px; text-align: center;">Score &amp; Marks</th>
+                            <th style="min-width: 100px; text-align: center;">Status</th>
+                            <th style="min-width: 100px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="omr-staging-tbody">
-                        <tr id="staging-empty-row">
-                            <td colspan="10" class="text-center py-4 text-muted" style="background: #ffffff !important;">
-                                <i class="fa fa-file-image-o mr-1" style="font-size: 20px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
-                                <span style="font-size: 12px; font-weight: 600; color: #64748b;">No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.</span>
-                            </td>
-                        </tr>
+                        @if($students->isNotEmpty())
+                            @php $sIdx = 1; @endphp
+                            @foreach($students as $stu)
+                                @php
+                                    $hasOmr = isset($existingOmrMap[$stu->id]);
+                                    $hasMarks = isset($existingMarksMap[$stu->id]);
+                                    $omrRecord = $hasOmr ? $existingOmrMap[$stu->id] : null;
+                                    $markRecord = $hasMarks ? $existingMarksMap[$stu->id] : null;
+                                    $displayRoll = $stu->roll_no ?: ($stu->admissionNo ?: $stu->id);
+                                    $rollClean = strtolower(trim((string)$displayRoll));
+                                    $admClean = strtolower(trim((string)$stu->admissionNo));
+                                    $cleanNumeric = preg_replace('/\D/', '', (string)$displayRoll);
+                                    $isDone = $hasOmr || $hasMarks;
+                                @endphp
+                                <tr id="student-row-{{ $stu->id }}" 
+                                    class="student-omr-row {{ $isDone ? 'table-success row-scanned' : '' }}" 
+                                    data-student-id="{{ $stu->id }}" 
+                                    data-roll-no="{{ $rollClean }}" 
+                                    data-admission-no="{{ $admClean }}" 
+                                    data-numeric-roll="{{ $cleanNumeric }}"
+                                    data-exam-roll-no="{{ strtolower(trim((string)$stu->exam_roll_no)) }}"
+                                    data-student-name="{{ $stu->first_name }} {{ $stu->last_name }}">
+                                    <td class="text-center" style="vertical-align: middle;">
+                                        <input type="checkbox" class="staged-checkbox" data-student-id="{{ $stu->id }}" {{ $isDone ? 'checked' : '' }} onchange="toggleStudentSelect('{{ $stu->id }}', this.checked);">
+                                    </td>
+                                    <td class="text-center font-weight-bold text-muted staged-index" style="vertical-align: middle;">{{ $sIdx++ }}</td>
+                                    
+                                    {{-- Enrolled Student Details --}}
+                                    <td style="vertical-align: middle;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="mr-2">
+                                                @if(!empty($stu->image))
+                                                    <img src="{{ asset($stu->image) }}" class="rounded-circle border" style="width: 28px; height: 28px; object-fit: cover;">
+                                                @else
+                                                    <div class="rounded-circle bg-light border text-center font-weight-bold text-muted d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 11px;">
+                                                        {{ strtoupper(substr($stu->first_name ?: 'S', 0, 1)) }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold text-dark" style="font-size: 12.5px; line-height: 1.2;">
+                                                    {{ $stu->first_name }} {{ $stu->last_name }}
+                                                </div>
+                                                <div class="text-muted small" style="font-size: 10.5px;">
+                                                    Adm: <b>{{ $stu->admissionNo ?: 'N/A' }}</b>
+                                                    @if(!empty($stu->father_name))
+                                                        &bull; S/O {{ $stu->father_name }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Enrolled Roll / Admission --}}
+                                    <td class="text-center" style="vertical-align: middle;">
+                                        <span class="badge badge-light border text-dark font-mono font-weight-bold" style="font-size: 11px; padding: 2px 6px;">
+                                            {{ $displayRoll }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Sheet / Image Column --}}
+                                    <td class="text-center cell-sheet" style="vertical-align: middle;">
+                                        @if($hasOmr && !empty($omrRecord->source_filename))
+                                            <img src="{{ asset($omrRecord->annotated_image_url ?? $omrRecord->source_filename) }}" class="omr-thumb" alt="Sheet" onclick="viewSavedOmrModal('{{ $omrRecord->id }}');" title="Click to view sheet">
+                                        @else
+                                            <div class="sheet-placeholder text-muted" style="font-size: 10px; opacity: 0.6;">
+                                                <i class="fa fa-file-image-o d-block mb-1"></i> Waiting
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    {{-- File Name Column --}}
+                                    <td class="cell-filename text-truncate" style="max-width: 130px; vertical-align: middle;" title="{{ $hasOmr ? $omrRecord->source_filename : 'Awaiting Scan' }}">
+                                        <span class="file-name-text {{ $hasOmr ? 'text-dark font-weight-bold' : 'text-muted' }}" style="font-size: 11.5px;">
+                                            <i class="fa {{ $hasOmr ? 'fa-file-image-o text-primary' : 'fa-clock-o text-muted' }} mr-1"></i>
+                                            {{ $hasOmr ? ($omrRecord->source_filename ?: 'omr_scan.jpg') : 'Pending Scan' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Detected Roll # Column --}}
+                                    <td class="cell-detected-roll text-center" style="vertical-align: middle;">
+                                        @if($hasOmr)
+                                            <input type="text" class="form-control form-control-sm font-mono text-center roll-input" value="{{ $omrRecord->unique_id ?: $displayRoll }}" style="width: 95px; font-weight: 700; height: 28px; font-size: 12px; margin: 0 auto;" readonly>
+                                        @else
+                                            <span class="text-muted small font-mono detected-roll-placeholder">--</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Questions Column --}}
+                                    <td class="text-center cell-questions" style="vertical-align: middle;">
+                                        @if($hasOmr)
+                                            <div class="font-weight-bold text-dark" style="font-size: 12px;">{{ ($omrRecord->correct_answers + $omrRecord->incorrect_answers) }} / {{ $omrRecord->total_questions ?? ($selectedExam->number_of_questions ?? 50) }}</div>
+                                            <div class="small font-weight-bold" style="font-size: 10px;">🟢 {{ $omrRecord->correct_answers }} 🔴 {{ $omrRecord->incorrect_answers }} ⚪ {{ $omrRecord->blank_answers }}</div>
+                                        @else
+                                            <span class="text-muted small">-- / {{ $selectedExam ? ($selectedExam->number_of_questions ?: 50) : 50 }}</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Score & Marks Column --}}
+                                    <td class="text-center cell-score" style="vertical-align: middle;">
+                                        @if($hasOmr)
+                                            <div>
+                                                <span class="font-weight-bold text-success font-size-13">+{{ $omrRecord->obtained_marks }}</span>
+                                                <span class="text-muted small"> / {{ $omrRecord->total_marks }}</span>
+                                                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">{{ $omrRecord->percentage }}%</span>
+                                            </div>
+                                        @elseif($hasMarks)
+                                            <div>
+                                                <span class="font-weight-bold text-success font-size-13">+{{ $markRecord->student_marks }}</span>
+                                                <span class="text-muted small"> / {{ $markRecord->exam_maximum_marks ?: ($selectedExam->exam_maximum_marks ?? 100) }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted font-weight-bold" style="color: #94a3b8;">-- / {{ $selectedExam ? ($selectedExam->exam_maximum_marks ?: 100) : 100 }}</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Status Column --}}
+                                    <td class="text-center cell-status" style="vertical-align: middle;">
+                                        @if($hasOmr || $hasMarks)
+                                            <span class="badge badge-success px-2 py-1 font-weight-bold" style="background: #16a34a !important; color: #ffffff !important; font-size: 10.5px;">
+                                                <i class="fa fa-check-circle mr-1"></i> Saved
+                                            </span>
+                                        @else
+                                            <span class="badge badge-secondary px-2 py-1 font-weight-bold status-badge" style="background: #f1f5f9 !important; color: #64748b !important; border: 1px solid #cbd5e1 !important; font-size: 10.5px;">
+                                                <i class="fa fa-clock-o mr-1"></i> Pending Scan
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Actions Column --}}
+                                    <td class="text-right cell-actions" style="vertical-align: middle; white-space: nowrap;">
+                                        @if($hasOmr)
+                                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedOmrModal('{{ $omrRecord->id }}');" title="Inspect OMR Scan">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        @else
+                                            <span class="text-muted small pr-2">--</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr id="staging-empty-row">
+                                <td colspan="11" class="text-center py-4 text-muted" style="background: #ffffff !important;">
+                                    <i class="fa fa-users mr-1" style="font-size: 20px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                                    <span style="font-size: 12px; font-weight: 600; color: #64748b;">No students found for this class. Select another class or exam above.</span>
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -829,6 +1003,7 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const classSelect = document.getElementById('omr-class-select');
     const examSelect = document.getElementById('omr-exam-select');
     const fileInput = document.getElementById('omr-image-input');
     const dropzone = document.getElementById('omr-upload-dropzone');
@@ -853,8 +1028,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressPercentText = document.getElementById('omr-batch-percent-text');
 
     const stagingTbody = document.getElementById('omr-staging-tbody');
-    const countStagedTotal = document.getElementById('count-staged-total');
+    const countEnrolledTotal = document.getElementById('count-enrolled-total');
     const countStagedMatched = document.getElementById('count-staged-matched');
+    const countStagedPending = document.getElementById('count-staged-pending');
     const countStagedUnmatched = document.getElementById('count-staged-unmatched');
     const btnSaveCount = document.getElementById('btn-save-count');
     const btnFinalSubmit = document.getElementById('btn-final-submit');
@@ -874,129 +1050,314 @@ document.addEventListener('DOMContentLoaded', function () {
     let isProcessingBatch = false;
 
     // Helper: get selected option element
-    const getSelectedExamOption = () => examSelect.options[examSelect.selectedIndex];
+    const getSelectedExamOption = () => examSelect && examSelect.selectedIndex >= 0 ? examSelect.options[examSelect.selectedIndex] : null;
 
     // Trigger file chooser
     window.triggerFileInput = function () {
-        if (!examSelect.value) {
+        if (!examSelect || !examSelect.value) {
             alert('Please select a target examination first.');
-            examSelect.focus();
+            if (examSelect) examSelect.focus();
             return;
         }
         if (isProcessingBatch) return;
         fileInput.click();
     };
 
-    // Update Exam details when dropdown changes
-    examSelect.addEventListener('change', function () {
-        const opt = getSelectedExamOption();
-        if (this.value && opt) {
-            badgeTitle.textContent = opt.dataset.name || '';
-            badgeCode.textContent = opt.dataset.code || '';
-            badgeQuestions.innerHTML = `<i class="fa fa-list-ol mr-1"></i> ${opt.dataset.questions || '50'} Questions`;
-            badgeScheme.innerHTML = `<i class="fa fa-tag mr-1"></i> Marks: +${opt.dataset.correct || '1'}/-${opt.dataset.incorrect || '0'}`;
-            badgeBox.classList.remove('d-none');
+    // 1. Course / Class dropdown change handler: reloads with ?class_type_id=...
+    if (classSelect) {
+        classSelect.addEventListener('change', function () {
+            const classId = this.value;
+            const curExamOpt = getSelectedExamOption();
+            let examParam = '';
+            if (curExamOpt && curExamOpt.value && (!curExamOpt.dataset.classid || curExamOpt.dataset.classid == classId)) {
+                examParam = `&exam_id=${curExamOpt.value}`;
+            }
+            window.location.href = `{{ url('upload_omr') }}?class_type_id=${classId}${examParam}`;
+        });
+    }
 
-            kpiQuestions.textContent = `${opt.dataset.questions || '50'} Q`;
-            kpiCode.textContent = opt.dataset.code || '';
-
-            dropzone.classList.remove('disabled');
-            dropzone.classList.add('active');
-            dropzoneTitle.textContent = 'Click or Drop OMR Sheet Image(s) Here';
-            fileInput.disabled = false;
-
-            statusText.textContent = `Target Exam: ${opt.dataset.name}. Ready to upload OMR sheets.`;
-            statusBox.style.background = '#f0fdf4';
-            statusBox.style.borderColor = '#bbf7d0';
-            statusBox.style.color = '#166534';
-        } else {
-            badgeBox.classList.add('d-none');
-            kpiQuestions.textContent = '--';
-            kpiCode.textContent = 'None';
-            dropzone.classList.add('disabled');
-            dropzone.classList.remove('active');
-            dropzoneTitle.textContent = 'Select an examination on the left first';
-            fileInput.disabled = true;
-
-            statusText.textContent = 'Select an exam to enable sheet upload.';
-            statusBox.style.background = '#f1f5f9';
-            statusBox.style.borderColor = '#e2e8f0';
-            statusBox.style.color = '#475569';
-        }
-    });
+    // 2. Exam dropdown change handler: reloads with ?class_type_id=...&exam_id=...
+    if (examSelect) {
+        examSelect.addEventListener('change', function () {
+            const opt = getSelectedExamOption();
+            if (this.value && opt) {
+                const classId = opt.dataset.classid || (classSelect ? classSelect.value : '');
+                const classParam = classId ? `class_type_id=${classId}&` : '';
+                window.location.href = `{{ url('upload_omr') }}?${classParam}exam_id=${this.value}`;
+            }
+        });
+    }
 
     // Drag and Drop handlers
-    dropzone.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        if (examSelect.value && !isProcessingBatch) {
-            dropzone.style.borderColor = '#0284c7';
-            dropzone.style.background = '#dbeafe';
-        }
-    });
-    dropzone.addEventListener('dragleave', function (e) {
-        e.preventDefault();
-        dropzone.style.borderColor = '#93c5fd';
-        dropzone.style.background = '#f0f7ff';
-    });
-    dropzone.addEventListener('drop', function (e) {
-        e.preventDefault();
-        dropzone.style.borderColor = '#93c5fd';
-        dropzone.style.background = '#f0f7ff';
-        if (!examSelect.value || isProcessingBatch) return;
-        const dt = e.dataTransfer;
-        if (dt && dt.files && dt.files.length) {
-            processFilesQueue(Array.from(dt.files));
-        }
-    });
+    if (dropzone) {
+        dropzone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            if (examSelect && examSelect.value && !isProcessingBatch) {
+                dropzone.style.borderColor = '#0284c7';
+                dropzone.style.background = '#dbeafe';
+            }
+        });
+        dropzone.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            dropzone.style.borderColor = '#93c5fd';
+            dropzone.style.background = '#f0f7ff';
+        });
+        dropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            dropzone.style.borderColor = '#93c5fd';
+            dropzone.style.background = '#f0f7ff';
+            if (!examSelect || !examSelect.value || isProcessingBatch) return;
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files.length) {
+                processFilesQueue(Array.from(dt.files));
+            }
+        });
+    }
 
     // File input change handler
-    fileInput.addEventListener('change', function () {
-        if (this.files && this.files.length) {
-            processFilesQueue(Array.from(this.files));
-        }
-    });
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files.length) {
+                processFilesQueue(Array.from(this.files));
+            }
+        });
+    }
 
-    // Process files sequentially or in parallel batches
+    // Match incoming extracted OMR sheet to one of the enrolled students in the table
+    function findStudentRow(sheet) {
+        // 1. By student ID from backend resolution
+        if (sheet.student && sheet.student.id) {
+            const row = document.getElementById(`student-row-${sheet.student.id}`);
+            if (row) return row;
+        }
+
+        // 2. By detected roll number (exact string or trimmed numeric)
+        const raw = (sheet.roll_number || '').toString().trim().toLowerCase();
+        if (!raw) return null;
+        const num = raw.replace(/\D/g, '');
+        const trimmed = num.replace(/^0+/, '');
+
+        const rows = document.querySelectorAll('tr.student-omr-row');
+        for (const r of rows) {
+            const rRoll = (r.dataset.rollNo || '').toLowerCase();
+            const rAdm = (r.dataset.admissionNo || '').toLowerCase();
+            const rExamRoll = (r.dataset.examRollNo || '').toLowerCase();
+            const rNum = r.dataset.numericRoll || '';
+            const rTrimmed = rNum.replace(/^0+/, '');
+
+            if (rRoll === raw || rAdm === raw || rExamRoll === raw) return r;
+            if (num && (rNum === num || rRoll === num || rAdm === num)) return r;
+            if (trimmed && (rTrimmed === trimmed || rNum === trimmed)) return r;
+        }
+        return null;
+    }
+
+    // Attach extracted sheet data directly into an enrolled student's row
+    function attachSheetToStudentRow(sheet, row) {
+        const tempId = sheet.temp_id;
+        const studentId = row.dataset.studentId;
+        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
+        const evalData = sheet.evaluation || {};
+        const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
+
+        row.dataset.tempId = tempId;
+        row.classList.add('table-success', 'row-scanned');
+
+        // Checkbox
+        const cb = row.querySelector('.staged-checkbox');
+        if (cb) {
+            cb.checked = (sheet.selected !== false);
+            cb.dataset.tempId = tempId;
+        }
+
+        // Sheet Thumbnail
+        const cellSheet = row.querySelector('.cell-sheet');
+        if (cellSheet) {
+            cellSheet.innerHTML = `
+                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${tempId}');" title="Click to inspect annotated scan">
+            `;
+        }
+
+        // File Name
+        const cellFilename = row.querySelector('.cell-filename');
+        if (cellFilename) {
+            cellFilename.setAttribute('title', sheet.source_filename);
+            cellFilename.innerHTML = `
+                <span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;">
+                    <i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(sheet.source_filename)}
+                </span>
+            `;
+        }
+
+        // Detected Roll #
+        const cellRoll = row.querySelector('.cell-detected-roll');
+        if (cellRoll) {
+            cellRoll.innerHTML = `
+                <input type="text" class="form-control form-control-sm font-mono text-center roll-input" 
+                       value="${escapeHtml(sheet.roll_number || '')}" 
+                       style="width: 95px; font-weight: 700; height: 28px; font-size: 12px; margin: 0 auto;"
+                       onchange="handleStagedRollChange('${tempId}', this.value);">
+            `;
+        }
+
+        // Questions Breakdown
+        const cellQuestions = row.querySelector('.cell-questions');
+        if (cellQuestions) {
+            cellQuestions.innerHTML = `
+                <div class="font-weight-bold text-dark" style="font-size: 12px;">${sheet.summary?.attempted || (evalData.correct_answers + evalData.incorrect_answers)} / ${sheet.summary?.total_questions || evalData.total_questions || 50}</div>
+                <div class="small font-weight-bold" style="font-size: 10px;">
+                    <span style="color: #16a34a !important;">🟢 ${evalData.correct_answers || 0}</span> 
+                    <span style="color: #dc2626 !important;">🔴 ${evalData.incorrect_answers || 0}</span> 
+                    <span style="color: #64748b !important;">⚪ ${evalData.blank_answers || 0}</span>
+                </div>
+            `;
+        }
+
+        // Score & Marks
+        const cellScore = row.querySelector('.cell-score');
+        if (cellScore) {
+            cellScore.innerHTML = `
+                <div>
+                    <span class="font-weight-bold text-success font-size-13">+${evalData.obtained_marks || 0}</span>
+                    <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
+                    <span class="badge badge-success ml-1 font-weight-bold px-2 py-1" style="background: #16a34a !important; color: #ffffff !important; font-size: 9.5px;">${evalData.percentage || 0}%</span>
+                </div>
+            `;
+        }
+
+        // Status Badge
+        const cellStatus = row.querySelector('.cell-status');
+        if (cellStatus) {
+            cellStatus.innerHTML = `
+                <span class="badge badge-info px-2 py-1 font-weight-bold" style="background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; font-size: 10.5px;">
+                    <i class="fa fa-clock-o mr-1"></i> Scanned
+                </span>
+            `;
+        }
+
+        // Actions
+        const cellActions = row.querySelector('.cell-actions');
+        if (cellActions) {
+            cellActions.innerHTML = `
+                <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnnotatedModal('${tempId}');" title="Inspect OMR Scan">
+                    <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnswersModal('${tempId}');" title="Question-by-Question Matrix">
+                    <i class="fa fa-list"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-danger" style="padding: 2px 7px; font-size: 11px;" onclick="resetStudentRow('${tempId}');" title="Reset scan">
+                    <i class="fa fa-undo"></i>
+                </button>
+            `;
+        }
+    }
+
+    // Render an extra warning row for sheets whose roll does not match any enrolled student
+    function renderUnmatchedRow(sheet) {
+        let row = document.getElementById(`staged-unmatched-${sheet.temp_id}`);
+        if (!row) {
+            row = document.createElement('tr');
+            row.id = `staged-unmatched-${sheet.temp_id}`;
+            row.className = 'row-unmatched';
+            row.dataset.tempId = sheet.temp_id;
+            stagingTbody.appendChild(row);
+        }
+        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
+        const evalData = sheet.evaluation || {};
+        const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
+
+        row.innerHTML = `
+            <td class="text-center" style="vertical-align: middle;">
+                <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" ${sheet.selected !== false ? 'checked' : ''} onchange="toggleSheetSelect('${sheet.temp_id}', this.checked);">
+            </td>
+            <td class="text-center font-weight-bold text-warning" style="vertical-align: middle;">
+                <i class="fa fa-exclamation-triangle" title="Unmatched student"></i>
+            </td>
+            <td style="vertical-align: middle;">
+                <div class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 11px;">
+                    <i class="fa fa-exclamation-triangle mr-1"></i> Unmatched Roll #
+                </div>
+                <div class="text-danger small font-weight-bold mt-1" style="font-size: 10.5px;">
+                    Student not found in this class
+                </div>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <span class="badge badge-light border text-danger font-mono font-weight-bold" style="font-size: 10.5px; padding: 2px 6px;">
+                    Not Enrolled
+                </span>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect scan">
+            </td>
+            <td class="cell-filename text-truncate" style="max-width: 130px; vertical-align: middle;" title="${escapeHtml(sheet.source_filename)}">
+                <span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;">
+                    <i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(sheet.source_filename)}
+                </span>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <input type="text" class="form-control form-control-sm font-mono text-center roll-input" 
+                       value="${escapeHtml(sheet.roll_number || '')}" 
+                       style="width: 95px; font-weight: 700; height: 28px; font-size: 12px; margin: 0 auto; border-color: #f59e0b !important;"
+                       placeholder="Enter Roll #"
+                       onchange="handleUnmatchedRollChange('${sheet.temp_id}', this.value);">
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <div class="font-weight-bold text-dark" style="font-size: 12px;">${sheet.summary?.attempted || (evalData.correct_answers + evalData.incorrect_answers)} / ${sheet.summary?.total_questions || evalData.total_questions || 50}</div>
+                <div class="small font-weight-bold" style="font-size: 10px;">
+                    <span style="color: #16a34a !important;">🟢 ${evalData.correct_answers || 0}</span> 
+                    <span style="color: #dc2626 !important;">🔴 ${evalData.incorrect_answers || 0}</span> 
+                    <span style="color: #64748b !important;">⚪ ${evalData.blank_answers || 0}</span>
+                </div>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <div>
+                    <span class="font-weight-bold text-success font-size-13">+${evalData.obtained_marks || 0}</span>
+                    <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
+                    <span class="badge badge-success ml-1 font-weight-bold px-2 py-1" style="background: #16a34a !important; color: #ffffff !important; font-size: 9.5px;">${evalData.percentage || 0}%</span>
+                </div>
+            </td>
+            <td class="text-center" style="vertical-align: middle;">
+                <span class="badge badge-warning text-dark px-2 py-1 font-weight-bold" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 10.5px;">
+                    <i class="fa fa-warning mr-1"></i> Needs Review
+                </span>
+            </td>
+            <td class="text-right" style="vertical-align: middle; white-space: nowrap;">
+                <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Inspect OMR Scan">
+                    <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnswersModal('${sheet.temp_id}');" title="Question Matrix">
+                    <i class="fa fa-list"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-danger" style="padding: 2px 7px; font-size: 11px;" onclick="removeUnmatchedSheet('${sheet.temp_id}');" title="Remove sheet">
+                    <i class="fa fa-trash-o"></i>
+                </button>
+            </td>
+        `;
+    }
+
+    // Process uploaded files sequentially
     async function processFilesQueue(files) {
-        const examId = examSelect.value;
+        const examId = examSelect ? examSelect.value : '';
         if (!examId || !files.length) return;
 
         isProcessingBatch = true;
-        fileInput.disabled = true;
-        dropzone.classList.add('disabled');
-        progressWrapper.classList.remove('d-none');
+        if (fileInput) fileInput.disabled = true;
+        if (dropzone) dropzone.classList.add('disabled');
+        if (progressWrapper) progressWrapper.classList.remove('d-none');
         updateStagingCounters();
 
-        // Remove empty state placeholder row if present
-        document.getElementById('staging-empty-row')?.remove();
-
         const totalFiles = files.length;
-        let completed = 0;
         let successful = 0;
 
         try {
             for (let i = 0; i < totalFiles; i++) {
                 const file = files[i];
                 const percent = Math.round(((i) / totalFiles) * 100);
-                progressBar.style.width = `${percent}%`;
-                progressPercentText.textContent = `${percent}%`;
-                progressStatusText.innerHTML = `<i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet ${i + 1} of ${totalFiles}: <b>${escapeHtml(file.name)}</b>...`;
-
-                // Create temporary staging row
-                const tempRowId = 'temp-row-' + Math.random().toString(36).substr(2, 9);
-                const tempRow = document.createElement('tr');
-                tempRow.id = tempRowId;
-                tempRow.innerHTML = `
-                    <td class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i></td>
-                    <td class="text-center font-weight-bold text-muted">${stagedSheets.size + 1}</td>
-                    <td class="text-center"><i class="fa fa-file-image-o text-muted"></i></td>
-                    <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</td>
-                    <td colspan="5" class="text-primary font-weight-bold">
-                        <i class="fa fa-circle-o-notch fa-spin mr-1"></i> Connecting to AI Extractor API (https://extractor.rusoft.in)...
-                    </td>
-                    <td class="text-right text-muted"><span class="badge badge-light">Extracting</span></td>
-                `;
-                stagingTbody.appendChild(tempRow);
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (progressPercentText) progressPercentText.textContent = `${percent}%`;
+                if (progressStatusText) {
+                    progressStatusText.innerHTML = `<i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet ${i + 1} of ${totalFiles}: <b>${escapeHtml(file.name)}</b>...`;
+                }
 
                 try {
                     const formData = new FormData();
@@ -1024,264 +1385,119 @@ document.addEventListener('DOMContentLoaded', function () {
                     sheet.selected = true; // default checked for final submit
                     stagedSheets.set(sheet.temp_id, sheet);
 
-                    // Render real staged row
-                    renderStagedRow(sheet, tempRow);
+                    // Match with enrolled student row or append unmatched row
+                    const matchedRow = findStudentRow(sheet);
+                    if (matchedRow) {
+                        attachSheetToStudentRow(sheet, matchedRow);
+                    } else {
+                        renderUnmatchedRow(sheet);
+                    }
+
                     successful++;
                 } catch (err) {
-                    tempRow.className = 'text-danger';
-                    tempRow.innerHTML = `
-                        <td class="text-center text-danger"><i class="fa fa-times-circle"></i></td>
-                        <td class="text-center font-weight-bold text-danger">${stagedSheets.size + 1}</td>
-                        <td class="text-center"><i class="fa fa-file-image-o text-danger"></i></td>
-                        <td class="font-weight-bold text-danger text-truncate" style="max-width: 140px;">${escapeHtml(file.name)}</td>
-                        <td colspan="5" class="text-danger small font-weight-bold">
-                            <i class="fa fa-exclamation-triangle mr-1"></i> ${escapeHtml(err.message)}
-                        </td>
-                        <td class="text-right">
-                            <button class="btn btn-xs btn-outline-danger" onclick="document.getElementById('${tempRowId}')?.remove(); updateStagingCounters();">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
+                    console.error('Extraction error for ' + file.name, err);
+                    if (statusBox && statusText) {
+                        statusText.innerHTML = `<span class="text-danger font-weight-bold"><i class="fa fa-exclamation-circle mr-1"></i> Error extracting ${escapeHtml(file.name)}: ${escapeHtml(err.message)}</span>`;
+                    }
                 }
 
-                completed++;
                 updateStagingCounters();
             }
         } finally {
-            // Finish batch
-            progressBar.style.width = '100%';
-            progressPercentText.textContent = '100%';
-            progressStatusText.innerHTML = `<i class="fa fa-check-circle text-success mr-1"></i> Processed ${successful} of ${totalFiles} sheets successfully! Review and finalize below.`;
-            
-            setTimeout(() => {
-                progressWrapper.classList.add('d-none');
-            }, 3000);
-
-            fileInput.value = '';
-            fileInput.disabled = false;
-            dropzone.classList.remove('disabled');
-            dropzone.classList.add('active');
-            isProcessingBatch = false;
-            updateStagingCounters(); // Re-enable Final Submit & Clear buttons
-        }
-    }
-
-    // Render a single staged sheet row
-    function renderStagedRow(sheet, existingRow = null) {
-        const row = existingRow || document.createElement('tr');
-        row.id = `staged-row-${sheet.temp_id}`;
-        row.className = sheet.student?.is_matched ? '' : 'row-unmatched';
-
-        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
-        const student = sheet.student || {};
-        const evalData = sheet.evaluation || {};
-        const isMatched = !!student.is_matched;
-
-        const studentHtml = isMatched ? `
-            <div>
-                <span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 11px;">
-                    <i class="fa fa-user mr-1"></i> ${escapeHtml(student.name)}
-                </span>
-                <div class="text-muted small mt-1 font-weight-bold" style="color: #475569 !important;">
-                    Class: ${escapeHtml(student.class_name || 'N/A')} ${student.father_name ? '&bull; S/O ' + escapeHtml(student.father_name) : ''}
-                </div>
-            </div>
-        ` : `
-            <div>
-                <span class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 11px;">
-                    <i class="fa fa-exclamation-triangle mr-1"></i> Unmatched Roll #
-                </span>
-                <div class="text-danger small font-weight-bold mt-1" style="color: #dc2626 !important;">
-                    <i class="fa fa-pencil mr-1"></i> Check or edit roll number
-                </div>
-            </div>
-        `;
-
-        const scoreHtml = `
-            <div style="color: #0f172a !important;">
-                <span class="font-weight-bold" style="font-size: 13.5px; color: #16a34a !important;">+${evalData.obtained_marks}</span>
-                <span class="font-mono small" style="color: #64748b !important;"> / ${evalData.total_marks}</span>
-                <span class="badge badge-success ml-1 font-weight-bold px-2 py-1" style="background: #16a34a !important; color: #ffffff !important; font-size: 9.5px;">${evalData.percentage}%</span>
-                <div class="mt-1" style="font-size: 10.5px; font-weight: 600;">
-                    <span style="color: #16a34a !important;">🟢 ${evalData.correct_answers} Right</span> &bull;
-                    <span style="color: #dc2626 !important;">🔴 ${evalData.incorrect_answers} Wrong</span> &bull;
-                    <span style="color: #64748b !important;">⚪ ${evalData.blank_answers} Blank</span>
-                </div>
-            </div>
-        `;
-
-        row.innerHTML = `
-            <td class="text-center">
-                <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" ${sheet.selected !== false ? 'checked' : ''} onchange="toggleSheetSelect('${sheet.temp_id}', this.checked);">
-            </td>
-            <td class="text-center font-weight-bold staged-index" style="color: #64748b;"></td>
-            <td class="text-center">
-                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect annotated scan">
-            </td>
-            <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px; color: #0f172a !important;" title="${escapeHtml(sheet.source_filename)}">
-                <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(sheet.source_filename)}
-            </td>
-            <td>
-                <input type="text" class="form-control form-control-sm font-mono roll-input" 
-                       value="${escapeHtml(sheet.roll_number || '')}" 
-                       placeholder="Enter Roll #"
-                       onchange="handleRollNumberChange('${sheet.temp_id}', this.value);">
-            </td>
-            <td id="student-cell-${sheet.temp_id}">
-                ${studentHtml}
-            </td>
-            <td class="text-center">
-                <div class="font-weight-bold text-dark" style="color: #0f172a !important; font-size: 12px;">${sheet.summary?.attempted || 0} / ${sheet.summary?.total_questions || 50}</div>
-                <div class="small font-weight-bold" style="color: #64748b !important;">Blank: ${sheet.summary?.unattempted || 0}</div>
-            </td>
-            <td class="text-center">
-                ${scoreHtml}
-            </td>
-            <td class="text-center">
-                <span class="badge badge-info px-2 py-1 font-weight-bold" style="background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; font-size: 10.5px;">
-                    <i class="fa fa-clock-o mr-1"></i> Staged
-                </span>
-            </td>
-            <td class="text-right" style="white-space: nowrap;">
-                <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Inspect Annotated Sheet & Bubbles">
-                    <i class="fa fa-eye"></i>
-                </button>
-                <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnswersModal('${sheet.temp_id}');" title="View Question-by-Question Matrix">
-                    <i class="fa fa-list"></i>
-                </button>
-                <button type="button" class="btn btn-xs btn-outline-danger" style="padding: 2px 7px; font-size: 11px;" onclick="removeStagedSheet('${sheet.temp_id}');" title="Remove Sheet from Staging">
-                    <i class="fa fa-trash-o"></i>
-                </button>
-            </td>
-        `;
-
-        if (!existingRow) {
-            stagingTbody.appendChild(row);
-        }
-        reindexStagedRows();
-    }
-
-    // Reindex rows # column
-    function reindexStagedRows() {
-        const rows = stagingTbody.querySelectorAll('tr[id^="staged-row-"]');
-        rows.forEach((r, idx) => {
-            const idxCell = r.querySelector('.staged-index');
-            if (idxCell) idxCell.textContent = (idx + 1);
-        });
-    }
-
-    // Update Staging summary counters & enable/disable Final Submit button
-    function updateStagingCounters() {
-        const total = stagedSheets.size;
-        let matched = 0;
-        let unmatched = 0;
-        let selectedCount = 0;
-        let sumMarks = 0;
-
-        stagedSheets.forEach(s => {
-            if (s.student?.is_matched) matched++;
-            else unmatched++;
-            if (s.selected !== false) selectedCount++;
-            sumMarks += parseFloat(s.evaluation?.obtained_marks || 0);
-        });
-
-        countStagedTotal.textContent = total;
-        countStagedMatched.textContent = matched;
-        countStagedUnmatched.textContent = unmatched;
-        btnSaveCount.textContent = selectedCount;
-
-        // Enable or disable Final Submit button
-        if (selectedCount > 0 && !isProcessingBatch) {
-            btnFinalSubmit.disabled = false;
-            btnFinalSubmit.removeAttribute('disabled');
-        } else {
-            btnFinalSubmit.disabled = true;
-            btnFinalSubmit.setAttribute('disabled', 'disabled');
-        }
-
-        // Enable or disable Clear button
-        if (total > 0 && !isProcessingBatch) {
-            btnClearStaged.disabled = false;
-            btnClearStaged.removeAttribute('disabled');
-        } else {
-            btnClearStaged.disabled = true;
-            btnClearStaged.setAttribute('disabled', 'disabled');
-        }
-
-        if (total > 0) {
-            const avg = (sumMarks / total).toFixed(2);
-            stagingSummaryMarks.innerHTML = `Staged Average Score: <span class="font-weight-bold" style="color: #16a34a !important;">${avg} Marks</span>`;
-        } else {
-            stagingSummaryMarks.innerHTML = '';
-            if (!stagingTbody.querySelector('#staging-empty-row')) {
-                stagingTbody.innerHTML = `
-                    <tr id="staging-empty-row">
-                        <td colspan="10" class="text-center py-4 text-muted" style="background: #ffffff !important;">
-                            <i class="fa fa-file-image-o mr-1" style="font-size: 20px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
-                            <span style="font-size: 12px; font-weight: 600; color: #64748b;">No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.</span>
-                        </td>
-                    </tr>
-                `;
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressPercentText) progressPercentText.textContent = '100%';
+            if (progressStatusText) {
+                progressStatusText.innerHTML = `<i class="fa fa-check-circle text-success mr-1"></i> Processed ${successful} of ${totalFiles} sheets! Review evaluated marks in the matrix above and click "Final Submit &amp; Save Marks".`;
             }
-        }
-    }
 
-    // Toggle individual sheet selection
-    window.toggleSheetSelect = function (tempId, isSelected) {
-        const sheet = stagedSheets.get(tempId);
-        if (sheet) {
-            sheet.selected = isSelected;
+            setTimeout(() => {
+                if (progressWrapper) progressWrapper.classList.add('d-none');
+            }, 3500);
+
+            if (fileInput) {
+                fileInput.value = '';
+                fileInput.disabled = false;
+            }
+            if (dropzone) {
+                dropzone.classList.remove('disabled');
+                dropzone.classList.add('active');
+            }
+            isProcessingBatch = false;
             updateStagingCounters();
         }
-    };
+    }
 
-    // Toggle Select All
-    masterSelectCheckbox.addEventListener('change', function () {
-        const isChecked = this.checked;
-        stagedSheets.forEach(s => {
-            s.selected = isChecked;
-        });
-        stagingTbody.querySelectorAll('.staged-checkbox').forEach(cb => {
-            cb.checked = isChecked;
-        });
-        updateStagingCounters();
-    });
+    // Reset a student's row back to "Pending Scan" and remove its staged sheet
+    window.resetStudentRow = function (tempId) {
+        const sheet = stagedSheets.get(tempId);
+        if (!sheet) return;
+        const row = document.querySelector(`tr.student-omr-row[data-temp-id="${tempId}"]`);
+        if (row) {
+            row.classList.remove('table-success', 'row-scanned');
+            delete row.dataset.tempId;
 
-    // Remove single sheet from staging
-    window.removeStagedSheet = function (tempId) {
+            const cb = row.querySelector('.staged-checkbox');
+            if (cb) {
+                cb.checked = false;
+                delete cb.dataset.tempId;
+            }
+
+            const cellSheet = row.querySelector('.cell-sheet');
+            if (cellSheet) cellSheet.innerHTML = `<div class="sheet-placeholder text-muted" style="font-size: 10px; opacity: 0.6;"><i class="fa fa-file-image-o d-block mb-1"></i> Waiting</div>`;
+
+            const cellFilename = row.querySelector('.cell-filename');
+            if (cellFilename) cellFilename.innerHTML = `<span class="file-name-text text-muted" style="font-size: 11.5px;"><i class="fa fa-clock-o text-muted mr-1"></i> Pending Scan</span>`;
+
+            const cellRoll = row.querySelector('.cell-detected-roll');
+            if (cellRoll) cellRoll.innerHTML = `<span class="text-muted small font-mono detected-roll-placeholder">--</span>`;
+
+            const cellQ = row.querySelector('.cell-questions');
+            if (cellQ) cellQ.innerHTML = `<span class="text-muted small">-- / ${getSelectedExamOption()?.dataset.questions || 50}</span>`;
+
+            const cellScore = row.querySelector('.cell-score');
+            if (cellScore) cellScore.innerHTML = `<span class="text-muted font-weight-bold" style="color: #94a3b8;">-- / ${getSelectedExamOption()?.dataset.maxmarks || 100}</span>`;
+
+            const cellStatus = row.querySelector('.cell-status');
+            if (cellStatus) cellStatus.innerHTML = `<span class="badge badge-secondary px-2 py-1 font-weight-bold status-badge" style="background: #f1f5f9 !important; color: #64748b !important; border: 1px solid #cbd5e1 !important; font-size: 10.5px;"><i class="fa fa-clock-o mr-1"></i> Pending Scan</span>`;
+
+            const cellActions = row.querySelector('.cell-actions');
+            if (cellActions) cellActions.innerHTML = `<span class="text-muted small pr-2">--</span>`;
+        }
         stagedSheets.delete(tempId);
-        document.getElementById(`staged-row-${tempId}`)?.remove();
-        reindexStagedRows();
         updateStagingCounters();
     };
 
-    // Clear all staged sheets
-    window.clearAllStaged = function () {
-        if (!stagedSheets.size) return;
-        if (!confirm('Are you sure you want to clear all staged sheets? (Unsaved extractions will be discarded).')) return;
-        stagedSheets.clear();
-        stagingTbody.innerHTML = '';
+    // Remove an unmatched sheet row
+    window.removeUnmatchedSheet = function (tempId) {
+        stagedSheets.delete(tempId);
+        document.getElementById(`staged-unmatched-${tempId}`)?.remove();
         updateStagingCounters();
     };
-    btnClearStaged.addEventListener('click', function(e) {
-        e.preventDefault();
-        clearAllStaged();
-    });
 
-    // Real-time roll number change & auto-lookup
-    window.handleRollNumberChange = async function (tempId, newRoll) {
+    // Handle roll number edit inside an enrolled student's row
+    window.handleStagedRollChange = function (tempId, newRoll) {
+        const sheet = stagedSheets.get(tempId);
+        if (sheet) {
+            sheet.roll_number = newRoll.trim();
+        }
+    };
+
+    // Handle roll number edit inside an unmatched row: attempt re-match!
+    window.handleUnmatchedRollChange = async function (tempId, newRoll) {
         const sheet = stagedSheets.get(tempId);
         if (!sheet) return;
         sheet.roll_number = newRoll.trim();
 
-        const opt = getSelectedExamOption();
-        const classTypeId = opt ? (opt.dataset.classid || 0) : 0;
-        const cell = document.getElementById(`student-cell-${tempId}`);
-        const row = document.getElementById(`staged-row-${tempId}`);
+        // 1. Check if new roll matches an enrolled student row
+        const row = findStudentRow(sheet);
+        if (row) {
+            document.getElementById(`staged-unmatched-${tempId}`)?.remove();
+            attachSheetToStudentRow(sheet, row);
+            updateStagingCounters();
+            return;
+        }
 
-        if (cell) cell.innerHTML = '<span class="text-muted small"><i class="fa fa-spinner fa-spin mr-1"></i> Looking up student...</span>';
-
+        // 2. Otherwise backend lookup
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const res = await fetch("{{ url('upload_omr/lookup_student') }}", {
@@ -1293,49 +1509,168 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: JSON.stringify({
                     roll_number: sheet.roll_number,
-                    class_type_id: classTypeId
+                    class_type_id: classSelect ? classSelect.value : 0
                 })
             });
             const data = await res.json();
-            if (data.status === 'success') {
+            if (data.status === 'success' && data.matched) {
                 sheet.student = data.student;
-                if (data.matched) {
-                    if (row) row.className = '';
-                    if (cell) {
-                        cell.innerHTML = `
-                            <div>
-                                <span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 11px;">
-                                    <i class="fa fa-user mr-1"></i> ${escapeHtml(data.student.name)}
-                                </span>
-                                <div class="text-muted small mt-1 font-weight-bold" style="color: #475569 !important;">
-                                    Class: ${escapeHtml(data.student.class_name || 'N/A')} ${data.student.father_name ? '&bull; S/O ' + escapeHtml(data.student.father_name) : ''}
-                                </div>
-                            </div>
-                        `;
-                    }
-                } else {
-                    if (row) row.className = 'row-unmatched';
-                    if (cell) {
-                        cell.innerHTML = `
-                            <div>
-                                <span class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 11px;">
-                                    <i class="fa fa-exclamation-triangle mr-1"></i> Unmatched Roll #
-                                </span>
-                                <div class="text-danger small font-weight-bold mt-1" style="color: #dc2626 !important;">
-                                    <i class="fa fa-pencil mr-1"></i> Check or edit roll number
-                                </div>
-                            </div>
-                        `;
-                    }
+                const recheckRow = findStudentRow(sheet);
+                if (recheckRow) {
+                    document.getElementById(`staged-unmatched-${tempId}`)?.remove();
+                    attachSheetToStudentRow(sheet, recheckRow);
                 }
-                updateStagingCounters();
             }
         } catch (e) {
-            console.error('Lookup failed', e);
+            console.error(e);
+        }
+        updateStagingCounters();
+    };
+
+    // Update Staging summary counters & enable/disable Final Submit button
+    function updateStagingCounters() {
+        const enrolledRows = document.querySelectorAll('tr.student-omr-row');
+        const totalEnrolled = enrolledRows.length;
+
+        let scannedCount = 0;
+        enrolledRows.forEach(r => {
+            if (r.classList.contains('row-scanned') || r.dataset.tempId) {
+                scannedCount++;
+            }
+        });
+
+        const pendingCount = Math.max(0, totalEnrolled - scannedCount);
+        const unmatchedCount = document.querySelectorAll('tr.row-unmatched').length;
+
+        let readyToSaveCount = 0;
+        let sumMarks = 0;
+        stagedSheets.forEach(s => {
+            if (s.selected !== false) {
+                readyToSaveCount++;
+                sumMarks += parseFloat(s.evaluation?.obtained_marks || 0);
+            }
+        });
+
+        if (countEnrolledTotal) countEnrolledTotal.textContent = totalEnrolled;
+        if (countStagedMatched) countStagedMatched.textContent = scannedCount;
+        if (countStagedPending) countStagedPending.textContent = pendingCount;
+        if (countStagedUnmatched) countStagedUnmatched.textContent = unmatchedCount;
+        if (btnSaveCount) btnSaveCount.textContent = readyToSaveCount;
+
+        // Enable or disable Final Submit button
+        if (readyToSaveCount > 0 && !isProcessingBatch) {
+            btnFinalSubmit.disabled = false;
+            btnFinalSubmit.removeAttribute('disabled');
+        } else {
+            btnFinalSubmit.disabled = true;
+            btnFinalSubmit.setAttribute('disabled', 'disabled');
+        }
+
+        // Enable or disable Clear button
+        if (stagedSheets.size > 0 && !isProcessingBatch) {
+            btnClearStaged.disabled = false;
+            btnClearStaged.removeAttribute('disabled');
+        } else {
+            btnClearStaged.disabled = true;
+            btnClearStaged.setAttribute('disabled', 'disabled');
+        }
+
+        if (stagedSheets.size > 0) {
+            const avg = (sumMarks / Math.max(1, readyToSaveCount)).toFixed(2);
+            stagingSummaryMarks.innerHTML = `Staged Average Score: <span class="font-weight-bold" style="color: #16a34a !important;">${avg} Marks</span> (${readyToSaveCount} of ${stagedSheets.size} Selected for Submit)`;
+        } else {
+            stagingSummaryMarks.innerHTML = '';
+        }
+    }
+
+    // Toggle single sheet selection
+    window.toggleSheetSelect = function (tempId, isSelected) {
+        const sheet = stagedSheets.get(tempId);
+        if (sheet) {
+            sheet.selected = isSelected;
+            updateStagingCounters();
         }
     };
 
-    // Open Modal: Annotated Sheet Inspection
+    // Toggle student select checkbox
+    window.toggleStudentSelect = function (studentId, isSelected) {
+        const row = document.getElementById(`student-row-${studentId}`);
+        if (row && row.dataset.tempId) {
+            const sheet = stagedSheets.get(row.dataset.tempId);
+            if (sheet) {
+                sheet.selected = isSelected;
+            }
+        }
+        updateStagingCounters();
+    };
+
+    // Master Select / Deselect All
+    if (masterSelectCheckbox) {
+        masterSelectCheckbox.addEventListener('change', function () {
+            const isChecked = this.checked;
+            stagedSheets.forEach(s => {
+                s.selected = isChecked;
+            });
+            stagingTbody.querySelectorAll('.staged-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateStagingCounters();
+        });
+    }
+
+    // Clear all newly staged extractions
+    window.clearAllStaged = function () {
+        if (!stagedSheets.size) return;
+        if (!confirm('Are you sure you want to clear all scanned extractions? (Unsaved marks will be discarded).')) return;
+
+        stagedSheets.forEach((sheet, tempId) => {
+            const row = document.querySelector(`tr.student-omr-row[data-temp-id="${tempId}"]`);
+            if (row) {
+                row.classList.remove('table-success', 'row-scanned');
+                delete row.dataset.tempId;
+
+                const cb = row.querySelector('.staged-checkbox');
+                if (cb) {
+                    cb.checked = false;
+                    delete cb.dataset.tempId;
+                }
+
+                const cellSheet = row.querySelector('.cell-sheet');
+                if (cellSheet) cellSheet.innerHTML = `<div class="sheet-placeholder text-muted" style="font-size: 10px; opacity: 0.6;"><i class="fa fa-file-image-o d-block mb-1"></i> Waiting</div>`;
+
+                const cellFilename = row.querySelector('.cell-filename');
+                if (cellFilename) cellFilename.innerHTML = `<span class="file-name-text text-muted" style="font-size: 11.5px;"><i class="fa fa-clock-o text-muted mr-1"></i> Pending Scan</span>`;
+
+                const cellRoll = row.querySelector('.cell-detected-roll');
+                if (cellRoll) cellRoll.innerHTML = `<span class="text-muted small font-mono detected-roll-placeholder">--</span>`;
+
+                const cellQ = row.querySelector('.cell-questions');
+                if (cellQ) cellQ.innerHTML = `<span class="text-muted small">-- / ${getSelectedExamOption()?.dataset.questions || 50}</span>`;
+
+                const cellScore = row.querySelector('.cell-score');
+                if (cellScore) cellScore.innerHTML = `<span class="text-muted font-weight-bold" style="color: #94a3b8;">-- / ${getSelectedExamOption()?.dataset.maxmarks || 100}</span>`;
+
+                const cellStatus = row.querySelector('.cell-status');
+                if (cellStatus) cellStatus.innerHTML = `<span class="badge badge-secondary px-2 py-1 font-weight-bold status-badge" style="background: #f1f5f9 !important; color: #64748b !important; border: 1px solid #cbd5e1 !important; font-size: 10.5px;"><i class="fa fa-clock-o mr-1"></i> Pending Scan</span>`;
+
+                const cellActions = row.querySelector('.cell-actions');
+                if (cellActions) cellActions.innerHTML = `<span class="text-muted small pr-2">--</span>`;
+            }
+            document.getElementById(`staged-unmatched-${tempId}`)?.remove();
+        });
+
+        stagedSheets.clear();
+        updateStagingCounters();
+    };
+
+    if (btnClearStaged) {
+        btnClearStaged.addEventListener('click', function (e) {
+            e.preventDefault();
+            clearAllStaged();
+        });
+    }
+
+    // Modal: Annotated Sheet Inspection
     window.viewAnnotatedModal = function (tempId) {
         const sheet = stagedSheets.get(tempId);
         if (!sheet) return;
@@ -1346,20 +1681,32 @@ document.addEventListener('DOMContentLoaded', function () {
             <b>File:</b> ${escapeHtml(sheet.source_filename)} &bull; 
             <b>Roll #:</b> ${escapeHtml(sheet.roll_number || 'N/A')} &bull; 
             <b>Student:</b> ${escapeHtml(sheet.student?.name || 'Unregistered')} &bull; 
-            <b>Score:</b> ${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)
+            <b>Score:</b> +${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)
         `;
 
         if (typeof $ !== 'undefined' && $('#modalAnnotatedSheet').modal) {
             $('#modalAnnotatedSheet').modal('show');
-        } else {
-            const modalEl = document.getElementById('modalAnnotatedSheet');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                new bootstrap.Modal(modalEl).show();
+        } else if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(document.getElementById('modalAnnotatedSheet')).show();
+        }
+    };
+
+    // Modal: Saved OMR Sheet Inspection
+    window.viewSavedOmrModal = function (omrId) {
+        const tr = document.getElementById(`scan-row-${omrId}`) || document.querySelector(`[onclick*="viewSavedOmrModal('${omrId}')"]`)?.closest('tr');
+        const img = tr ? tr.querySelector('img.omr-thumb') : null;
+        if (img && img.src) {
+            modalAnnotatedImg.src = img.src;
+            modalAnnotatedInfo.innerHTML = `<b>Saved Evaluation Record #${omrId}</b>`;
+            if (typeof $ !== 'undefined' && $('#modalAnnotatedSheet').modal) {
+                $('#modalAnnotatedSheet').modal('show');
+            } else if (typeof bootstrap !== 'undefined') {
+                new bootstrap.Modal(document.getElementById('modalAnnotatedSheet')).show();
             }
         }
     };
 
-    // Open Modal: Question-by-Question Matrix
+    // Modal: Question-by-Question Matrix
     window.viewAnswersModal = function (tempId) {
         const sheet = stagedSheets.get(tempId);
         if (!sheet) return;
@@ -1367,7 +1714,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const answers = sheet.evaluation?.extracted_answers || [];
         modalAnsStudent.textContent = sheet.student?.name || 'Unregistered Student';
         modalAnsRoll.textContent = sheet.roll_number || 'N/A';
-        modalAnsScore.textContent = `${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)`;
+        modalAnsScore.textContent = `+${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)`;
 
         let html = '';
         answers.forEach(item => {
@@ -1393,20 +1740,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (typeof $ !== 'undefined' && $('#modalAnswersGrid').modal) {
             $('#modalAnswersGrid').modal('show');
-        } else {
-            const modalEl = document.getElementById('modalAnswersGrid');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                new bootstrap.Modal(modalEl).show();
-            }
+        } else if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(document.getElementById('modalAnswersGrid')).show();
         }
     };
 
     // FINAL SUBMIT: Commit all staged and selected sheets into database & exam marks
     window.confirmFinalSubmit = async function () {
-        const examId = examSelect.value;
+        const examId = examSelect ? examSelect.value : '';
         if (!examId) {
             alert('Please select an examination first.');
-            examSelect.focus();
+            if (examSelect) examSelect.focus();
             return;
         }
 
@@ -1418,7 +1762,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (!selectedSheets.length) {
-            alert('No sheets selected for final submission.');
+            alert('No scanned sheets selected for final submission.');
             return;
         }
 
@@ -1453,43 +1797,64 @@ document.addEventListener('DOMContentLoaded', function () {
 
             alert(`✅ ${data.message}`);
 
-            // Prepend saved rows to Saved Ledger below
+            // Update student rows to "Saved" status
             const savedTbody = document.getElementById('omr-saved-tbody');
             document.getElementById('omr-saved-empty-row')?.remove();
 
             selectedSheets.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(s.source_filename)}">
-                        <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(s.source_filename)}
-                    </td>
-                    <td>
-                        <span class="font-mono font-weight-bold text-primary">${escapeHtml(s.roll_number)}</span>
-                        <div class="text-muted small font-weight-bold">${escapeHtml(s.student?.name || 'Unregistered')}</div>
-                    </td>
-                    <td>
-                        <span class="font-weight-bold text-dark">${escapeHtml(examName)}</span>
-                    </td>
-                    <td class="text-center font-weight-bold text-success">${s.evaluation?.correct_answers || 0}</td>
-                    <td class="text-center font-weight-bold text-danger">${s.evaluation?.incorrect_answers || 0}</td>
-                    <td class="text-center text-muted">${s.evaluation?.blank_answers || 0}</td>
-                    <td class="font-mono font-weight-bold">${s.evaluation?.total_marks || 0}</td>
-                    <td class="font-mono font-weight-bold text-success">${s.evaluation?.obtained_marks || 0}</td>
-                    <td>
-                        <span class="badge-pill-status badge-matched">${s.evaluation?.percentage || 0}%</span>
-                    </td>
-                    <td class="text-center font-weight-bold text-primary">#1</td>
-                    <td class="text-right">
-                        <span class="badge-pill-status badge-saved">
-                            <i class="fa fa-check-circle"></i> Saved
-                        </span>
-                    </td>
-                `;
-                savedTbody.prepend(tr);
+                // If attached to an enrolled student row
+                const stuRow = document.querySelector(`tr.student-omr-row[data-temp-id="${s.temp_id}"]`);
+                if (stuRow) {
+                    const statusCell = stuRow.querySelector('.cell-status');
+                    if (statusCell) {
+                        statusCell.innerHTML = `
+                            <span class="badge badge-success px-2 py-1 font-weight-bold" style="background: #16a34a !important; color: #ffffff !important; font-size: 10.5px;">
+                                <i class="fa fa-check-circle mr-1"></i> Saved
+                            </span>
+                        `;
+                    }
+                    delete stuRow.dataset.tempId;
+                }
 
-                // Remove from memory & table
+                // If unmatched row
+                const unmatchedRow = document.getElementById(`staged-unmatched-${s.temp_id}`);
+                if (unmatchedRow) {
+                    unmatchedRow.remove();
+                }
+
+                // Prepend to Saved Ledger
+                if (savedTbody) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(s.source_filename)}">
+                            <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(s.source_filename)}
+                        </td>
+                        <td>
+                            <span class="font-mono font-weight-bold text-primary">${escapeHtml(s.roll_number)}</span>
+                            <div class="text-muted small font-weight-bold">${escapeHtml(s.student?.name || 'Student #' + s.roll_number)}</div>
+                        </td>
+                        <td>
+                            <span class="font-weight-bold text-dark">${escapeHtml(examName)}</span>
+                        </td>
+                        <td class="text-center font-weight-bold text-success">${s.evaluation?.correct_answers || 0}</td>
+                        <td class="text-center font-weight-bold text-danger">${s.evaluation?.incorrect_answers || 0}</td>
+                        <td class="text-center text-muted">${s.evaluation?.blank_answers || 0}</td>
+                        <td class="font-mono font-weight-bold">${s.evaluation?.total_marks || 0}</td>
+                        <td class="font-mono font-weight-bold text-success">+${s.evaluation?.obtained_marks || 0}</td>
+                        <td>
+                            <span class="badge-pill-status badge-matched">${s.evaluation?.percentage || 0}%</span>
+                        </td>
+                        <td class="text-center font-weight-bold text-primary">#1</td>
+                        <td class="text-right">
+                            <span class="badge-pill-status badge-saved">
+                                <i class="fa fa-check-circle"></i> Saved
+                            </span>
+                        </td>
+                    `;
+                    savedTbody.prepend(tr);
+                }
+
                 stagedSheets.delete(s.temp_id);
-                document.getElementById(`staged-row-${s.temp_id}`)?.remove();
             });
 
             // Update KPIs
@@ -1502,7 +1867,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 kpiTotalScans.textContent = (currentTotal + selectedSheets.length);
             }
 
-            reindexStagedRows();
         } catch (err) {
             alert(`❌ Error saving marks: ${err.message}`);
         } finally {
@@ -1510,10 +1874,13 @@ document.addEventListener('DOMContentLoaded', function () {
             updateStagingCounters();
         }
     };
-    btnFinalSubmit.addEventListener('click', function(e) {
-        e.preventDefault();
-        confirmFinalSubmit();
-    });
+
+    if (btnFinalSubmit) {
+        btnFinalSubmit.addEventListener('click', function (e) {
+            e.preventDefault();
+            confirmFinalSubmit();
+        });
+    }
 
     // Helper: HTML escape
     function escapeHtml(str) {
@@ -1526,7 +1893,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/'/g, '&#039;');
     }
 
-    // Initialize counters
+    // Initial counter sync on page load
     updateStagingCounters();
 });
 </script>
