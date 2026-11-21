@@ -1502,6 +1502,152 @@ textarea.theme-form-control {
                                         <div class="theme-hint mt-1 text-muted" style="font-size:11px;">
                                             <i class="fa fa-lightbulb-o text-warning"></i> By default all course subjects are included. Uncheck any subject to exclude it from this exam.
                                         </div>
+
+                                        {{-- Subject-Wise Maximum & Minimum (Passing) Marks Table (Indian Coaching Pattern) --}}
+                                        <div class="mt-3 p-3 rounded" id="subject-marks-config-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid #e2e8f0; gap: 10px;">
+                                                <div>
+                                                    <span class="font-weight-bold" style="font-size: 13px; color: #002C54;">
+                                                        <i class="fa fa-sliders text-primary mr-1"></i> Subject-Wise Maximum & Passing Cut-off Marks
+                                                    </span>
+                                                    <span class="badge badge-info ml-1" style="font-size: 10px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                                        Indian Coaching Standard
+                                                    </span>
+                                                </div>
+                                                {{-- Bulk Apply Bar --}}
+                                                <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                                    <div class="input-group input-group-sm" style="width: auto;">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text py-0 px-2" style="font-size: 11px; background: #ffffff; color: #334155; border-color: #cbd5e1;">Max Marks:</span>
+                                                        </div>
+                                                        <input type="number" id="bulk-subject-max" class="form-control form-control-sm py-0 px-2" value="50" min="1" max="1000" step="1" style="width: 60px; height: 26px; font-size: 12px; font-weight: 600; text-align: center; border-color: #cbd5e1;">
+                                                        <div class="input-group-append">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" id="btn-apply-bulk-max" style="font-size: 11px; height: 26px;">
+                                                                Apply All
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="input-group input-group-sm" style="width: auto;">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text py-0 px-2" style="font-size: 11px; background: #ffffff; color: #334155; border-color: #cbd5e1;">Cut-off %:</span>
+                                                        </div>
+                                                        <select id="bulk-subject-min-pct" class="custom-select custom-select-sm py-0 px-2" style="width: 105px; height: 26px; font-size: 11px; font-weight: 600; border-color: #cbd5e1;">
+                                                            <option value="0.33">33% (School)</option>
+                                                            <option value="0.35">35% (State Govt)</option>
+                                                            <option value="0.40" selected>40% (SSC/PSC)</option>
+                                                            <option value="0.50">50% (Merit)</option>
+                                                        </select>
+                                                        <div class="input-group-append">
+                                                            <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" id="btn-apply-bulk-min" style="font-size: 11px; height: 26px;">
+                                                                Apply All
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff;">
+                                                <table class="table table-sm table-bordered table-hover mb-0" id="table-subject-marks" style="font-size: 12px;">
+                                                    <thead style="background: #002C54; color: #ffffff;">
+                                                        <tr>
+                                                            <th style="width: 40px; text-align: center; vertical-align: middle;">#</th>
+                                                            <th style="vertical-align: middle;">Subject Name</th>
+                                                            <th style="width: 170px; text-align: center; vertical-align: middle;">
+                                                                Max Marks <span class="text-warning">*</span>
+                                                            </th>
+                                                            <th style="width: 180px; text-align: center; vertical-align: middle;">
+                                                                Min / Passing Marks <span class="text-warning">*</span>
+                                                            </th>
+                                                            <th style="width: 110px; text-align: center; vertical-align: middle;">Cut-off %</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="subject-marks-tbody">
+                                                        @if(!empty($subjects) && $subjects->count() > 0)
+                                                            @php $rowIdx = 1; @endphp
+                                                            @foreach($subjects as $sub)
+                                                                @php
+                                                                    $isSubChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
+                                                                    $subMax = isset($existingMinMaxMap[$sub->id]['max']) 
+                                                                        ? $existingMinMaxMap[$sub->id]['max'] 
+                                                                        : ($previewPerSubMarks ?: 50);
+                                                                    $subMin = isset($existingMinMaxMap[$sub->id]['min']) 
+                                                                        ? $existingMinMaxMap[$sub->id]['min'] 
+                                                                        : round($subMax * 0.40, 2);
+                                                                    $subPct = $subMax > 0 ? round(($subMin / $subMax) * 100, 1) : 0;
+                                                                @endphp
+                                                                <tr class="subject-mark-row {{ $isSubChecked ? '' : 'd-none' }}" id="subject-mark-row-{{ $sub->id }}" data-subject-id="{{ $sub->id }}" data-subject-name="{{ $sub->name }}">
+                                                                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle;">{{ $rowIdx++ }}</td>
+                                                                    <td style="vertical-align: middle;">
+                                                                        <span class="font-weight-600 text-dark">{{ $sub->name }}</span>
+                                                                    </td>
+                                                                    <td class="text-center" style="vertical-align: middle;">
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" 
+                                                                                   name="subject_max_marks[{{ $sub->id }}]" 
+                                                                                   id="sub_max_{{ $sub->id }}" 
+                                                                                   class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
+                                                                                   value="{{ $subMax }}" 
+                                                                                   min="1" max="9999" step="0.5" 
+                                                                                   {{ $isSubChecked ? '' : 'disabled' }} 
+                                                                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #0f172a;">
+                                                                            <div class="input-group-append">
+                                                                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-center" style="vertical-align: middle;">
+                                                                        <div class="input-group input-group-sm">
+                                                                            <input type="number" 
+                                                                                   name="subject_min_marks[{{ $sub->id }}]" 
+                                                                                   id="sub_min_{{ $sub->id }}" 
+                                                                                   class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
+                                                                                   value="{{ $subMin }}" 
+                                                                                   min="0" max="9999" step="0.5" 
+                                                                                   {{ $isSubChecked ? '' : 'disabled' }} 
+                                                                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #16a34a;">
+                                                                            <div class="input-group-append">
+                                                                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-center" style="vertical-align: middle;">
+                                                                        <span class="badge badge-light border sub-cutoff-badge" id="sub_cutoff_badge_{{ $sub->id }}" style="font-size: 11px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
+                                                                            {{ $subPct }}%
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @else
+                                                            <tr id="subject-marks-empty-row">
+                                                                <td colspan="5" class="text-center text-muted py-3">
+                                                                    <i class="fa fa-info-circle mr-1"></i> Select a Target Course above to load and configure subject marks.
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    </tbody>
+                                                    <tfoot style="background: #f8fafc; font-weight: 700; border-top: 2px solid #cbd5e1;">
+                                                        <tr>
+                                                            <td colspan="2" class="text-right text-dark" style="font-size: 12px; vertical-align: middle;">
+                                                                Total Weightage (<span id="total-active-subs-count">0</span> Active Subjects):
+                                                            </td>
+                                                            <td class="text-center text-primary" style="font-size: 13px; vertical-align: middle;">
+                                                                <span id="grand-total-max-marks">0.00</span>
+                                                            </td>
+                                                            <td class="text-center text-success" style="font-size: 13px; vertical-align: middle;">
+                                                                <span id="grand-total-min-marks">0.00</span>
+                                                            </td>
+                                                            <td class="text-center text-muted" style="font-size: 11px; vertical-align: middle;" id="grand-total-cutoff-pct">
+                                                                --
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                            <div class="mt-2 text-muted" style="font-size: 11px;">
+                                                <i class="fa fa-info-circle text-primary"></i> <strong>Indian Exam Pattern Note:</strong> Each subject can have custom maximum marks and qualifying minimum cut-off marks. These values are automatically synchronized with Marks Entry, Excel Upload, OMR Scanner, and Green Sheet Reports.
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2646,6 +2792,213 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    // -------------------------------------------------------------
+    // Subject-Wise Marks & Passing Cut-off Configuration
+    // -------------------------------------------------------------
+    const existingSubjectMinMax = @json($existingMinMaxMap ?? []);
+
+    const recalcSubjectMarksTotals = () => {
+        let totalMax = 0;
+        let totalMin = 0;
+        let activeCount = 0;
+
+        const rows = document.querySelectorAll('.subject-mark-row');
+        rows.forEach(row => {
+            if (!row.classList.contains('d-none')) {
+                activeCount++;
+                const maxInp = row.querySelector('.sub-max-input');
+                const minInp = row.querySelector('.sub-min-input');
+                const badge = row.querySelector('.sub-cutoff-badge');
+
+                const maxVal = parseFloat(maxInp?.value || '0') || 0;
+                const minVal = parseFloat(minInp?.value || '0') || 0;
+
+                totalMax += maxVal;
+                totalMin += minVal;
+
+                if (badge) {
+                    const pct = maxVal > 0 ? ((minVal / maxVal) * 100).toFixed(1) : '0';
+                    badge.textContent = `${pct}%`;
+                    if (parseFloat(pct) < 33) {
+                        badge.style.color = '#b91c1c';
+                        badge.style.borderColor = '#fca5a5';
+                        badge.style.background = '#fef2f2';
+                    } else if (parseFloat(pct) <= 40) {
+                        badge.style.color = '#0284c7';
+                        badge.style.borderColor = '#bae6fd';
+                        badge.style.background = '#f0f9ff';
+                    } else {
+                        badge.style.color = '#15803d';
+                        badge.style.borderColor = '#bbf7d0';
+                        badge.style.background = '#f0fdf4';
+                    }
+                }
+
+                const numCell = row.querySelector('.row-number');
+                if (numCell) numCell.textContent = activeCount;
+            }
+        });
+
+        const countElem = document.getElementById('total-active-subs-count');
+        const maxElem = document.getElementById('grand-total-max-marks');
+        const minElem = document.getElementById('grand-total-min-marks');
+        const pctElem = document.getElementById('grand-total-cutoff-pct');
+
+        if (countElem) countElem.textContent = activeCount;
+        if (maxElem) maxElem.textContent = totalMax.toFixed(2);
+        if (minElem) minElem.textContent = totalMin.toFixed(2);
+        if (pctElem) {
+            pctElem.textContent = totalMax > 0 ? `${((totalMin / totalMax) * 100).toFixed(1)}%` : '--';
+        }
+
+        // Update overall exam max marks input and hint
+        const examMaxInput = document.getElementById('exam-max-marks');
+        if (examMaxInput) {
+            examMaxInput.value = totalMax;
+        }
+
+        const calcHintText = document.getElementById('max-marks-calc-text');
+        if (calcHintText) {
+            if (activeCount > 0) {
+                calcHintText.innerHTML = `Total: <strong>${totalMax.toFixed(2)} Marks</strong> across ${activeCount} active subjects | Sectional Qualifying Cut-off: <strong>${totalMin.toFixed(2)}</strong>`;
+            } else {
+                calcHintText.innerHTML = `<span class="text-danger">0 subjects selected (Total: 0 Marks)</span>`;
+            }
+        }
+
+        const emptyRow = document.getElementById('subject-marks-empty-row');
+        if (emptyRow) {
+            emptyRow.style.display = (activeCount === 0) ? '' : 'none';
+        }
+
+        const sMarks = document.getElementById('normal-summary-max-marks');
+        if (sMarks) {
+            sMarks.innerHTML = `${totalMax.toFixed(2)} <span style="font-size: 9.5px; opacity: 0.9; font-weight: normal;">(Pass: ${totalMin.toFixed(2)})</span>`;
+        }
+    };
+
+    const attachSubMarksInputListeners = (row) => {
+        const maxInp = row.querySelector('.sub-max-input');
+        const minInp = row.querySelector('.sub-min-input');
+
+        const handler = () => recalcSubjectMarksTotals();
+        if (maxInp) {
+            maxInp.removeEventListener('input', handler);
+            maxInp.addEventListener('input', handler);
+        }
+        if (minInp) {
+            minInp.removeEventListener('input', handler);
+            minInp.addEventListener('input', handler);
+        }
+    };
+
+    const syncSubjectMarksRows = () => {
+        const tbody = document.getElementById('subject-marks-tbody');
+        if (!tbody) return;
+
+        const checkboxes = document.querySelectorAll('.exam-subject-checkbox');
+        const existingRowIds = new Set();
+
+        checkboxes.forEach(cb => {
+            const subId = cb.value;
+            const subName = cb.dataset.name || cb.closest('.subject-chip-item')?.querySelector('span')?.textContent?.trim() || `Subject #${subId}`;
+            existingRowIds.add(String(subId));
+
+            let row = document.getElementById(`subject-mark-row-${subId}`);
+            if (!row) {
+                const initialMax = existingSubjectMinMax[subId]?.max ?? (parseFloat(document.getElementById('bulk-subject-max')?.value || '50') || 50);
+                const initialMin = existingSubjectMinMax[subId]?.min ?? Math.round(initialMax * 0.40 * 10) / 10;
+                const initialPct = initialMax > 0 ? ((initialMin / initialMax) * 100).toFixed(1) : '40.0';
+
+                row = document.createElement('tr');
+                row.className = 'subject-mark-row';
+                row.id = `subject-mark-row-${subId}`;
+                row.setAttribute('data-subject-id', subId);
+                row.setAttribute('data-subject-name', subName);
+                row.innerHTML = `
+                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle;">1</td>
+                    <td style="vertical-align: middle;">
+                        <span class="font-weight-600 text-dark">${subName}</span>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle;">
+                        <div class="input-group input-group-sm">
+                            <input type="number" 
+                                   name="subject_max_marks[${subId}]" 
+                                   id="sub_max_${subId}" 
+                                   class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
+                                   value="${initialMax}" 
+                                   min="1" max="9999" step="0.5" 
+                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #0f172a;">
+                            <div class="input-group-append">
+                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle;">
+                        <div class="input-group input-group-sm">
+                            <input type="number" 
+                                   name="subject_min_marks[${subId}]" 
+                                   id="sub_min_${subId}" 
+                                   class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
+                                   value="${initialMin}" 
+                                   min="0" max="9999" step="0.5" 
+                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #16a34a;">
+                            <div class="input-group-append">
+                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle;">
+                        <span class="badge badge-light border sub-cutoff-badge" id="sub_cutoff_badge_${subId}" style="font-size: 11px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
+                            ${initialPct}%
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                attachSubMarksInputListeners(row);
+            }
+
+            if (cb.checked) {
+                row.classList.remove('d-none');
+                row.querySelectorAll('input').forEach(inp => inp.disabled = false);
+            } else {
+                row.classList.add('d-none');
+                row.querySelectorAll('input').forEach(inp => inp.disabled = true);
+            }
+        });
+
+        // Remove any rows for subjects no longer in checkboxes
+        tbody.querySelectorAll('.subject-mark-row').forEach(row => {
+            const sid = row.getAttribute('data-subject-id');
+            if (!existingRowIds.has(String(sid))) {
+                row.remove();
+            }
+        });
+
+        recalcSubjectMarksTotals();
+    };
+
+    // Bulk Apply Handlers
+    document.getElementById('btn-apply-bulk-max')?.addEventListener('click', () => {
+        const val = parseFloat(document.getElementById('bulk-subject-max')?.value || '50') || 50;
+        document.querySelectorAll('.subject-mark-row:not(.d-none) .sub-max-input').forEach(inp => {
+            inp.value = val;
+        });
+        recalcSubjectMarksTotals();
+    });
+
+    document.getElementById('btn-apply-bulk-min')?.addEventListener('click', () => {
+        const pct = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.40') || 0.40;
+        document.querySelectorAll('.subject-mark-row:not(.d-none)').forEach(row => {
+            const maxInp = row.querySelector('.sub-max-input');
+            const minInp = row.querySelector('.sub-min-input');
+            const maxVal = parseFloat(maxInp?.value || '0') || 0;
+            const minVal = Math.round(maxVal * pct * 10) / 10;
+            if (minInp) minInp.value = minVal;
+        });
+        recalcSubjectMarksTotals();
+    });
+
     const onSubjectCheckboxChange = function() {
         const parentLabel = this.closest('.subject-chip-item');
         if (parentLabel) {
@@ -2665,6 +3018,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         updateSubjectSelectionBadge();
         updatePaperHeader();
+        syncSubjectMarksRows();
         updateNormalSummary();
     };
 
@@ -2689,6 +3043,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         updateSubjectSelectionBadge();
         updatePaperHeader();
+        syncSubjectMarksRows();
         updateNormalSummary();
     });
 
@@ -2706,6 +3061,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         updateSubjectSelectionBadge();
         updatePaperHeader();
+        syncSubjectMarksRows();
         updateNormalSummary();
     });
 
@@ -2780,17 +3136,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 attachSubjectCheckboxListeners();
                 updateSubjectSelectionBadge();
+                syncSubjectMarksRows();
                 updatePaperHeader();
                 updateNormalSummary();
             })
             .catch(err => {
                 console.warn('Subject load error:', err);
                 if (chipsContainer) chipsContainer.innerHTML = '<span class="text-danger small p-1">Failed to load subjects.</span>';
+                syncSubjectMarksRows();
             });
     });
 
     attachSubjectCheckboxListeners();
     updateSubjectSelectionBadge();
+    syncSubjectMarksRows();
 
     subjectSelect?.addEventListener('change', () => {
         updatePaperHeader();

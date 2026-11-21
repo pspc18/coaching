@@ -1168,6 +1168,29 @@ class ExamController extends Controller
             $copiedAssignment->deleted_at = null;
             $copiedAssignment->save();
 
+            // Replicate fill_min_max_marks from sourceExam to copiedExam
+            $sourceMinMax = DB::table('fill_min_max_marks')
+                ->where('exam_id', $sourceExam->id)
+                ->whereNull('deleted_at')
+                ->get();
+
+            foreach ($sourceMinMax as $smm) {
+                DB::table('fill_min_max_marks')->insert([
+                    'user_id'            => Session::get('id') ?: 1,
+                    'exam_id'            => $copiedExam->id,
+                    'fill_marks_id'      => null,
+                    'branch_id'          => Session::get('branch_id'),
+                    'session_id'         => Session::get('session_id'),
+                    'class_type_id'      => $targetClassId,
+                    'exam_minimum_marks' => $smm->exam_minimum_marks,
+                    'exam_maximum_marks' => $smm->exam_maximum_marks,
+                    'subject_id'         => $smm->subject_id,
+                    'stream_id'          => $smm->stream_id ?? null,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+            }
+
             DB::commit();
 
             $targetClassModel = DB::table('courses')->where('id', $targetClassId)->first();
@@ -1301,6 +1324,8 @@ class ExamController extends Controller
                 'subject_id' => 'nullable|integer',
                 'subject_ids' => 'nullable|array',
                 'subject_ids.*' => 'integer',
+                'subject_max_marks' => 'nullable|array',
+                'subject_min_marks' => 'nullable|array',
                 'code' => 'nullable|string|max:100',
                 'exam_date' => 'nullable|date',
                 'number_of_questions' => 'nullable|integer|min:0|max:100',
@@ -1494,11 +1519,32 @@ class ExamController extends Controller
                 $add->exam_creation_mode = $creationMode;
                 $add->marks_per_correct = $marksPerCorrect;
                 $add->marks_per_incorrect = $marksPerIncorrect;
-                if ($creationMode === 'normal') {
+                $subjectMaxMarks = (array) $request->input('subject_max_marks', []);
+                $subjectMinMarks = (array) $request->input('subject_min_marks', []);
+                $totalExamMaxMarks = 0.0;
+                $totalExamMinMarks = 0.0;
+
+                foreach ($finalSubjectIds as $subId) {
+                    $sMax = isset($subjectMaxMarks[$subId]) && is_numeric($subjectMaxMarks[$subId])
+                        ? (float) $subjectMaxMarks[$subId]
+                        : ($perSubMarks ?: 100.0);
+                    $sMin = isset($subjectMinMarks[$subId]) && is_numeric($subjectMinMarks[$subId])
+                        ? (float) $subjectMinMarks[$subId]
+                        : round($sMax * 0.33, 2);
+
+                    $totalExamMaxMarks += $sMax;
+                    $totalExamMinMarks += $sMin;
+                }
+
+                if ($totalExamMaxMarks > 0 && !empty($subjectMaxMarks)) {
+                    $maxMarks = $totalExamMaxMarks;
+                } elseif ($creationMode === 'normal') {
                     $subCount = count($finalSubjectIds);
                     $maxMarks = ($subCount > 1) ? round($perSubMarks * $subCount, 2) : $perSubMarks;
                 }
+
                 $add->exam_maximum_marks = $maxMarks;
+                $add->exam_minimum_marks = $totalExamMinMarks;
                 $add->answer_key = $finalAnswerKey;
                 if (in_array($creationMode, ['question_bank', 'online'])) {
                     $add->online_questions = $onlineQuestions;
@@ -1519,6 +1565,44 @@ class ExamController extends Controller
                 $add->batch_id = $request->filled('batch_id') ? (int)$request->input('batch_id') : null;
                 $add->description = $request->description;
                 $add->save();
+
+                // Sync into fill_min_max_marks master table with guaranteed $add->id
+                foreach ($finalSubjectIds as $subId) {
+                    $sMax = isset($subjectMaxMarks[$subId]) && is_numeric($subjectMaxMarks[$subId])
+                        ? (float) $subjectMaxMarks[$subId]
+                        : ($perSubMarks ?: 100.0);
+                    $sMin = isset($subjectMinMarks[$subId]) && is_numeric($subjectMinMarks[$subId])
+                        ? (float) $subjectMinMarks[$subId]
+                        : round($sMax * 0.33, 2);
+
+                    DB::table('fill_min_max_marks')->updateOrInsert(
+                        [
+                            'exam_id'       => $add->id,
+                            'class_type_id' => (int) $request->class_type_id,
+                            'subject_id'    => (int) $subId,
+                            'branch_id'     => $branchId,
+                            'session_id'    => $sessionId,
+                        ],
+                        [
+                            'exam_maximum_marks' => (int) round($sMax),
+                            'exam_minimum_marks' => (int) round($sMin),
+                            'user_id'            => Session::get('id') ?: 1,
+                            'deleted_at'         => null,
+                            'updated_at'         => now(),
+                        ]
+                    );
+                }
+
+                // Clean up unselected subjects for this exam
+                if (!empty($finalSubjectIds)) {
+                    DB::table('fill_min_max_marks')
+                        ->where('exam_id', $add->id)
+                        ->where('class_type_id', (int) $request->class_type_id)
+                        ->where('branch_id', $branchId)
+                        ->where('session_id', $sessionId)
+                        ->whereNotIn('subject_id', $finalSubjectIds)
+                        ->delete();
+                }
 
                 $assignment = AssignExam::withTrashed()
                     ->where('exam_id', $add->id)
@@ -1730,7 +1814,23 @@ class ExamController extends Controller
             ? DB::table('batches')->where('course_id', $preloadedClassId)->where('status', 1)->orderBy('orderBy', 'asc')->get()
             : collect([]);
 
-        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate', 'preloadedBatches', 'preloadedBatchId'));
+        $existingMinMaxMap = [];
+        if ($savedExam) {
+            $existingMinMaxMap = DB::table('fill_min_max_marks')
+                ->where('exam_id', $savedExam->id)
+                ->whereNull('deleted_at')
+                ->get()
+                ->keyBy('subject_id')
+                ->map(function($item) {
+                    return [
+                        'max' => (float)$item->exam_maximum_marks,
+                        'min' => (float)$item->exam_minimum_marks,
+                    ];
+                })
+                ->toArray();
+        }
+
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate', 'preloadedBatches', 'preloadedBatchId', 'existingMinMaxMap'));
     } 
     
     public function editExam(Request $request, $id){
