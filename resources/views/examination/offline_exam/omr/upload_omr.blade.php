@@ -21,10 +21,18 @@
 <style>
 /* ==========================================================================
    ARISE ERP - AI OMR EXTRACTOR WORKSPACE THEME
-   - Layout: Standard Arise .content-wrapper with left sidebar clearance
-   - Palette: Arise Dark Navy (#002C54 to #0f3460), Slate & Sky accents
-   - Typography: 11.5px table text, 10.5px uppercase bold thead
+   - High contrast, clean white surfaces, crystal clear font visibility
+   - Neutralize common.css dark overrides
    ========================================================================== */
+
+/* 0. Neutralize common.css dark poisoning for .bg-light and card footers */
+.omr-page .bg-light,
+.omr-page-layout .bg-light,
+.omr-card .bg-light,
+.modal .bg-light {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
 
 .content-wrapper.omr-page {
     background: #eef2f6 !important;
@@ -47,7 +55,7 @@
 .omr-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
-    border-radius: 2px;
+    border-radius: 3px;
     padding: 7px 14px;
     display: flex;
     align-items: center;
@@ -134,7 +142,7 @@
 .kpi-mini-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 2px;
+    border-radius: 3px;
     padding: 6px 12px;
     display: flex;
     align-items: center;
@@ -144,7 +152,7 @@
     transition: all 0.15s ease;
 }
 .kpi-mini-card.kpi-classes { border-left-color: #0284c7; }
-.kpi-mini-card.kpi-published { border-left-color: #10b981; }
+.kpi-mini-card.kpi-published { border-left-color: #16a34a; }
 .kpi-mini-card.kpi-pending { border-left-color: #f59e0b; }
 .kpi-mini-card .kpi-label {
     font-size: 10px;
@@ -171,13 +179,13 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     overflow: hidden;
 }
 .omr-card-header {
-    background: #f8fafc;
-    border-bottom: 1px solid #cbd5e1;
-    padding: 8px 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 9px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -185,7 +193,7 @@
     gap: 8px;
 }
 .omr-card-title {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
     margin: 0;
     color: #002C54;
@@ -199,7 +207,8 @@
     margin: 1px 0 0 0;
 }
 .omr-card-body {
-    padding: 10px 12px;
+    padding: 10px 14px;
+    background: #ffffff;
 }
 
 /* Dropzone */
@@ -219,38 +228,80 @@
 .omr-dropzone-box.disabled {
     cursor: not-allowed;
     opacity: 0.65;
-    background: #f1f5f9;
+    background: #f8fafc;
     border-color: #cbd5e1;
 }
 
 /* Staging Table & Ledger Table */
 .omr-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11.5px;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 11.5px !important;
+    background: #ffffff !important;
 }
 .omr-table th {
-    background: #002C54;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    padding: 7px 10px;
-    border: 1px solid #002C54;
-    vertical-align: middle;
+    background: #002C54 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 10.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: .04em !important;
+    padding: 8px 10px !important;
+    border: 1px solid #002C54 !important;
+    vertical-align: middle !important;
 }
 .omr-table td {
-    padding: 6px 10px;
-    border-bottom: 1px solid #e2e8f0;
-    border-right: 1px solid #f1f5f9;
-    vertical-align: middle;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 7px 10px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
 }
-.omr-table tr:hover td {
-    background: #f8fafc;
+.omr-table tbody tr:nth-child(even) td {
+    background: #f8fafc !important;
 }
-.omr-table tr.row-unmatched td {
-    background: #fffbeb !important;
+.omr-table tbody tr:hover td {
+    background: #f1f5f9 !important;
+}
+.omr-table tbody tr.row-unmatched td {
+    background: #fffdf0 !important;
+    border-top: 1px solid #fef08a !important;
+    border-bottom: 1px solid #fef08a !important;
+}
+
+/* Thumbnail preview */
+.omr-thumb {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    background: #ffffff;
+}
+.omr-thumb:hover {
+    transform: scale(1.15);
+    border-color: #0284c7;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Roll number input */
+.roll-input {
+    background: #ffffff !important;
+    color: #002C54 !important;
+    border: 1.5px solid #94a3b8 !important;
+    border-radius: 3px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    height: 28px !important;
+    padding: 2px 8px !important;
+    box-shadow: none !important;
+}
+.roll-input:focus {
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2) !important;
 }
 
 /* Badges & Pills */
@@ -264,51 +315,91 @@
     border-radius: 10px;
 }
 .badge-staged {
-    background: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid #bae6fd;
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
 }
 .badge-matched {
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
+    background: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #86efac !important;
 }
 .badge-unmatched {
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
+    background: #fef08a !important;
+    color: #854d0e !important;
+    border: 1px solid #facc15 !important;
 }
 .badge-saved {
-    background: #10b981;
-    color: #ffffff;
+    background: #16a34a !important;
+    color: #ffffff !important;
 }
 
-/* Thumbnail preview */
-.omr-thumb {
-    width: 36px;
-    height: 36px;
-    object-fit: cover;
-    border-radius: 2px;
-    border: 1px solid #cbd5e1;
-    cursor: pointer;
-    transition: transform 0.15s ease;
+/* Action Buttons Styling */
+#btn-final-submit {
+    background: #16a34a !important;
+    border: 1px solid #15803d !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    height: 32px !important;
+    padding: 4px 14px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
 }
-.omr-thumb:hover {
-    transform: scale(1.15);
-    border-color: #0284c7;
+#btn-final-submit:hover:not([disabled]) {
+    background: #15803d !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.4) !important;
+}
+#btn-final-submit[disabled], #btn-final-submit:disabled {
+    background: #94a3b8 !important;
+    border-color: #94a3b8 !important;
+    color: #f1f5f9 !important;
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
 }
 
-/* Staging Action Bar */
-.staging-bar {
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 2px;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
+#btn-clear-staged {
+    background: #ffffff !important;
+    border: 1px solid #ef4444 !important;
+    color: #dc2626 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    height: 32px !important;
+    padding: 4px 12px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+#btn-clear-staged:hover:not([disabled]) {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+#btn-clear-staged[disabled], #btn-clear-staged:disabled {
+    border-color: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    background: #f8fafc !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+/* Staging Footer Bar */
+.omr-staging-footer {
+    background: #ffffff !important;
+    border-top: 1px solid #cbd5e1 !important;
+    padding: 9px 14px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 11.5px !important;
+    color: #334155 !important;
 }
 
 /* Progress Bar */
@@ -320,7 +411,7 @@
 }
 .omr-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #0284c7, #10b981);
+    background: linear-gradient(90deg, #0284c7, #16a34a);
     width: 0%;
     transition: width 0.25s ease;
 }
@@ -374,7 +465,7 @@
                     <div class="kpi-value text-success" id="kpi-total-scans">{{ number_format($totalEvaluatedCount) }}</div>
                     <span class="kpi-sub">all-time records</span>
                 </div>
-                <div style="color: #10b981; font-size: 20px;">
+                <div style="color: #16a34a; font-size: 20px;">
                     <i class="fa fa-archive"></i>
                 </div>
             </div>
@@ -393,7 +484,7 @@
             <div class="kpi-mini-card">
                 <div>
                     <span class="kpi-label">AI Extractor Engine</span>
-                    <div class="kpi-value" style="color: #10b981; font-size: 14px;">
+                    <div class="kpi-value" style="color: #16a34a; font-size: 14px;">
                         <i class="fa fa-circle text-success" style="font-size: 10px;"></i> Online
                     </div>
                     <span class="kpi-sub text-truncate" style="max-width: 140px; display: block;" title="{{ $extractorApiUrl }}">
@@ -425,7 +516,7 @@
                         <label for="omr-exam-select" class="font-weight-bold text-muted mb-1" style="font-size: 11px; text-transform: uppercase;">
                             Examination <span class="text-danger">*</span>
                         </label>
-                        <select id="omr-exam-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1;">
+                        <select id="omr-exam-select" class="form-control form-control-sm" style="font-weight: 600; font-size: 12px; height: 32px; border-color: #cbd5e1; background: #ffffff;">
                             <option value="">-- Choose an examination --</option>
                             @foreach($allExams as $ex)
                                 @php
@@ -517,29 +608,29 @@
         {{-- 4. Staging / Preview Workspace (THE CORE REQUIREMENT)     --}}
         {{-- ======================================================== --}}
         <div class="omr-card mt-1">
-            <div class="omr-card-header" style="background: #ffffff; border-bottom: 2px solid #002C54;">
+            <div class="omr-card-header" style="background: #ffffff; border-bottom: 2px solid #002C54; padding: 10px 14px;">
                 <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
-                    <h2 class="omr-card-title" style="font-size: 14px;">
+                    <h2 class="omr-card-title" style="font-size: 14px; font-weight: 700; color: #002C54;">
                         <i class="fa fa-table text-primary"></i> 3. Staged OMR Sheets Preview &amp; Verification
                     </h2>
-                    <span class="badge badge-light px-2 py-1 border" id="badge-staged-total" style="font-size: 11px;">
+                    <span class="badge badge-light px-2 py-1 border" id="badge-staged-total" style="font-size: 11px; background: #ffffff; color: #0f172a; border-color: #cbd5e1;">
                         Total Staged: <b id="count-staged-total">0</b>
                     </span>
-                    <span class="badge badge-success px-2 py-1" id="badge-staged-matched" style="font-size: 11px;">
+                    <span class="badge badge-success px-2 py-1" id="badge-staged-matched" style="font-size: 11px; background: #16a34a;">
                         Matched: <b id="count-staged-matched">0</b>
                     </span>
-                    <span class="badge badge-warning px-2 py-1 text-dark" id="badge-staged-unmatched" style="font-size: 11px;">
+                    <span class="badge badge-warning px-2 py-1 text-dark" id="badge-staged-unmatched" style="font-size: 11px; background: #facc15;">
                         Needs Review: <b id="count-staged-unmatched">0</b>
                     </span>
                 </div>
                 
                 {{-- Final Submit & Clear Buttons --}}
-                <div class="d-flex align-items-center" style="gap: 6px;">
-                    <button type="button" id="btn-clear-staged" class="btn btn-outline-danger btn-sm" style="font-size: 11px; font-weight: 600; padding: 4px 10px;" onclick="clearAllStaged();" disabled>
-                        <i class="fa fa-trash-o mr-1"></i> Clear List
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <button type="button" id="btn-clear-staged" class="btn btn-sm" disabled title="Clear all staged extractions">
+                        <i class="fa fa-trash-o"></i> Clear List
                     </button>
-                    <button type="button" id="btn-final-submit" class="btn btn-success btn-sm px-3" style="font-size: 12px; font-weight: 700; height: 32px;" onclick="confirmFinalSubmit();" disabled>
-                        <i class="fa fa-check-circle mr-1"></i> Final Submit &amp; Save Marks (<span id="btn-save-count">0</span>)
+                    <button type="button" id="btn-final-submit" class="btn btn-sm" disabled title="Final Submit and Commit marks to exam">
+                        <i class="fa fa-check-circle"></i> Final Submit &amp; Save Marks (<span id="btn-save-count">0</span>)
                     </button>
                 </div>
             </div>
@@ -548,37 +639,38 @@
                 <table class="omr-table" id="omr-staging-table">
                     <thead>
                         <tr>
-                            <th style="width: 30px; text-align: center;">
-                                <input type="checkbox" id="staged-select-all" checked onchange="toggleSelectAllStaged(this);">
+                            <th style="width: 32px; text-align: center;">
+                                <input type="checkbox" id="staged-select-all" checked>
                             </th>
                             <th style="width: 40px; text-align: center;">#</th>
-                            <th style="width: 50px; text-align: center;">Sheet</th>
-                            <th style="min-width: 130px;">File Name</th>
-                            <th style="min-width: 120px;">Detected Roll #</th>
+                            <th style="width: 52px; text-align: center;">Sheet</th>
+                            <th style="min-width: 140px;">File Name</th>
+                            <th style="min-width: 130px;">Detected Roll #</th>
                             <th style="min-width: 180px;">Student Match</th>
                             <th style="min-width: 110px; text-align: center;">Questions</th>
-                            <th style="min-width: 130px; text-align: center;">Score &amp; Marks</th>
-                            <th style="min-width: 90px; text-align: center;">Status</th>
-                            <th style="min-width: 120px; text-align: right;">Actions</th>
+                            <th style="min-width: 140px; text-align: center;">Score &amp; Marks</th>
+                            <th style="min-width: 95px; text-align: center;">Status</th>
+                            <th style="min-width: 110px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="omr-staging-tbody">
                         <tr id="staging-empty-row">
-                            <td colspan="10" class="text-center py-4 text-muted">
-                                <i class="fa fa-file-image-o mr-1" style="font-size: 18px; color: #94a3b8; display: block; margin-bottom: 4px;"></i>
-                                No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.
+                            <td colspan="10" class="text-center py-4 text-muted" style="background: #ffffff !important;">
+                                <i class="fa fa-file-image-o mr-1" style="font-size: 20px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                                <span style="font-size: 12px; font-weight: 600; color: #64748b;">No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="p-2 border-top bg-light d-flex justify-content-between align-items-center text-muted" style="font-size: 11px;">
-                <span>
-                    <i class="fa fa-info-circle text-primary mr-1"></i> 
-                    <b>Note:</b> Data is only staged in memory and will <u>NOT</u> be saved to database or student exam mark sheets until you click <b>"Final Submit &amp; Save Marks"</b>.
-                </span>
-                <span id="staging-summary-marks" class="font-weight-bold text-dark"></span>
+            {{-- Crisp, high-contrast footer notice --}}
+            <div class="omr-staging-footer">
+                <div style="color: #334155 !important; font-size: 11.5px !important; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa fa-info-circle text-primary" style="font-size: 14px;"></i>
+                    <span><b>Notice:</b> Extracted data is currently staged in preview. Marks will <u>ONLY</u> be saved to student exam records after you click <b>"Final Submit &amp; Save Marks"</b>.</span>
+                </div>
+                <div id="staging-summary-marks" style="color: #0f172a !important; font-weight: 700 !important; font-size: 12px !important;"></div>
             </div>
         </div>
 
@@ -667,9 +759,9 @@
 {{-- ======================================================== --}}
 <div class="modal fade" id="modalAnnotatedSheet" tabindex="-1" role="dialog" aria-labelledby="modalAnnotatedSheetLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 900px;" role="document">
-        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1;">
+        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff;">
             <div class="modal-header py-2 px-3" style="background: #002C54; color: #ffffff;">
-                <h5 class="modal-title font-weight-bold" id="modalAnnotatedSheetLabel" style="font-size: 13px;">
+                <h5 class="modal-title font-weight-bold" id="modalAnnotatedSheetLabel" style="font-size: 13px; color: #ffffff;">
                     <i class="fa fa-eye mr-1"></i> Annotated OMR Sheet Inspection
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
@@ -677,15 +769,11 @@
                 </button>
             </div>
             <div class="modal-body p-2 text-center" style="background: #f8fafc; max-height: 80vh; overflow-y: auto;">
-                <div id="modal-img-spinner" class="py-5 text-muted d-none">
-                    <i class="fa fa-spinner fa-spin fa-2x"></i>
-                    <p class="mt-2 font-weight-bold">Loading annotated preview...</p>
-                </div>
-                <img id="modal-annotated-img" src="" alt="Annotated OMR" style="max-width: 100%; height: auto; border: 1px solid #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 2px;">
-                <div class="mt-2 text-muted small" id="modal-annotated-info"></div>
+                <img id="modal-annotated-img" src="" alt="Annotated OMR" style="max-width: 100%; height: auto; border: 1px solid #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 2px; background: #ffffff;">
+                <div class="mt-2 text-dark font-weight-bold small" id="modal-annotated-info"></div>
             </div>
-            <div class="modal-footer py-2 px-3 bg-light d-flex justify-content-between">
-                <span class="text-muted small"><i class="fa fa-info-circle mr-1"></i> Green circles indicate AI-detected bubble fills and registration bounding boxes.</span>
+            <div class="modal-footer py-2 px-3 d-flex justify-content-between" style="background: #ffffff; border-top: 1px solid #e2e8f0;">
+                <span class="text-muted small"><i class="fa fa-info-circle text-primary mr-1"></i> Green circles indicate AI-detected bubble fills and registration bounding boxes.</span>
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -697,23 +785,23 @@
 {{-- ======================================================== --}}
 <div class="modal fade" id="modalAnswersGrid" tabindex="-1" role="dialog" aria-labelledby="modalAnswersGridLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 650px;" role="document">
-        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1;">
+        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff;">
             <div class="modal-header py-2 px-3" style="background: #002C54; color: #ffffff;">
-                <h5 class="modal-title font-weight-bold" id="modalAnswersGridLabel" style="font-size: 13px;">
+                <h5 class="modal-title font-weight-bold" id="modalAnswersGridLabel" style="font-size: 13px; color: #ffffff;">
                     <i class="fa fa-list-ol mr-1"></i> Extracted Answers Breakdown
                 </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto;">
-                <div class="p-2 mb-2 rounded bg-light border d-flex justify-content-between align-items-center" style="font-size: 11.5px;">
+            <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto; background: #ffffff;">
+                <div class="p-2 mb-2 rounded border d-flex justify-content-between align-items-center" style="font-size: 11.5px; background: #f8fafc; border-color: #e2e8f0;">
                     <div>
-                        <span class="text-muted">Student:</span> <b id="modal-ans-student">--</b>
+                        <span class="text-muted">Student:</span> <b id="modal-ans-student" class="text-dark">--</b>
                         <span class="text-muted ml-2">Roll #:</span> <b class="font-mono text-primary" id="modal-ans-roll">--</b>
                     </div>
                     <div>
-                        <span class="text-muted">Score:</span> <b class="text-success" id="modal-ans-score">--</b>
+                        <span class="text-muted">Score:</span> <b class="text-success font-weight-bold" id="modal-ans-score">--</b>
                     </div>
                 </div>
                 <table class="omr-table" style="font-size: 11px;">
@@ -729,7 +817,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="modal-footer py-2 px-3 bg-light">
+            <div class="modal-footer py-2 px-3" style="background: #ffffff; border-top: 1px solid #e2e8f0;">
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -771,6 +859,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnSaveCount = document.getElementById('btn-save-count');
     const btnFinalSubmit = document.getElementById('btn-final-submit');
     const btnClearStaged = document.getElementById('btn-clear-staged');
+    const masterSelectCheckbox = document.getElementById('staged-select-all');
     const stagingSummaryMarks = document.getElementById('staging-summary-marks');
 
     const modalAnnotatedImg = document.getElementById('modal-annotated-img');
@@ -876,6 +965,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInput.disabled = true;
         dropzone.classList.add('disabled');
         progressWrapper.classList.remove('d-none');
+        updateStagingCounters();
 
         // Remove empty state placeholder row if present
         document.getElementById('staging-empty-row')?.remove();
@@ -884,95 +974,97 @@ document.addEventListener('DOMContentLoaded', function () {
         let completed = 0;
         let successful = 0;
 
-        for (let i = 0; i < totalFiles; i++) {
-            const file = files[i];
-            const percent = Math.round(((i) / totalFiles) * 100);
-            progressBar.style.width = `${percent}%`;
-            progressPercentText.textContent = `${percent}%`;
-            progressStatusText.innerHTML = `<i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet ${i + 1} of ${totalFiles}: <b>${escapeHtml(file.name)}</b>...`;
+        try {
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+                const percent = Math.round(((i) / totalFiles) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressPercentText.textContent = `${percent}%`;
+                progressStatusText.innerHTML = `<i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet ${i + 1} of ${totalFiles}: <b>${escapeHtml(file.name)}</b>...`;
 
-            // Create temporary staging row
-            const tempRowId = 'temp-row-' + Math.random().toString(36).substr(2, 9);
-            const tempRow = document.createElement('tr');
-            tempRow.id = tempRowId;
-            tempRow.className = 'bg-light';
-            tempRow.innerHTML = `
-                <td class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i></td>
-                <td class="text-center font-weight-bold text-muted">${stagedSheets.size + 1}</td>
-                <td class="text-center"><i class="fa fa-file-image-o text-muted"></i></td>
-                <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</td>
-                <td colspan="5" class="text-primary font-weight-bold">
-                    <i class="fa fa-circle-o-notch fa-spin mr-1"></i> Connecting to AI Extractor API (https://extractor.rusoft.in)...
-                </td>
-                <td class="text-right text-muted"><span class="badge badge-light">Extracting</span></td>
-            `;
-            stagingTbody.appendChild(tempRow);
+                // Create temporary staging row
+                const tempRowId = 'temp-row-' + Math.random().toString(36).substr(2, 9);
+                const tempRow = document.createElement('tr');
+                tempRow.id = tempRowId;
+                tempRow.innerHTML = `
+                    <td class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i></td>
+                    <td class="text-center font-weight-bold text-muted">${stagedSheets.size + 1}</td>
+                    <td class="text-center"><i class="fa fa-file-image-o text-muted"></i></td>
+                    <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</td>
+                    <td colspan="5" class="text-primary font-weight-bold">
+                        <i class="fa fa-circle-o-notch fa-spin mr-1"></i> Connecting to AI Extractor API (https://extractor.rusoft.in)...
+                    </td>
+                    <td class="text-right text-muted"><span class="badge badge-light">Extracting</span></td>
+                `;
+                stagingTbody.appendChild(tempRow);
 
-            try {
-                const formData = new FormData();
-                formData.append('exam_id', examId);
-                formData.append('image', file);
+                try {
+                    const formData = new FormData();
+                    formData.append('exam_id', examId);
+                    formData.append('image', file);
 
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-                const response = await fetch("{{ url('upload_omr/process_sheet') }}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: formData,
-                    credentials: 'same-origin'
-                });
+                    const response = await fetch("{{ url('upload_omr/process_sheet') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
 
-                const data = await response.json();
-                if (!response.ok || data.status === 'error') {
-                    throw new Error(data.message || 'Extractor service failed.');
+                    const data = await response.json();
+                    if (!response.ok || data.status === 'error') {
+                        throw new Error(data.message || 'Extractor service failed.');
+                    }
+
+                    const sheet = data.sheet;
+                    sheet.selected = true; // default checked for final submit
+                    stagedSheets.set(sheet.temp_id, sheet);
+
+                    // Render real staged row
+                    renderStagedRow(sheet, tempRow);
+                    successful++;
+                } catch (err) {
+                    tempRow.className = 'text-danger';
+                    tempRow.innerHTML = `
+                        <td class="text-center text-danger"><i class="fa fa-times-circle"></i></td>
+                        <td class="text-center font-weight-bold text-danger">${stagedSheets.size + 1}</td>
+                        <td class="text-center"><i class="fa fa-file-image-o text-danger"></i></td>
+                        <td class="font-weight-bold text-danger text-truncate" style="max-width: 140px;">${escapeHtml(file.name)}</td>
+                        <td colspan="5" class="text-danger small font-weight-bold">
+                            <i class="fa fa-exclamation-triangle mr-1"></i> ${escapeHtml(err.message)}
+                        </td>
+                        <td class="text-right">
+                            <button class="btn btn-xs btn-outline-danger" onclick="document.getElementById('${tempRowId}')?.remove(); updateStagingCounters();">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
                 }
 
-                const sheet = data.sheet;
-                sheet.selected = true; // default checked for final submit
-                stagedSheets.set(sheet.temp_id, sheet);
-
-                // Render real staged row
-                renderStagedRow(sheet, tempRow);
-                successful++;
-            } catch (err) {
-                tempRow.className = 'bg-light text-danger';
-                tempRow.innerHTML = `
-                    <td class="text-center text-danger"><i class="fa fa-times-circle"></i></td>
-                    <td class="text-center font-weight-bold text-danger">${stagedSheets.size + 1}</td>
-                    <td class="text-center"><i class="fa fa-file-image-o text-danger"></i></td>
-                    <td class="font-weight-bold text-danger text-truncate" style="max-width: 140px;">${escapeHtml(file.name)}</td>
-                    <td colspan="5" class="text-danger small font-weight-bold">
-                        <i class="fa fa-exclamation-triangle mr-1"></i> ${escapeHtml(err.message)}
-                    </td>
-                    <td class="text-right">
-                        <button class="btn btn-xs btn-outline-danger" onclick="document.getElementById('${tempRowId}')?.remove(); updateStagingCounters();">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </td>
-                `;
+                completed++;
+                updateStagingCounters();
             }
+        } finally {
+            // Finish batch
+            progressBar.style.width = '100%';
+            progressPercentText.textContent = '100%';
+            progressStatusText.innerHTML = `<i class="fa fa-check-circle text-success mr-1"></i> Processed ${successful} of ${totalFiles} sheets successfully! Review and finalize below.`;
+            
+            setTimeout(() => {
+                progressWrapper.classList.add('d-none');
+            }, 3000);
 
-            completed++;
-            updateStagingCounters();
+            fileInput.value = '';
+            fileInput.disabled = false;
+            dropzone.classList.remove('disabled');
+            dropzone.classList.add('active');
+            isProcessingBatch = false;
+            updateStagingCounters(); // Re-enable Final Submit & Clear buttons
         }
-
-        // Finish batch
-        progressBar.style.width = '100%';
-        progressPercentText.textContent = '100%';
-        progressStatusText.innerHTML = `<i class="fa fa-check-circle text-success mr-1"></i> Extracted ${successful} of ${totalFiles} sheets successfully! Review and finalize below.`;
-        
-        setTimeout(() => {
-            progressWrapper.classList.add('d-none');
-        }, 3000);
-
-        fileInput.value = '';
-        fileInput.disabled = false;
-        dropzone.classList.remove('disabled');
-        dropzone.classList.add('active');
-        isProcessingBatch = false;
     }
 
     // Render a single staged sheet row
@@ -988,31 +1080,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const studentHtml = isMatched ? `
             <div>
-                <span class="badge-pill-status badge-matched">
-                    <i class="fa fa-user"></i> ${escapeHtml(student.name)}
+                <span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 11px;">
+                    <i class="fa fa-user mr-1"></i> ${escapeHtml(student.name)}
                 </span>
-                <div class="text-muted small mt-1 font-weight-bold">
-                    Class: ${escapeHtml(student.class_name || 'N/A')} ${student.father_name ? '| S/O ' + escapeHtml(student.father_name) : ''}
+                <div class="text-muted small mt-1 font-weight-bold" style="color: #475569 !important;">
+                    Class: ${escapeHtml(student.class_name || 'N/A')} ${student.father_name ? '&bull; S/O ' + escapeHtml(student.father_name) : ''}
                 </div>
             </div>
         ` : `
             <div>
-                <span class="badge-pill-status badge-unmatched">
-                    <i class="fa fa-exclamation-triangle"></i> Unmatched Roll #
+                <span class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 11px;">
+                    <i class="fa fa-exclamation-triangle mr-1"></i> Unmatched Roll #
                 </span>
-                <div class="text-danger small font-italic mt-1">Check roll number or link student</div>
+                <div class="text-danger small font-weight-bold mt-1" style="color: #dc2626 !important;">
+                    <i class="fa fa-pencil mr-1"></i> Check or edit roll number
+                </div>
             </div>
         `;
 
         const scoreHtml = `
-            <div>
-                <span class="font-weight-bold text-success" style="font-size: 13px;">${evalData.obtained_marks}</span>
-                <span class="text-muted font-mono small">/ ${evalData.total_marks}</span>
-                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">${evalData.percentage}%</span>
-                <div class="text-muted small mt-1">
-                    <span class="text-success font-weight-bold">🟢 ${evalData.correct_answers}</span> &bull;
-                    <span class="text-danger font-weight-bold">🔴 ${evalData.incorrect_answers}</span> &bull;
-                    <span class="text-muted font-weight-bold">⚪ ${evalData.blank_answers}</span>
+            <div style="color: #0f172a !important;">
+                <span class="font-weight-bold" style="font-size: 13.5px; color: #16a34a !important;">+${evalData.obtained_marks}</span>
+                <span class="font-mono small" style="color: #64748b !important;"> / ${evalData.total_marks}</span>
+                <span class="badge badge-success ml-1 font-weight-bold px-2 py-1" style="background: #16a34a !important; color: #ffffff !important; font-size: 9.5px;">${evalData.percentage}%</span>
+                <div class="mt-1" style="font-size: 10.5px; font-weight: 600;">
+                    <span style="color: #16a34a !important;">🟢 ${evalData.correct_answers} Right</span> &bull;
+                    <span style="color: #dc2626 !important;">🔴 ${evalData.incorrect_answers} Wrong</span> &bull;
+                    <span style="color: #64748b !important;">⚪ ${evalData.blank_answers} Blank</span>
                 </div>
             </div>
         `;
@@ -1021,45 +1115,42 @@ document.addEventListener('DOMContentLoaded', function () {
             <td class="text-center">
                 <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" ${sheet.selected !== false ? 'checked' : ''} onchange="toggleSheetSelect('${sheet.temp_id}', this.checked);">
             </td>
-            <td class="text-center font-weight-bold text-muted staged-index"></td>
+            <td class="text-center font-weight-bold staged-index" style="color: #64748b;"></td>
             <td class="text-center">
                 <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect annotated scan">
             </td>
-            <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(sheet.source_filename)}">
+            <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px; color: #0f172a !important;" title="${escapeHtml(sheet.source_filename)}">
                 <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(sheet.source_filename)}
             </td>
             <td>
-                <div class="input-group input-group-sm" style="max-width: 130px;">
-                    <input type="text" class="form-control form-control-sm font-mono font-weight-bold text-primary roll-input" 
-                           value="${escapeHtml(sheet.roll_number || '')}" 
-                           placeholder="Enter Roll #"
-                           style="height: 26px; font-size: 11.5px; border-color: #cbd5e1;"
-                           onchange="handleRollNumberChange('${sheet.temp_id}', this.value);">
-                </div>
+                <input type="text" class="form-control form-control-sm font-mono roll-input" 
+                       value="${escapeHtml(sheet.roll_number || '')}" 
+                       placeholder="Enter Roll #"
+                       onchange="handleRollNumberChange('${sheet.temp_id}', this.value);">
             </td>
             <td id="student-cell-${sheet.temp_id}">
                 ${studentHtml}
             </td>
             <td class="text-center">
-                <div class="font-weight-bold text-dark">${sheet.summary?.attempted || 0} / ${sheet.summary?.total_questions || 50}</div>
-                <div class="text-muted small">Blank: ${sheet.summary?.unattempted || 0}</div>
+                <div class="font-weight-bold text-dark" style="color: #0f172a !important; font-size: 12px;">${sheet.summary?.attempted || 0} / ${sheet.summary?.total_questions || 50}</div>
+                <div class="small font-weight-bold" style="color: #64748b !important;">Blank: ${sheet.summary?.unattempted || 0}</div>
             </td>
             <td class="text-center">
                 ${scoreHtml}
             </td>
             <td class="text-center">
-                <span class="badge-pill-status badge-staged">
-                    <i class="fa fa-clock-o"></i> Staged
+                <span class="badge badge-info px-2 py-1 font-weight-bold" style="background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #7dd3fc !important; font-size: 10.5px;">
+                    <i class="fa fa-clock-o mr-1"></i> Staged
                 </span>
             </td>
             <td class="text-right" style="white-space: nowrap;">
-                <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Inspect Annotated Sheet & Bubbles">
+                <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Inspect Annotated Sheet & Bubbles">
                     <i class="fa fa-eye"></i>
                 </button>
-                <button type="button" class="btn btn-xs btn-outline-info mr-1" onclick="viewAnswersModal('${sheet.temp_id}');" title="View Question-by-Question Matrix">
+                <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewAnswersModal('${sheet.temp_id}');" title="View Question-by-Question Matrix">
                     <i class="fa fa-list"></i>
                 </button>
-                <button type="button" class="btn btn-xs btn-outline-danger" onclick="removeStagedSheet('${sheet.temp_id}');" title="Remove Sheet from Staging">
+                <button type="button" class="btn btn-xs btn-outline-danger" style="padding: 2px 7px; font-size: 11px;" onclick="removeStagedSheet('${sheet.temp_id}');" title="Remove Sheet from Staging">
                     <i class="fa fa-trash-o"></i>
                 </button>
             </td>
@@ -1100,27 +1191,35 @@ document.addEventListener('DOMContentLoaded', function () {
         countStagedUnmatched.textContent = unmatched;
         btnSaveCount.textContent = selectedCount;
 
+        // Enable or disable Final Submit button
         if (selectedCount > 0 && !isProcessingBatch) {
             btnFinalSubmit.disabled = false;
-            btnFinalSubmit.className = 'btn btn-success btn-sm px-3 font-weight-bold';
+            btnFinalSubmit.removeAttribute('disabled');
         } else {
             btnFinalSubmit.disabled = true;
-            btnFinalSubmit.className = 'btn btn-secondary btn-sm px-3';
+            btnFinalSubmit.setAttribute('disabled', 'disabled');
         }
 
-        btnClearStaged.disabled = (total === 0 || isProcessingBatch);
+        // Enable or disable Clear button
+        if (total > 0 && !isProcessingBatch) {
+            btnClearStaged.disabled = false;
+            btnClearStaged.removeAttribute('disabled');
+        } else {
+            btnClearStaged.disabled = true;
+            btnClearStaged.setAttribute('disabled', 'disabled');
+        }
 
         if (total > 0) {
             const avg = (sumMarks / total).toFixed(2);
-            stagingSummaryMarks.innerHTML = `Staged Average Score: <span class="text-success font-weight-bold">${avg} Marks</span>`;
+            stagingSummaryMarks.innerHTML = `Staged Average Score: <span class="font-weight-bold" style="color: #16a34a !important;">${avg} Marks</span>`;
         } else {
             stagingSummaryMarks.innerHTML = '';
             if (!stagingTbody.querySelector('#staging-empty-row')) {
                 stagingTbody.innerHTML = `
                     <tr id="staging-empty-row">
-                        <td colspan="10" class="text-center py-4 text-muted">
-                            <i class="fa fa-file-image-o mr-1" style="font-size: 18px; color: #94a3b8; display: block; margin-bottom: 4px;"></i>
-                            No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.
+                        <td colspan="10" class="text-center py-4 text-muted" style="background: #ffffff !important;">
+                            <i class="fa fa-file-image-o mr-1" style="font-size: 20px; color: #94a3b8; display: block; margin-bottom: 6px;"></i>
+                            <span style="font-size: 12px; font-weight: 600; color: #64748b;">No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.</span>
                         </td>
                     </tr>
                 `;
@@ -1138,8 +1237,8 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // Toggle Select All
-    window.toggleSelectAllStaged = function (masterCheckbox) {
-        const isChecked = masterCheckbox.checked;
+    masterSelectCheckbox.addEventListener('change', function () {
+        const isChecked = this.checked;
         stagedSheets.forEach(s => {
             s.selected = isChecked;
         });
@@ -1147,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cb.checked = isChecked;
         });
         updateStagingCounters();
-    };
+    });
 
     // Remove single sheet from staging
     window.removeStagedSheet = function (tempId) {
@@ -1159,11 +1258,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clear all staged sheets
     window.clearAllStaged = function () {
+        if (!stagedSheets.size) return;
         if (!confirm('Are you sure you want to clear all staged sheets? (Unsaved extractions will be discarded).')) return;
         stagedSheets.clear();
         stagingTbody.innerHTML = '';
         updateStagingCounters();
     };
+    btnClearStaged.addEventListener('click', function(e) {
+        e.preventDefault();
+        clearAllStaged();
+    });
 
     // Real-time roll number change & auto-lookup
     window.handleRollNumberChange = async function (tempId, newRoll) {
@@ -1200,11 +1304,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (cell) {
                         cell.innerHTML = `
                             <div>
-                                <span class="badge-pill-status badge-matched">
-                                    <i class="fa fa-user"></i> ${escapeHtml(data.student.name)}
+                                <span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 11px;">
+                                    <i class="fa fa-user mr-1"></i> ${escapeHtml(data.student.name)}
                                 </span>
-                                <div class="text-muted small mt-1 font-weight-bold">
-                                    Class: ${escapeHtml(data.student.class_name || 'N/A')} ${data.student.father_name ? '| S/O ' + escapeHtml(data.student.father_name) : ''}
+                                <div class="text-muted small mt-1 font-weight-bold" style="color: #475569 !important;">
+                                    Class: ${escapeHtml(data.student.class_name || 'N/A')} ${data.student.father_name ? '&bull; S/O ' + escapeHtml(data.student.father_name) : ''}
                                 </div>
                             </div>
                         `;
@@ -1214,10 +1318,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (cell) {
                         cell.innerHTML = `
                             <div>
-                                <span class="badge-pill-status badge-unmatched">
-                                    <i class="fa fa-exclamation-triangle"></i> Unmatched Roll #
+                                <span class="badge badge-warning text-dark font-weight-bold px-2 py-1" style="background: #fef08a !important; color: #854d0e !important; border: 1px solid #facc15 !important; font-size: 11px;">
+                                    <i class="fa fa-exclamation-triangle mr-1"></i> Unmatched Roll #
                                 </span>
-                                <div class="text-danger small font-italic mt-1">Check roll number or link student</div>
+                                <div class="text-danger small font-weight-bold mt-1" style="color: #dc2626 !important;">
+                                    <i class="fa fa-pencil mr-1"></i> Check or edit roll number
+                                </div>
                             </div>
                         `;
                     }
@@ -1267,11 +1373,11 @@ document.addEventListener('DOMContentLoaded', function () {
         answers.forEach(item => {
             let resBadge = '';
             if (item.is_correct) {
-                resBadge = '<span class="badge-pill-status badge-matched"><i class="fa fa-check"></i> Correct</span>';
+                resBadge = '<span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 10px;"><i class="fa fa-check"></i> Correct</span>';
             } else if (item.status === 'blank' || !item.answer) {
-                resBadge = '<span class="badge-pill-status badge-staged">Left Blank</span>';
+                resBadge = '<span class="badge badge-light px-2 py-1 text-muted" style="border: 1px solid #cbd5e1; font-size: 10px;">Left Blank</span>';
             } else {
-                resBadge = '<span class="badge-pill-status badge-unmatched"><i class="fa fa-times"></i> Wrong</span>';
+                resBadge = '<span class="badge badge-danger font-weight-bold px-2 py-1" style="background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; font-size: 10px;"><i class="fa fa-times"></i> Wrong</span>';
             }
 
             html += `
@@ -1299,7 +1405,8 @@ document.addEventListener('DOMContentLoaded', function () {
     window.confirmFinalSubmit = async function () {
         const examId = examSelect.value;
         if (!examId) {
-            alert('Please select an examination.');
+            alert('Please select an examination first.');
+            examSelect.focus();
             return;
         }
 
@@ -1320,6 +1427,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!confirm(msg)) return;
 
         btnFinalSubmit.disabled = true;
+        btnFinalSubmit.setAttribute('disabled', 'disabled');
         btnFinalSubmit.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Saving marks...';
 
         try {
@@ -1379,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
                 savedTbody.prepend(tr);
 
-                // Remove from memory
+                // Remove from memory & table
                 stagedSheets.delete(s.temp_id);
                 document.getElementById(`staged-row-${s.temp_id}`)?.remove();
             });
@@ -1395,15 +1503,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             reindexStagedRows();
-            updateStagingCounters();
         } catch (err) {
             alert(`❌ Error saving marks: ${err.message}`);
         } finally {
-            btnFinalSubmit.disabled = false;
             btnFinalSubmit.innerHTML = `<i class="fa fa-check-circle mr-1"></i> Final Submit & Save Marks (${stagedSheets.size})`;
             updateStagingCounters();
         }
     };
+    btnFinalSubmit.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmFinalSubmit();
+    });
 
     // Helper: HTML escape
     function escapeHtml(str) {
@@ -1415,6 +1525,9 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+
+    // Initialize counters
+    updateStagingCounters();
 });
 </script>
 @endsection
