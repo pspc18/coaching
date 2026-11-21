@@ -10,7 +10,11 @@
         'ai_extracted' => 0,
     ]);
     $search = $search ?? [];
-    $permission = Helper::permissioncheck(8);
+    $qbSidebar = DB::table('sidebars')->where('name', 'Question Bank')->first();
+    $permission = Helper::permissioncheck($qbSidebar->id ?? 8);
+    if (!($permission->view ?? false) && !($permission->add ?? false) && !($permission->edit ?? false) && !($permission->delete ?? false)) {
+        $permission = Helper::permissioncheck(8);
+    }
 
     $hasActiveFilters = !empty($search['class_type_id']) || !empty($search['subject_id']) || !empty($search['question_type_id']) || !empty($search['difficulty_level']) || !empty($search['format_filter']) || !empty($search['name']);
     
