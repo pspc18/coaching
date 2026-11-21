@@ -29,6 +29,37 @@
     })->values();
 
     $getSetting = Helper::getSetting();
+
+    $checkSubActive = function ($subUrl) {
+        if (empty($subUrl)) return false;
+        $target = trim((string) $subUrl, '/');
+        if (url($subUrl) == URL::current() || request()->is($target . '*')) {
+            return true;
+        }
+        // Sub-route aliases for Examination Panel & related sections
+        if ($target === 'view/exam' && (request()->is('add/exam*') || request()->is('edit/exam*') || request()->is('view/exam*'))) {
+            return true;
+        }
+        if ($target === 'download_admit_card' && (request()->is('exam_admit_card*') || request()->is('without_subject_admit_card*') || request()->is('admit_card_notes*'))) {
+            return true;
+        }
+        if ($target === 'fill-marks-by-excel' && (request()->is('fill_marks_by_excel*') || request()->is('marks-template-download*') || request()->is('marks-mapping*'))) {
+            return true;
+        }
+        if ($target === 'fill_marks' && request()->is('fill_marks_submit*')) {
+            return true;
+        }
+        if ($target === 'upload_omr' && request()->is('upload_omr*')) {
+            return true;
+        }
+        if ($target === 'view/question' && (request()->is('view/question*') || request()->is('edit/question*'))) {
+            return true;
+        }
+        if ($target === 'add/question' && request()->is('add/question*')) {
+            return true;
+        }
+        return false;
+    };
 @endphp
 
 <aside class="main-sidebar" id="sidebar">
@@ -62,7 +93,7 @@
 
                         $activeSub = false;
                         foreach($subSidebar as $sub){
-                            if(in_array((string) $sub->id, array_map('strval', $submenus), true) && (url($sub->url) == URL::current() || (!empty($sub->url) && request()->is(trim($sub->url, '/').'*')))){
+                            if(in_array((string) $sub->id, array_map('strval', $submenus), true) && $checkSubActive($sub->url)){
                                 $activeSub = true;
                                 break;
                             }
@@ -94,7 +125,7 @@
                                 @foreach($subSidebar as $sub)
                                     @if(in_array((string) $sub->id, array_map('strval', $submenus), true))
                                         @php
-                                            $isChildActive = (url($sub->url) == URL::current() || (!empty($sub->url) && request()->is(trim($sub->url, '/').'*')));
+                                            $isChildActive = $checkSubActive($sub->url);
                                         @endphp
                                         <li class="nav-item">
                                             <a href="{{ url($sub->url) }}" 

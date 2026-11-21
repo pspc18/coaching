@@ -1725,6 +1725,13 @@ protected static function activeStudentAttendanceIndex(): array
     
  
     public static function SidebarSubPerm($sidebar_id) {
+        if ((int) Session::get('role_id') === 1) {
+            return SidebarSub::where('sidebar_id', $sidebar_id)
+                ->where('sub_sidebar', 'yes')
+                ->whereNull('deleted_at')
+                ->orderBy('orderBy', 'ASC')
+                ->get();
+        }
         
         $data =  SidebarSub::where('sidebar_id',$sidebar_id)->where('sub_sidebar','yes')->orderBy('orderBy','ASC')->get();
         $sidebar_sub_id = array();      

@@ -13,9 +13,9 @@ $exam_count = Helper::getCount('exams','id','count');
             <div class="card card-outline card-orange">
                 <div class="card-header bg-primary">
                     @if(Session::get('role_id') == 3)
-                        <h3 class="card-title"><i class="fa fa-leanpub"></i> &nbsp;{{ __('examination.My Examination dgf') }} </h3>
+                        <h3 class="card-title"><i class="fa fa-leanpub"></i> &nbsp;{{ __('My Examination') }} </h3>
                     @else
-                        <h3 class="card-title"><i class="fa fa-leanpub"></i> &nbsp;{{ __('Online Examination Management') }}</h3>
+                        <h3 class="card-title"><i class="fa fa-leanpub"></i> &nbsp;{{ __('Examination Management') }}</h3>
                     @endif
                     
                     <div class="card-tools">

@@ -52,7 +52,7 @@ class ExaminationController extends Controller
     
 
             public function examinationDashboard(){
-                return view('examination.examination_dashboard ');
+                return view('examination.examination_dashboard');
             }
             
 
