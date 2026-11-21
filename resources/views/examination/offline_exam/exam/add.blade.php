@@ -1504,62 +1504,53 @@ textarea.theme-form-control {
                                         </div>
 
                                         {{-- Subject-Wise Maximum & Minimum (Passing) Marks Table (Indian Coaching Pattern) --}}
-                                        <div class="mt-3 p-3 rounded" id="subject-marks-config-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid #e2e8f0; gap: 10px;">
-                                                <div>
-                                                    <span class="font-weight-bold" style="font-size: 13px; color: #002C54;">
-                                                        <i class="fa fa-sliders text-primary mr-1"></i> Subject-Wise Maximum & Passing Cut-off Marks
-                                                    </span>
-                                                    <span class="badge badge-info ml-1" style="font-size: 10px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                        <div class="mt-3 rounded" id="subject-marks-config-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                                            <div class="p-2 px-3 d-flex flex-wrap align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 10px;">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fa fa-sliders mr-2" style="font-size: 15px; color: #002C54;"></i>
+                                                    <span class="font-weight-bold" style="font-size: 13.5px; color: #002C54;">Subject-Wise Maximum & Passing Cut-off Marks</span>
+                                                    <span class="badge ml-2" style="background: #e0f2fe; color: #0369a1; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 12px; border: 1px solid #bae6fd;">
                                                         Indian Coaching Standard
                                                     </span>
                                                 </div>
-                                                {{-- Bulk Apply Bar --}}
-                                                <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
-                                                    <div class="input-group input-group-sm" style="width: auto;">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text py-0 px-2" style="font-size: 11px; background: #ffffff; color: #334155; border-color: #cbd5e1;">Max Marks:</span>
-                                                        </div>
-                                                        <input type="number" id="bulk-subject-max" class="form-control form-control-sm py-0 px-2" value="50" min="1" max="1000" step="1" style="width: 60px; height: 26px; font-size: 12px; font-weight: 600; text-align: center; border-color: #cbd5e1;">
-                                                        <div class="input-group-append">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" id="btn-apply-bulk-max" style="font-size: 11px; height: 26px;">
-                                                                Apply All
-                                                            </button>
-                                                        </div>
+                                                {{-- Inline Bulk Apply Controls --}}
+                                                <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                                                    <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
+                                                        <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Max:</span>
+                                                        <input type="number" id="bulk-subject-max" value="50" min="1" max="1000" step="1" style="width: 58px; height: 26px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 4px; margin-right: 4px; color: #002C54;">
+                                                        <button type="button" class="btn btn-primary btn-sm py-0 px-2" id="btn-apply-bulk-max" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
+                                                            Apply All
+                                                        </button>
                                                     </div>
 
-                                                    <div class="input-group input-group-sm" style="width: auto;">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text py-0 px-2" style="font-size: 11px; background: #ffffff; color: #334155; border-color: #cbd5e1;">Cut-off %:</span>
-                                                        </div>
-                                                        <select id="bulk-subject-min-pct" class="custom-select custom-select-sm py-0 px-2" style="width: 105px; height: 26px; font-size: 11px; font-weight: 600; border-color: #cbd5e1;">
+                                                    <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
+                                                        <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Cut-off:</span>
+                                                        <select id="bulk-subject-min-pct" style="width: 125px; height: 26px; font-size: 11px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 5px; margin-right: 4px; background: #ffffff; color: #1e293b;">
                                                             <option value="0.33">33% (School)</option>
                                                             <option value="0.35">35% (State Govt)</option>
                                                             <option value="0.40" selected>40% (SSC/PSC)</option>
                                                             <option value="0.50">50% (Merit)</option>
                                                         </select>
-                                                        <div class="input-group-append">
-                                                            <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" id="btn-apply-bulk-min" style="font-size: 11px; height: 26px;">
-                                                                Apply All
-                                                            </button>
-                                                        </div>
+                                                        <button type="button" class="btn btn-success btn-sm py-0 px-2" id="btn-apply-bulk-min" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
+                                                            Apply All
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; background: #ffffff;">
-                                                <table class="table table-sm table-bordered table-hover mb-0" id="table-subject-marks" style="font-size: 12px;">
+                                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                                <table class="table table-sm table-bordered table-hover mb-0" id="table-subject-marks" style="font-size: 12.5px; border-collapse: separate; border-spacing: 0;">
                                                     <thead style="background: #002C54; color: #ffffff;">
                                                         <tr>
-                                                            <th style="width: 40px; text-align: center; vertical-align: middle;">#</th>
-                                                            <th style="vertical-align: middle;">Subject Name</th>
-                                                            <th style="width: 170px; text-align: center; vertical-align: middle;">
+                                                            <th style="width: 45px; text-align: center; vertical-align: middle; padding: 8px 6px;">#</th>
+                                                            <th style="vertical-align: middle; padding: 8px 12px;">Subject Name</th>
+                                                            <th style="width: 140px; text-align: center; vertical-align: middle; padding: 8px 10px;">
                                                                 Max Marks <span class="text-warning">*</span>
                                                             </th>
-                                                            <th style="width: 180px; text-align: center; vertical-align: middle;">
-                                                                Min / Passing Marks <span class="text-warning">*</span>
+                                                            <th style="width: 150px; text-align: center; vertical-align: middle; padding: 8px 10px;">
+                                                                Min / Pass Marks <span class="text-warning">*</span>
                                                             </th>
-                                                            <th style="width: 110px; text-align: center; vertical-align: middle;">Cut-off %</th>
+                                                            <th style="width: 105px; text-align: center; vertical-align: middle; padding: 8px 10px;">Cut-Off %</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="subject-marks-tbody">
@@ -1577,42 +1568,32 @@ textarea.theme-form-control {
                                                                     $subPct = $subMax > 0 ? round(($subMin / $subMax) * 100, 1) : 0;
                                                                 @endphp
                                                                 <tr class="subject-mark-row {{ $isSubChecked ? '' : 'd-none' }}" id="subject-mark-row-{{ $sub->id }}" data-subject-id="{{ $sub->id }}" data-subject-name="{{ $sub->name }}">
-                                                                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle;">{{ $rowIdx++ }}</td>
-                                                                    <td style="vertical-align: middle;">
-                                                                        <span class="font-weight-600 text-dark">{{ $sub->name }}</span>
+                                                                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle; padding: 8px 6px;">{{ $rowIdx++ }}</td>
+                                                                    <td style="vertical-align: middle; padding: 8px 12px;">
+                                                                        <span class="font-weight-600 text-dark" style="font-size: 13px;">{{ $sub->name }}</span>
                                                                     </td>
-                                                                    <td class="text-center" style="vertical-align: middle;">
-                                                                        <div class="input-group input-group-sm">
-                                                                            <input type="number" 
-                                                                                   name="subject_max_marks[{{ $sub->id }}]" 
-                                                                                   id="sub_max_{{ $sub->id }}" 
-                                                                                   class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
-                                                                                   value="{{ $subMax }}" 
-                                                                                   min="1" max="9999" step="0.5" 
-                                                                                   {{ $isSubChecked ? '' : 'disabled' }} 
-                                                                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #0f172a;">
-                                                                            <div class="input-group-append">
-                                                                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
-                                                                            </div>
-                                                                        </div>
+                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                        <input type="number" 
+                                                                               name="subject_max_marks[{{ $sub->id }}]" 
+                                                                               id="sub_max_{{ $sub->id }}" 
+                                                                               class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
+                                                                               value="{{ $subMax }}" 
+                                                                               min="1" max="9999" step="0.5" 
+                                                                               {{ $isSubChecked ? '' : 'disabled' }} 
+                                                                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #002C54; background: #ffffff;">
                                                                     </td>
-                                                                    <td class="text-center" style="vertical-align: middle;">
-                                                                        <div class="input-group input-group-sm">
-                                                                            <input type="number" 
-                                                                                   name="subject_min_marks[{{ $sub->id }}]" 
-                                                                                   id="sub_min_{{ $sub->id }}" 
-                                                                                   class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
-                                                                                   value="{{ $subMin }}" 
-                                                                                   min="0" max="9999" step="0.5" 
-                                                                                   {{ $isSubChecked ? '' : 'disabled' }} 
-                                                                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #16a34a;">
-                                                                            <div class="input-group-append">
-                                                                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
-                                                                            </div>
-                                                                        </div>
+                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                        <input type="number" 
+                                                                               name="subject_min_marks[{{ $sub->id }}]" 
+                                                                               id="sub_min_{{ $sub->id }}" 
+                                                                               class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
+                                                                               value="{{ $subMin }}" 
+                                                                               min="0" max="9999" step="0.5" 
+                                                                               {{ $isSubChecked ? '' : 'disabled' }} 
+                                                                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #15803d; background: #ffffff;">
                                                                     </td>
-                                                                    <td class="text-center" style="vertical-align: middle;">
-                                                                        <span class="badge badge-light border sub-cutoff-badge" id="sub_cutoff_badge_{{ $sub->id }}" style="font-size: 11px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
+                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                        <span class="sub-cutoff-badge" id="sub_cutoff_badge_{{ $sub->id }}" style="display: inline-block; min-width: 58px; padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 4px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0284c7;">
                                                                             {{ $subPct }}%
                                                                         </span>
                                                                     </td>
@@ -1626,26 +1607,26 @@ textarea.theme-form-control {
                                                             </tr>
                                                         @endif
                                                     </tbody>
-                                                    <tfoot style="background: #f8fafc; font-weight: 700; border-top: 2px solid #cbd5e1;">
+                                                    <tfoot style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
                                                         <tr>
-                                                            <td colspan="2" class="text-right text-dark" style="font-size: 12px; vertical-align: middle;">
+                                                            <td colspan="2" class="text-right text-dark" style="font-size: 12.5px; vertical-align: middle; padding: 8px 12px;">
                                                                 Total Weightage (<span id="total-active-subs-count">0</span> Active Subjects):
                                                             </td>
-                                                            <td class="text-center text-primary" style="font-size: 13px; vertical-align: middle;">
-                                                                <span id="grand-total-max-marks">0.00</span>
+                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                                <span id="grand-total-max-marks" style="font-size: 14px; font-weight: 800; color: #002C54;">0.00</span>
                                                             </td>
-                                                            <td class="text-center text-success" style="font-size: 13px; vertical-align: middle;">
-                                                                <span id="grand-total-min-marks">0.00</span>
+                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                                <span id="grand-total-min-marks" style="font-size: 14px; font-weight: 800; color: #15803d;">0.00</span>
                                                             </td>
-                                                            <td class="text-center text-muted" style="font-size: 11px; vertical-align: middle;" id="grand-total-cutoff-pct">
-                                                                --
+                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                                <span id="grand-total-cutoff-pct" style="font-size: 12px; font-weight: 700; color: #475569;">--</span>
                                                             </td>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
                                             </div>
-                                            <div class="mt-2 text-muted" style="font-size: 11px;">
-                                                <i class="fa fa-info-circle text-primary"></i> <strong>Indian Exam Pattern Note:</strong> Each subject can have custom maximum marks and qualifying minimum cut-off marks. These values are automatically synchronized with Marks Entry, Excel Upload, OMR Scanner, and Green Sheet Reports.
+                                            <div class="px-3 py-2 text-muted" style="font-size: 11px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                                                <i class="fa fa-info-circle text-primary mr-1"></i> <strong>Indian Exam Pattern Note:</strong> Each subject can have custom maximum marks and qualifying minimum cut-off marks. These values are automatically synchronized with Marks Entry, Excel Upload, OMR Scanner, and Green Sheet Reports.
                                             </div>
                                         </div>
                                     </div>
@@ -2916,40 +2897,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.setAttribute('data-subject-id', subId);
                 row.setAttribute('data-subject-name', subName);
                 row.innerHTML = `
-                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle;">1</td>
-                    <td style="vertical-align: middle;">
-                        <span class="font-weight-600 text-dark">${subName}</span>
+                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle; padding: 8px 6px;">1</td>
+                    <td style="vertical-align: middle; padding: 8px 12px;">
+                        <span class="font-weight-600 text-dark" style="font-size: 13px;">${subName}</span>
                     </td>
-                    <td class="text-center" style="vertical-align: middle;">
-                        <div class="input-group input-group-sm">
-                            <input type="number" 
-                                   name="subject_max_marks[${subId}]" 
-                                   id="sub_max_${subId}" 
-                                   class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
-                                   value="${initialMax}" 
-                                   min="1" max="9999" step="0.5" 
-                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #0f172a;">
-                            <div class="input-group-append">
-                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
-                            </div>
-                        </div>
+                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                        <input type="number" 
+                               name="subject_max_marks[${subId}]" 
+                               id="sub_max_${subId}" 
+                               class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
+                               value="${initialMax}" 
+                               min="1" max="9999" step="0.5" 
+                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #002C54; background: #ffffff;">
                     </td>
-                    <td class="text-center" style="vertical-align: middle;">
-                        <div class="input-group input-group-sm">
-                            <input type="number" 
-                                   name="subject_min_marks[${subId}]" 
-                                   id="sub_min_${subId}" 
-                                   class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
-                                   value="${initialMin}" 
-                                   min="0" max="9999" step="0.5" 
-                                   style="height: 28px; font-size: 12px; border-color: #94a3b8; color: #16a34a;">
-                            <div class="input-group-append">
-                                <span class="input-group-text py-0 px-2" style="font-size: 11px;">M</span>
-                            </div>
-                        </div>
+                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                        <input type="number" 
+                               name="subject_min_marks[${subId}]" 
+                               id="sub_min_${subId}" 
+                               class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
+                               value="${initialMin}" 
+                               min="0" max="9999" step="0.5" 
+                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #15803d; background: #ffffff;">
                     </td>
-                    <td class="text-center" style="vertical-align: middle;">
-                        <span class="badge badge-light border sub-cutoff-badge" id="sub_cutoff_badge_${subId}" style="font-size: 11px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
+                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                        <span class="sub-cutoff-badge" id="sub_cutoff_badge_${subId}" style="display: inline-block; min-width: 58px; padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 4px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0284c7;">
                             ${initialPct}%
                         </span>
                     </td>
