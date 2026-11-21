@@ -930,7 +930,7 @@
                             @php
                                 $stName = $scan->student ? ($scan->student->first_name . ' ' . $scan->student->last_name) : 'Student #' . $scan->unique_id;
                             @endphp
-                            <tr id="scan-row-{{ $scan->id }}">
+                            <tr id="scan-row-{{ $scan->id }}" data-unique-id="{{ $scan->unique_id }}">
                                 <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="{{ $scan->source_filename }}">
                                     <i class="fa fa-file-image-o text-muted mr-1"></i> {{ $scan->source_filename ?: 'omr_scan.png' }}
                                 </td>
@@ -1858,6 +1858,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Update student rows to "Saved" status
             const savedTbody = document.getElementById('omr-saved-tbody');
             document.getElementById('omr-saved-empty-row')?.remove();
+            let newlyAddedCount = 0;
 
             selectedSheets.forEach(s => {
                 // If attached to an enrolled student row
@@ -1880,10 +1881,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     unmatchedRow.remove();
                 }
 
-                // Prepend to Saved Ledger
+                // Update existing row OR Prepend new row to Saved Ledger (No Duplicate Rows!)
                 if (savedTbody) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+                    const roll = String(s.roll_number || '').trim();
+                    let existingRow = savedTbody.querySelector(`tr[data-unique-id="${CSS.escape(roll)}"]`);
+
+                    const rowHtml = `
                         <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(s.source_filename)}">
                             <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(s.source_filename)}
                         </td>
@@ -1897,32 +1900,51 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td class="text-center font-weight-bold text-success">${s.evaluation?.correct_answers || 0}</td>
                         <td class="text-center font-weight-bold text-danger">${s.evaluation?.incorrect_answers || 0}</td>
                         <td class="text-center text-muted">${s.evaluation?.blank_answers || 0}</td>
-                        <td class="font-mono font-weight-bold">${s.evaluation?.total_marks || 0}</td>
-                        <td class="font-mono font-weight-bold text-success">+${s.evaluation?.obtained_marks || 0}</td>
+                        <td class="font-mono font-weight-bold">${Number(s.evaluation?.total_marks || 0).toFixed(2)}</td>
+                        <td class="font-mono font-weight-bold text-success">+${Number(s.evaluation?.obtained_marks || 0).toFixed(2)}</td>
                         <td>
                             <span class="badge-pill-status badge-matched">${s.evaluation?.percentage || 0}%</span>
                         </td>
                         <td class="text-center font-weight-bold text-primary">#1</td>
                         <td class="text-right">
-                            <span class="badge-pill-status badge-saved">
+                            <span class="badge-pill-status badge-saved" title="Marks updated in student exam file">
                                 <i class="fa fa-check-circle"></i> Saved
                             </span>
                         </td>
                     `;
-                    savedTbody.prepend(tr);
+
+                    if (existingRow) {
+                        // REPLACE & UPDATE existing row with pulse highlight
+                        existingRow.innerHTML = rowHtml;
+                        existingRow.style.transition = 'background-color 0.4s ease';
+                        existingRow.style.backgroundColor = '#dcfce7';
+                        setTimeout(() => { existingRow.style.backgroundColor = ''; }, 2000);
+                    } else {
+                        // PREPEND new record
+                        const tr = document.createElement('tr');
+                        tr.dataset.uniqueId = roll;
+                        tr.innerHTML = rowHtml;
+                        savedTbody.prepend(tr);
+                        newlyAddedCount++;
+                    }
                 }
 
                 stagedSheets.delete(s.temp_id);
             });
 
-            // Update KPIs
-            if (kpiTodayScans) {
-                const currentToday = parseInt(kpiTodayScans.textContent.replace(/\D/g, '') || '0', 10);
-                kpiTodayScans.textContent = (currentToday + selectedSheets.length);
+            // Update Saved Ledger badge & KPIs
+            const savedCountBadge = document.getElementById('omr-saved-count-badge');
+            if (savedCountBadge && savedTbody) {
+                const totalLedgerRows = savedTbody.querySelectorAll('tr[data-unique-id]').length;
+                savedCountBadge.textContent = `${totalLedgerRows} Records Saved`;
             }
-            if (kpiTotalScans) {
+            if (kpiTodayScans && newlyAddedCount > 0) {
+                const currentToday = parseInt(kpiTodayScans.textContent.replace(/\D/g, '') || '0', 10);
+                kpiTodayScans.textContent = (currentToday + newlyAddedCount);
+            }
+            if (kpiTotalScans && newlyAddedCount > 0) {
                 const currentTotal = parseInt(kpiTotalScans.textContent.replace(/\D/g, '') || '0', 10);
-                kpiTotalScans.textContent = (currentTotal + selectedSheets.length);
+                kpiTotalScans.textContent = (currentTotal + newlyAddedCount);
             }
 
         } catch (err) {
