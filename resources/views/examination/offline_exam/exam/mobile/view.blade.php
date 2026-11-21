@@ -517,6 +517,21 @@
                         <input type="text" class="form-control form-control-sm" id="mob_copy_exam_name" name="name" required>
                     </div>
                     <div class="form-group mb-2">
+                        <label style="font-size:11.5px; font-weight:700;">Target Course</label>
+                        <select class="form-control form-control-sm" id="mob_copy_class_type_id" name="class_type_id" required>
+                            <option value="">-- Select Target Course --</option>
+                            @foreach($classType ?? [] as $cl)
+                                <option value="{{ $cl->id }}">{{ $cl->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label style="font-size:11.5px; font-weight:700;">Target Batch</label>
+                        <select class="form-control form-control-sm" id="mob_copy_batch_id" name="batch_id">
+                            <option value="">-- All Batches (Course-Wide) --</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-2">
                         <label style="font-size:11.5px; font-weight:700;">Exam Date</label>
                         <input type="date" class="form-control form-control-sm" id="mob_copy_exam_date" name="exam_date" required>
                     </div>
@@ -563,10 +578,50 @@ $(document).ready(function(){
         $('#mob_delete_exam_id').val(id);
     });
 
+    function loadMobBatches(courseId, preselectedBatchId) {
+        var $batch = $('#mob_copy_batch_id');
+        $batch.html('<option value="">-- All Batches (Course-Wide) --</option>');
+        if (!courseId) return;
+
+        $.ajax({
+            url: "{{ url('getBatchesByCourse') }}/" + courseId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(batches) {
+                var html = '<option value="">-- All Batches (Course-Wide) --</option>';
+                if (Array.isArray(batches) && batches.length > 0) {
+                    batches.forEach(function(b) {
+                        var shiftText = b.shift ? ' (' + b.shift + ')' : '';
+                        var isSel = (preselectedBatchId && String(b.id) === String(preselectedBatchId)) ? ' selected' : '';
+                        html += '<option value="' + b.id + '"' + isSel + '>' + b.name + shiftText + '</option>';
+                    });
+                }
+                $batch.html(html);
+            }
+        });
+    }
+
     $('.copyExamData').on('click', function() {
-        $('#mob_copy_exam_id').val($(this).data('id'));
-        $('#mob_copy_exam_name').val($(this).data('name'));
-        $('#mob_copy_exam_date').val($(this).data('date'));
+        var examId = $(this).data('id');
+        var examName = $(this).data('name');
+        var examDate = $(this).data('date');
+        var classId = $(this).data('class-id');
+        var batchId = $(this).data('batch-id');
+
+        $('#mob_copy_exam_id').val(examId);
+        $('#mob_copy_exam_name').val(examName);
+        $('#mob_copy_exam_date').val(examDate);
+        if (classId) {
+            $('#mob_copy_class_type_id').val(classId);
+            loadMobBatches(classId, batchId);
+        } else {
+            $('#mob_copy_batch_id').html('<option value="">-- All Batches (Course-Wide) --</option>');
+        }
+    });
+
+    $('#mob_copy_class_type_id').on('change', function() {
+        var courseId = $(this).val();
+        loadMobBatches(courseId, null);
     });
 
     $('#mobExamSearch').on('input keyup', function(){

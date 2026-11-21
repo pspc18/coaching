@@ -1380,7 +1380,7 @@ select.excel-col-filter option {
                                style="height: 32px; font-size: 12px; border-radius: 3px; border: 1px solid #cbd5e1; font-weight: 600; color: #002C54;">
                     </div>
 
-                    {{-- Target Course / Batch Selection --}}
+                    {{-- Target Course Selection --}}
                     <div class="form-group mb-2">
                         <label style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
                             <i class="fa fa-graduation-cap text-primary mr-1"></i> Target Course <span class="text-danger">*</span>
@@ -1393,7 +1393,21 @@ select.excel-col-filter option {
                             @endforeach
                         </select>
                         <div class="text-muted mt-1" style="font-size: 10.5px;">
-                            Select the course for this copied exam.
+                            Select the target course for this copied exam.
+                        </div>
+                    </div>
+
+                    {{-- Target Batch Selection --}}
+                    <div class="form-group mb-2">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                            <i class="fa fa-users text-primary mr-1"></i> Target Batch <span class="text-muted">(Optional)</span>
+                        </label>
+                        <select class="form-control" id="copy_batch_id" name="batch_id"
+                                style="height: 32px; font-size: 12px; border-radius: 3px; border: 1px solid #cbd5e1; color: #0f172a; font-weight: 500;">
+                            <option value="">-- All Batches (Course-Wide Exam) --</option>
+                        </select>
+                        <div class="text-muted mt-1" style="font-size: 10.5px;">
+                            Choose an individual batch or leave blank for a common exam across all batches.
                         </div>
                     </div>
                     
@@ -1579,6 +1593,35 @@ $(document).ready(function(){
         });
     });
 
+    // Dynamic Batch Loader for Copy Exam Modal
+    function loadBatchesForCopyModal(courseId, preselectedBatchId) {
+        var batchSelect = $('#copy_batch_id');
+        batchSelect.html('<option value="">-- All Batches (Course-Wide Exam) --</option>');
+        if (!courseId) return;
+
+        batchSelect.prop('disabled', true);
+        $.ajax({
+            url: "{{ url('getBatchesByCourse') }}/" + courseId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(batches) {
+                batchSelect.prop('disabled', false);
+                var html = '<option value="">-- All Batches (Course-Wide Exam) --</option>';
+                if (Array.isArray(batches) && batches.length > 0) {
+                    batches.forEach(function(b) {
+                        var shiftText = b.shift ? ' (' + b.shift + ')' : '';
+                        var isSel = (preselectedBatchId && String(b.id) === String(preselectedBatchId)) ? ' selected' : '';
+                        html += '<option value="' + b.id + '"' + isSel + '>' + b.name + shiftText + '</option>';
+                    });
+                }
+                batchSelect.html(html);
+            },
+            error: function() {
+                batchSelect.prop('disabled', false);
+            }
+        });
+    }
+
     // Bind Copy Modal Data (Delegated)
     $(document).on('click', '.copyExamData', function(e) {
         e.preventDefault();
@@ -1587,15 +1630,24 @@ $(document).ready(function(){
         var examName = btn.data('name');
         var examDate = btn.data('date');
         var classId = btn.data('class-id');
+        var batchId = btn.data('batch-id');
 
         $('#copy_exam_id').val(examId);
         $('#copy_exam_name').val(examName);
         $('#copy_exam_date').val(examDate);
         if (classId) {
             $('#copy_class_type_id').val(classId);
+            loadBatchesForCopyModal(classId, batchId);
+        } else {
+            $('#copy_batch_id').html('<option value="">-- All Batches (Course-Wide Exam) --</option>');
         }
 
         $('#copyExamModal').modal('show');
+    });
+
+    $('#copy_class_type_id').on('change', function() {
+        var classId = $(this).val();
+        loadBatchesForCopyModal(classId, null);
     });
 
     // AJAX Copy Submission for fast response without full reload

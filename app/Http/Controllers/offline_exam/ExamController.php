@@ -35,6 +35,7 @@ class ExamController extends Controller
         $searchName = trim($request->input('name', ''));
         $termId = $request->input('term_id');
         $classTypeId = $request->input('class_type_id');
+        $batchId = $request->input('batch_id');
         $status = $request->input('status');
         $page = max(1, (int) $request->input('page', 1));
         $perPageInput = $request->input('per_page', 25);
@@ -52,6 +53,10 @@ class ExamController extends Controller
 
         if (!empty($classTypeId)) {
             $query->where('exams.class_type_id', $classTypeId);
+        }
+
+        if (!empty($batchId)) {
+            $query->where('exams.batch_id', $batchId);
         }
 
         if ($status === 'published' && Schema::hasTable('exam_result_publications')) {
@@ -80,14 +85,17 @@ class ExamController extends Controller
         }
         $offset = ($page - 1) * $perPage;
 
-        // Fetch ONLY Requested Page Slice with joined Class
+        // Fetch ONLY Requested Page Slice with joined Class & Batch
         $data = $query->leftJoin('class_types', 'class_types.id', '=', 'exams.class_type_id')
+            ->leftJoin('batches', 'batches.id', '=', 'exams.batch_id')
             ->select(
                 'exams.id',
                 'exams.name',
                 'exams.code',
                 'exams.exam_code',
                 'exams.class_type_id',
+                'exams.course_id',
+                'exams.batch_id',
                 'exams.exam_date',
                 'exams.subject_id',
                 'exams.subject_ids',
@@ -96,6 +104,8 @@ class ExamController extends Controller
                 'exams.exam_term_id',
                 'exams.created_at',
                 'class_types.name as class_name',
+                'batches.name as batch_name',
+                'batches.shift as batch_shift',
                 DB::raw("NULL as exam_term_name")
             )
             ->orderBy('exams.id', 'DESC')
@@ -201,13 +211,14 @@ class ExamController extends Controller
 
         return Helper::view('examination.offline_exam.exam.view', [
             'data' => $data,
-            'search' => ['name' => $searchName, 'term_id' => $termId, 'class_type_id' => $classTypeId, 'status' => $status],
+            'search' => ['name' => $searchName, 'term_id' => $termId, 'class_type_id' => $classTypeId, 'batch_id' => $batchId, 'status' => $status],
             'totalCount' => $totalCount,
             'currentPage' => $page,
             'perPage' => $perPageInput,
             'lastPage' => $lastPage,
             'stats' => $stats,
             'classType' => Helper::classType(),
+            'batches' => !empty($classTypeId) ? DB::table('batches')->where('course_id', $classTypeId)->where('status', 1)->orderBy('orderBy', 'asc')->get() : collect([]),
             'examTerms' => collect([])
         ]);
     }
@@ -1087,6 +1098,7 @@ class ExamController extends Controller
             'exam_id' => 'required|integer',
             'name' => 'required|string|max:255',
             'class_type_id' => 'required|integer',
+            'batch_id' => 'nullable|integer',
             'exam_date' => 'required|date',
         ]);
 
@@ -1106,11 +1118,13 @@ class ExamController extends Controller
 
         try {
             $targetClassId = (int) $request->class_type_id;
+            $targetBatchId = !empty($request->batch_id) ? (int) $request->batch_id : null;
             $copiedExam = $sourceExam->replicate();
             $copiedExam->name = trim($request->name);
             $copiedExam->exam_date = $request->exam_date;
             $copiedExam->class_type_id = $targetClassId;
             $copiedExam->course_id = $targetClassId;
+            $copiedExam->batch_id = $targetBatchId;
 
             // Generate fresh unique scanner code
             do {
@@ -1156,11 +1170,16 @@ class ExamController extends Controller
 
             DB::commit();
 
-            $targetClassModel = DB::table('class_types')->where('id', $targetClassId)->first();
-            $className = $targetClassModel->name ?? ('Class ' . $targetClassId);
             $targetClassModel = DB::table('courses')->where('id', $targetClassId)->first();
             $className = $targetClassModel->name ?? ('Course ' . $targetClassId);
-            $msg = 'Exam "' . $copiedExam->name . '" duplicated successfully for Course ' . $className . ' with independent code ' . $newCode . '.';
+            $batchInfo = '';
+            if ($targetBatchId) {
+                $batchModel = DB::table('batches')->where('id', $targetBatchId)->first();
+                if ($batchModel) {
+                    $batchInfo = ' (' . $batchModel->name . ')';
+                }
+            }
+            $msg = 'Exam "' . $copiedExam->name . '" duplicated successfully for Course ' . $className . $batchInfo . ' with independent code ' . $newCode . '.';
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -1278,6 +1297,7 @@ class ExamController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'class_type_id' => 'required|integer',
+                'batch_id' => 'nullable|integer',
                 'subject_id' => 'nullable|integer',
                 'subject_ids' => 'nullable|array',
                 'subject_ids.*' => 'integer',
@@ -1495,6 +1515,8 @@ class ExamController extends Controller
                     $add->result_status = 'not_scheduled';
                 }
                 $add->class_type_id = $request->class_type_id;
+                $add->course_id = $request->class_type_id;
+                $add->batch_id = $request->filled('batch_id') ? (int)$request->input('batch_id') : null;
                 $add->description = $request->description;
                 $add->save();
 
@@ -1703,7 +1725,12 @@ class ExamController extends Controller
         $examCode = $savedExam ? ($savedExam->code ?: ($savedExam->exam_code ?: ('EXAM-' . strtoupper(Str::random(6))))) : ('EXAM-' . strtoupper(Str::random(6)));
         $classType = Helper::ClassType();
 
-        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate'));
+        $preloadedBatchId = $savedExam ? $savedExam->batch_id : ($request->input('batch_id') ?: null);
+        $preloadedBatches = !empty($preloadedClassId)
+            ? DB::table('batches')->where('course_id', $preloadedClassId)->where('status', 1)->orderBy('orderBy', 'asc')->get()
+            : collect([]);
+
+        return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate', 'preloadedBatches', 'preloadedBatchId'));
     } 
     
     public function editExam(Request $request, $id){

@@ -1360,7 +1360,7 @@ textarea.theme-form-control {
 
                             <div class="row">
                                 {{-- Target Course --}}
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="theme-form-group">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <label for="class_type_id" class="mb-0">
@@ -1368,7 +1368,7 @@ textarea.theme-form-control {
                                             </label>
                                             @if(!empty($formExam->id))
                                                 <span class="badge badge-light border text-muted" style="font-size: 10px; font-weight: 600; background: #f1f5f9; border-color: #cbd5e1;">
-                                                    <i class="fa fa-lock text-warning mr-1"></i> Read-Only in Edit Mode
+                                                    <i class="fa fa-lock text-warning mr-1"></i> Locked in Edit
                                                 </span>
                                             @endif
                                         </div>
@@ -1386,7 +1386,7 @@ textarea.theme-form-control {
                                             </select>
                                             <input type="hidden" name="class_type_id" value="{{ $previewClassId }}">
                                             <div class="theme-hint text-muted small mt-1" style="font-size: 10.5px;">
-                                                <i class="fa fa-info-circle text-info"></i> Target course is locked for this exam. To conduct this exam for another course, duplicate this exam from the Examination List.
+                                                <i class="fa fa-info-circle text-info"></i> Target course is locked. Duplicate exam to target another course.
                                             </div>
                                         @else
                                             {{-- In Create Mode: Fully Editable --}}
@@ -1405,8 +1405,33 @@ textarea.theme-form-control {
                                     </div>
                                 </div>
 
+                                {{-- Target Batch --}}
+                                <div class="col-md-4">
+                                    <div class="theme-form-group">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <label for="batch_id" class="mb-0">
+                                                Target Batch <span class="text-muted">(Optional)</span>
+                                            </label>
+                                        </div>
+                                        <select class="theme-form-control @error('batch_id') is-invalid @enderror" id="batch_id" name="batch_id">
+                                            <option value="">-- All Batches (Course-Wide) --</option>
+                                            @if(!empty($preloadedBatches))
+                                                @foreach($preloadedBatches as $batch)
+                                                    <option value="{{ $batch->id }}" {{ (old('batch_id', $preloadedBatchId) == $batch->id) ? 'selected' : '' }}>
+                                                        {{ $batch->name }} ({{ $batch->shift ?? 'Shift' }})
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <div class="theme-hint text-muted small mt-1" style="font-size: 10.5px;">
+                                            Select specific batch or leave blank for all batches in course.
+                                        </div>
+                                        @error('batch_id')<span class="text-danger small">{{ $message }}</span>@enderror
+                                    </div>
+                                </div>
+
                                 {{-- Examination Date --}}
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="theme-form-group">
                                         <label for="exam-date">Date of Exam <span class="text-danger">*</span></label>
                                         <input type="date" id="exam-date" name="exam_date" class="theme-form-control" value="{{ old('exam_date', !empty($preloadedExamDate) ? (is_object($preloadedExamDate) ? $preloadedExamDate->format('Y-m-d') : date('Y-m-d', strtotime($preloadedExamDate))) : ((!empty($formExam) && !empty($formExam->exam_date)) ? (is_object($formExam->exam_date) ? $formExam->exam_date->format('Y-m-d') : $formExam->exam_date) : date('Y-m-d'))) }}" required>
@@ -2684,9 +2709,31 @@ document.addEventListener('DOMContentLoaded', function () {
         updateNormalSummary();
     });
 
-    // Dynamic Class to Subject Loading
+    // Dynamic Class to Subject & Batch Loading
     classSelect?.addEventListener('change', function () {
         const classId = this.value;
+
+        // Dynamic Batch Loading for Selected Course
+        const batchSelect = document.getElementById('batch_id');
+        if (batchSelect) {
+            batchSelect.innerHTML = '<option value="">-- All Batches (Course-Wide) --</option>';
+            if (classId) {
+                fetch(`{{ url('getBatchesByCourse') }}/${classId}`)
+                    .then(res => res.json())
+                    .then(batches => {
+                        let bHtml = '<option value="">-- All Batches (Course-Wide) --</option>';
+                        if (Array.isArray(batches) && batches.length > 0) {
+                            batches.forEach(b => {
+                                const shiftStr = b.shift ? ` (${b.shift})` : '';
+                                bHtml += `<option value="${b.id}">${b.name}${shiftStr}</option>`;
+                            });
+                        }
+                        batchSelect.innerHTML = bHtml;
+                    })
+                    .catch(() => {});
+            }
+        }
+
         if (!classId) {
             if (chipsContainer) {
                 chipsContainer.innerHTML = '<span class="text-muted small p-1" id="subjects-empty-notice"><i class="fa fa-info-circle"></i> Select a Target Course above to load its subjects automatically.</span>';

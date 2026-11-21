@@ -46,15 +46,27 @@
             </div>
         </td>
 
-        {{-- 3. Course --}}
+        {{-- 3. Course & Batch --}}
         <td style="vertical-align: middle;">
-            @if(!empty($item->class_name))
-                <span class="badge-class-pill font-weight-600" style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; border: 1px solid #bae6fd; display: inline-flex; align-items: center;">
-                    <i class="fa fa-graduation-cap mr-1"></i> {{ $item->class_name }}
-                </span>
-            @else
-                <span class="text-muted" style="font-size: 11px;">Unassigned</span>
-            @endif
+            <div class="d-flex flex-column" style="gap: 4px;">
+                @if(!empty($item->class_name))
+                    <span class="badge-class-pill font-weight-600" style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #bae6fd; display: inline-flex; align-items: center; width: fit-content;">
+                        <i class="fa fa-graduation-cap mr-1"></i> {{ $item->class_name }}
+                    </span>
+                @else
+                    <span class="text-muted" style="font-size: 11px;">Unassigned</span>
+                @endif
+
+                @if(!empty($item->batch_name))
+                    <span class="badge-batch-pill font-weight-500" style="background: #fef3c7; color: #92400e; padding: 2px 7px; border-radius: 3px; font-size: 10px; border: 1px solid #fde68a; display: inline-flex; align-items: center; width: fit-content;" title="Assigned to {{ $item->batch_name }} ({{ $item->batch_shift ?? '' }})">
+                        <i class="fa fa-users mr-1"></i> {{ $item->batch_name }}
+                    </span>
+                @else
+                    <span class="badge-batch-all text-muted" style="font-size: 10px; display: inline-flex; align-items: center; width: fit-content;" title="Available across all batches in this course">
+                        <i class="fa fa-globe mr-1 text-secondary"></i> All Batches
+                    </span>
+                @endif
+            </div>
         </td>
 
         {{-- 4. Included Subjects --}}
@@ -165,6 +177,7 @@
                             data-name="{{ $item->copy_name }}" 
                             data-class-id="{{ $item->class_type_id }}"
                             data-class-name="{{ $item->class_name }}"
+                            data-batch-id="{{ $item->batch_id ?? '' }}"
                             data-date="{{ $examDateIso }}" 
                             title="Duplicate / Copy Exam">
                         <i class="fa fa-copy"></i>
