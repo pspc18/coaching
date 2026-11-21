@@ -23,6 +23,8 @@ class Exam extends Model
         'answer_key' => 'array',
         'online_questions' => 'array',
         'subject_ids' => 'array',
+        'subject_question_ranges' => 'array',
+        'question_configs' => 'array',
         'marks_per_correct' => 'decimal:2',
         'marks_per_incorrect' => 'decimal:2',
         'result_declaration_at' => 'datetime',

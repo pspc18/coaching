@@ -1747,6 +1747,58 @@ textarea.theme-form-control {
                                     @endif
                                 </div>
 
+                                {{-- Subject Question Distribution & Weightage Table --}}
+                                <div class="builder-section-header mt-3">
+                                    <h4><i class="fa fa-sitemap text-warning"></i> Subject Question Ranges & Section Weightage</h4>
+                                    <div class="d-flex align-items-center" style="gap: 6px;">
+                                        <button type="button" class="btn btn-xs btn-outline-success font-weight-bold" id="btn-auto-split-ranges" style="height: 24px; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+                                            <i class="fa fa-magic mr-1"></i> Auto-Split Evenly
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 rounded" id="question-ranges-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                                    <div class="p-2 px-3 d-flex align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11.5px;">
+                                        <span class="text-muted">
+                                            <i class="fa fa-info-circle text-primary mr-1"></i> Specify question ranges (e.g. Q1-20 Math, Q21-35 Reasoning) and marks per question for each subject section.
+                                        </span>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered table-hover mb-0" id="table-question-ranges" style="font-size: 12px; border-collapse: separate; border-spacing: 0;">
+                                            <thead style="background: #002C54; color: #ffffff;">
+                                                <tr>
+                                                    <th style="width: 40px; text-align: center; vertical-align: middle;">#</th>
+                                                    <th style="vertical-align: middle;">Subject Section</th>
+                                                    <th style="width: 80px; text-align: center; vertical-align: middle;">From Q</th>
+                                                    <th style="width: 80px; text-align: center; vertical-align: middle;">To Q</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">Questions</th>
+                                                    <th style="width: 95px; text-align: center; vertical-align: middle;">+ Correct</th>
+                                                    <th style="width: 95px; text-align: center; vertical-align: middle;">- Wrong</th>
+                                                    <th style="width: 100px; text-align: center; vertical-align: middle;">Section Max</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="question-ranges-tbody">
+                                                {{-- Dynamically populated by JS --}}
+                                            </tbody>
+                                            <tfoot style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
+                                                <tr>
+                                                    <td colspan="4" class="text-right text-dark" style="font-size: 12px; vertical-align: middle; padding: 6px 10px;">Mapped Questions:</td>
+                                                    <td class="text-center font-weight-bold text-primary" id="range-total-q-count" style="vertical-align: middle; font-size: 13px;">0</td>
+                                                    <td colspan="2" class="text-right text-dark" style="font-size: 12px; vertical-align: middle; padding: 6px 10px;">Total PDF Exam Marks:</td>
+                                                    <td class="text-center font-weight-bold" style="color: #002C54; font-size: 13px; vertical-align: middle;" id="range-total-max-marks">0.00</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    <div class="px-3 py-1 text-muted" style="font-size: 10.5px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                                        <i class="fa fa-lightbulb-o text-warning mr-1"></i> Questions mapped here automatically appear with subject badges in the Answer Key and evaluate independently in OMR extraction.
+                                    </div>
+                                </div>
+
+                                {{-- Hidden storage for JSON payloads --}}
+                                <input type="hidden" name="subject_question_ranges" id="hidden_subject_question_ranges" value="{{ json_encode($formExam->subject_question_ranges ?? []) }}">
+                                <input type="hidden" name="question_configs" id="hidden_question_configs" value="{{ json_encode($formExam->question_configs ?? []) }}">
+
                                 {{-- Answer Key Matrix (Mode 2) --}}
                                 <div class="builder-section-header">
                                     <h4><i class="fa fa-key text-warning"></i> Answer Key (OMR Options)</h4>
@@ -2232,6 +2284,59 @@ textarea.theme-form-control {
     </div>
 </div>
 
+{{-- Individual Question Marks Override Modal --}}
+<div class="modal fade" id="modalQuestionMarks" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 420px;">
+        <div class="modal-content" style="border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+            <div class="modal-header py-2 px-3" style="background: #002C54; color: #ffffff;">
+                <h5 class="modal-title font-weight-bold" style="font-size: 13px; color: #ffffff;">
+                    <i class="fa fa-sliders mr-1 text-warning"></i> Question Scoring Override: <span id="qmodal-title-num">Q1</span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3" style="background: #ffffff; font-size: 12px;">
+                <input type="hidden" id="qmodal-qnum" value="1">
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-dark mb-1">Mapped Subject</label>
+                    <select id="qmodal-subject-select" class="form-control form-control-sm font-weight-bold" style="height: 32px; border: 1px solid #cbd5e1;">
+                        {{-- Populated from active subjects --}}
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group mb-2">
+                            <label class="font-weight-bold text-success mb-1">Marks for Correct (+)</label>
+                            <input type="number" id="qmodal-marks-correct" class="form-control form-control-sm font-weight-bold text-center" value="1" min="0" max="999" step="0.5" style="height: 32px; border: 1px solid #cbd5e1; color: #15803d;">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group mb-2">
+                            <label class="font-weight-bold text-danger mb-1">Negative Marks (-)</label>
+                            <input type="number" id="qmodal-marks-incorrect" class="form-control form-control-sm font-weight-bold text-center" value="0" min="-999" max="0" step="0.25" style="height: 32px; border: 1px solid #cbd5e1; color: #dc2626;">
+                        </div>
+                    </div>
+                </div>
+                <div class="text-muted small mt-2" style="font-size: 10.5px;">
+                    <i class="fa fa-info-circle text-primary mr-1"></i> Override marks for this question specifically (e.g. higher marks for harder questions or section weightage).
+                </div>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light d-flex align-items-center justify-content-between">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="qmodal-btn-reset">
+                    <i class="fa fa-undo mr-1"></i> Reset to Default
+                </button>
+                <div class="d-flex align-items-center" style="gap: 6px;">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary font-weight-bold px-3" id="qmodal-btn-save">
+                        <i class="fa fa-check mr-1"></i> Save Marks
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- KaTeX for LaTeX Math Rendering --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -2296,6 +2401,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (jsonInput && Array.isArray(selectedQuestions)) {
         jsonInput.value = JSON.stringify(selectedQuestions);
     }
+
+    // Subject Question Ranges & Custom Question Marking State
+    let subjectRanges = [];
+    try {
+        const rawSr = @json($formExam->subject_question_ranges ?? []);
+        subjectRanges = typeof rawSr === 'string' ? JSON.parse(rawSr) : (Array.isArray(rawSr) ? rawSr : []);
+    } catch(e) { subjectRanges = []; }
+
+    let questionConfigs = {};
+    try {
+        const rawQc = @json($formExam->question_configs ?? []);
+        questionConfigs = typeof rawQc === 'string' ? JSON.parse(rawQc) : (typeof rawQc === 'object' && rawQc !== null ? rawQc : {});
+    } catch(e) { questionConfigs = {}; }
+
+    const hiddenRangesInput = document.getElementById('hidden_subject_question_ranges');
+    const hiddenConfigsInput = document.getElementById('hidden_question_configs');
+    const questionRangesTbody = document.getElementById('question-ranges-tbody');
+    const rangeTotalQCountEl = document.getElementById('range-total-q-count');
+    const rangeTotalMaxMarksEl = document.getElementById('range-total-max-marks');
+    const btnAutoSplitRanges = document.getElementById('btn-auto-split-ranges');
+
+    const subjectColors = [
+        { bg: '#eff6ff', color: '#1e40af', border: '#bfdbfe' }, // blue
+        { bg: '#f0fdf4', color: '#166534', border: '#bbf7d0' }, // green
+        { bg: '#fef3c7', color: '#92400e', border: '#fde68a' }, // amber
+        { bg: '#f3e8ff', color: '#6b21a8', border: '#e9d5ff' }, // purple
+        { bg: '#fdf2f8', color: '#9d174d', border: '#fbcfe8' }, // pink
+        { bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' }, // sky
+    ];
+    const getSubjectBadgeStyle = (subId) => {
+        const idx = Math.abs(parseInt(subId, 10) || 0) % subjectColors.length;
+        const c = subjectColors[idx];
+        return `background: ${c.bg} !important; color: ${c.color} !important; border: 1px solid ${c.border} !important;`;
+    };
 
     // Helper: Render LaTeX math in element
     const renderMath = (element) => {
@@ -2537,15 +2676,50 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -------------------------------------------------------------
-    // Mode 2: Answer Key & OMR Sheet Generator
+    // Mode 2: Answer Key & OMR Sheet Generator with Subject Section Ranges
     // -------------------------------------------------------------
     const renderAnswerKey = (count) => {
         let html = '';
+        const defaultCorrect = parseFloat(marksCorrectInput?.value || '1') || 1;
+        const defaultIncorrect = parseFloat(marksIncorrectInput?.value || '0') || 0;
+
         for (let q = 1; q <= count; q++) {
             const currentVal = answerKey[String(q)] || '';
+            const qCfg = questionConfigs[String(q)] || questionConfigs[q] || {};
+
+            // Find subject mapping from config or ranges
+            let qSubId = qCfg.subject_id;
+            let qRange = null;
+            if (!qSubId && Array.isArray(subjectRanges)) {
+                qRange = subjectRanges.find(r => q >= parseInt(r.from_q, 10) && q <= parseInt(r.to_q, 10));
+                if (qRange) qSubId = qRange.subject_id;
+            }
+
+            let subName = '';
+            if (qSubId) {
+                const subCb = document.querySelector(`.exam-subject-checkbox[value="${qSubId}"]`);
+                const parentLabel = subCb?.closest('.subject-chip-item');
+                subName = subCb?.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || (qRange ? qRange.subject_name : `Sub #${qSubId}`);
+            }
+
+            const badgeStyle = qSubId ? getSubjectBadgeStyle(qSubId) : '';
+
+            const correctMarks = (qCfg.marks_correct !== undefined && qCfg.marks_correct !== null && qCfg.marks_correct !== '')
+                ? parseFloat(qCfg.marks_correct)
+                : (qRange && qRange.marks_correct !== undefined ? parseFloat(qRange.marks_correct) : defaultCorrect);
+
+            const incorrectMarks = (qCfg.marks_incorrect !== undefined && qCfg.marks_incorrect !== null && qCfg.marks_incorrect !== '')
+                ? parseFloat(qCfg.marks_incorrect)
+                : (qRange && qRange.marks_incorrect !== undefined ? parseFloat(qRange.marks_incorrect) : defaultIncorrect);
+
+            const hasCustomMarks = (qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') || (qCfg.marks_incorrect !== undefined && qCfg.marks_incorrect !== '');
+
             html += `
-            <div class="ak-row">
-                <span class="ak-qnum">Q${q}</span>
+            <div class="ak-row" id="ak-row-${q}" data-q="${q}">
+                <div class="d-flex align-items-center" style="gap: 4px; flex: 1; min-width: 0;">
+                    <span class="ak-qnum">Q${q}</span>
+                    ${subName ? `<span class="badge ak-sub-badge text-truncate" title="${escapeHtml(subName)}" style="max-width: 78px; font-size: 9px; font-weight: 700; padding: 2px 4px; border-radius: 3px; ${badgeStyle}">${escapeHtml(subName)}</span>` : ''}
+                </div>
                 <div class="ak-options">
                     ${['A', 'B', 'C', 'D'].map(opt => `
                         <label class="ak-option-label">
@@ -2553,6 +2727,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="ak-option-pill">${opt}</span>
                         </label>
                     `).join('')}
+                </div>
+                <div class="ak-marks-tag ml-1" onclick="openQuestionMarksModal(${q});" title="Click to customize marks for Q${q}" style="cursor: pointer;">
+                    <span class="badge ${hasCustomMarks ? 'badge-warning font-weight-bold text-dark' : 'badge-light text-muted'}" style="font-size: 9px; padding: 2px 4px; border: 1px solid #cbd5e1; border-radius: 3px;" id="ak-marks-display-${q}">
+                        +${correctMarks}/${incorrectMarks}
+                    </span>
                 </div>
             </div>`;
         }
@@ -2568,6 +2747,334 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updateAnswerProgress(count);
     };
+
+    // -------------------------------------------------------------
+    // Subject Question Distribution & Weightage Logic
+    // -------------------------------------------------------------
+    const syncQuestionRangesTable = (forceSplit = false) => {
+        if (!questionRangesTbody) return;
+
+        const totalQuestions = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
+        const defaultCorrect = parseFloat(marksCorrectInput?.value || '1') || 1;
+        const defaultIncorrect = parseFloat(marksIncorrectInput?.value || '0') || 0;
+
+        // Active / checked subjects
+        const checkedSubs = [];
+        document.querySelectorAll('.exam-subject-checkbox:checked').forEach(cb => {
+            const sid = parseInt(cb.value, 10);
+            const parentLabel = cb.closest('.subject-chip-item');
+            const name = cb.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || `Subject #${sid}`;
+            checkedSubs.push({ id: sid, name: name });
+        });
+
+        if (checkedSubs.length === 0) {
+            questionRangesTbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-3">
+                        <i class="fa fa-info-circle mr-1"></i> No subjects selected. Check at least one course subject above to configure question ranges.
+                    </td>
+                </tr>
+            `;
+            if (rangeTotalQCountEl) rangeTotalQCountEl.textContent = '0';
+            if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = '0.00';
+            if (hiddenRangesInput) hiddenRangesInput.value = '[]';
+            if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
+            renderAnswerKey(totalQuestions);
+            return;
+        }
+
+        const currentSubIds = checkedSubs.map(s => s.id);
+        const rangesMatch = !forceSplit && subjectRanges.length === checkedSubs.length &&
+            subjectRanges.every(r => currentSubIds.includes(parseInt(r.subject_id, 10)));
+
+        if (!rangesMatch || forceSplit) {
+            // Auto split evenly across checked subjects
+            let curQ = 1;
+            const baseCount = Math.floor(totalQuestions / checkedSubs.length);
+            const remainder = totalQuestions % checkedSubs.length;
+
+            subjectRanges = checkedSubs.map((sub, idx) => {
+                const qCount = baseCount + (idx < remainder ? 1 : 0);
+                const fromQ = curQ;
+                const toQ = curQ + Math.max(0, qCount - 1);
+                curQ = toQ + 1;
+
+                const prev = (subjectRanges || []).find(r => parseInt(r.subject_id, 10) === sub.id);
+                return {
+                    subject_id: sub.id,
+                    subject_name: sub.name,
+                    from_q: fromQ,
+                    to_q: toQ,
+                    marks_correct: prev && prev.marks_correct !== undefined ? parseFloat(prev.marks_correct) : defaultCorrect,
+                    marks_incorrect: prev && prev.marks_incorrect !== undefined ? parseFloat(prev.marks_incorrect) : defaultIncorrect,
+                };
+            });
+        } else {
+            subjectRanges.forEach(r => {
+                const found = checkedSubs.find(s => s.id === parseInt(r.subject_id, 10));
+                if (found) r.subject_name = found.name;
+            });
+        }
+
+        let html = '';
+        let totalMappedQs = 0;
+        let totalSectionMax = 0;
+
+        subjectRanges.forEach((range, idx) => {
+            const sid = range.subject_id;
+            const fromQ = parseInt(range.from_q, 10) || 1;
+            const toQ = parseInt(range.to_q, 10) || fromQ;
+            const qCount = Math.max(0, toQ - fromQ + 1);
+            const mCorrect = parseFloat(range.marks_correct !== undefined ? range.marks_correct : defaultCorrect);
+            const mIncorrect = parseFloat(range.marks_incorrect !== undefined ? range.marks_incorrect : defaultIncorrect);
+
+            let secMax = 0;
+            for (let q = fromQ; q <= toQ; q++) {
+                const qCfg = questionConfigs[String(q)] || questionConfigs[q];
+                const qM = (qCfg && qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') ? parseFloat(qCfg.marks_correct) : mCorrect;
+                secMax += qM;
+            }
+
+            totalMappedQs += qCount;
+            totalSectionMax += secMax;
+
+            const badgeStyle = getSubjectBadgeStyle(sid);
+
+            html += `
+                <tr class="range-row" data-subject-id="${sid}">
+                    <td class="text-center font-weight-bold text-muted" style="vertical-align: middle; padding: 6px;">${idx + 1}</td>
+                    <td style="vertical-align: middle; padding: 6px 10px;">
+                        <span class="badge" style="font-size: 11px; font-weight: 700; ${badgeStyle}">
+                            ${escapeHtml(range.subject_name)}
+                        </span>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-from" 
+                               value="${fromQ}" min="1" max="${totalQuestions}" step="1" 
+                               style="width: 65px; height: 28px; margin: 0 auto; border: 1px solid #94a3b8; font-size: 12px;" 
+                               data-subject-id="${sid}">
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-to" 
+                               value="${toQ}" min="1" max="${totalQuestions}" step="1" 
+                               style="width: 65px; height: 28px; margin: 0 auto; border: 1px solid #94a3b8; font-size: 12px;" 
+                               data-subject-id="${sid}">
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <span class="badge badge-light font-weight-bold range-badge-count" style="font-size: 11px; border: 1px solid #cbd5e1; padding: 4px 6px;">
+                            ${qCount} Qs
+                        </span>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-correct text-success" 
+                               value="${mCorrect}" min="0" max="999" step="0.5" 
+                               style="width: 75px; height: 28px; margin: 0 auto; border: 1px solid #86efac; font-size: 12px; background: #f0fdf4;" 
+                               data-subject-id="${sid}">
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-incorrect text-danger" 
+                               value="${mIncorrect}" min="-999" max="0" step="0.25" 
+                               style="width: 75px; height: 28px; margin: 0 auto; border: 1px solid #fca5a5; font-size: 12px; background: #fef2f2;" 
+                               data-subject-id="${sid}">
+                    </td>
+                    <td class="text-center font-weight-bold" style="vertical-align: middle; padding: 6px; color: #002C54; font-size: 13px;">
+                        <span class="range-sub-max-display">${secMax.toFixed(2)}</span>
+                    </td>
+                </tr>
+            `;
+
+            const upperSubMaxInp = document.getElementById(`sub_max_${sid}`);
+            if (upperSubMaxInp) {
+                upperSubMaxInp.value = secMax;
+                const upperSubMinInp = document.getElementById(`sub_min_${sid}`);
+                if (upperSubMinInp) {
+                    const pctVal = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.35') || 0.35;
+                    upperSubMinInp.value = Math.round(secMax * pctVal * 10) / 10;
+                }
+            }
+        });
+
+        questionRangesTbody.innerHTML = html;
+
+        if (rangeTotalQCountEl) {
+            rangeTotalQCountEl.textContent = `${totalMappedQs} / ${totalQuestions}`;
+            rangeTotalQCountEl.className = (totalMappedQs === totalQuestions) ? 'text-center font-weight-bold text-success' : 'text-center font-weight-bold text-danger';
+        }
+        if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = totalSectionMax.toFixed(2);
+
+        if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
+        if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
+
+        recalcSubjectMarksTotals();
+        attachRangeInputListeners();
+        renderAnswerKey(totalQuestions);
+    };
+
+    const attachRangeInputListeners = () => {
+        questionRangesTbody.querySelectorAll('.range-input-from, .range-input-to, .range-input-correct, .range-input-incorrect').forEach(inp => {
+            inp.addEventListener('input', function() {
+                const sid = parseInt(this.getAttribute('data-subject-id'), 10);
+                const row = this.closest('tr');
+                if (!row) return;
+
+                const fromVal = parseInt(row.querySelector('.range-input-from')?.value || '1', 10) || 1;
+                const toVal = parseInt(row.querySelector('.range-input-to')?.value || '1', 10) || fromVal;
+                const mCorr = parseFloat(row.querySelector('.range-input-correct')?.value || '1') || 1;
+                const mIncorr = parseFloat(row.querySelector('.range-input-incorrect')?.value || '0') || 0;
+
+                const rangeItem = subjectRanges.find(r => parseInt(r.subject_id, 10) === sid);
+                if (rangeItem) {
+                    rangeItem.from_q = fromVal;
+                    rangeItem.to_q = toVal;
+                    rangeItem.marks_correct = mCorr;
+                    rangeItem.marks_incorrect = mIncorr;
+                }
+
+                const qCount = Math.max(0, toVal - fromVal + 1);
+                const countBadge = row.querySelector('.range-badge-count');
+                if (countBadge) countBadge.textContent = `${qCount} Qs`;
+
+                let secMax = 0;
+                for (let q = fromVal; q <= toVal; q++) {
+                    const qCfg = questionConfigs[String(q)] || questionConfigs[q];
+                    const qM = (qCfg && qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') ? parseFloat(qCfg.marks_correct) : mCorr;
+                    secMax += qM;
+                }
+                const maxDisplay = row.querySelector('.range-sub-max-display');
+                if (maxDisplay) maxDisplay.textContent = secMax.toFixed(2);
+
+                const upperSubMaxInp = document.getElementById(`sub_max_${sid}`);
+                if (upperSubMaxInp) {
+                    upperSubMaxInp.value = secMax;
+                    const upperSubMinInp = document.getElementById(`sub_min_${sid}`);
+                    if (upperSubMinInp) {
+                        const pctVal = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.35') || 0.35;
+                        upperSubMinInp.value = Math.round(secMax * pctVal * 10) / 10;
+                    }
+                }
+
+                let totalMapped = 0;
+                let grandTotalSecMax = 0;
+                subjectRanges.forEach(r => {
+                    const f = parseInt(r.from_q, 10) || 1;
+                    const t = parseInt(r.to_q, 10) || f;
+                    totalMapped += Math.max(0, t - f + 1);
+                    const defC = parseFloat(r.marks_correct !== undefined ? r.marks_correct : 1);
+                    for (let q = f; q <= t; q++) {
+                        const qCfg = questionConfigs[String(q)] || questionConfigs[q];
+                        grandTotalSecMax += (qCfg && qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') ? parseFloat(qCfg.marks_correct) : defC;
+                    }
+                });
+
+                const totalQuestions = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
+                if (rangeTotalQCountEl) {
+                    rangeTotalQCountEl.textContent = `${totalMapped} / ${totalQuestions}`;
+                    rangeTotalQCountEl.className = (totalMapped === totalQuestions) ? 'text-center font-weight-bold text-success' : 'text-center font-weight-bold text-danger';
+                }
+                if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = grandTotalSecMax.toFixed(2);
+
+                if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
+                if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
+
+                recalcSubjectMarksTotals();
+                renderAnswerKey(totalQuestions);
+            });
+        });
+    };
+
+    // Modal Question Marks Handlers
+    window.openQuestionMarksModal = function(qNum) {
+        const qmodalTitleNum = document.getElementById('qmodal-title-num');
+        const qmodalQnum = document.getElementById('qmodal-qnum');
+        const qmodalSubSelect = document.getElementById('qmodal-subject-select');
+        const qmodalCorrect = document.getElementById('qmodal-marks-correct');
+        const qmodalIncorrect = document.getElementById('qmodal-marks-incorrect');
+
+        if (!qmodalQnum) return;
+        qmodalQnum.value = qNum;
+        if (qmodalTitleNum) qmodalTitleNum.textContent = `Question Q${qNum}`;
+
+        let selHtml = '<option value="">(Default from Section Range)</option>';
+        document.querySelectorAll('.exam-subject-checkbox:checked').forEach(cb => {
+            const sid = cb.value;
+            const parentLabel = cb.closest('.subject-chip-item');
+            const name = cb.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || `Subject #${sid}`;
+            selHtml += `<option value="${sid}">${escapeHtml(name)}</option>`;
+        });
+        if (qmodalSubSelect) qmodalSubSelect.innerHTML = selHtml;
+
+        const qCfg = questionConfigs[String(qNum)] || questionConfigs[qNum] || {};
+
+        let matchedRange = null;
+        if (Array.isArray(subjectRanges)) {
+            matchedRange = subjectRanges.find(r => qNum >= parseInt(r.from_q, 10) && qNum <= parseInt(r.to_q, 10));
+        }
+        const defaultCorrect = matchedRange && matchedRange.marks_correct !== undefined ? matchedRange.marks_correct : (parseFloat(marksCorrectInput?.value || '1') || 1);
+        const defaultIncorrect = matchedRange && matchedRange.marks_incorrect !== undefined ? matchedRange.marks_incorrect : (parseFloat(marksIncorrectInput?.value || '0') || 0);
+
+        if (qmodalSubSelect) {
+            qmodalSubSelect.value = qCfg.subject_id || (matchedRange ? matchedRange.subject_id : '');
+        }
+        if (qmodalCorrect) {
+            qmodalCorrect.value = (qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') ? qCfg.marks_correct : defaultCorrect;
+        }
+        if (qmodalIncorrect) {
+            qmodalIncorrect.value = (qCfg.marks_incorrect !== undefined && qCfg.marks_incorrect !== '') ? qCfg.marks_incorrect : defaultIncorrect;
+        }
+
+        if (typeof $ !== 'undefined' && $('#modalQuestionMarks').modal) {
+            $('#modalQuestionMarks').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(document.getElementById('modalQuestionMarks')).show();
+        }
+    };
+
+    document.getElementById('qmodal-btn-save')?.addEventListener('click', function() {
+        const qNum = document.getElementById('qmodal-qnum')?.value;
+        if (!qNum) return;
+
+        const sid = document.getElementById('qmodal-subject-select')?.value;
+        const mCorr = parseFloat(document.getElementById('qmodal-marks-correct')?.value || '1') || 1;
+        const mIncorr = parseFloat(document.getElementById('qmodal-marks-incorrect')?.value || '0') || 0;
+
+        questionConfigs[String(qNum)] = {
+            subject_id: sid ? parseInt(sid, 10) : null,
+            marks_correct: mCorr,
+            marks_incorrect: mIncorr,
+        };
+
+        if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
+
+        if (typeof $ !== 'undefined' && $('#modalQuestionMarks').modal) {
+            $('#modalQuestionMarks').modal('hide');
+        } else if (typeof bootstrap !== 'undefined') {
+            bootstrap.Modal.getInstance(document.getElementById('modalQuestionMarks'))?.hide();
+        }
+
+        syncQuestionRangesTable(false);
+    });
+
+    document.getElementById('qmodal-btn-reset')?.addEventListener('click', function() {
+        const qNum = document.getElementById('qmodal-qnum')?.value;
+        if (!qNum) return;
+
+        delete questionConfigs[String(qNum)];
+        delete questionConfigs[qNum];
+
+        if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
+
+        if (typeof $ !== 'undefined' && $('#modalQuestionMarks').modal) {
+            $('#modalQuestionMarks').modal('hide');
+        } else if (typeof bootstrap !== 'undefined') {
+            bootstrap.Modal.getInstance(document.getElementById('modalQuestionMarks'))?.hide();
+        }
+
+        syncQuestionRangesTable(false);
+    });
+
+    btnAutoSplitRanges?.addEventListener('click', () => {
+        syncQuestionRangesTable(true);
+    });
 
     const updateAnswerProgress = (count) => {
         const selected = answerKeyGrid.querySelectorAll('input:checked').length;
@@ -2604,6 +3111,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.quick-chip-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             countInput.value = this.dataset.count;
+            syncQuestionRangesTable(false);
             renderOMRPreview();
         });
     });
@@ -2688,7 +3196,16 @@ document.addEventListener('DOMContentLoaded', function () {
         updateNormalSummary();
         renderOnlineExamPreview();
     });
-    countInput?.addEventListener('input', renderOMRPreview);
+    countInput?.addEventListener('input', () => {
+        syncQuestionRangesTable(false);
+        renderOMRPreview();
+    });
+    marksCorrectInput?.addEventListener('input', () => {
+        syncQuestionRangesTable(false);
+    });
+    marksIncorrectInput?.addEventListener('input', () => {
+        syncQuestionRangesTable(false);
+    });
 
     // -------------------------------------------------------------
     // Mode 3: Question Bank Integration & Paper Preview
@@ -2990,6 +3507,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateSubjectSelectionBadge();
         updatePaperHeader();
         syncSubjectMarksRows();
+        syncQuestionRangesTable(false);
         updateNormalSummary();
     };
 
@@ -3015,6 +3533,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateSubjectSelectionBadge();
         updatePaperHeader();
         syncSubjectMarksRows();
+        syncQuestionRangesTable(false);
         updateNormalSummary();
     });
 
@@ -3033,6 +3552,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateSubjectSelectionBadge();
         updatePaperHeader();
         syncSubjectMarksRows();
+        syncQuestionRangesTable(false);
         updateNormalSummary();
     });
 
@@ -3108,6 +3628,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 attachSubjectCheckboxListeners();
                 updateSubjectSelectionBadge();
                 syncSubjectMarksRows();
+                syncQuestionRangesTable(false);
                 updatePaperHeader();
                 updateNormalSummary();
             })
@@ -3115,12 +3636,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn('Subject load error:', err);
                 if (chipsContainer) chipsContainer.innerHTML = '<span class="text-danger small p-1">Failed to load subjects.</span>';
                 syncSubjectMarksRows();
+                syncQuestionRangesTable(false);
             });
     });
 
     attachSubjectCheckboxListeners();
     updateSubjectSelectionBadge();
     syncSubjectMarksRows();
+    syncQuestionRangesTable(false);
 
     subjectSelect?.addEventListener('change', () => {
         updatePaperHeader();

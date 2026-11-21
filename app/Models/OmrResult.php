@@ -16,6 +16,7 @@ class OmrResult extends Model
 
     protected $casts = [
         'extracted_answers' => 'array',
+        'subject_breakdown' => 'array',
         'total_marks' => 'decimal:2',
         'obtained_marks' => 'decimal:2',
         'percentage' => 'decimal:2',

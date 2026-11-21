@@ -835,6 +835,16 @@
                                                 <span class="text-muted small"> / {{ $omrRecord->total_marks }}</span>
                                                 <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">{{ $omrRecord->percentage }}%</span>
                                             </div>
+                                            @if(!empty($omrRecord->subject_breakdown) && is_array($omrRecord->subject_breakdown))
+                                                <div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">
+                                                    @foreach($omrRecord->subject_breakdown as $sb)
+                                                        @php $sShort = explode(' ', $sb['subject_name'] ?? 'Sub')[0]; @endphp
+                                                        <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sb['subject_name'] ?? '' }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
+                                                            {{ $sShort }}: +{{ $sb['obtained_marks'] ?? 0 }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         @elseif($hasMarks)
                                             <div>
                                                 <span class="font-weight-bold text-success font-size-13">+{{ $markRecord->student_marks }}</span>
@@ -946,7 +956,19 @@
                                 <td class="text-center font-weight-bold text-danger">{{ $scan->incorrect_answers }}</td>
                                 <td class="text-center text-muted">{{ $scan->blank_answers }}</td>
                                 <td class="font-mono font-weight-bold">{{ number_format($scan->total_marks, 2) }}</td>
-                                <td class="font-mono font-weight-bold text-success">{{ number_format($scan->obtained_marks, 2) }}</td>
+                                <td class="font-mono font-weight-bold text-success">
+                                    {{ number_format($scan->obtained_marks, 2) }}
+                                    @if(!empty($scan->subject_breakdown) && is_array($scan->subject_breakdown))
+                                        <div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">
+                                            @foreach($scan->subject_breakdown as $sb)
+                                                @php $sShort = explode(' ', $sb['subject_name'] ?? 'Sub')[0]; @endphp
+                                                <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sb['subject_name'] ?? '' }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
+                                                    {{ $sShort }}: +{{ $sb['obtained_marks'] ?? 0 }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge-pill-status badge-matched">{{ $scan->percentage }}%</span>
                                 </td>
@@ -1022,13 +1044,44 @@
                         <span class="text-muted">Score:</span> <b class="text-success font-weight-bold" id="modal-ans-score">--</b>
                     </div>
                 </div>
+
+                {{-- Subject-Wise Performance Breakdown Card --}}
+                <div class="mb-3 rounded border p-2" id="modal-subject-breakdown-wrapper" style="background: #f8fafc; border-color: #cbd5e1; display: none;">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="font-weight-bold" style="font-size: 11.5px; color: #002C54;">
+                            <i class="fa fa-sitemap mr-1 text-primary"></i> Subject Section Performance
+                        </span>
+                        <span class="badge badge-light text-muted" style="font-size: 10px; border: 1px solid #cbd5e1;">Section-Wise Cut-offs</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="modal-subject-breakdown-table" style="font-size: 11px; background: #ffffff;">
+                            <thead style="background: #002C54; color: #ffffff;">
+                                <tr>
+                                    <th>Subject</th>
+                                    <th class="text-center" style="width: 65px;">Range</th>
+                                    <th class="text-center" style="width: 55px;">Right</th>
+                                    <th class="text-center" style="width: 55px;">Wrong</th>
+                                    <th class="text-center" style="width: 55px;">Left</th>
+                                    <th class="text-center" style="width: 80px;">Obtained</th>
+                                    <th class="text-center" style="width: 70px;">Max</th>
+                                    <th class="text-center" style="width: 60px;">%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-subject-breakdown-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <table class="omr-table" style="font-size: 11px;">
                     <thead>
                         <tr>
-                            <th style="width: 20%;">#</th>
-                            <th style="width: 25%; text-align: center;">Marked Bubble</th>
-                            <th style="width: 25%; text-align: center;">Key Answer</th>
-                            <th style="width: 30%; text-align: right;">Result</th>
+                            <th style="width: 10%;">#</th>
+                            <th style="width: 25%;">Subject</th>
+                            <th style="width: 17%; text-align: center;">Marked Bubble</th>
+                            <th style="width: 17%; text-align: center;">Key Answer</th>
+                            <th style="width: 15%; text-align: center;">Marks</th>
+                            <th style="width: 16%; text-align: right;">Result</th>
                         </tr>
                     </thead>
                     <tbody id="modal-answers-tbody">
@@ -1274,12 +1327,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Score & Marks
         const cellScore = row.querySelector('.cell-score');
         if (cellScore) {
+            let pillsHtml = '';
+            const sbList = evalData.subject_breakdown || [];
+            if (Array.isArray(sbList) && sbList.length > 0) {
+                pillsHtml = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
+                sbList.forEach(sb => {
+                    const shortName = (sb.subject_name || 'Sub').split(' ')[0];
+                    pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sb.subject_name)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+                });
+                pillsHtml += '</div>';
+            }
+
             cellScore.innerHTML = `
                 <div>
                     <span class="font-weight-bold text-success font-size-13">+${evalData.obtained_marks || 0}</span>
                     <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
                     <span class="badge badge-success ml-1 font-weight-bold px-2 py-1" style="background: #16a34a !important; color: #ffffff !important; font-size: 9.5px;">${evalData.percentage || 0}%</span>
                 </div>
+                ${pillsHtml}
             `;
         }
 
@@ -1774,22 +1839,63 @@ document.addEventListener('DOMContentLoaded', function () {
         modalAnsRoll.textContent = sheet.roll_number || 'N/A';
         modalAnsScore.textContent = `+${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)`;
 
+        // Subject breakdown
+        const subBreakdown = sheet.evaluation?.subject_breakdown || [];
+        const subWrapper = document.getElementById('modal-subject-breakdown-wrapper');
+        const subTbody = document.getElementById('modal-subject-breakdown-tbody');
+
+        if (subWrapper && subTbody) {
+            if (Array.isArray(subBreakdown) && subBreakdown.length > 0) {
+                let subHtml = '';
+                subBreakdown.forEach(sb => {
+                    const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q}-${sb.to_q}` : `${sb.total_questions} Qs`;
+                    subHtml += `
+                        <tr>
+                            <td class="font-weight-bold text-dark">${escapeHtml(sb.subject_name || 'Subject')}</td>
+                            <td class="text-center font-mono small text-muted">${rangeText}</td>
+                            <td class="text-center font-weight-bold text-success">${sb.correct_answers || 0}</td>
+                            <td class="text-center font-weight-bold text-danger">${sb.incorrect_answers || 0}</td>
+                            <td class="text-center text-muted">${sb.blank_answers || 0}</td>
+                            <td class="text-center font-weight-bold font-mono text-primary">+${sb.obtained_marks_formatted || sb.obtained_marks || 0}</td>
+                            <td class="text-center font-weight-bold font-mono text-muted">${sb.max_marks_formatted || sb.max_marks || 0}</td>
+                            <td class="text-center font-weight-bold ${parseFloat(sb.percentage || 0) >= 40 ? 'text-success' : 'text-danger'}">${sb.percentage || 0}%</td>
+                        </tr>
+                    `;
+                });
+                subTbody.innerHTML = subHtml;
+                subWrapper.style.display = 'block';
+            } else {
+                subWrapper.style.display = 'none';
+            }
+        }
+
         let html = '';
         answers.forEach(item => {
             let resBadge = '';
+            let marksBadge = '';
+
+            const mAwarded = (item.marks_awarded !== undefined) ? item.marks_awarded : (item.is_correct ? (item.marks_correct || 1) : (item.answer ? -(item.marks_incorrect || 0) : 0));
+
             if (item.is_correct) {
                 resBadge = '<span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 10px;"><i class="fa fa-check"></i> Correct</span>';
+                marksBadge = `<span class="badge font-mono font-weight-bold text-success" style="background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 10px;">+${parseFloat(mAwarded).toFixed(2)}</span>`;
             } else if (item.status === 'blank' || !item.answer) {
                 resBadge = '<span class="badge badge-light px-2 py-1 text-muted" style="border: 1px solid #cbd5e1; font-size: 10px;">Left Blank</span>';
+                marksBadge = `<span class="badge font-mono text-muted" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 10px;">0.00</span>`;
             } else {
                 resBadge = '<span class="badge badge-danger font-weight-bold px-2 py-1" style="background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; font-size: 10px;"><i class="fa fa-times"></i> Wrong</span>';
+                marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background: #fef2f2; border: 1px solid #fca5a5; font-size: 10px;">${parseFloat(mAwarded).toFixed(2)}</span>`;
             }
+
+            const subTag = item.subject_name ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(item.subject_name)}</span>` : '<span class="text-muted small">--</span>';
 
             html += `
                 <tr>
                     <td class="font-weight-bold text-dark">Q${item.question}</td>
+                    <td>${subTag}</td>
                     <td class="text-center font-mono font-weight-bold ${item.is_correct ? 'text-success' : (item.answer ? 'text-danger' : 'text-muted')}">${item.answer || '—'}</td>
                     <td class="text-center font-mono font-weight-bold text-primary">${item.correct_answer || '—'}</td>
+                    <td class="text-center">${marksBadge}</td>
                     <td class="text-right">${resBadge}</td>
                 </tr>
             `;

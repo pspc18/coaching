@@ -11,6 +11,7 @@ use App\Models\Admission;
 use App\Models\OmrResult;
 use App\Models\exam\FillMarks;
 use App\Models\exam\FillMinMaxMarks;
+use App\Models\CourseSubject;
 use App\Models\Notification;
 use App\Services\FcmDirectService;
 use DB;
@@ -471,7 +472,7 @@ class ExamController extends Controller
         if ($marksPerCorrect <= 0) $marksPerCorrect = 1.0;
 
         $passedAnswers = $extractorData['answers'] ?? [];
-        $evalResult = $this->evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect);
+        $evalResult = $this->evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect, $exam);
 
         $summary = $extractorData['summary'] ?? [];
 
@@ -570,15 +571,72 @@ class ExamController extends Controller
     }
 
     /**
-     * Evaluate detected answers against exam answer key.
+     * Evaluate detected answers against exam answer key with subject-wise ranges and custom question marks.
      */
-    protected function evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect)
+    protected function evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect, $exam = null)
     {
         $extractedAnswers = [];
         $correctCount = 0;
         $incorrectCount = 0;
         $blankCount = 0;
         $options = ['A', 'B', 'C', 'D'];
+
+        // Question ranges and per-question overrides
+        $subjectRanges = [];
+        $questionConfigs = [];
+        $subjectMap = [];
+
+        if ($exam) {
+            $rawRanges = $exam->subject_question_ranges;
+            if (is_string($rawRanges)) {
+                $rawRanges = json_decode($rawRanges, true) ?: [];
+            }
+            $subjectRanges = is_array($rawRanges) ? $rawRanges : [];
+
+            $rawConfigs = $exam->question_configs;
+            if (is_string($rawConfigs)) {
+                $rawConfigs = json_decode($rawConfigs, true) ?: [];
+            }
+            $questionConfigs = is_array($rawConfigs) ? $rawConfigs : [];
+
+            // Load subject names
+            if (!empty($exam->class_type_id)) {
+                $csList = CourseSubject::where('course_id', $exam->class_type_id)->get();
+                foreach ($csList as $cs) {
+                    $subjectMap[$cs->id] = $cs->name ?? ('Subject #' . $cs->id);
+                }
+                $subList = Subject::where('class_type_id', $exam->class_type_id)->whereNull('deleted_at')->get();
+                foreach ($subList as $s) {
+                    $subjectMap[$s->id] = $s->name ?? ('Subject #' . $s->id);
+                }
+            }
+        }
+
+        // Initialize subject tracking
+        $subjectBreakdown = [];
+        if (!empty($subjectRanges)) {
+            foreach ($subjectRanges as $r) {
+                $sId = (int)($r['subject_id'] ?? 0);
+                if ($sId > 0 && !isset($subjectBreakdown[$sId])) {
+                    $subjectBreakdown[$sId] = [
+                        'subject_id' => $sId,
+                        'subject_name' => $subjectMap[$sId] ?? ('Subject #' . $sId),
+                        'from_q' => (int)($r['from_q'] ?? 1),
+                        'to_q' => (int)($r['to_q'] ?? 1),
+                        'total_questions' => 0,
+                        'correct_answers' => 0,
+                        'incorrect_answers' => 0,
+                        'blank_answers' => 0,
+                        'max_marks' => 0.0,
+                        'obtained_marks' => 0.0,
+                        'percentage' => 0.0,
+                    ];
+                }
+            }
+        }
+
+        $overallTotalMarks = 0.0;
+        $overallObtainedMarks = 0.0;
 
         for ($i = 1; $i <= $totalQuestions; $i++) {
             $correctOption = $answerKey[$i] ?? $answerKey[(string)$i] ?? null;
@@ -605,20 +663,104 @@ class ExamController extends Controller
                 }
             }
 
+            // Identify Subject for question $i
+            $matchedSubjectId = null;
+            $qCfg = $questionConfigs[$i] ?? $questionConfigs[(string)$i] ?? null;
+            if (!empty($qCfg['subject_id'])) {
+                $matchedSubjectId = (int)$qCfg['subject_id'];
+            } else {
+                foreach ($subjectRanges as $r) {
+                    $f = (int)($r['from_q'] ?? 1);
+                    $t = (int)($r['to_q'] ?? $f);
+                    if ($i >= $f && $i <= $t) {
+                        $matchedSubjectId = (int)($r['subject_id'] ?? 0);
+                        break;
+                    }
+                }
+            }
+
+            if (!$matchedSubjectId && $exam) {
+                $matchedSubjectId = (int)($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
+            }
+
+            // Determine question scoring weight
+            $rangeObj = null;
+            if ($matchedSubjectId) {
+                foreach ($subjectRanges as $r) {
+                    if ((int)($r['subject_id'] ?? 0) === $matchedSubjectId) {
+                        $rangeObj = $r;
+                        break;
+                    }
+                }
+            }
+
+            $qCorrectWeight = isset($qCfg['marks_correct']) && is_numeric($qCfg['marks_correct'])
+                ? (float)$qCfg['marks_correct']
+                : (isset($rangeObj['marks_correct']) && is_numeric($rangeObj['marks_correct'])
+                    ? (float)$rangeObj['marks_correct']
+                    : $marksPerCorrect);
+
+            $qIncorrectWeight = isset($qCfg['marks_incorrect']) && is_numeric($qCfg['marks_incorrect'])
+                ? (float)$qCfg['marks_incorrect']
+                : (isset($rangeObj['marks_incorrect']) && is_numeric($rangeObj['marks_incorrect'])
+                    ? (float)$rangeObj['marks_incorrect']
+                    : $marksPerIncorrect);
+
+            $overallTotalMarks += $qCorrectWeight;
+
+            // Ensure matched subject is tracked in breakdown
+            if ($matchedSubjectId && !isset($subjectBreakdown[$matchedSubjectId])) {
+                $subjectBreakdown[$matchedSubjectId] = [
+                    'subject_id' => $matchedSubjectId,
+                    'subject_name' => $subjectMap[$matchedSubjectId] ?? ('Subject #' . $matchedSubjectId),
+                    'from_q' => $i,
+                    'to_q' => $i,
+                    'total_questions' => 0,
+                    'correct_answers' => 0,
+                    'incorrect_answers' => 0,
+                    'blank_answers' => 0,
+                    'max_marks' => 0.0,
+                    'obtained_marks' => 0.0,
+                    'percentage' => 0.0,
+                ];
+            }
+
+            if ($matchedSubjectId) {
+                $subjectBreakdown[$matchedSubjectId]['total_questions']++;
+                $subjectBreakdown[$matchedSubjectId]['max_marks'] += $qCorrectWeight;
+            }
+
             $status = 'blank';
             $isCorrect = false;
+            $marksAwarded = 0.0;
 
             if (!empty($userOption)) {
                 $status = 'detected';
                 if (!empty($correctOption) && $userOption === $correctOption) {
                     $correctCount++;
                     $isCorrect = true;
+                    $marksAwarded = $qCorrectWeight;
+                    $overallObtainedMarks += $qCorrectWeight;
+                    if ($matchedSubjectId) {
+                        $subjectBreakdown[$matchedSubjectId]['correct_answers']++;
+                        $subjectBreakdown[$matchedSubjectId]['obtained_marks'] += $qCorrectWeight;
+                    }
                 } else {
                     $incorrectCount++;
                     $isCorrect = false;
+                    $penalty = abs($qIncorrectWeight);
+                    $marksAwarded = -$penalty;
+                    $overallObtainedMarks -= $penalty;
+                    if ($matchedSubjectId) {
+                        $subjectBreakdown[$matchedSubjectId]['incorrect_answers']++;
+                        $subjectBreakdown[$matchedSubjectId]['obtained_marks'] -= $penalty;
+                    }
                 }
             } else {
                 $blankCount++;
+                if ($matchedSubjectId) {
+                    $subjectBreakdown[$matchedSubjectId]['blank_answers']++;
+                }
             }
 
             $extractedAnswers[] = [
@@ -627,12 +769,27 @@ class ExamController extends Controller
                 'correct_answer' => $correctOption,
                 'is_correct' => $isCorrect,
                 'status' => $status,
+                'subject_id' => $matchedSubjectId,
+                'subject_name' => $subjectMap[$matchedSubjectId] ?? '',
+                'marks_correct' => $qCorrectWeight,
+                'marks_incorrect' => $qIncorrectWeight,
+                'marks_awarded' => round($marksAwarded, 2),
                 'confidence' => 0.95,
             ];
         }
 
-        $totalMarks = $totalQuestions * $marksPerCorrect;
-        $obtainedMarks = max(0, round(($correctCount * $marksPerCorrect) - ($incorrectCount * $marksPerIncorrect), 2));
+        // Finalize subject breakdown formatting
+        foreach ($subjectBreakdown as &$sb) {
+            $sb['obtained_marks'] = max(0, round($sb['obtained_marks'], 2));
+            $sb['max_marks'] = round($sb['max_marks'], 2);
+            $sb['percentage'] = $sb['max_marks'] > 0 ? round(($sb['obtained_marks'] / $sb['max_marks']) * 100, 2) : 0;
+            $sb['max_marks_formatted'] = number_format($sb['max_marks'], 2, '.', '');
+            $sb['obtained_marks_formatted'] = number_format($sb['obtained_marks'], 2, '.', '');
+        }
+        unset($sb);
+
+        $totalMarks = ($overallTotalMarks > 0) ? $overallTotalMarks : ($totalQuestions * $marksPerCorrect);
+        $obtainedMarks = max(0, round($overallObtainedMarks, 2));
         $percentage = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 2) : 0;
 
         return [
@@ -643,6 +800,7 @@ class ExamController extends Controller
             'obtained_marks' => number_format($obtainedMarks, 2, '.', ''),
             'percentage' => $percentage,
             'extracted_answers' => $extractedAnswers,
+            'subject_breakdown' => array_values($subjectBreakdown),
         ];
     }
 
@@ -721,6 +879,7 @@ class ExamController extends Controller
                         'obtained_marks' => $obtainedMarks,
                         'percentage' => $percentage,
                         'extracted_answers' => $extractedAnswers,
+                        'subject_breakdown' => $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? null),
                         'extraction_confidence' => 0.9500,
                         'source_filename' => $sourceFilename,
                         'scanned_by_user_id' => $userId,
@@ -735,70 +894,146 @@ class ExamController extends Controller
                 }
                 if ($student) {
                     $classTypeId = (int) ($student->class_type_id ?: ($exam->class_type_id ?: 0));
-                    $subjectId = (int) ($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
+                    $subjectBreakdown = $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? []);
 
-                    if ($subjectId <= 0 && $classTypeId > 0) {
-                        $firstSub = Subject::where('class_type_id', $classTypeId)->whereNull('deleted_at')->first();
-                        if ($firstSub) $subjectId = $firstSub->id;
-                    }
+                    if (!empty($subjectBreakdown) && is_array($subjectBreakdown)) {
+                        // Section-aware marks persistence: one ledger row per evaluated subject
+                        foreach ($subjectBreakdown as $sb) {
+                            $subId = (int) ($sb['subject_id'] ?? 0);
+                            if ($subId <= 0) continue;
 
-                    if ($classTypeId > 0 && $subjectId > 0) {
-                        // FillMinMaxMarks
-                        $minMax = FillMinMaxMarks::withTrashed()
-                            ->where('exam_id', $exam->id)
-                            ->where('class_type_id', $classTypeId)
-                            ->where('subject_id', $subjectId)
-                            ->where('session_id', $sessionId)
-                            ->where('branch_id', $branchId)
-                            ->first();
+                            $subTotalMarks = (float) ($sb['max_marks'] ?? 0);
+                            $subObtainedMarks = (float) ($sb['obtained_marks'] ?? 0);
+                            $subCorrect = (int) ($sb['correct_answers'] ?? 0);
+                            $subIncorrect = (int) ($sb['incorrect_answers'] ?? 0);
+                            $subBlank = (int) ($sb['blank_answers'] ?? 0);
 
-                        if (!$minMax) {
-                            $minMax = new FillMinMaxMarks();
-                            $minMax->exam_id = $exam->id;
-                            $minMax->class_type_id = $classTypeId;
-                            $minMax->subject_id = $subjectId;
-                            $minMax->session_id = $sessionId;
-                            $minMax->branch_id = $branchId;
-                            $minMax->user_id = $userId;
+                            // FillMinMaxMarks for this subject
+                            $minMax = FillMinMaxMarks::withTrashed()
+                                ->where('exam_id', $exam->id)
+                                ->where('class_type_id', $classTypeId)
+                                ->where('subject_id', $subId)
+                                ->where('session_id', $sessionId)
+                                ->where('branch_id', $branchId)
+                                ->first();
+
+                            if (!$minMax) {
+                                $minMax = new FillMinMaxMarks();
+                                $minMax->exam_id = $exam->id;
+                                $minMax->class_type_id = $classTypeId;
+                                $minMax->subject_id = $subId;
+                                $minMax->session_id = $sessionId;
+                                $minMax->branch_id = $branchId;
+                                $minMax->user_id = $userId;
+                            }
+                            if ($subTotalMarks > 0) {
+                                $minMax->exam_maximum_marks = $subTotalMarks;
+                                $minMax->exam_minimum_marks = round($subTotalMarks * 0.33, 2);
+                            }
+                            $minMax->deleted_at = null;
+                            $minMax->save();
+
+                            // FillMarks for student & subject
+                            $fillMark = FillMarks::withTrashed()
+                                ->where('exam_id', $exam->id)
+                                ->where('admission_id', $student->id)
+                                ->where('class_type_id', $classTypeId)
+                                ->where('subject_id', $subId)
+                                ->where('session_id', $sessionId)
+                                ->where('branch_id', $branchId)
+                                ->first();
+
+                            if (!$fillMark) {
+                                $fillMark = new FillMarks();
+                                $fillMark->exam_id = $exam->id;
+                                $fillMark->admission_id = $student->id;
+                                $fillMark->class_type_id = $classTypeId;
+                                $fillMark->course_id = $student->course_id ?: $exam->course_id;
+                                $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                                $fillMark->subject_id = $subId;
+                                $fillMark->session_id = $sessionId;
+                                $fillMark->branch_id = $branchId;
+                                $fillMark->user_id = $userId;
+                            }
+
+                            $fillMark->student_marks = $subObtainedMarks;
+                            $fillMark->r_marks = (string)$subCorrect;
+                            $fillMark->w_marks = (string)$subIncorrect;
+                            $fillMark->l_marks = (string)$subBlank;
+                            $fillMark->exam_maximum_marks = (string)$subTotalMarks;
+                            $fillMark->fill_min_max_marks_id = $minMax->id;
+                            $fillMark->deleted_at = null;
+                            $fillMark->save();
+
+                            $marksUploadedCount++;
                         }
-                        $minMax->exam_maximum_marks = $totalMarks;
-                        $minMax->exam_minimum_marks = round($totalMarks * 0.33, 2);
-                        $minMax->deleted_at = null;
-                        $minMax->save();
+                    } else {
+                        // Fallback: single exam subject
+                        $subjectId = (int) ($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
 
-                        // FillMarks
-                        $fillMark = FillMarks::withTrashed()
-                            ->where('exam_id', $exam->id)
-                            ->where('admission_id', $student->id)
-                            ->where('class_type_id', $classTypeId)
-                            ->where('subject_id', $subjectId)
-                            ->where('session_id', $sessionId)
-                            ->where('branch_id', $branchId)
-                            ->first();
-
-                        if (!$fillMark) {
-                            $fillMark = new FillMarks();
-                            $fillMark->exam_id = $exam->id;
-                            $fillMark->admission_id = $student->id;
-                            $fillMark->class_type_id = $classTypeId;
-                            $fillMark->course_id = $student->course_id ?: $exam->course_id;
-                            $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
-                            $fillMark->subject_id = $subjectId;
-                            $fillMark->session_id = $sessionId;
-                            $fillMark->branch_id = $branchId;
-                            $fillMark->user_id = $userId;
+                        if ($subjectId <= 0 && $classTypeId > 0) {
+                            $firstSub = Subject::where('class_type_id', $classTypeId)->whereNull('deleted_at')->first();
+                            if ($firstSub) $subjectId = $firstSub->id;
                         }
 
-                        $fillMark->student_marks = $obtainedMarks;
-                        $fillMark->r_marks = (string)$correctCount;
-                        $fillMark->w_marks = (string)$incorrectCount;
-                        $fillMark->l_marks = (string)$blankCount;
-                        $fillMark->exam_maximum_marks = (string)$totalMarks;
-                        $fillMark->fill_min_max_marks_id = $minMax->id;
-                        $fillMark->deleted_at = null;
-                        $fillMark->save();
+                        if ($classTypeId > 0 && $subjectId > 0) {
+                            // FillMinMaxMarks
+                            $minMax = FillMinMaxMarks::withTrashed()
+                                ->where('exam_id', $exam->id)
+                                ->where('class_type_id', $classTypeId)
+                                ->where('subject_id', $subjectId)
+                                ->where('session_id', $sessionId)
+                                ->where('branch_id', $branchId)
+                                ->first();
 
-                        $marksUploadedCount++;
+                            if (!$minMax) {
+                                $minMax = new FillMinMaxMarks();
+                                $minMax->exam_id = $exam->id;
+                                $minMax->class_type_id = $classTypeId;
+                                $minMax->subject_id = $subjectId;
+                                $minMax->session_id = $sessionId;
+                                $minMax->branch_id = $branchId;
+                                $minMax->user_id = $userId;
+                            }
+                            $minMax->exam_maximum_marks = $totalMarks;
+                            $minMax->exam_minimum_marks = round($totalMarks * 0.33, 2);
+                            $minMax->deleted_at = null;
+                            $minMax->save();
+
+                            // FillMarks
+                            $fillMark = FillMarks::withTrashed()
+                                ->where('exam_id', $exam->id)
+                                ->where('admission_id', $student->id)
+                                ->where('class_type_id', $classTypeId)
+                                ->where('subject_id', $subjectId)
+                                ->where('session_id', $sessionId)
+                                ->where('branch_id', $branchId)
+                                ->first();
+
+                            if (!$fillMark) {
+                                $fillMark = new FillMarks();
+                                $fillMark->exam_id = $exam->id;
+                                $fillMark->admission_id = $student->id;
+                                $fillMark->class_type_id = $classTypeId;
+                                $fillMark->course_id = $student->course_id ?: $exam->course_id;
+                                $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                                $fillMark->subject_id = $subjectId;
+                                $fillMark->session_id = $sessionId;
+                                $fillMark->branch_id = $branchId;
+                                $fillMark->user_id = $userId;
+                            }
+
+                            $fillMark->student_marks = $obtainedMarks;
+                            $fillMark->r_marks = (string)$correctCount;
+                            $fillMark->w_marks = (string)$incorrectCount;
+                            $fillMark->l_marks = (string)$blankCount;
+                            $fillMark->exam_maximum_marks = (string)$totalMarks;
+                            $fillMark->fill_min_max_marks_id = $minMax->id;
+                            $fillMark->deleted_at = null;
+                            $fillMark->save();
+
+                            $marksUploadedCount++;
+                        }
                     }
                 }
             }
@@ -1420,6 +1655,8 @@ class ExamController extends Controller
                 'exam_term_id' => 'nullable|integer',
                 'exam_creation_mode' => 'nullable|string',
                 'exam_id' => 'nullable|integer',
+                'subject_question_ranges' => 'nullable',
+                'question_configs' => 'nullable',
             ]);
 
             $isEdit = false;
@@ -1600,6 +1837,40 @@ class ExamController extends Controller
                 $totalExamMaxMarks = 0.0;
                 $totalExamMinMarks = 0.0;
 
+                $rawRanges = $request->input('subject_question_ranges');
+                if (is_string($rawRanges)) {
+                    $rawRanges = json_decode($rawRanges, true) ?: [];
+                }
+                $subjectQuestionRanges = is_array($rawRanges) ? $rawRanges : [];
+
+                $rawConfigs = $request->input('question_configs');
+                if (is_string($rawConfigs)) {
+                    $rawConfigs = json_decode($rawConfigs, true) ?: [];
+                }
+                $questionConfigs = is_array($rawConfigs) ? $rawConfigs : [];
+
+                // If subject_question_ranges is defined, auto-calculate subject max marks based on question counts and weights
+                if (!empty($subjectQuestionRanges)) {
+                    foreach ($subjectQuestionRanges as $r) {
+                        $sId = (int)($r['subject_id'] ?? 0);
+                        if ($sId <= 0) continue;
+                        $fromQ = (int)($r['from_q'] ?? 1);
+                        $toQ = (int)($r['to_q'] ?? $fromQ);
+                        $subCorrectM = isset($r['marks_correct']) && is_numeric($r['marks_correct']) ? (float)$r['marks_correct'] : $marksPerCorrect;
+                        $subTotalM = 0.0;
+                        for ($q = $fromQ; $q <= $toQ; $q++) {
+                            $qM = isset($questionConfigs[$q]['marks_correct']) ? (float)$questionConfigs[$q]['marks_correct'] : (isset($questionConfigs[(string)$q]['marks_correct']) ? (float)$questionConfigs[(string)$q]['marks_correct'] : $subCorrectM);
+                            $subTotalM += $qM;
+                        }
+                        if ($subTotalM > 0) {
+                            $subjectMaxMarks[$sId] = $subTotalM;
+                            if (!isset($subjectMinMarks[$sId]) || empty($subjectMinMarks[$sId])) {
+                                $subjectMinMarks[$sId] = round($subTotalM * 0.35, 2);
+                            }
+                        }
+                    }
+                }
+
                 foreach ($finalSubjectIds as $subId) {
                     $sMax = isset($subjectMaxMarks[$subId]) && is_numeric($subjectMaxMarks[$subId])
                         ? (float) $subjectMaxMarks[$subId]
@@ -1619,6 +1890,8 @@ class ExamController extends Controller
                     $maxMarks = ($subCount > 1) ? round($perSubMarks * $subCount, 2) : $perSubMarks;
                 }
 
+                $add->subject_question_ranges = !empty($subjectQuestionRanges) ? $subjectQuestionRanges : null;
+                $add->question_configs = !empty($questionConfigs) ? $questionConfigs : null;
                 $add->exam_maximum_marks = $maxMarks;
                 $add->exam_minimum_marks = $totalExamMinMarks;
                 $add->answer_key = $finalAnswerKey;
