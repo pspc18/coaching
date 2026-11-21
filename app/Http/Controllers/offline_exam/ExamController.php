@@ -22,6 +22,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class ExamController extends Controller
@@ -218,9 +219,9 @@ class ExamController extends Controller
         $branchId = Session::get('branch_id');
         $sessionId = Session::get('session_id');
 
-        // If AJAX request or extract payload sent to upload_omr, delegate to extractOmr
+        // If AJAX request or extract payload sent to upload_omr, delegate to processOmrSheet
         if ($request->isMethod('post') && ($request->ajax() || $request->expectsJson() || $request->hasFile('image'))) {
-            return $this->extractOmr($request);
+            return $this->processOmrSheet($request);
         }
 
         // Auto-detect class_type_id from exam_id if not explicitly provided
@@ -280,23 +281,30 @@ class ExamController extends Controller
         ]);
     }
 
+    /**
+     * Backward-compatible alias for processOmrSheet
+     */
     public function extractOmr(Request $request)
+    {
+        return $this->processOmrSheet($request);
+    }
+
+    /**
+     * Step 1: Process uploaded OMR sheet through AI Extractor API & evaluate against Exam key.
+     * Staging ONLY: Does NOT save to database yet!
+     */
+    public function processOmrSheet(Request $request)
     {
         $validated = $request->validate([
             'exam_id' => 'required|integer',
-            'image' => 'required|file|image|max:15360',
-            'detected_roll' => 'nullable|string|max:40',
-            'detected_answers' => 'nullable',
+            'image' => 'required|file|image|max:25600',
         ]);
 
         $exam = Exam::where('id', $validated['exam_id'])->whereNull('deleted_at')->firstOrFail();
-        $sessionId = Session::get('session_id') ?: $exam->session_id;
-        $branchId = Session::get('branch_id') ?: $exam->branch_id;
-        $userId = Session::get('id') ?: 1;
 
         $imageFile = $request->file('image');
         $originalFileName = $imageFile->getClientOriginalName();
-        $fileExt = $imageFile->getClientOriginalExtension() ?: 'png';
+        $fileExt = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
         $savedFileName = 'omr_' . time() . '_' . Str::random(8) . '.' . $fileExt;
 
         $destPath = public_path('uploads/omr_scans');
@@ -305,66 +313,65 @@ class ExamController extends Controller
         }
         $imageFile->move($destPath, $savedFileName);
         $storedRelativePath = 'uploads/omr_scans/' . $savedFileName;
+        $fullPath = public_path($storedRelativePath);
 
-        // 1. Roll Number Resolution
-        $rollNumber = trim((string)$request->input('detected_roll', ''));
-        if (in_array($rollNumber, ['', '------', '000000', '00000', 'null', 'undefined'])) {
+        // 1. Call AI Dynamic Extractor API (https://extractor.rusoft.in/api/omr/extract)
+        $extractorBaseUrl = rtrim(config('services.extractor.url', 'https://extractor.rusoft.in'), '/');
+        $extractorTimeout = (int) config('services.extractor.timeout', 60);
+
+        $extractorData = null;
+        $apiError = null;
+
+        try {
+            $fileStream = file_get_contents($fullPath);
+            $response = Http::timeout($extractorTimeout)
+                ->attach('file', $fileStream, $originalFileName)
+                ->post($extractorBaseUrl . '/api/omr/extract');
+
+            if ($response->successful()) {
+                $extractorData = $response->json();
+            } else {
+                // Try fallback route /extract
+                $fallbackResp = Http::timeout($extractorTimeout)
+                    ->attach('file', $fileStream, $originalFileName)
+                    ->post($extractorBaseUrl . '/extract');
+
+                if ($fallbackResp->successful()) {
+                    $extractorData = $fallbackResp->json();
+                } else {
+                    $apiError = 'Extractor API responded with HTTP ' . $response->status() . ': ' . Str::limit($response->body(), 120);
+                }
+            }
+        } catch (\Exception $e) {
+            $apiError = 'Connection to Extractor API failed: ' . $e->getMessage();
+        }
+
+        if (!$extractorData || empty($extractorData['success'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $apiError ?: ($extractorData['detail'] ?? 'OMR extraction could not be completed by extractor engine.'),
+                'source_filename' => $originalFileName,
+            ], 422);
+        }
+
+        // 2. Roll Number Resolution
+        $rollNumber = trim((string)($extractorData['roll_number'] ?? ''));
+        if (in_array(strtolower($rollNumber), ['', '------', '000000', '00000', 'null', 'undefined', 'auto'])) {
             $rollNumber = '';
         }
 
-        // If no roll number detected via bubbles, extract candidate digits from filename
+        // Fallback: extract candidate digits/patterns from filename (e.g. STU-1002 or 927401)
         if (empty($rollNumber)) {
             if (preg_match('/\b(STU[-_]?\d+|\d{3,8})\b/i', $originalFileName, $matches)) {
                 $rollNumber = strtoupper(str_replace('_', '-', $matches[1]));
             }
         }
 
-        // 2. Student Matching in admissions table
-        $student = null;
-        if (!empty($rollNumber)) {
-            $cleanNumeric = preg_replace('/\D/', '', $rollNumber);
-            $trimmedNumeric = ltrim($cleanNumeric, '0');
+        // 3. Student Resolution from admissions table
+        $student = $this->resolveStudentByRoll($rollNumber, (int)$exam->class_type_id);
+        $studentData = $this->formatStudentData($student, $rollNumber);
 
-            $studentQuery = Admission::whereNull('deleted_at')
-                ->where(function($q) use ($rollNumber, $cleanNumeric, $trimmedNumeric) {
-                    $q->where('roll_no', $rollNumber)
-                      ->orWhere('exam_roll_no', $rollNumber)
-                      ->orWhere('admissionNo', $rollNumber)
-                      ->orWhere('id', $rollNumber);
-                    if (!empty($cleanNumeric)) {
-                        $q->orWhere('roll_no', $cleanNumeric)
-                          ->orWhere('admissionNo', $cleanNumeric);
-                    }
-                    if (!empty($trimmedNumeric) && $trimmedNumeric !== $cleanNumeric) {
-                        $q->orWhere('roll_no', $trimmedNumeric)
-                          ->orWhere('admissionNo', $trimmedNumeric)
-                          ->orWhere('id', (int)$trimmedNumeric);
-                    }
-                });
-
-            if (!empty($exam->class_type_id)) {
-                $studentQuery->orderByRaw('CASE WHEN class_type_id = ? THEN 0 ELSE 1 END', [$exam->class_type_id]);
-            }
-            $student = $studentQuery->first();
-        }
-
-        if ($student) {
-            if (empty($rollNumber)) {
-                $rollNumber = $student->roll_no ?: ($student->admissionNo ?: ($student->exam_roll_no ?: 'STU-' . $student->id));
-            }
-            $studentName = trim($student->first_name . ' ' . $student->last_name);
-            $studentPhone = $student->mobile;
-            $admissionId = $student->id;
-        } else {
-            if (empty($rollNumber)) {
-                $rollNumber = 'STU-' . rand(1001, 9999);
-            }
-            $studentName = 'Unregistered Student';
-            $studentPhone = null;
-            $admissionId = null;
-        }
-
-        // 3. Question Count & Answer Key
+        // 4. Answers Evaluation against Exam Answer Key
         $totalQuestions = (int) ($exam->number_of_questions ?: 50);
         $rawKey = $exam->answer_key;
         if (is_string($rawKey)) {
@@ -376,13 +383,110 @@ class ExamController extends Controller
         $marksPerIncorrect = (float) ($exam->marks_per_incorrect ?? 0.0);
         if ($marksPerCorrect <= 0) $marksPerCorrect = 1.0;
 
-        // Parse detected answers passed from optical scanner
-        $rawPassed = $request->input('detected_answers');
-        if (is_string($rawPassed)) {
-            $rawPassed = json_decode($rawPassed, true) ?: [];
-        }
-        $passedAnswers = is_array($rawPassed) ? $rawPassed : [];
+        $passedAnswers = $extractorData['answers'] ?? [];
+        $evalResult = $this->evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect);
 
+        $summary = $extractorData['summary'] ?? [];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'OMR sheet extracted and evaluated successfully.',
+            'sheet' => [
+                'temp_id' => 'staged_' . Str::random(12),
+                'source_filename' => $originalFileName,
+                'stored_file' => $storedRelativePath,
+                'image_url' => asset($storedRelativePath),
+                'annotated_image_base64' => $extractorData['annotated_image_base64'] ?? null,
+                'annotated_image_url' => $extractorData['annotated_image_url'] ?? null,
+                'roll_number' => $rollNumber ?: ($student ? ($student->roll_no ?: $student->admissionNo) : ''),
+                'organization' => $extractorData['organization'] ?? null,
+                'exam_name' => $extractorData['exam_name'] ?? null,
+                'exam_code' => $extractorData['exam_code'] ?? null,
+                'student' => $studentData,
+                'summary' => [
+                    'total_questions' => $totalQuestions,
+                    'attempted' => $evalResult['correct_answers'] + $evalResult['incorrect_answers'],
+                    'unattempted' => $evalResult['blank_answers'],
+                    'multiple_marked' => (int) ($summary['multiple_marked'] ?? 0),
+                ],
+                'evaluation' => $evalResult,
+            ]
+        ]);
+    }
+
+    /**
+     * Resolve student by roll number / admission number.
+     */
+    protected function resolveStudentByRoll($rollNumber, $preferredClassTypeId = 0)
+    {
+        $rollNumber = trim((string)$rollNumber);
+        if (in_array(strtolower($rollNumber), ['', '------', '000000', '00000', 'null', 'undefined', 'auto'])) {
+            return null;
+        }
+
+        $cleanNumeric = preg_replace('/\D/', '', $rollNumber);
+        $trimmedNumeric = ltrim($cleanNumeric, '0');
+
+        $studentQuery = Admission::whereNull('deleted_at')
+            ->where(function($q) use ($rollNumber, $cleanNumeric, $trimmedNumeric) {
+                $q->where('roll_no', $rollNumber)
+                  ->orWhere('exam_roll_no', $rollNumber)
+                  ->orWhere('admissionNo', $rollNumber)
+                  ->orWhere('id', $rollNumber);
+                if (!empty($cleanNumeric)) {
+                    $q->orWhere('roll_no', $cleanNumeric)
+                      ->orWhere('admissionNo', $cleanNumeric);
+                }
+                if (!empty($trimmedNumeric) && $trimmedNumeric !== $cleanNumeric) {
+                    $q->orWhere('roll_no', $trimmedNumeric)
+                      ->orWhere('admissionNo', $trimmedNumeric)
+                      ->orWhere('id', (int)$trimmedNumeric);
+                }
+            });
+
+        if (!empty($preferredClassTypeId)) {
+            $studentQuery->orderByRaw('CASE WHEN class_type_id = ? THEN 0 ELSE 1 END', [$preferredClassTypeId]);
+        }
+        return $studentQuery->first();
+    }
+
+    /**
+     * Format student model to standard dictionary.
+     */
+    protected function formatStudentData($student, $fallbackRoll = '')
+    {
+        if ($student) {
+            $class = $student->classType ? $student->classType->name : ($student->class_name ?? '');
+            return [
+                'id' => $student->id,
+                'name' => trim(($student->first_name ?? '') . ' ' . ($student->last_name ?? '')),
+                'father_name' => $student->father_name ?? '',
+                'admission_no' => $student->admissionNo ?? '',
+                'roll_no' => $student->roll_no ?: ($student->admissionNo ?: ($student->exam_roll_no ?: 'STU-' . $student->id)),
+                'class_name' => $class,
+                'class_type_id' => $student->class_type_id,
+                'mobile' => $student->mobile ?? '',
+                'is_matched' => true,
+            ];
+        }
+        return [
+            'id' => null,
+            'name' => 'Unregistered Student',
+            'father_name' => '',
+            'admission_no' => '',
+            'roll_no' => $fallbackRoll,
+            'class_name' => '',
+            'class_type_id' => null,
+            'mobile' => '',
+            'is_matched' => false,
+        ];
+    }
+
+    /**
+     * Evaluate detected answers against exam answer key.
+     */
+    protected function evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect)
+    {
         $extractedAnswers = [];
         $correctCount = 0;
         $incorrectCount = 0;
@@ -396,20 +500,22 @@ class ExamController extends Controller
             }
 
             $userOption = null;
-            if (isset($passedAnswers[$i - 1])) {
+            if (isset($passedAnswers[(string)$i])) {
+                $userOption = $passedAnswers[(string)$i];
+            } elseif (isset($passedAnswers[$i])) {
+                $userOption = $passedAnswers[$i];
+            } elseif (isset($passedAnswers[$i - 1])) {
                 $item = $passedAnswers[$i - 1];
                 $userOption = is_array($item) ? ($item['value'] ?? $item['answer'] ?? null) : $item;
-                if ($userOption === '—' || $userOption === '?' || $userOption === '' || $userOption === null) {
+            }
+
+            if ($userOption === '—' || $userOption === '?' || $userOption === '' || $userOption === null) {
+                $userOption = null;
+            } else {
+                $userOption = strtoupper(trim((string)$userOption));
+                if (!in_array($userOption, $options)) {
                     $userOption = null;
-                } else {
-                    $userOption = strtoupper(trim((string)$userOption));
-                    if (!in_array($userOption, $options)) {
-                        $userOption = null;
-                    }
                 }
-            } elseif (isset($passedAnswers[(string)$i])) {
-                $userOption = strtoupper(trim((string)$passedAnswers[(string)$i]));
-                if (!in_array($userOption, $options)) $userOption = null;
             }
 
             $status = 'blank';
@@ -442,140 +548,196 @@ class ExamController extends Controller
         $obtainedMarks = max(0, round(($correctCount * $marksPerCorrect) - ($incorrectCount * $marksPerIncorrect), 2));
         $percentage = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 2) : 0;
 
-        // 4. Record to omr_results
+        return [
+            'correct_answers' => $correctCount,
+            'incorrect_answers' => $incorrectCount,
+            'blank_answers' => $blankCount,
+            'total_marks' => number_format($totalMarks, 2, '.', ''),
+            'obtained_marks' => number_format($obtainedMarks, 2, '.', ''),
+            'percentage' => $percentage,
+            'extracted_answers' => $extractedAnswers,
+        ];
+    }
+
+    /**
+     * Real-time student lookup by roll number.
+     */
+    public function lookupStudent(Request $request)
+    {
+        $rollNumber = trim((string) $request->input('roll_number', ''));
+        $classTypeId = (int) $request->input('class_type_id', 0);
+        $student = $this->resolveStudentByRoll($rollNumber, $classTypeId);
+        return response()->json([
+            'status' => 'success',
+            'matched' => (bool) $student,
+            'student' => $this->formatStudentData($student, $rollNumber)
+        ]);
+    }
+
+    /**
+     * Step 2: Final Submit & Commit staged OMR evaluations to database & exam marks.
+     */
+    public function finalizeOmrSave(Request $request)
+    {
+        $validated = $request->validate([
+            'exam_id' => 'required|integer',
+            'sheets' => 'required|array|min:1',
+        ]);
+
+        $exam = Exam::where('id', $validated['exam_id'])->whereNull('deleted_at')->firstOrFail();
+        $sessionId = Session::get('session_id') ?: $exam->session_id;
+        $branchId = Session::get('branch_id') ?: $exam->branch_id;
+        $userId = Session::get('id') ?: 1;
+
+        $sheets = $request->input('sheets', []);
+        $savedCount = 0;
+        $marksUploadedCount = 0;
+
         DB::beginTransaction();
         try {
-            $omrResult = OmrResult::updateOrCreate(
-                [
-                    'exam_id' => $exam->id,
-                    'unique_id' => $rollNumber,
-                ],
-                [
-                    'admission_id' => $admissionId,
-                    'correct_answers' => $correctCount,
-                    'incorrect_answers' => $incorrectCount,
-                    'blank_answers' => $blankCount,
-                    'total_marks' => $totalMarks,
-                    'obtained_marks' => $obtainedMarks,
-                    'percentage' => $percentage,
-                    'extracted_answers' => $extractedAnswers,
-                    'extraction_confidence' => 0.9500,
-                    'source_filename' => $originalFileName,
-                    'scanned_by_user_id' => $userId,
-                ]
-            );
-
-            // Compute Rank
-            $rank = OmrResult::where('exam_id', $exam->id)->where('obtained_marks', '>', $obtainedMarks)->count() + 1;
-            $omrResult->update(['rank' => $rank]);
-
-            // 5. UPLOAD MARKS DIRECTLY TO EXAM (FillMarks & FillMinMaxMarks)
-            $marksUploaded = false;
-            if ($student) {
-                $classTypeId = (int) ($student->class_type_id ?: ($exam->class_type_id ?: 0));
-                $subjectId = (int) ($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
-
-                if ($subjectId <= 0 && $classTypeId > 0) {
-                    $firstSub = Subject::where('class_type_id', $classTypeId)->whereNull('deleted_at')->first();
-                    if ($firstSub) $subjectId = $firstSub->id;
+            foreach ($sheets as $s) {
+                $rollNumber = trim((string) ($s['roll_number'] ?? ''));
+                if (empty($rollNumber)) {
+                    $rollNumber = 'STU-' . rand(1001, 9999);
                 }
 
-                if ($classTypeId > 0 && $subjectId > 0) {
-                    // FillMinMaxMarks
-                    $minMax = FillMinMaxMarks::withTrashed()
-                        ->where('exam_id', $exam->id)
-                        ->where('class_type_id', $classTypeId)
-                        ->where('subject_id', $subjectId)
-                        ->where('session_id', $sessionId)
-                        ->where('branch_id', $branchId)
-                        ->first();
-
-                    if (!$minMax) {
-                        $minMax = new FillMinMaxMarks();
-                        $minMax->exam_id = $exam->id;
-                        $minMax->class_type_id = $classTypeId;
-                        $minMax->subject_id = $subjectId;
-                        $minMax->session_id = $sessionId;
-                        $minMax->branch_id = $branchId;
-                        $minMax->user_id = $userId;
+                $admissionId = !empty($s['student']['id']) ? (int) $s['student']['id'] : (!empty($s['admission_id']) ? (int) $s['admission_id'] : null);
+                
+                // If admissionId is empty but rollNumber is present, attempt lookup
+                if (!$admissionId && !empty($rollNumber)) {
+                    $matchedStudent = $this->resolveStudentByRoll($rollNumber, (int)$exam->class_type_id);
+                    if ($matchedStudent) {
+                        $admissionId = $matchedStudent->id;
                     }
-                    $minMax->exam_maximum_marks = $totalMarks;
-                    $minMax->exam_minimum_marks = round($totalMarks * 0.33, 2);
-                    $minMax->deleted_at = null;
-                    $minMax->save();
-
-                    // FillMarks
-                    $fillMark = FillMarks::withTrashed()
-                        ->where('exam_id', $exam->id)
-                        ->where('admission_id', $student->id)
-                        ->where('class_type_id', $classTypeId)
-                        ->where('subject_id', $subjectId)
-                        ->where('session_id', $sessionId)
-                        ->where('branch_id', $branchId)
-                        ->first();
-
-                    if (!$fillMark) {
-                        $fillMark = new FillMarks();
-                        $fillMark->exam_id = $exam->id;
-                        $fillMark->admission_id = $student->id;
-                        $fillMark->class_type_id = $classTypeId;
-                        $fillMark->course_id = $student->course_id ?: $exam->course_id;
-                        $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
-                        $fillMark->subject_id = $subjectId;
-                        $fillMark->session_id = $sessionId;
-                        $fillMark->branch_id = $branchId;
-                        $fillMark->user_id = $userId;
-                    }
-
-                    $fillMark->student_marks = $obtainedMarks;
-                    $fillMark->r_marks = (string)$correctCount;
-                    $fillMark->w_marks = (string)$incorrectCount;
-                    $fillMark->l_marks = (string)$blankCount;
-                    $fillMark->exam_maximum_marks = (string)$totalMarks;
-                    $fillMark->fill_min_max_marks_id = $minMax->id;
-                    $fillMark->deleted_at = null;
-                    $fillMark->save();
-
-                    $marksUploaded = true;
                 }
+
+                $correctCount = (int) ($s['evaluation']['correct_answers'] ?? ($s['correct_answers'] ?? 0));
+                $incorrectCount = (int) ($s['evaluation']['incorrect_answers'] ?? ($s['incorrect_answers'] ?? 0));
+                $blankCount = (int) ($s['evaluation']['blank_answers'] ?? ($s['blank_answers'] ?? 0));
+                $totalMarks = (float) ($s['evaluation']['total_marks'] ?? ($s['total_marks'] ?? 0));
+                $obtainedMarks = (float) ($s['evaluation']['obtained_marks'] ?? ($s['obtained_marks'] ?? 0));
+                $percentage = (float) ($s['evaluation']['percentage'] ?? ($s['percentage'] ?? 0));
+                $extractedAnswers = $s['evaluation']['extracted_answers'] ?? ($s['extracted_answers'] ?? []);
+                $sourceFilename = $s['source_filename'] ?? 'omr_sheet.jpg';
+
+                $omrResult = OmrResult::updateOrCreate(
+                    [
+                        'exam_id' => $exam->id,
+                        'unique_id' => $rollNumber,
+                    ],
+                    [
+                        'admission_id' => $admissionId,
+                        'correct_answers' => $correctCount,
+                        'incorrect_answers' => $incorrectCount,
+                        'blank_answers' => $blankCount,
+                        'total_marks' => $totalMarks,
+                        'obtained_marks' => $obtainedMarks,
+                        'percentage' => $percentage,
+                        'extracted_answers' => $extractedAnswers,
+                        'extraction_confidence' => 0.9500,
+                        'source_filename' => $sourceFilename,
+                        'scanned_by_user_id' => $userId,
+                    ]
+                );
+                $savedCount++;
+
+                // Upload marks directly to exam (FillMarks & FillMinMaxMarks)
+                $student = null;
+                if ($admissionId) {
+                    $student = Admission::find($admissionId);
+                }
+                if ($student) {
+                    $classTypeId = (int) ($student->class_type_id ?: ($exam->class_type_id ?: 0));
+                    $subjectId = (int) ($exam->subject_id ?: ($exam->selected_subject_ids[0] ?? 0));
+
+                    if ($subjectId <= 0 && $classTypeId > 0) {
+                        $firstSub = Subject::where('class_type_id', $classTypeId)->whereNull('deleted_at')->first();
+                        if ($firstSub) $subjectId = $firstSub->id;
+                    }
+
+                    if ($classTypeId > 0 && $subjectId > 0) {
+                        // FillMinMaxMarks
+                        $minMax = FillMinMaxMarks::withTrashed()
+                            ->where('exam_id', $exam->id)
+                            ->where('class_type_id', $classTypeId)
+                            ->where('subject_id', $subjectId)
+                            ->where('session_id', $sessionId)
+                            ->where('branch_id', $branchId)
+                            ->first();
+
+                        if (!$minMax) {
+                            $minMax = new FillMinMaxMarks();
+                            $minMax->exam_id = $exam->id;
+                            $minMax->class_type_id = $classTypeId;
+                            $minMax->subject_id = $subjectId;
+                            $minMax->session_id = $sessionId;
+                            $minMax->branch_id = $branchId;
+                            $minMax->user_id = $userId;
+                        }
+                        $minMax->exam_maximum_marks = $totalMarks;
+                        $minMax->exam_minimum_marks = round($totalMarks * 0.33, 2);
+                        $minMax->deleted_at = null;
+                        $minMax->save();
+
+                        // FillMarks
+                        $fillMark = FillMarks::withTrashed()
+                            ->where('exam_id', $exam->id)
+                            ->where('admission_id', $student->id)
+                            ->where('class_type_id', $classTypeId)
+                            ->where('subject_id', $subjectId)
+                            ->where('session_id', $sessionId)
+                            ->where('branch_id', $branchId)
+                            ->first();
+
+                        if (!$fillMark) {
+                            $fillMark = new FillMarks();
+                            $fillMark->exam_id = $exam->id;
+                            $fillMark->admission_id = $student->id;
+                            $fillMark->class_type_id = $classTypeId;
+                            $fillMark->course_id = $student->course_id ?: $exam->course_id;
+                            $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                            $fillMark->subject_id = $subjectId;
+                            $fillMark->session_id = $sessionId;
+                            $fillMark->branch_id = $branchId;
+                            $fillMark->user_id = $userId;
+                        }
+
+                        $fillMark->student_marks = $obtainedMarks;
+                        $fillMark->r_marks = (string)$correctCount;
+                        $fillMark->w_marks = (string)$incorrectCount;
+                        $fillMark->l_marks = (string)$blankCount;
+                        $fillMark->exam_maximum_marks = (string)$totalMarks;
+                        $fillMark->fill_min_max_marks_id = $minMax->id;
+                        $fillMark->deleted_at = null;
+                        $fillMark->save();
+
+                        $marksUploadedCount++;
+                    }
+                }
+            }
+
+            // Recalculate ranks across exam
+            $allExamResults = OmrResult::where('exam_id', $exam->id)
+                ->orderBy('obtained_marks', 'desc')
+                ->get();
+            $currentRank = 1;
+            foreach ($allExamResults as $item) {
+                $item->update(['rank' => $currentRank++]);
             }
 
             DB::commit();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'OMR sheet evaluated successfully' . ($marksUploaded ? ' and marks uploaded to exam record.' : '.'),
-                'marks_uploaded' => $marksUploaded,
-                'roll_number' => $rollNumber,
-                'student_name' => $studentName,
-                'student_phone' => $studentPhone,
-                'admission_matched' => (bool)$student,
-                'question_count' => $totalQuestions,
-                'detected_count' => $correctCount + $incorrectCount,
-                'answers' => $extractedAnswers,
-                'image_url' => asset($storedRelativePath),
-                'result' => [
-                    'id' => $omrResult->id,
-                    'unique_id' => $rollNumber,
-                    'student_name' => $studentName,
-                    'admission_matched' => (bool)$student,
-                    'correct_answers' => $correctCount,
-                    'incorrect_answers' => $incorrectCount,
-                    'blank_answers' => $blankCount,
-                    'total_marks' => number_format($totalMarks, 2),
-                    'obtained_marks' => number_format($obtainedMarks, 2),
-                    'percentage' => $percentage,
-                    'rank' => $rank,
-                    'source_filename' => $originalFileName,
-                    'marks_uploaded' => $marksUploaded,
-                    'created_at' => $omrResult->created_at->format('d M Y, h:i A'),
-                ],
+                'message' => "Successfully saved {$savedCount} OMR evaluations and uploaded marks for {$marksUploadedCount} matched students!",
+                'saved_count' => $savedCount,
+                'marks_uploaded_count' => $marksUploadedCount,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'OMR processing failed: ' . $e->getMessage()
+                'message' => 'Failed to save evaluated sheets: ' . $e->getMessage()
             ], 500);
         }
     }

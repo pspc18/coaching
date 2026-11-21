@@ -49,4 +49,9 @@ return [
         'prod_base_url' => env('PHONEPE_PROD_BASE_URL', 'https://api.phonepe.com/apis/pg'),
     ],
 
+    'extractor' => [
+        'url' => env('EXTRACTOR_API_URL', 'https://extractor.rusoft.in'),
+        'timeout' => (int) env('EXTRACTOR_API_TIMEOUT', 60),
+    ],
+
 ];

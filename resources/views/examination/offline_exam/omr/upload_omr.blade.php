@@ -1,6 +1,6 @@
 @extends('layout.app')
 
-@section('title', 'Upload OMR Sheet (OMR Optical Scanner) - Arise ERP')
+@section('title', 'Upload & Evaluate OMR Sheets - AI Extractor - Arise ERP')
 
 @php
     $classType = $classType ?? Helper::classType();
@@ -13,17 +13,17 @@
     $totalScannedToday = $totalScannedToday ?? 0;
     $avgAccuracy = $avgAccuracy ?? 0;
     $totalEvaluatedCount = $totalEvaluatedCount ?? 0;
+    $extractorApiUrl = config('services.extractor.url', 'https://extractor.rusoft.in');
 @endphp
 
 @section('styles')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
 /* ==========================================================================
-   ARISE ERP - OMR SCANNER & EVALUATOR THEME (MATCHING VIEW/EXAM & ADMISSIONVIEW)
+   ARISE ERP - AI OMR EXTRACTOR WORKSPACE THEME
    - Layout: Standard Arise .content-wrapper with left sidebar clearance
    - Palette: Arise Dark Navy (#002C54 to #0f3460), Slate & Sky accents
    - Typography: 11.5px table text, 10.5px uppercase bold thead
-   - High contrast, responsive grid, zero dead space
    ========================================================================== */
 
 .content-wrapper.omr-page {
@@ -43,12 +43,12 @@
     gap: 8px;
 }
 
-/* 1. Hero Header Banner (~40px) */
+/* 1. Hero Header Banner */
 .omr-hero {
     background: linear-gradient(135deg, #002C54 0%, #0f3460 100%);
     color: #ffffff;
     border-radius: 2px;
-    padding: 6px 12px;
+    padding: 7px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -67,7 +67,7 @@
     margin-bottom: 2px;
 }
 .omr-title {
-    font-size: 14.5px;
+    font-size: 15px;
     font-weight: 700;
     margin: 0;
     line-height: 1.2;
@@ -86,8 +86,8 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 3px 9px;
-    height: 27px;
+    padding: 4px 10px;
+    height: 28px;
     font-size: 11px;
     font-weight: 600;
     border-radius: 2px;
@@ -118,7 +118,7 @@
     color: #001f3d !important;
 }
 
-/* 2. Fast KPI Summary Filter Strip */
+/* 2. Fast KPI Strip */
 .omr-kpi-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -135,7 +135,7 @@
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 2px;
-    padding: 5px 12px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -166,7 +166,7 @@
     font-weight: 600;
 }
 
-/* 3. Cards & Panels */
+/* 3. Cards & Containers */
 .omr-card {
     background: #ffffff;
     border: 1px solid #cbd5e1;
@@ -177,10 +177,12 @@
 .omr-card-header {
     background: #f8fafc;
     border-bottom: 1px solid #cbd5e1;
-    padding: 7px 12px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 .omr-card-title {
     font-size: 12.5px;
@@ -205,7 +207,7 @@
     border: 2px dashed #93c5fd;
     background: #f0f7ff;
     border-radius: 4px;
-    padding: 18px 14px;
+    padding: 16px 14px;
     text-align: center;
     cursor: pointer;
     transition: all .15s ease;
@@ -221,52 +223,13 @@
     border-color: #cbd5e1;
 }
 
-/* Matrix Table */
-.omr-matrix-scroll {
-    max-height: 250px;
-    overflow-y: auto;
-    border: 1px solid #e2e8f0;
-}
-.omr-matrix-scroll::-webkit-scrollbar {
-    width: 5px;
-}
-.omr-matrix-scroll::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
-.omr-matrix-table {
+/* Staging Table & Ledger Table */
+.omr-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 11.5px;
 }
-.omr-matrix-table th {
-    position: sticky;
-    top: 0;
-    background: #002C54;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    padding: 5px 8px;
-    z-index: 2;
-}
-.omr-matrix-table td {
-    padding: 4px 8px;
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 11px;
-}
-.omr-matrix-table tr:hover td {
-    background: #f8fafc;
-}
-
-/* Batch Ledger Table */
-.omr-batch-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11.5px;
-}
-.omr-batch-table th {
+.omr-table th {
     background: #002C54;
     color: #ffffff;
     font-weight: 700;
@@ -274,79 +237,131 @@
     text-transform: uppercase;
     letter-spacing: .04em;
     padding: 7px 10px;
-    border: none;
+    border: 1px solid #002C54;
+    vertical-align: middle;
 }
-.omr-batch-table td {
+.omr-table td {
     padding: 6px 10px;
     border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
     vertical-align: middle;
-    font-size: 11.5px;
 }
-.omr-batch-table tr:hover td {
+.omr-table tr:hover td {
     background: #f8fafc;
 }
+.omr-table tr.row-unmatched td {
+    background: #fffbeb !important;
+}
 
-/* Badges */
+/* Badges & Pills */
 .badge-pill-status {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 7px;
-    border-radius: 2px;
     font-size: 10px;
     font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
 }
-.badge-correct { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-.badge-incorrect { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-.badge-blank { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
-.badge-uploaded { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-staged {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+.badge-matched {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.badge-unmatched {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+.badge-saved {
+    background: #10b981;
+    color: #ffffff;
+}
+
+/* Thumbnail preview */
+.omr-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+.omr-thumb:hover {
+    transform: scale(1.15);
+    border-color: #0284c7;
+}
+
+/* Staging Action Bar */
+.staging-bar {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Progress Bar */
+.omr-progress-container {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.omr-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0284c7, #10b981);
+    width: 0%;
+    transition: width 0.25s ease;
+}
 </style>
 @endsection
 
 @section('content')
 <div class="content-wrapper omr-page">
     <div class="omr-page-layout">
-        
-        {{-- ======================================================== --}}
-        {{-- 1. Hero Header Banner with Workflow Navigation            --}}
-        {{-- ======================================================== --}}
+
+        {{-- 1. Hero Header Banner --}}
         <div class="omr-hero">
             <div>
-                <span class="omr-kicker">
-                    <i class="fa fa-pencil-square-o mr-1"></i> Examination Marks Recording &amp; Evaluation
-                </span>
+                <span class="omr-kicker"><i class="fa fa-cogs mr-1"></i> Examination Control &bull; OMR Engine</span>
                 <h1 class="omr-title">
-                    <i class="fa fa-id-card-o text-warning"></i> Upload OMR Sheet (OMR Evaluation)
+                    <i class="fa fa-check-square-o"></i> Upload &amp; Evaluate OMR Sheets
                 </h1>
                 <p class="omr-subtitle">
-                    Extracts student roll numbers, reads optical bubble answers, grades against exam answer keys, and uploads marks directly to student exam records.
+                    Connected to AI Extractor API (<code>{{ $extractorApiUrl }}</code>). Upload sheets in bulk, review evaluations in staging list, and finalize marks into exam records.
                 </p>
             </div>
-            <div class="d-flex align-items-center flex-wrap" style="gap: 5px;">
-                <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" title="Exam Setup">
-                    <i class="fa fa-leanpub"></i> 1. Exam Setup
+            <div class="d-flex align-items-center" style="gap: 6px;">
+                <a href="{{ url('view/exam') }}" class="dash-btn dash-btn-outline" title="Back to Examinations">
+                    <i class="fa fa-arrow-left"></i> Exams List
                 </a>
-                <a href="{{ url('fill-marks-by-excel') }}{{ $selectedExamId ? '?exam_id='.$selectedExamId : '' }}" class="dash-btn dash-btn-outline" title="Import via Excel">
-                    <i class="fa fa-file-excel-o"></i> 2. Excel Import
+                <a href="{{ url('green_sheet_report') }}" class="dash-btn dash-btn-outline" title="View Green Sheet">
+                    <i class="fa fa-file-text-o"></i> Green Sheet
                 </a>
-                <a href="{{ url('fill_marks') }}{{ $selectedExamId ? '?exam_id='.$selectedExamId : '' }}" class="dash-btn dash-btn-outline" title="Manual Marks Entry">
-                    <i class="fa fa-pencil"></i> 3. Manual Marks
+                <a href="{{ url('exam_wise_report') }}" class="dash-btn dash-btn-light" title="Exam Wise Report">
+                    <i class="fa fa-bar-chart"></i> Reports
                 </a>
-                <span class="dash-btn dash-btn-light" title="Upload OMR Sheet (Active)">
-                    <i class="fa fa-check-circle text-primary"></i> 4. Upload OMR Sheet
-                </span>
             </div>
         </div>
 
-        {{-- ======================================================== --}}
-        {{-- 2. Fast KPI Summary Filter Strip                         --}}
-        {{-- ======================================================== --}}
+        {{-- 2. Fast KPI Strip --}}
         <div class="omr-kpi-strip">
             <div class="kpi-mini-card kpi-classes">
                 <div>
-                    <span class="kpi-label">Evaluated Today</span>
-                    <div class="kpi-value text-info" id="kpi-evaluated-today">{{ number_format($totalScannedToday) }}</div>
-                    <span class="kpi-sub">sheets processed</span>
+                    <span class="kpi-label">Today's Saved Scans</span>
+                    <div class="kpi-value" id="kpi-today-scans">{{ number_format($totalScannedToday) }}</div>
+                    <span class="kpi-sub">committed to exam</span>
                 </div>
                 <div style="color: #0284c7; font-size: 20px;">
                     <i class="fa fa-calendar-check-o"></i>
@@ -355,22 +370,11 @@
 
             <div class="kpi-mini-card kpi-published">
                 <div>
-                    <span class="kpi-label">Today's Avg Accuracy</span>
-                    <div class="kpi-value text-success" id="kpi-avg-score">{{ $avgAccuracy }}%</div>
-                    <span class="kpi-sub">mean student score</span>
+                    <span class="kpi-label">Total Saved Evaluations</span>
+                    <div class="kpi-value text-success" id="kpi-total-scans">{{ number_format($totalEvaluatedCount) }}</div>
+                    <span class="kpi-sub">all-time records</span>
                 </div>
                 <div style="color: #10b981; font-size: 20px;">
-                    <i class="fa fa-line-chart"></i>
-                </div>
-            </div>
-
-            <div class="kpi-mini-card">
-                <div>
-                    <span class="kpi-label">Total All-Time Scans</span>
-                    <div class="kpi-value" style="color: #002C54;" id="kpi-total-scans">{{ number_format($totalEvaluatedCount) }}</div>
-                    <span class="kpi-sub">records recorded</span>
-                </div>
-                <div style="color: #002C54; font-size: 20px;">
                     <i class="fa fa-archive"></i>
                 </div>
             </div>
@@ -382,21 +386,32 @@
                     <span class="kpi-sub font-mono font-weight-bold" id="kpi-exam-code">{{ $selectedExam ? ($selectedExam->code ?: $selectedExam->exam_code) : 'None' }}</span>
                 </div>
                 <div style="color: #f59e0b; font-size: 20px;">
-                    <i class="fa fa-check-square-o"></i>
+                    <i class="fa fa-leanpub"></i>
+                </div>
+            </div>
+
+            <div class="kpi-mini-card">
+                <div>
+                    <span class="kpi-label">AI Extractor Engine</span>
+                    <div class="kpi-value" style="color: #10b981; font-size: 14px;">
+                        <i class="fa fa-circle text-success" style="font-size: 10px;"></i> Online
+                    </div>
+                    <span class="kpi-sub text-truncate" style="max-width: 140px; display: block;" title="{{ $extractorApiUrl }}">
+                        {{ parse_url($extractorApiUrl, PHP_URL_HOST) ?: 'extractor.rusoft.in' }}
+                    </span>
+                </div>
+                <div style="color: #002C54; font-size: 20px;">
+                    <i class="fa fa-server"></i>
                 </div>
             </div>
         </div>
 
-        {{-- ======================================================== --}}
-        {{-- 3. Main Workspace: Controls & Live Matrix (Left) + Inspector (Right) --}}
-        {{-- ======================================================== --}}
+        {{-- 3. Top Row: Step 1 (Select Exam) & Step 2 (Upload Dropzone) --}}
         <div class="row g-2">
             
-            {{-- LEFT COLUMN: Step 1 (Exam Selector), Step 2 (Upload), Step 3 (Live Result) --}}
-            <div class="col-lg-6 col-xl-5 d-flex flex-column" style="gap: 8px;">
-                
-                {{-- Card 1: Target Exam Selector --}}
-                <div class="omr-card">
+            {{-- Card 1: Target Exam Selector --}}
+            <div class="col-lg-5">
+                <div class="omr-card" style="height: 100%;">
                     <div class="omr-card-header">
                         <div>
                             <h2 class="omr-card-title">
@@ -429,6 +444,7 @@
                                     data-incorrect="{{ $incorrectM }}"
                                     data-maxmarks="{{ $ex->exam_maximum_marks ?: ($qCount * $correctM) }}"
                                     data-class="{{ $ex->classType ? $ex->classType->name : 'All Classes' }}"
+                                    data-classid="{{ $ex->class_type_id }}"
                                     data-keycount="{{ $keyCount }}"
                                     {{ $isSelected ? 'selected' : '' }}>
                                     {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q | +{{ $correctM }}/-{{ $incorrectM }} | {{ $ex->classType ? $ex->classType->name : 'All' }})
@@ -449,138 +465,47 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Card 2: Upload Dropzone --}}
-                <div class="omr-card">
+            {{-- Card 2: Bulk Upload Dropzone --}}
+            <div class="col-lg-7">
+                <div class="omr-card" style="height: 100%;">
                     <div class="omr-card-header">
                         <div>
                             <h2 class="omr-card-title">
-                                <i class="fa fa-cloud-upload text-info"></i> 2. Upload Filled OMR Sheet(s)
+                                <i class="fa fa-cloud-upload text-info"></i> 2. Upload OMR Sheets (Multiple / Bulk Supported)
                             </h2>
-                            <p class="omr-card-desc">Batch multi-sheet evaluation supported (JPG, PNG, WebP).</p>
+                            <p class="omr-card-desc">Select multiple image files at once (JPG, PNG, WebP). Files are sent to AI Extractor and staged below.</p>
                         </div>
                         <span class="badge badge-info px-2 py-1" style="font-size: 10px;">Step 2</span>
                     </div>
                     <div class="omr-card-body py-2">
                         <div id="omr-upload-dropzone" class="omr-dropzone-box {{ $selectedExam ? 'active' : 'disabled' }}" onclick="triggerFileInput();">
-                            <i class="fa fa-cloud-upload text-primary" style="font-size: 32px; margin-bottom: 4px;"></i>
+                            <i class="fa fa-cloud-upload text-primary" style="font-size: 28px; margin-bottom: 4px;"></i>
                             <div class="font-weight-bold text-dark" style="font-size: 12.5px;" id="omr-dropzone-title">
-                                {{ $selectedExam ? 'Drop or Click to Select OMR Sheet Image(s)' : 'Select an examination above first' }}
+                                {{ $selectedExam ? 'Click or Drop OMR Sheet Image(s) Here' : 'Select an examination on the left first' }}
                             </div>
                             <div class="text-muted" style="font-size: 10.5px; margin-top: 2px;">
-                                Reads roll number bubbles, optical answer marks, &amp; automatically uploads student marks to exam.
+                                Select 1, 10, or 50+ sheets at once. Data will be extracted and displayed in the staging table for review before saving.
                             </div>
                             <input type="file" id="omr-image-input" multiple accept="image/png,image/jpeg,image/webp" style="display: none;" {{ $selectedExam ? '' : 'disabled' }}>
                         </div>
 
-                        {{-- Scanning Progress & Status Bar --}}
+                        {{-- Batch Progress Bar & Status Text --}}
+                        <div id="omr-batch-progress-wrapper" class="mt-2 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 11px;">
+                                <span id="omr-batch-status-text" class="font-weight-bold text-primary">
+                                    <i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet 1 of 5...
+                                </span>
+                                <span id="omr-batch-percent-text" class="font-weight-bold text-dark">20%</span>
+                            </div>
+                            <div class="omr-progress-container">
+                                <div id="omr-batch-progress-bar" class="omr-progress-bar"></div>
+                            </div>
+                        </div>
+
                         <div id="omr-status-box" class="mt-2 py-1 px-2 rounded font-weight-bold" style="background: #f1f5f9; border: 1px solid #e2e8f0; font-size: 11px; color: #475569;">
-                            <i class="fa fa-info-circle mr-1"></i> <span id="omr-status-text">Select an exam to begin optical scanning.</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Card 3: Live Evaluation & Student Score Summary --}}
-                <div class="omr-card">
-                    <div class="omr-card-header">
-                        <div>
-                            <h2 class="omr-card-title">
-                                <i class="fa fa-check-circle text-success"></i> 3. Live Evaluation &amp; Student Marks
-                            </h2>
-                            <p class="omr-card-desc">Evaluated against answer key; marks uploaded directly to exam record.</p>
-                        </div>
-                        <span id="omr-confidence-pill" class="badge badge-secondary px-2 py-1" style="font-size: 10px;">Awaiting Scan</span>
-                    </div>
-
-                    {{-- Student Profile & Score KPI Header --}}
-                    <div class="p-2 border-bottom bg-white">
-                        <div class="row align-items-center g-2">
-                            <div class="col-6 border-right">
-                                <div class="text-muted font-weight-bold" style="font-size: 9.5px; text-transform: uppercase;">Student Roll #</div>
-                                <div id="omr-roll-result" class="font-mono font-weight-bold text-primary" style="font-size: 16px; line-height: 1.2;">------</div>
-                                <div id="omr-student-name" class="text-muted font-weight-bold text-truncate" style="font-size: 11px;">Unregistered Student</div>
-                                <div id="omr-upload-status-badge" class="mt-1">
-                                    <span class="badge badge-light text-muted" style="font-size: 9.5px;"><i class="fa fa-clock-o mr-1"></i> Awaiting Scan</span>
-                                </div>
-                            </div>
-                            <div class="col-6 pl-3">
-                                <div class="text-muted font-weight-bold" style="font-size: 9.5px; text-transform: uppercase;">Marks Obtained</div>
-                                <div class="d-flex align-items-baseline" style="gap: 4px;">
-                                    <span id="omr-score-result" class="font-weight-bold text-success" style="font-size: 18px; line-height: 1.2;">0.00</span>
-                                    <span id="omr-total-marks" class="text-muted font-mono" style="font-size: 11px;">/ 0.00</span>
-                                    <span id="omr-percentage-badge" class="badge badge-success ml-auto" style="font-size: 11px; font-weight: 700;">0%</span>
-                                </div>
-                                <div class="d-flex justify-content-between mt-2 pt-1 border-top text-center" style="font-size: 10.5px;">
-                                    <span class="text-success font-weight-bold">🟢 <span id="omr-count-correct">0</span> Right</span>
-                                    <span class="text-danger font-weight-bold">🔴 <span id="omr-count-incorrect">0</span> Wrong</span>
-                                    <span class="text-muted font-weight-bold">⚪ <span id="omr-count-blank">0</span> Left</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Question-by-Question Matrix Table --}}
-                    <div class="omr-matrix-scroll">
-                        <table class="omr-matrix-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 25%;">Question</th>
-                                    <th style="width: 25%; text-align: center;">Detected Bubble</th>
-                                    <th style="width: 25%; text-align: center;">Key Answer</th>
-                                    <th style="width: 25%; text-align: right;">Result</th>
-                                </tr>
-                            </thead>
-                            <tbody id="omr-matrix-body">
-                                <tr>
-                                    <td colspan="4" class="text-center py-3 text-muted">
-                                        <i class="fa fa-info-circle mr-1"></i> Select an exam above to load the question matrix.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
-            {{-- RIGHT COLUMN: Visual OMR Sheet Inspector --}}
-            <div class="col-lg-6 col-xl-7">
-                <div class="omr-card" style="height: 100%; display: flex; flex-direction: column;">
-                    <div class="omr-card-header">
-                        <div>
-                            <h2 class="omr-card-title">
-                                <i class="fa fa-eye text-primary"></i> Scanned OMR Sheet Visual Inspector
-                            </h2>
-                            <p class="omr-card-desc">Visual inspection of uploaded sheet, bubble fills, and registration alignment.</p>
-                        </div>
-                        <span id="omr-preview-badge" class="badge badge-light px-2 py-1" style="font-size: 10px; border: 1px solid #cbd5e1;">
-                            No sheet loaded
-                        </span>
-                    </div>
-
-                    <div class="omr-card-body flex-grow-1 d-flex flex-column align-items-center justify-content-center p-3" style="background: #f8fafc; border-top: 1px solid #e2e8f0; min-height: 480px;">
-                        {{-- Empty State (Clean Arise ERP standard) --}}
-                        <div id="omr-preview-empty" class="text-center py-4 w-100">
-                            <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 60px; height: 60px; background: #e0f2fe; color: #0284c7;">
-                                <i class="fa fa-file-text-o" style="font-size: 26px;"></i>
-                            </div>
-                            <h5 class="font-weight-bold text-dark mb-1" style="font-size: 14px;">Sheet Preview Awaiting Input</h5>
-                            <p class="text-muted small mx-auto mb-3" style="max-width: 380px; font-size: 11.5px; line-height: 1.4;">
-                                Select an examination and choose or drop an OMR sheet scan on the left. The sheet image and evaluated bubble markers will render here.
-                            </p>
-                            <div class="card p-2 mx-auto text-left" style="max-width: 420px; background: #ffffff; border: 1px solid #cbd5e1; font-size: 11px;">
-                                <div class="font-weight-bold text-primary mb-1"><i class="fa fa-lightbulb-o mr-1"></i> Scan Quality Guidelines:</div>
-                                <ul class="pl-3 mb-0 text-muted" style="line-height: 1.4;">
-                                    <li>Scan or photograph sheets in portrait orientation with good lighting.</li>
-                                    <li>Ensure all 4 black corner registration marks are clearly visible.</li>
-                                    <li>Blue or Black ball-point pen fills provide 100% optical accuracy.</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        {{-- Active Image View --}}
-                        <div id="omr-preview-container" class="d-none w-100 justify-content-center align-items-center">
-                            <img id="omr-preview-img" style="max-width: 100%; max-height: 600px; border: 1px solid #cbd5e1; box-shadow: 0 4px 14px rgba(0,0,0,0.15); border-radius: 2px; background: #ffffff;">
+                            <i class="fa fa-info-circle mr-1"></i> <span id="omr-status-text">Select an exam to enable sheet upload.</span>
                         </div>
                     </div>
                 </div>
@@ -589,39 +514,108 @@
         </div>
 
         {{-- ======================================================== --}}
-        {{-- 4. Batch Result Queue & Grading Ledger                   --}}
+        {{-- 4. Staging / Preview Workspace (THE CORE REQUIREMENT)     --}}
+        {{-- ======================================================== --}}
+        <div class="omr-card mt-1">
+            <div class="omr-card-header" style="background: #ffffff; border-bottom: 2px solid #002C54;">
+                <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                    <h2 class="omr-card-title" style="font-size: 14px;">
+                        <i class="fa fa-table text-primary"></i> 3. Staged OMR Sheets Preview &amp; Verification
+                    </h2>
+                    <span class="badge badge-light px-2 py-1 border" id="badge-staged-total" style="font-size: 11px;">
+                        Total Staged: <b id="count-staged-total">0</b>
+                    </span>
+                    <span class="badge badge-success px-2 py-1" id="badge-staged-matched" style="font-size: 11px;">
+                        Matched: <b id="count-staged-matched">0</b>
+                    </span>
+                    <span class="badge badge-warning px-2 py-1 text-dark" id="badge-staged-unmatched" style="font-size: 11px;">
+                        Needs Review: <b id="count-staged-unmatched">0</b>
+                    </span>
+                </div>
+                
+                {{-- Final Submit & Clear Buttons --}}
+                <div class="d-flex align-items-center" style="gap: 6px;">
+                    <button type="button" id="btn-clear-staged" class="btn btn-outline-danger btn-sm" style="font-size: 11px; font-weight: 600; padding: 4px 10px;" onclick="clearAllStaged();" disabled>
+                        <i class="fa fa-trash-o mr-1"></i> Clear List
+                    </button>
+                    <button type="button" id="btn-final-submit" class="btn btn-success btn-sm px-3" style="font-size: 12px; font-weight: 700; height: 32px;" onclick="confirmFinalSubmit();" disabled>
+                        <i class="fa fa-check-circle mr-1"></i> Final Submit &amp; Save Marks (<span id="btn-save-count">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                <table class="omr-table" id="omr-staging-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px; text-align: center;">
+                                <input type="checkbox" id="staged-select-all" checked onchange="toggleSelectAllStaged(this);">
+                            </th>
+                            <th style="width: 40px; text-align: center;">#</th>
+                            <th style="width: 50px; text-align: center;">Sheet</th>
+                            <th style="min-width: 130px;">File Name</th>
+                            <th style="min-width: 120px;">Detected Roll #</th>
+                            <th style="min-width: 180px;">Student Match</th>
+                            <th style="min-width: 110px; text-align: center;">Questions</th>
+                            <th style="min-width: 130px; text-align: center;">Score &amp; Marks</th>
+                            <th style="min-width: 90px; text-align: center;">Status</th>
+                            <th style="min-width: 120px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="omr-staging-tbody">
+                        <tr id="staging-empty-row">
+                            <td colspan="10" class="text-center py-4 text-muted">
+                                <i class="fa fa-file-image-o mr-1" style="font-size: 18px; color: #94a3b8; display: block; margin-bottom: 4px;"></i>
+                                No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-2 border-top bg-light d-flex justify-content-between align-items-center text-muted" style="font-size: 11px;">
+                <span>
+                    <i class="fa fa-info-circle text-primary mr-1"></i> 
+                    <b>Note:</b> Data is only staged in memory and will <u>NOT</u> be saved to database or student exam mark sheets until you click <b>"Final Submit &amp; Save Marks"</b>.
+                </span>
+                <span id="staging-summary-marks" class="font-weight-bold text-dark"></span>
+            </div>
+        </div>
+
+        {{-- ======================================================== --}}
+        {{-- 5. Saved History Ledger (Previously Committed Records)   --}}
         {{-- ======================================================== --}}
         <div class="omr-card mt-2">
             <div class="omr-card-header">
                 <div>
                     <h2 class="omr-card-title">
-                        <i class="fa fa-list-alt text-primary"></i> Batch Result Queue &amp; Marks Grading Ledger
+                        <i class="fa fa-history text-secondary"></i> 4. Saved Evaluations History &amp; Marks Ledger
                     </h2>
-                    <p class="omr-card-desc">Real-time ledger of evaluated student OMR sheets recorded into database &amp; exam marks.</p>
+                    <p class="omr-card-desc">Records previously submitted and committed to exam marks in the database.</p>
                 </div>
-                <span id="omr-batch-progress" class="badge badge-primary px-2 py-1" style="font-size: 11px; background: #002C54;">
-                    {{ $recentScans->count() }} Scans in Ledger
+                <span id="omr-saved-count-badge" class="badge badge-primary px-2 py-1" style="font-size: 11px; background: #002C54;">
+                    {{ $recentScans->count() }} Records Saved
                 </span>
             </div>
 
-            <div class="table-responsive">
-                <table class="omr-batch-table">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="omr-table">
                     <thead>
                         <tr>
-                            <th style="min-width: 140px;">Source File</th>
+                            <th style="min-width: 130px;">Source File</th>
                             <th style="min-width: 160px;">Student Profile</th>
                             <th style="min-width: 140px;">Examination</th>
                             <th style="text-align: center; min-width: 70px;">Right</th>
                             <th style="text-align: center; min-width: 70px;">Wrong</th>
                             <th style="text-align: center; min-width: 70px;">Left</th>
-                            <th style="min-width: 90px;">Total Marks</th>
-                            <th style="min-width: 90px;">Obtained</th>
-                            <th style="min-width: 90px;">Percentage</th>
+                            <th style="min-width: 85px;">Total</th>
+                            <th style="min-width: 85px;">Obtained</th>
+                            <th style="min-width: 85px;">Percentage</th>
                             <th style="text-align: center; min-width: 60px;">Rank</th>
-                            <th style="text-align: right; min-width: 130px;">Status</th>
+                            <th style="text-align: right; min-width: 120px;">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="omr-batch-tbody">
+                    <tbody id="omr-saved-tbody">
                         @forelse($recentScans as $scan)
                             @php
                                 $stName = $scan->student ? ($scan->student->first_name . ' ' . $scan->student->last_name) : 'Student #' . $scan->unique_id;
@@ -644,19 +638,19 @@
                                 <td class="font-mono font-weight-bold">{{ number_format($scan->total_marks, 2) }}</td>
                                 <td class="font-mono font-weight-bold text-success">{{ number_format($scan->obtained_marks, 2) }}</td>
                                 <td>
-                                    <span class="badge-pill-status badge-correct">{{ $scan->percentage }}%</span>
+                                    <span class="badge-pill-status badge-matched">{{ $scan->percentage }}%</span>
                                 </td>
                                 <td class="text-center font-weight-bold text-primary">#{{ $scan->rank ?: 1 }}</td>
                                 <td class="text-right">
-                                    <span class="badge-pill-status badge-uploaded" title="Marks successfully recorded in student exam file">
-                                        <i class="fa fa-check-circle"></i> Marks Uploaded
+                                    <span class="badge-pill-status badge-saved" title="Marks recorded in student exam file">
+                                        <i class="fa fa-check-circle"></i> Saved
                                     </span>
                                 </td>
                             </tr>
                         @empty
-                            <tr id="omr-batch-empty-row">
-                                <td colspan="11" class="text-center py-4 text-muted">
-                                    <i class="fa fa-folder-open-o mr-1"></i> No student OMR sheets processed yet in this session.
+                            <tr id="omr-saved-empty-row">
+                                <td colspan="11" class="text-center py-3 text-muted">
+                                    <i class="fa fa-folder-open-o mr-1"></i> No saved evaluations found for this exam yet.
                                 </td>
                             </tr>
                         @endforelse
@@ -668,8 +662,79 @@
     </div>
 </div>
 
-{{-- Hidden HTML5 Canvas for Local Optical Recognition Analysis --}}
-<canvas id="omr-analysis-canvas" width="800" height="1100" style="display: none;"></canvas>
+{{-- ======================================================== --}}
+{{-- MODAL 1: Visual Annotated OMR Sheet Inspection           --}}
+{{-- ======================================================== --}}
+<div class="modal fade" id="modalAnnotatedSheet" tabindex="-1" role="dialog" aria-labelledby="modalAnnotatedSheetLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 900px;" role="document">
+        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1;">
+            <div class="modal-header py-2 px-3" style="background: #002C54; color: #ffffff;">
+                <h5 class="modal-title font-weight-bold" id="modalAnnotatedSheetLabel" style="font-size: 13px;">
+                    <i class="fa fa-eye mr-1"></i> Annotated OMR Sheet Inspection
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-2 text-center" style="background: #f8fafc; max-height: 80vh; overflow-y: auto;">
+                <div id="modal-img-spinner" class="py-5 text-muted d-none">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2 font-weight-bold">Loading annotated preview...</p>
+                </div>
+                <img id="modal-annotated-img" src="" alt="Annotated OMR" style="max-width: 100%; height: auto; border: 1px solid #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 2px;">
+                <div class="mt-2 text-muted small" id="modal-annotated-info"></div>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light d-flex justify-content-between">
+                <span class="text-muted small"><i class="fa fa-info-circle mr-1"></i> Green circles indicate AI-detected bubble fills and registration bounding boxes.</span>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ======================================================== --}}
+{{-- MODAL 2: Question-by-Question Answers Matrix             --}}
+{{-- ======================================================== --}}
+<div class="modal fade" id="modalAnswersGrid" tabindex="-1" role="dialog" aria-labelledby="modalAnswersGridLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 650px;" role="document">
+        <div class="modal-content" style="border-radius: 4px; border: 1px solid #cbd5e1;">
+            <div class="modal-header py-2 px-3" style="background: #002C54; color: #ffffff;">
+                <h5 class="modal-title font-weight-bold" id="modalAnswersGridLabel" style="font-size: 13px;">
+                    <i class="fa fa-list-ol mr-1"></i> Extracted Answers Breakdown
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto;">
+                <div class="p-2 mb-2 rounded bg-light border d-flex justify-content-between align-items-center" style="font-size: 11.5px;">
+                    <div>
+                        <span class="text-muted">Student:</span> <b id="modal-ans-student">--</b>
+                        <span class="text-muted ml-2">Roll #:</span> <b class="font-mono text-primary" id="modal-ans-roll">--</b>
+                    </div>
+                    <div>
+                        <span class="text-muted">Score:</span> <b class="text-success" id="modal-ans-score">--</b>
+                    </div>
+                </div>
+                <table class="omr-table" style="font-size: 11px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">#</th>
+                            <th style="width: 25%; text-align: center;">Marked Bubble</th>
+                            <th style="width: 25%; text-align: center;">Key Answer</th>
+                            <th style="width: 30%; text-align: right;">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-answers-tbody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
 
@@ -691,343 +756,166 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const kpiQuestions = document.getElementById('kpi-exam-questions');
     const kpiCode = document.getElementById('kpi-exam-code');
-    const kpiEvaluatedToday = document.getElementById('kpi-evaluated-today');
-    const kpiAvgScore = document.getElementById('kpi-avg-score');
+    const kpiTodayScans = document.getElementById('kpi-today-scans');
     const kpiTotalScans = document.getElementById('kpi-total-scans');
 
-    const rollResult = document.getElementById('omr-roll-result');
-    const studentName = document.getElementById('omr-student-name');
-    const uploadStatusBadge = document.getElementById('omr-upload-status-badge');
-    const scoreResult = document.getElementById('omr-score-result');
-    const totalMarksResult = document.getElementById('omr-total-marks');
-    const percentageBadge = document.getElementById('omr-percentage-badge');
-    const countCorrect = document.getElementById('omr-count-correct');
-    const countIncorrect = document.getElementById('omr-count-incorrect');
-    const countBlank = document.getElementById('omr-count-blank');
-    const confidencePill = document.getElementById('omr-confidence-pill');
+    const progressWrapper = document.getElementById('omr-batch-progress-wrapper');
+    const progressBar = document.getElementById('omr-batch-progress-bar');
+    const progressStatusText = document.getElementById('omr-batch-status-text');
+    const progressPercentText = document.getElementById('omr-batch-percent-text');
 
-    const matrixBody = document.getElementById('omr-matrix-body');
-    const batchTbody = document.getElementById('omr-batch-tbody');
-    const batchProgress = document.getElementById('omr-batch-progress');
+    const stagingTbody = document.getElementById('omr-staging-tbody');
+    const countStagedTotal = document.getElementById('count-staged-total');
+    const countStagedMatched = document.getElementById('count-staged-matched');
+    const countStagedUnmatched = document.getElementById('count-staged-unmatched');
+    const btnSaveCount = document.getElementById('btn-save-count');
+    const btnFinalSubmit = document.getElementById('btn-final-submit');
+    const btnClearStaged = document.getElementById('btn-clear-staged');
+    const stagingSummaryMarks = document.getElementById('staging-summary-marks');
 
-    const previewEmpty = document.getElementById('omr-preview-empty');
-    const previewContainer = document.getElementById('omr-preview-container');
-    const previewImg = document.getElementById('omr-preview-img');
-    const previewBadge = document.getElementById('omr-preview-badge');
+    const modalAnnotatedImg = document.getElementById('modal-annotated-img');
+    const modalAnnotatedInfo = document.getElementById('modal-annotated-info');
+    const modalAnswersTbody = document.getElementById('modal-answers-tbody');
+    const modalAnsStudent = document.getElementById('modal-ans-student');
+    const modalAnsRoll = document.getElementById('modal-ans-roll');
+    const modalAnsScore = document.getElementById('modal-ans-score');
 
-    const analysisCanvas = document.getElementById('omr-analysis-canvas');
-    const ctx = analysisCanvas.getContext('2d', { willReadFrequently: true });
+    // In-memory staged sheets store: Map<temp_id, sheetObject>
+    const stagedSheets = new Map();
+    let isProcessingBatch = false;
 
-    let activePreviewUrl = null;
+    // Helper: get selected option element
+    const getSelectedExamOption = () => examSelect.options[examSelect.selectedIndex];
 
+    // Trigger file chooser
     window.triggerFileInput = function () {
         if (!examSelect.value) {
             alert('Please select a target examination first.');
             examSelect.focus();
             return;
         }
+        if (isProcessingBatch) return;
         fileInput.click();
     };
 
-    const getSelectedExamOption = () => examSelect.options[examSelect.selectedIndex];
-    const getExamTotalQuestions = () => parseInt(getSelectedExamOption()?.dataset.questions || '50', 10) || 50;
-
-    // Reset current sheet preview & evaluation panel
-    function resetEvaluationPanel() {
-        rollResult.textContent = '------';
-        studentName.textContent = 'Unregistered Student';
-        uploadStatusBadge.innerHTML = '<span class="badge badge-light text-muted" style="font-size: 9.5px;"><i class="fa fa-clock-o mr-1"></i> Awaiting Scan</span>';
-        scoreResult.textContent = '0.00';
-        totalMarksResult.textContent = '/ 0.00';
-        percentageBadge.textContent = '0%';
-        countCorrect.textContent = '0';
-        countIncorrect.textContent = '0';
-        countBlank.textContent = '0';
-        confidencePill.textContent = 'Awaiting Scan';
-        confidencePill.className = 'badge badge-secondary px-2 py-1';
-        previewBadge.textContent = 'No sheet loaded';
-        previewBadge.className = 'badge badge-light px-2 py-1';
-
-        if (activePreviewUrl) {
-            URL.revokeObjectURL(activePreviewUrl);
-            activePreviewUrl = null;
-        }
-        previewImg.removeAttribute('src');
-        previewContainer.classList.add('d-none');
-        previewContainer.classList.remove('d-flex');
-        previewEmpty.classList.remove('d-none');
-
-        renderEmptyMatrix();
-    }
-
-    // Render initial empty question matrix
-    function renderEmptyMatrix() {
-        const total = examSelect.value ? getExamTotalQuestions() : 0;
-        if (!total) {
-            matrixBody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center py-3 text-muted">
-                        <i class="fa fa-info-circle mr-1"></i> Select an exam above to load the question matrix.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        let html = '';
-        for (let i = 1; i <= total; i++) {
-            html += `
-                <tr>
-                    <td class="font-weight-bold text-dark">Question ${i}</td>
-                    <td class="text-center font-mono font-weight-bold text-muted">—</td>
-                    <td class="text-center font-mono font-weight-bold text-muted">—</td>
-                    <td class="text-right">
-                        <span class="badge-pill-status badge-blank">Pending Scan</span>
-                    </td>
-                </tr>
-            `;
-        }
-        matrixBody.innerHTML = html;
-    }
-
-    // Exam Selection Change
+    // Update Exam details when dropdown changes
     examSelect.addEventListener('change', function () {
         const opt = getSelectedExamOption();
-        const hasExam = !!opt.value;
+        if (this.value && opt) {
+            badgeTitle.textContent = opt.dataset.name || '';
+            badgeCode.textContent = opt.dataset.code || '';
+            badgeQuestions.innerHTML = `<i class="fa fa-list-ol mr-1"></i> ${opt.dataset.questions || '50'} Questions`;
+            badgeScheme.innerHTML = `<i class="fa fa-tag mr-1"></i> Marks: +${opt.dataset.correct || '1'}/-${opt.dataset.incorrect || '0'}`;
+            badgeBox.classList.remove('d-none');
 
-        fileInput.disabled = !hasExam;
+            kpiQuestions.textContent = `${opt.dataset.questions || '50'} Q`;
+            kpiCode.textContent = opt.dataset.code || '';
 
-        if (hasExam) {
             dropzone.classList.remove('disabled');
             dropzone.classList.add('active');
-            dropzoneTitle.textContent = 'Drop or Click to Select OMR Sheet Image(s)';
-            statusText.textContent = `Ready for ${opt.dataset.code} (${opt.dataset.questions} Questions). Select sheet image(s).`;
+            dropzoneTitle.textContent = 'Click or Drop OMR Sheet Image(s) Here';
+            fileInput.disabled = false;
+
+            statusText.textContent = `Target Exam: ${opt.dataset.name}. Ready to upload OMR sheets.`;
             statusBox.style.background = '#f0fdf4';
             statusBox.style.borderColor = '#bbf7d0';
             statusBox.style.color = '#166534';
-
-            badgeBox.classList.remove('d-none');
-            badgeTitle.textContent = opt.dataset.name;
-            badgeCode.textContent = opt.dataset.code;
-            badgeQuestions.innerHTML = `<i class="fa fa-list-ol mr-1"></i> ${opt.dataset.questions} Questions`;
-            badgeScheme.innerHTML = `<i class="fa fa-tag mr-1"></i> Marks: +${opt.dataset.correct}/-${opt.dataset.incorrect}`;
-
-            kpiQuestions.textContent = `${opt.dataset.questions} Q`;
-            kpiCode.textContent = opt.dataset.code;
-
-            resetEvaluationPanel();
         } else {
-            dropzone.classList.add('disabled');
-            dropzone.classList.remove('active');
-            dropzoneTitle.textContent = 'Select an examination above first';
-            statusText.textContent = 'Select an exam to begin optical scanning.';
-            statusBox.style.background = '#f1f5f9';
-            statusBox.style.borderColor = '#e2e8f0';
-            statusBox.style.color = '#475569';
-
             badgeBox.classList.add('d-none');
             kpiQuestions.textContent = '--';
             kpiCode.textContent = 'None';
+            dropzone.classList.add('disabled');
+            dropzone.classList.remove('active');
+            dropzoneTitle.textContent = 'Select an examination on the left first';
+            fileInput.disabled = true;
 
-            resetEvaluationPanel();
+            statusText.textContent = 'Select an exam to enable sheet upload.';
+            statusBox.style.background = '#f1f5f9';
+            statusBox.style.borderColor = '#e2e8f0';
+            statusBox.style.color = '#475569';
         }
     });
 
-    // Drag and Drop listeners
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropzone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!examSelect.value) return;
-            dropzone.style.background = '#e0f2fe';
+    // Drag and Drop handlers
+    dropzone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        if (examSelect.value && !isProcessingBatch) {
             dropzone.style.borderColor = '#0284c7';
-        }, false);
+            dropzone.style.background = '#dbeafe';
+        }
     });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropzone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropzone.style.background = '';
-            dropzone.style.borderColor = '';
-        }, false);
+    dropzone.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        dropzone.style.borderColor = '#93c5fd';
+        dropzone.style.background = '#f0f7ff';
     });
-
-    dropzone.addEventListener('drop', (e) => {
-        if (!examSelect.value) return;
+    dropzone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropzone.style.borderColor = '#93c5fd';
+        dropzone.style.background = '#f0f7ff';
+        if (!examSelect.value || isProcessingBatch) return;
         const dt = e.dataTransfer;
-        const files = dt.files;
-        if (files && files.length > 0) {
-            handleUploadedFiles(Array.from(files));
+        if (dt && dt.files && dt.files.length) {
+            processFilesQueue(Array.from(dt.files));
         }
     });
 
+    // File input change handler
     fileInput.addEventListener('change', function () {
-        if (this.files && this.files.length > 0) {
-            handleUploadedFiles(Array.from(this.files));
+        if (this.files && this.files.length) {
+            processFilesQueue(Array.from(this.files));
         }
     });
 
-    // -------------------------------------------------------------
-    // Optical Bubble Recognition Engine (Canvas Sampling)
-    // -------------------------------------------------------------
-    function analyzeSheetOptical(imgElem, totalQuestions) {
-        ctx.clearRect(0, 0, 800, 1100);
-        ctx.drawImage(imgElem, 0, 0, 800, 1100);
-
-        function getDarkness(cx, cy, r) {
-            const size = Math.max(1, Math.round(r * 2));
-            const startX = Math.max(0, Math.round(cx - r));
-            const startY = Math.max(0, Math.round(cy - r));
-            let imgData;
-            try {
-                imgData = ctx.getImageData(startX, startY, size, size);
-            } catch (err) {
-                return 0;
-            }
-            const data = imgData.data;
-            let totalDarkness = 0;
-            let count = 0;
-            const rSq = r * r;
-
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    const dx = x - r;
-                    const dy = y - r;
-                    if (dx * dx + dy * dy <= rSq) {
-                        const idx = (y * size + x) * 4;
-                        const brightness = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-                        totalDarkness += (255 - brightness);
-                        count++;
-                    }
-                }
-            }
-            return count > 0 ? (totalDarkness / count) : 0;
-        }
-
-        // 1. Roll Number Optical Recognition (6 columns)
-        let detectedRoll = '';
-        for (let col = 0; col < 6; col++) {
-            const cx = 120 + col * 110;
-            let maxDarkness = -1;
-            let detectedDigit = -1;
-            let sumDarkness = 0;
-
-            for (let digit = 0; digit < 10; digit++) {
-                const cy = 245 + digit * 15.5;
-                const darkness = getDarkness(cx, cy, 5.5);
-                sumDarkness += darkness;
-                if (darkness > maxDarkness) {
-                    maxDarkness = darkness;
-                    detectedDigit = digit;
-                }
-            }
-
-            const avgDarkness = sumDarkness / 10;
-            if (maxDarkness > 75 && (maxDarkness - avgDarkness) > 25) {
-                detectedRoll += String(detectedDigit);
-            } else {
-                detectedRoll += '0';
-            }
-        }
-
-        // 2. Question Bubbles Recognition
-        const options = ['A', 'B', 'C', 'D'];
-        const detectedAnswers = [];
-
-        for (let q = 1; q <= totalQuestions; q++) {
-            const block = Math.floor((q - 1) / 25);
-            const row = ((q - 1) % 25) + 1;
-            const bx = 70 + block * 168.5;
-            const qy = 486 + (row - 1) * 21.8;
-
-            let maxOptionDarkness = -1;
-            let bestOption = null;
-            let sumOptionDarkness = 0;
-
-            for (let opt = 0; opt < 4; opt++) {
-                const cx = bx + 48 + opt * 26;
-                const d = getDarkness(cx, qy, 6.5);
-                sumOptionDarkness += d;
-                if (d > maxOptionDarkness) {
-                    maxOptionDarkness = d;
-                    bestOption = options[opt];
-                }
-            }
-
-            const avgOptDarkness = sumOptionDarkness / 4;
-            if (maxOptionDarkness > 75 && (maxOptionDarkness - avgOptDarkness) > 25) {
-                detectedAnswers.push({ question: q, answer: bestOption });
-            } else {
-                detectedAnswers.push({ question: q, answer: null });
-            }
-        }
-
-        return {
-            detectedRoll: detectedRoll,
-            detectedAnswers: detectedAnswers
-        };
-    }
-
-    // Process Batch or Single Uploaded Files
-    async function handleUploadedFiles(files) {
+    // Process files sequentially or in parallel batches
+    async function processFilesQueue(files) {
         const examId = examSelect.value;
-        const totalQ = getExamTotalQuestions();
-        if (!files.length || !examId) return;
+        if (!examId || !files.length) return;
 
+        isProcessingBatch = true;
         fileInput.disabled = true;
         dropzone.classList.add('disabled');
-        let processedCount = 0;
-        document.getElementById('omr-batch-empty-row')?.remove();
+        progressWrapper.classList.remove('d-none');
 
-        for (let i = 0; i < files.length; i++) {
+        // Remove empty state placeholder row if present
+        document.getElementById('staging-empty-row')?.remove();
+
+        const totalFiles = files.length;
+        let completed = 0;
+        let successful = 0;
+
+        for (let i = 0; i < totalFiles; i++) {
             const file = files[i];
-            statusText.textContent = `Processing sheet ${i + 1} of ${files.length}: ${file.name}...`;
+            const percent = Math.round(((i) / totalFiles) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressPercentText.textContent = `${percent}%`;
+            progressStatusText.innerHTML = `<i class="fa fa-refresh fa-spin mr-1"></i> Extracting sheet ${i + 1} of ${totalFiles}: <b>${escapeHtml(file.name)}</b>...`;
 
-            // Setup preview
-            if (activePreviewUrl) URL.revokeObjectURL(activePreviewUrl);
-            activePreviewUrl = URL.createObjectURL(file);
-            previewImg.src = activePreviewUrl;
-            previewEmpty.classList.add('d-none');
-            previewContainer.classList.remove('d-none');
-            previewContainer.classList.add('d-flex');
-            previewBadge.textContent = `Evaluating: ${file.name}`;
-            previewBadge.className = 'badge badge-warning px-2 py-1';
-
-            // Insert temporary queue row in ledger
+            // Create temporary staging row
+            const tempRowId = 'temp-row-' + Math.random().toString(36).substr(2, 9);
             const tempRow = document.createElement('tr');
+            tempRow.id = tempRowId;
             tempRow.className = 'bg-light';
             tempRow.innerHTML = `
-                <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;">${file.name}</td>
-                <td colspan="9" class="text-muted"><i class="fa fa-spinner fa-spin mr-1"></i> Optical bubble extraction in progress...</td>
-                <td class="text-right text-primary font-weight-bold"><i class="fa fa-refresh fa-spin mr-1"></i> Processing</td>
+                <td class="text-center text-muted"><i class="fa fa-spinner fa-spin"></i></td>
+                <td class="text-center font-weight-bold text-muted">${stagedSheets.size + 1}</td>
+                <td class="text-center"><i class="fa fa-file-image-o text-muted"></i></td>
+                <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</td>
+                <td colspan="5" class="text-primary font-weight-bold">
+                    <i class="fa fa-circle-o-notch fa-spin mr-1"></i> Connecting to AI Extractor API (https://extractor.rusoft.in)...
+                </td>
+                <td class="text-right text-muted"><span class="badge badge-light">Extracting</span></td>
             `;
-            batchTbody.prepend(tempRow);
+            stagingTbody.appendChild(tempRow);
 
             try {
-                // Await image loading into image element for optical canvas scanning
-                await new Promise((resolve) => {
-                    if (previewImg.complete && previewImg.naturalWidth !== 0) {
-                        resolve();
-                    } else {
-                        previewImg.onload = () => resolve();
-                        previewImg.onerror = () => resolve();
-                    }
-                });
-
-                // Run optical analysis
-                const opticalData = analyzeSheetOptical(previewImg, totalQ);
-
-                // Prepare FormData
                 const formData = new FormData();
                 formData.append('exam_id', examId);
                 formData.append('image', file);
-                formData.append('detected_roll', opticalData.detectedRoll || '');
-                formData.append('detected_answers', JSON.stringify(opticalData.detectedAnswers || []));
 
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-                const response = await fetch("{{ url('upload_omr/extract') }}", {
+                const response = await fetch("{{ url('upload_omr/process_sheet') }}", {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
@@ -1039,125 +927,493 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const data = await response.json();
                 if (!response.ok || data.status === 'error') {
-                    throw new Error(data.message || 'Evaluation failed.');
+                    throw new Error(data.message || 'Extractor service failed.');
                 }
 
-                const resData = data.result;
-                const answers = data.answers || [];
+                const sheet = data.sheet;
+                sheet.selected = true; // default checked for final submit
+                stagedSheets.set(sheet.temp_id, sheet);
 
-                // 1. Update Live Summary Panels
-                rollResult.textContent = data.roll_number || resData.unique_id;
-                studentName.textContent = data.student_name || 'Unregistered Student';
-
-                if (data.marks_uploaded) {
-                    uploadStatusBadge.innerHTML = '<span class="badge-pill-status badge-uploaded"><i class="fa fa-check-circle"></i> Marks Uploaded to Exam Record</span>';
-                } else if (data.admission_matched) {
-                    uploadStatusBadge.innerHTML = '<span class="badge-pill-status badge-correct"><i class="fa fa-user mr-1"></i> Student Matched</span>';
-                } else {
-                    uploadStatusBadge.innerHTML = '<span class="badge-pill-status badge-blank"><i class="fa fa-exclamation-triangle mr-1"></i> Unregistered Roll #</span>';
-                }
-
-                scoreResult.textContent = resData.obtained_marks;
-                totalMarksResult.textContent = `/ ${resData.total_marks}`;
-                percentageBadge.textContent = `${resData.percentage}%`;
-                countCorrect.textContent = resData.correct_answers;
-                countIncorrect.textContent = resData.incorrect_answers;
-                countBlank.textContent = resData.blank_answers;
-
-                confidencePill.textContent = '100% Calibrated';
-                confidencePill.className = 'badge badge-success px-2 py-1';
-                previewBadge.textContent = `Graded & Saved: ${resData.unique_id}`;
-                previewBadge.className = 'badge badge-success px-2 py-1';
-
-                // 2. Render Matrix Table Rows
-                let matrixHtml = '';
-                answers.forEach(item => {
-                    let statusBadge = '';
-                    if (item.is_correct) {
-                        statusBadge = `<span class="badge-pill-status badge-correct"><i class="fa fa-check"></i> Right (+1)</span>`;
-                    } else if (item.status === 'blank') {
-                        statusBadge = `<span class="badge-pill-status badge-blank">Blank (0)</span>`;
-                    } else {
-                        statusBadge = `<span class="badge-pill-status badge-incorrect"><i class="fa fa-times"></i> Wrong</span>`;
-                    }
-
-                    matrixHtml += `
-                        <tr>
-                            <td class="font-weight-bold text-dark">Question ${item.question}</td>
-                            <td class="text-center font-mono font-weight-bold ${item.is_correct ? 'text-success' : (item.answer ? 'text-danger' : 'text-muted')}">${item.answer || '—'}</td>
-                            <td class="text-center font-mono font-weight-bold text-primary">${item.correct_answer || '—'}</td>
-                            <td class="text-right">${statusBadge}</td>
-                        </tr>
-                    `;
-                });
-                matrixBody.innerHTML = matrixHtml;
-
-                // 3. Update Ledger Queue Row
-                tempRow.className = '';
-                tempRow.id = `scan-row-${resData.id}`;
-                tempRow.innerHTML = `
-                    <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${file.name}">
-                        <i class="fa fa-file-image-o text-muted mr-1"></i> ${file.name}
-                    </td>
-                    <td>
-                        <span class="font-mono font-weight-bold text-primary">${resData.unique_id}</span>
-                        <div class="text-muted small font-weight-bold">${resData.student_name}</div>
-                    </td>
-                    <td>
-                        <span class="font-weight-bold text-dark">${getSelectedExamOption()?.dataset.name || 'Exam'}</span>
-                        <div class="text-muted small font-mono">${getSelectedExamOption()?.dataset.code || ''}</div>
-                    </td>
-                    <td class="text-center font-weight-bold text-success">${resData.correct_answers}</td>
-                    <td class="text-center font-weight-bold text-danger">${resData.incorrect_answers}</td>
-                    <td class="text-center text-muted">${resData.blank_answers}</td>
-                    <td class="font-mono font-weight-bold">${resData.total_marks}</td>
-                    <td class="font-mono font-weight-bold text-success">${resData.obtained_marks}</td>
-                    <td>
-                        <span class="badge-pill-status badge-correct">${resData.percentage}%</span>
-                    </td>
-                    <td class="text-center font-weight-bold text-primary">#${resData.rank}</td>
-                    <td class="text-right">
-                        <span class="badge-pill-status badge-uploaded" title="Marks successfully recorded in student exam file">
-                            <i class="fa fa-check-circle"></i> Marks Uploaded
-                        </span>
-                    </td>
-                `;
-
-                processedCount++;
-                if (kpiEvaluatedToday) {
-                    const currentToday = parseInt(kpiEvaluatedToday.textContent.replace(/\D/g, '') || '0', 10);
-                    kpiEvaluatedToday.textContent = (currentToday + 1);
-                }
-                if (kpiTotalScans) {
-                    const currentTotal = parseInt(kpiTotalScans.textContent.replace(/\D/g, '') || '0', 10);
-                    kpiTotalScans.textContent = (currentTotal + 1);
-                }
+                // Render real staged row
+                renderStagedRow(sheet, tempRow);
+                successful++;
             } catch (err) {
                 tempRow.className = 'bg-light text-danger';
                 tempRow.innerHTML = `
-                    <td class="font-weight-bold text-truncate" style="max-width: 140px;">${file.name}</td>
-                    <td colspan="9" class="text-danger font-weight-bold"><i class="fa fa-exclamation-circle mr-1"></i> ${err.message}</td>
-                    <td class="text-right"><span class="badge-pill-status badge-incorrect">Failed</span></td>
+                    <td class="text-center text-danger"><i class="fa fa-times-circle"></i></td>
+                    <td class="text-center font-weight-bold text-danger">${stagedSheets.size + 1}</td>
+                    <td class="text-center"><i class="fa fa-file-image-o text-danger"></i></td>
+                    <td class="font-weight-bold text-danger text-truncate" style="max-width: 140px;">${escapeHtml(file.name)}</td>
+                    <td colspan="5" class="text-danger small font-weight-bold">
+                        <i class="fa fa-exclamation-triangle mr-1"></i> ${escapeHtml(err.message)}
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-xs btn-outline-danger" onclick="document.getElementById('${tempRowId}')?.remove(); updateStagingCounters();">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
                 `;
             }
 
-            batchProgress.textContent = `${processedCount} / ${files.length} Processed`;
+            completed++;
+            updateStagingCounters();
         }
 
-        fileInput.disabled = false;
+        // Finish batch
+        progressBar.style.width = '100%';
+        progressPercentText.textContent = '100%';
+        progressStatusText.innerHTML = `<i class="fa fa-check-circle text-success mr-1"></i> Extracted ${successful} of ${totalFiles} sheets successfully! Review and finalize below.`;
+        
+        setTimeout(() => {
+            progressWrapper.classList.add('d-none');
+        }, 3000);
+
         fileInput.value = '';
+        fileInput.disabled = false;
         dropzone.classList.remove('disabled');
         dropzone.classList.add('active');
-
-        statusText.textContent = `Batch complete: ${processedCount} of ${files.length} OMR sheet(s) successfully evaluated & marks uploaded to exam record.`;
-        statusBox.style.background = '#f0fdf4';
-        statusBox.style.borderColor = '#bbf7d0';
-        statusBox.style.color = '#166534';
+        isProcessingBatch = false;
     }
 
-    // Initialize matrix if exam is preloaded
-    if (examSelect.value) {
-        renderEmptyMatrix();
+    // Render a single staged sheet row
+    function renderStagedRow(sheet, existingRow = null) {
+        const row = existingRow || document.createElement('tr');
+        row.id = `staged-row-${sheet.temp_id}`;
+        row.className = sheet.student?.is_matched ? '' : 'row-unmatched';
+
+        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
+        const student = sheet.student || {};
+        const evalData = sheet.evaluation || {};
+        const isMatched = !!student.is_matched;
+
+        const studentHtml = isMatched ? `
+            <div>
+                <span class="badge-pill-status badge-matched">
+                    <i class="fa fa-user"></i> ${escapeHtml(student.name)}
+                </span>
+                <div class="text-muted small mt-1 font-weight-bold">
+                    Class: ${escapeHtml(student.class_name || 'N/A')} ${student.father_name ? '| S/O ' + escapeHtml(student.father_name) : ''}
+                </div>
+            </div>
+        ` : `
+            <div>
+                <span class="badge-pill-status badge-unmatched">
+                    <i class="fa fa-exclamation-triangle"></i> Unmatched Roll #
+                </span>
+                <div class="text-danger small font-italic mt-1">Check roll number or link student</div>
+            </div>
+        `;
+
+        const scoreHtml = `
+            <div>
+                <span class="font-weight-bold text-success" style="font-size: 13px;">${evalData.obtained_marks}</span>
+                <span class="text-muted font-mono small">/ ${evalData.total_marks}</span>
+                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">${evalData.percentage}%</span>
+                <div class="text-muted small mt-1">
+                    <span class="text-success font-weight-bold">🟢 ${evalData.correct_answers}</span> &bull;
+                    <span class="text-danger font-weight-bold">🔴 ${evalData.incorrect_answers}</span> &bull;
+                    <span class="text-muted font-weight-bold">⚪ ${evalData.blank_answers}</span>
+                </div>
+            </div>
+        `;
+
+        row.innerHTML = `
+            <td class="text-center">
+                <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" ${sheet.selected !== false ? 'checked' : ''} onchange="toggleSheetSelect('${sheet.temp_id}', this.checked);">
+            </td>
+            <td class="text-center font-weight-bold text-muted staged-index"></td>
+            <td class="text-center">
+                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect annotated scan">
+            </td>
+            <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(sheet.source_filename)}">
+                <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(sheet.source_filename)}
+            </td>
+            <td>
+                <div class="input-group input-group-sm" style="max-width: 130px;">
+                    <input type="text" class="form-control form-control-sm font-mono font-weight-bold text-primary roll-input" 
+                           value="${escapeHtml(sheet.roll_number || '')}" 
+                           placeholder="Enter Roll #"
+                           style="height: 26px; font-size: 11.5px; border-color: #cbd5e1;"
+                           onchange="handleRollNumberChange('${sheet.temp_id}', this.value);">
+                </div>
+            </td>
+            <td id="student-cell-${sheet.temp_id}">
+                ${studentHtml}
+            </td>
+            <td class="text-center">
+                <div class="font-weight-bold text-dark">${sheet.summary?.attempted || 0} / ${sheet.summary?.total_questions || 50}</div>
+                <div class="text-muted small">Blank: ${sheet.summary?.unattempted || 0}</div>
+            </td>
+            <td class="text-center">
+                ${scoreHtml}
+            </td>
+            <td class="text-center">
+                <span class="badge-pill-status badge-staged">
+                    <i class="fa fa-clock-o"></i> Staged
+                </span>
+            </td>
+            <td class="text-right" style="white-space: nowrap;">
+                <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Inspect Annotated Sheet & Bubbles">
+                    <i class="fa fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-info mr-1" onclick="viewAnswersModal('${sheet.temp_id}');" title="View Question-by-Question Matrix">
+                    <i class="fa fa-list"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-danger" onclick="removeStagedSheet('${sheet.temp_id}');" title="Remove Sheet from Staging">
+                    <i class="fa fa-trash-o"></i>
+                </button>
+            </td>
+        `;
+
+        if (!existingRow) {
+            stagingTbody.appendChild(row);
+        }
+        reindexStagedRows();
+    }
+
+    // Reindex rows # column
+    function reindexStagedRows() {
+        const rows = stagingTbody.querySelectorAll('tr[id^="staged-row-"]');
+        rows.forEach((r, idx) => {
+            const idxCell = r.querySelector('.staged-index');
+            if (idxCell) idxCell.textContent = (idx + 1);
+        });
+    }
+
+    // Update Staging summary counters & enable/disable Final Submit button
+    function updateStagingCounters() {
+        const total = stagedSheets.size;
+        let matched = 0;
+        let unmatched = 0;
+        let selectedCount = 0;
+        let sumMarks = 0;
+
+        stagedSheets.forEach(s => {
+            if (s.student?.is_matched) matched++;
+            else unmatched++;
+            if (s.selected !== false) selectedCount++;
+            sumMarks += parseFloat(s.evaluation?.obtained_marks || 0);
+        });
+
+        countStagedTotal.textContent = total;
+        countStagedMatched.textContent = matched;
+        countStagedUnmatched.textContent = unmatched;
+        btnSaveCount.textContent = selectedCount;
+
+        if (selectedCount > 0 && !isProcessingBatch) {
+            btnFinalSubmit.disabled = false;
+            btnFinalSubmit.className = 'btn btn-success btn-sm px-3 font-weight-bold';
+        } else {
+            btnFinalSubmit.disabled = true;
+            btnFinalSubmit.className = 'btn btn-secondary btn-sm px-3';
+        }
+
+        btnClearStaged.disabled = (total === 0 || isProcessingBatch);
+
+        if (total > 0) {
+            const avg = (sumMarks / total).toFixed(2);
+            stagingSummaryMarks.innerHTML = `Staged Average Score: <span class="text-success font-weight-bold">${avg} Marks</span>`;
+        } else {
+            stagingSummaryMarks.innerHTML = '';
+            if (!stagingTbody.querySelector('#staging-empty-row')) {
+                stagingTbody.innerHTML = `
+                    <tr id="staging-empty-row">
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            <i class="fa fa-file-image-o mr-1" style="font-size: 18px; color: #94a3b8; display: block; margin-bottom: 4px;"></i>
+                            No sheets staged yet. Upload OMR sheets above to view extracted data and verify before final submit.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    // Toggle individual sheet selection
+    window.toggleSheetSelect = function (tempId, isSelected) {
+        const sheet = stagedSheets.get(tempId);
+        if (sheet) {
+            sheet.selected = isSelected;
+            updateStagingCounters();
+        }
+    };
+
+    // Toggle Select All
+    window.toggleSelectAllStaged = function (masterCheckbox) {
+        const isChecked = masterCheckbox.checked;
+        stagedSheets.forEach(s => {
+            s.selected = isChecked;
+        });
+        stagingTbody.querySelectorAll('.staged-checkbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        updateStagingCounters();
+    };
+
+    // Remove single sheet from staging
+    window.removeStagedSheet = function (tempId) {
+        stagedSheets.delete(tempId);
+        document.getElementById(`staged-row-${tempId}`)?.remove();
+        reindexStagedRows();
+        updateStagingCounters();
+    };
+
+    // Clear all staged sheets
+    window.clearAllStaged = function () {
+        if (!confirm('Are you sure you want to clear all staged sheets? (Unsaved extractions will be discarded).')) return;
+        stagedSheets.clear();
+        stagingTbody.innerHTML = '';
+        updateStagingCounters();
+    };
+
+    // Real-time roll number change & auto-lookup
+    window.handleRollNumberChange = async function (tempId, newRoll) {
+        const sheet = stagedSheets.get(tempId);
+        if (!sheet) return;
+        sheet.roll_number = newRoll.trim();
+
+        const opt = getSelectedExamOption();
+        const classTypeId = opt ? (opt.dataset.classid || 0) : 0;
+        const cell = document.getElementById(`student-cell-${tempId}`);
+        const row = document.getElementById(`staged-row-${tempId}`);
+
+        if (cell) cell.innerHTML = '<span class="text-muted small"><i class="fa fa-spinner fa-spin mr-1"></i> Looking up student...</span>';
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const res = await fetch("{{ url('upload_omr/lookup_student') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    roll_number: sheet.roll_number,
+                    class_type_id: classTypeId
+                })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                sheet.student = data.student;
+                if (data.matched) {
+                    if (row) row.className = '';
+                    if (cell) {
+                        cell.innerHTML = `
+                            <div>
+                                <span class="badge-pill-status badge-matched">
+                                    <i class="fa fa-user"></i> ${escapeHtml(data.student.name)}
+                                </span>
+                                <div class="text-muted small mt-1 font-weight-bold">
+                                    Class: ${escapeHtml(data.student.class_name || 'N/A')} ${data.student.father_name ? '| S/O ' + escapeHtml(data.student.father_name) : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    if (row) row.className = 'row-unmatched';
+                    if (cell) {
+                        cell.innerHTML = `
+                            <div>
+                                <span class="badge-pill-status badge-unmatched">
+                                    <i class="fa fa-exclamation-triangle"></i> Unmatched Roll #
+                                </span>
+                                <div class="text-danger small font-italic mt-1">Check roll number or link student</div>
+                            </div>
+                        `;
+                    }
+                }
+                updateStagingCounters();
+            }
+        } catch (e) {
+            console.error('Lookup failed', e);
+        }
+    };
+
+    // Open Modal: Annotated Sheet Inspection
+    window.viewAnnotatedModal = function (tempId) {
+        const sheet = stagedSheets.get(tempId);
+        if (!sheet) return;
+
+        const src = sheet.annotated_image_base64 || sheet.image_url;
+        modalAnnotatedImg.src = src;
+        modalAnnotatedInfo.innerHTML = `
+            <b>File:</b> ${escapeHtml(sheet.source_filename)} &bull; 
+            <b>Roll #:</b> ${escapeHtml(sheet.roll_number || 'N/A')} &bull; 
+            <b>Student:</b> ${escapeHtml(sheet.student?.name || 'Unregistered')} &bull; 
+            <b>Score:</b> ${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)
+        `;
+
+        if (typeof $ !== 'undefined' && $('#modalAnnotatedSheet').modal) {
+            $('#modalAnnotatedSheet').modal('show');
+        } else {
+            const modalEl = document.getElementById('modalAnnotatedSheet');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                new bootstrap.Modal(modalEl).show();
+            }
+        }
+    };
+
+    // Open Modal: Question-by-Question Matrix
+    window.viewAnswersModal = function (tempId) {
+        const sheet = stagedSheets.get(tempId);
+        if (!sheet) return;
+
+        const answers = sheet.evaluation?.extracted_answers || [];
+        modalAnsStudent.textContent = sheet.student?.name || 'Unregistered Student';
+        modalAnsRoll.textContent = sheet.roll_number || 'N/A';
+        modalAnsScore.textContent = `${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)`;
+
+        let html = '';
+        answers.forEach(item => {
+            let resBadge = '';
+            if (item.is_correct) {
+                resBadge = '<span class="badge-pill-status badge-matched"><i class="fa fa-check"></i> Correct</span>';
+            } else if (item.status === 'blank' || !item.answer) {
+                resBadge = '<span class="badge-pill-status badge-staged">Left Blank</span>';
+            } else {
+                resBadge = '<span class="badge-pill-status badge-unmatched"><i class="fa fa-times"></i> Wrong</span>';
+            }
+
+            html += `
+                <tr>
+                    <td class="font-weight-bold text-dark">Q${item.question}</td>
+                    <td class="text-center font-mono font-weight-bold ${item.is_correct ? 'text-success' : (item.answer ? 'text-danger' : 'text-muted')}">${item.answer || '—'}</td>
+                    <td class="text-center font-mono font-weight-bold text-primary">${item.correct_answer || '—'}</td>
+                    <td class="text-right">${resBadge}</td>
+                </tr>
+            `;
+        });
+        modalAnswersTbody.innerHTML = html;
+
+        if (typeof $ !== 'undefined' && $('#modalAnswersGrid').modal) {
+            $('#modalAnswersGrid').modal('show');
+        } else {
+            const modalEl = document.getElementById('modalAnswersGrid');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                new bootstrap.Modal(modalEl).show();
+            }
+        }
+    };
+
+    // FINAL SUBMIT: Commit all staged and selected sheets into database & exam marks
+    window.confirmFinalSubmit = async function () {
+        const examId = examSelect.value;
+        if (!examId) {
+            alert('Please select an examination.');
+            return;
+        }
+
+        const selectedSheets = [];
+        stagedSheets.forEach(s => {
+            if (s.selected !== false) {
+                selectedSheets.push(s);
+            }
+        });
+
+        if (!selectedSheets.length) {
+            alert('No sheets selected for final submission.');
+            return;
+        }
+
+        const examName = getSelectedExamOption()?.dataset.name || 'this examination';
+        const msg = `You are about to save ${selectedSheets.length} evaluated OMR sheet(s) and upload student marks directly to "${examName}".\n\nAre you sure you want to proceed?`;
+        if (!confirm(msg)) return;
+
+        btnFinalSubmit.disabled = true;
+        btnFinalSubmit.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Saving marks...';
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const response = await fetch("{{ url('upload_omr/finalize_save') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    exam_id: parseInt(examId, 10),
+                    sheets: selectedSheets
+                }),
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+            if (!response.ok || data.status === 'error') {
+                throw new Error(data.message || 'Failed to save final evaluation records.');
+            }
+
+            alert(`✅ ${data.message}`);
+
+            // Prepend saved rows to Saved Ledger below
+            const savedTbody = document.getElementById('omr-saved-tbody');
+            document.getElementById('omr-saved-empty-row')?.remove();
+
+            selectedSheets.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(s.source_filename)}">
+                        <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(s.source_filename)}
+                    </td>
+                    <td>
+                        <span class="font-mono font-weight-bold text-primary">${escapeHtml(s.roll_number)}</span>
+                        <div class="text-muted small font-weight-bold">${escapeHtml(s.student?.name || 'Unregistered')}</div>
+                    </td>
+                    <td>
+                        <span class="font-weight-bold text-dark">${escapeHtml(examName)}</span>
+                    </td>
+                    <td class="text-center font-weight-bold text-success">${s.evaluation?.correct_answers || 0}</td>
+                    <td class="text-center font-weight-bold text-danger">${s.evaluation?.incorrect_answers || 0}</td>
+                    <td class="text-center text-muted">${s.evaluation?.blank_answers || 0}</td>
+                    <td class="font-mono font-weight-bold">${s.evaluation?.total_marks || 0}</td>
+                    <td class="font-mono font-weight-bold text-success">${s.evaluation?.obtained_marks || 0}</td>
+                    <td>
+                        <span class="badge-pill-status badge-matched">${s.evaluation?.percentage || 0}%</span>
+                    </td>
+                    <td class="text-center font-weight-bold text-primary">#1</td>
+                    <td class="text-right">
+                        <span class="badge-pill-status badge-saved">
+                            <i class="fa fa-check-circle"></i> Saved
+                        </span>
+                    </td>
+                `;
+                savedTbody.prepend(tr);
+
+                // Remove from memory
+                stagedSheets.delete(s.temp_id);
+                document.getElementById(`staged-row-${s.temp_id}`)?.remove();
+            });
+
+            // Update KPIs
+            if (kpiTodayScans) {
+                const currentToday = parseInt(kpiTodayScans.textContent.replace(/\D/g, '') || '0', 10);
+                kpiTodayScans.textContent = (currentToday + selectedSheets.length);
+            }
+            if (kpiTotalScans) {
+                const currentTotal = parseInt(kpiTotalScans.textContent.replace(/\D/g, '') || '0', 10);
+                kpiTotalScans.textContent = (currentTotal + selectedSheets.length);
+            }
+
+            reindexStagedRows();
+            updateStagingCounters();
+        } catch (err) {
+            alert(`❌ Error saving marks: ${err.message}`);
+        } finally {
+            btnFinalSubmit.disabled = false;
+            btnFinalSubmit.innerHTML = `<i class="fa fa-check-circle mr-1"></i> Final Submit & Save Marks (${stagedSheets.size})`;
+            updateStagingCounters();
+        }
+    };
+
+    // Helper: HTML escape
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 });
 </script>

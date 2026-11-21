@@ -262,7 +262,10 @@ Route::match(['get', 'post'], 'download_admit_card', 'offline_exam\AdmitCardCont
 Route::match(['get', 'post'], 'admit_card_notes', 'offline_exam\AdmitCardController@AdmitCardNotes');
 Route::match(['get', 'post'], 'fill_marks', 'offline_exam\FillMarkController@fillMarks');
 Route::match(['get', 'post'], 'upload_omr', 'offline_exam\ExamController@uploadOmr');
-Route::post('upload_omr/extract', 'offline_exam\ExamController@extractOmr');
+Route::post('upload_omr/extract', 'offline_exam\ExamController@processOmrSheet');
+Route::post('upload_omr/process_sheet', 'offline_exam\ExamController@processOmrSheet');
+Route::post('upload_omr/lookup_student', 'offline_exam\ExamController@lookupStudent');
+Route::post('upload_omr/finalize_save', 'offline_exam\ExamController@finalizeOmrSave');
 Route::match(['get', 'post'], 'student_performance', 'StudentPerformanceController@studentPerformance');
 //Examination Offline
 Route::match(['get', 'post'], 'exam_wise_report', 'offline_exam\ReportController@exam_wise_report');
