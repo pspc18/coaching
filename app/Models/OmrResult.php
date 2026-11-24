@@ -31,9 +31,15 @@ class OmrResult extends Model
     public function getImageUrlAttribute()
     {
         if (!empty($this->annotated_image_url)) {
-            return $this->annotated_image_url;
+            if (str_starts_with($this->annotated_image_url, 'http://') || str_starts_with($this->annotated_image_url, 'https://') || str_starts_with($this->annotated_image_url, 'data:')) {
+                return $this->annotated_image_url;
+            }
+            return asset($this->annotated_image_url);
         }
-        if (!empty($this->stored_file) && file_exists(public_path($this->stored_file))) {
+        if (!empty($this->stored_file)) {
+            if (str_starts_with($this->stored_file, 'http://') || str_starts_with($this->stored_file, 'https://')) {
+                return $this->stored_file;
+            }
             return asset($this->stored_file);
         }
         if (!empty($this->source_filename)) {

@@ -475,16 +475,60 @@ class ExamController extends Controller
 
         $summary = $extractorData['summary'] ?? [];
 
+        // Save annotated image to disk so that detections (circles/bounding boxes) are permanently stored
+        $annotatedStoredFile = null;
+        $annotatedImageUrl = null;
+
+        $rawB64 = $extractorData['annotated_image_base64'] ?? '';
+        if (!empty($rawB64)) {
+            if (strpos($rawB64, 'base64,') !== false) {
+                $rawB64 = explode('base64,', $rawB64)[1];
+            }
+            $decodedImg = base64_decode($rawB64);
+            if ($decodedImg !== false) {
+                $annotatedFilename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
+                $annotatedRelativePath = 'uploads/omr_scans/' . $annotatedFilename;
+                @file_put_contents(public_path($annotatedRelativePath), $decodedImg);
+                $annotatedStoredFile = $annotatedRelativePath;
+                $annotatedImageUrl = asset($annotatedRelativePath);
+            }
+        } elseif (!empty($extractorData['annotated_image_url'])) {
+            $remoteUrl = $extractorData['annotated_image_url'];
+            if (!str_starts_with($remoteUrl, 'http://') && !str_starts_with($remoteUrl, 'https://')) {
+                $remoteUrl = $extractorBaseUrl . '/' . ltrim($remoteUrl, '/');
+            }
+            try {
+                $imgResp = Http::timeout(15)->get($remoteUrl);
+                if ($imgResp->successful()) {
+                    $annotatedFilename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
+                    $annotatedRelativePath = 'uploads/omr_scans/' . $annotatedFilename;
+                    @file_put_contents(public_path($annotatedRelativePath), $imgResp->body());
+                    $annotatedStoredFile = $annotatedRelativePath;
+                    $annotatedImageUrl = asset($annotatedRelativePath);
+                } else {
+                    $annotatedImageUrl = $remoteUrl;
+                }
+            } catch (\Exception $ex) {
+                $annotatedImageUrl = $remoteUrl;
+            }
+        }
+
+        // Primary display image is prioritized to the saved annotated image
+        $displayImageUrl = $annotatedImageUrl ?: asset($storedRelativePath);
+        $primaryStoredFile = $annotatedStoredFile ?: $storedRelativePath;
+
         return response()->json([
             'status' => 'success',
             'message' => 'OMR sheet extracted and evaluated successfully.',
             'sheet' => [
                 'temp_id' => 'staged_' . Str::random(12),
                 'source_filename' => $originalFileName,
-                'stored_file' => $storedRelativePath,
-                'image_url' => asset($storedRelativePath),
+                'stored_file' => $primaryStoredFile,
+                'raw_stored_file' => $storedRelativePath,
+                'image_url' => $displayImageUrl,
+                'annotated_stored_file' => $annotatedStoredFile,
+                'annotated_image_url' => $annotatedImageUrl,
                 'annotated_image_base64' => $extractorData['annotated_image_base64'] ?? null,
-                'annotated_image_url' => $extractorData['annotated_image_url'] ?? null,
                 'roll_number' => $rollNumber ?: ($student ? ($student->roll_no ?: $student->admissionNo) : ''),
                 'organization' => $extractorData['organization'] ?? null,
                 'exam_name' => $extractorData['exam_name'] ?? null,
@@ -870,8 +914,8 @@ class ExamController extends Controller
                 $percentage = (float) ($s['evaluation']['percentage'] ?? ($s['percentage'] ?? 0));
                 $extractedAnswers = $s['evaluation']['extracted_answers'] ?? ($s['extracted_answers'] ?? []);
                 $sourceFilename = $s['source_filename'] ?? 'omr_sheet.jpg';
-                $storedFile = $s['stored_file'] ?? null;
-                $annotatedImageUrl = $s['annotated_image_url'] ?? ($s['annotated_image_base64'] ?? null);
+                $storedFile = $s['annotated_stored_file'] ?? ($s['stored_file'] ?? null);
+                $annotatedImageUrl = $s['annotated_stored_file'] ?? ($s['annotated_image_url'] ?? ($s['image_url'] ?? null));
 
                 $omrResult = OmrResult::updateOrCreate(
                     [

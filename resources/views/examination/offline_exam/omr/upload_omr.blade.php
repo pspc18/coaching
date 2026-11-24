@@ -1367,7 +1367,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function attachSheetToStudentRow(sheet, row) {
         const tempId = sheet.temp_id;
         const studentId = row.dataset.studentId;
-        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
+        const thumbSrc = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
         const evalData = sheet.evaluation || {};
         const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
 
@@ -1485,7 +1485,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.dataset.tempId = sheet.temp_id;
             stagingTbody.appendChild(row);
         }
-        const thumbSrc = sheet.annotated_image_base64 || sheet.image_url;
+        const thumbSrc = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
         const evalData = sheet.evaluation || {};
         const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
 
@@ -1898,7 +1898,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const sheet = stagedSheets.get(tempId);
         if (!sheet) return;
 
-        const src = sheet.annotated_image_base64 || sheet.image_url;
+        const src = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
         modalAnnotatedImg.src = src;
         modalAnnotatedInfo.innerHTML = `
             <b>File:</b> ${escapeHtml(sheet.source_filename)} &bull; 
