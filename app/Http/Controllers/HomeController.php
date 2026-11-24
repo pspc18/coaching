@@ -130,6 +130,88 @@ class HomeController extends Controller
     
     public function subjectGetData(Request $request, $id){ 
         if(!empty($id)){
+            // If exam_id is provided, prioritize the exam's exact configured subjects
+            if ($request->filled('exam_id')) {
+                $exam = \App\Models\exam\Exam::find($request->exam_id);
+                if ($exam) {
+                    $examSubjects = collect();
+
+                    // 1. Check subject_question_ranges
+                    $rawRanges = $exam->subject_question_ranges;
+                    if (is_string($rawRanges)) $rawRanges = json_decode($rawRanges, true) ?: [];
+                    if (is_array($rawRanges) && !empty($rawRanges)) {
+                        foreach ($rawRanges as $r) {
+                            $sId = (int)($r['subject_id'] ?? 0);
+                            $sName = trim((string)($r['subject_name'] ?? ''));
+                            if ($sId > 0) {
+                                $examSubjects->push((object)[
+                                    'id' => $sId,
+                                    'name' => (!empty($sName) && !str_starts_with($sName, 'Subject #')) ? $sName : null,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // 2. Check selected_subject_ids
+                    $selIds = $exam->selected_subject_ids;
+                    if (is_string($selIds)) $selIds = json_decode($selIds, true) ?: [];
+                    if (is_array($selIds)) {
+                        foreach ($selIds as $sid) {
+                            $sId = (int)$sid;
+                            if ($sId > 0 && !$examSubjects->contains('id', $sId)) {
+                                $examSubjects->push((object)[
+                                    'id' => $sId,
+                                    'name' => null,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // 3. Check single subject_id
+                    if (!empty($exam->subject_id) && !$examSubjects->contains('id', (int)$exam->subject_id)) {
+                        $examSubjects->push((object)[
+                            'id' => (int)$exam->subject_id,
+                            'name' => null,
+                        ]);
+                    }
+
+                    // Resolve names for any subjects without a human-readable title
+                    $missingIds = $examSubjects->whereNull('name')->pluck('id')->all();
+                    if (!empty($missingIds)) {
+                        $csList = \App\Models\CourseSubject::whereIn('id', $missingIds)->get();
+                        $subList = Subject::whereIn('id', $missingIds)->whereNull('deleted_at')->get();
+                        $nameMap = [];
+                        foreach ($csList as $cs) {
+                            $nameMap[$cs->id] = $cs->name ?? ($cs->subject_name ?? null);
+                        }
+                        foreach ($subList as $s) {
+                            $nameMap[$s->id] = $s->name ?? ($s->subject_name ?? null);
+                        }
+                        foreach ($examSubjects as &$es) {
+                            if (empty($es->name) && isset($nameMap[$es->id])) {
+                                $es->name = $nameMap[$es->id];
+                            }
+                            if (empty($es->name)) {
+                                $es->name = 'Subject #' . $es->id;
+                            }
+                        }
+                        unset($es);
+                    }
+
+                    if ($examSubjects->isNotEmpty()) {
+                        $examSubjects = $examSubjects->unique('id')->values();
+                        if ($request->wantsJson() || $request->header('Accept') === 'application/json' || $request->input('format') === 'json') {
+                            return response()->json($examSubjects);
+                        }
+                        $subjectData = '';
+                        foreach($examSubjects as $item){
+                            $subjectData .= '<option value="'.$item->id.'" selected>'.htmlspecialchars($item->name).'</option>';
+                        }
+                        return response($subjectData);
+                    }
+                }
+            }
+
             $subject = Subject::where('class_type_id', $id)->whereNull('deleted_at');
             if(Session::get('role_id') == 2)
             {
@@ -148,23 +230,10 @@ class HomeController extends Controller
                     }
                 }
             }
-
-            if ($request->filled('exam_id')) {
-                $exam = \App\Models\exam\Exam::find($request->exam_id);
-                if ($exam && !empty($exam->selected_subject_ids)) {
-                    $subject = $subject->whereIn('id', $exam->selected_subject_ids);
-                }
-            }
           
             $subject = $subject->orderBy('sort_by', 'ASC')->orderBy('name', 'ASC')->get();
             if ($subject->isEmpty()) {
                 $csQuery = \App\Models\CourseSubject::where('course_id', $id);
-                if ($request->filled('exam_id')) {
-                    $exam = \App\Models\exam\Exam::find($request->exam_id);
-                    if ($exam && !empty($exam->selected_subject_ids)) {
-                        $csQuery->whereIn('id', $exam->selected_subject_ids);
-                    }
-                }
                 $subject = $csQuery->orderBy('sort_by', 'ASC')->orderBy('subject_name', 'ASC')->get();
             }
          
@@ -174,8 +243,9 @@ class HomeController extends Controller
 
             $subjectData ='<option value="">Select</option>';
             foreach($subject as $item){
+                $subName = $item->name ?? ($item->subject_name ?? ('Subject #' . $item->id));
                 $subjectData.='
-                <option value="'.$item['id'].'">'.$item['name'].'</option>';
+                <option value="'.$item->id.'">'.htmlspecialchars($subName).'</option>';
             }
             return response($subjectData);
         } 

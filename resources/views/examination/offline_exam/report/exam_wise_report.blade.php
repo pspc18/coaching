@@ -490,9 +490,9 @@
                                 Select All
                             </a>
                         </div>
-                        <select class="form-control select2" name="subject_id[]" id="subject_id" multiple="multiple" required>
+                        <select class="form-control select2" name="subject_id[]" id="subject_id" multiple="multiple" required data-placeholder="Select Examination First">
                             @foreach($list_subject as $sub)
-                                <option value="{{ $sub->id }}" {{ in_array((int)$sub->id, array_map('intval', $selectedSubjectIds), true) ? 'selected' : '' }}>
+                                <option value="{{ $sub->id }}" {{ (empty($selectedSubjectIds) || in_array((int)$sub->id, array_map('intval', $selectedSubjectIds), true)) ? 'selected' : '' }}>
                                     {{ $sub->name }}
                                 </option>
                             @endforeach
@@ -729,28 +729,57 @@ $(document).ready(function() {
 
     var selectedSubjectIds = @json($search['subject_id'] ?? []);
 
-    // Select all subjects toggle
+    function updateSelectAllBtn() {
+        var $select = $('#subject_id');
+        var allValues = $select.find('option').map(function() {
+            var val = $(this).val();
+            return val ? val : null;
+        }).get().filter(Boolean);
+        var selectedVals = $select.val() || [];
+        if (allValues.length > 0 && selectedVals.length === allValues.length) {
+            $('#btnSelectAllSubjects').text('Clear All');
+        } else {
+            $('#btnSelectAllSubjects').text('Select All');
+        }
+    }
+
+    // Select all / Clear all toggle
     $('#btnSelectAllSubjects').on('click', function() {
         var $select = $('#subject_id');
         var allValues = $select.find('option').map(function() {
-            return $(this).val();
-        }).get();
-        $select.val(allValues).trigger('change');
+            var val = $(this).val();
+            return val ? val : null;
+        }).get().filter(Boolean);
+        var selectedVals = $select.val() || [];
+        if (allValues.length > 0 && selectedVals.length === allValues.length) {
+            $select.val([]).trigger('change');
+        } else {
+            $select.val(allValues).trigger('change');
+        }
+        updateSelectAllBtn();
     });
 
-    // Dynamic Class Change -> Load Exams & Subjects
+    $('#subject_id').on('change', function() {
+        updateSelectAllBtn();
+    });
+
+    // Dynamic Class Change -> Load Exams ONLY (Subjects will load once exam is picked)
     $('#class_type_id').on('change', function() {
         var baseurl = "{{ url('/') }}";
         var classId = $(this).val();
         var $examSelect = $('#exam_id');
+        var $subjectSelect = $('#subject_id');
         
-        $examSelect.html('<option value="">Loading examinations...</option>');
+        // Reset subjects when course changes
+        $subjectSelect.empty().trigger('change');
+        updateSelectAllBtn();
 
         if (!classId) {
-            $examSelect.html('<option value="">-- Select Exam --</option>');
-            $('#subject_id').empty();
+            $examSelect.html('<option value="">-- Select Exam --</option>').trigger('change.select2');
             return;
         }
+
+        $examSelect.html('<option value="">Loading examinations...</option>').trigger('change.select2');
 
         $.ajax({
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
@@ -762,50 +791,48 @@ $(document).ready(function() {
                 }
             }
         });
-
-        $.ajax({
-            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            url: baseurl + '/subjectGetData/' + classId,
-            success: function(data) {
-                $('#subject_id').html(data);
-                if (selectedSubjectIds && selectedSubjectIds.length) {
-                    $('#subject_id').val(selectedSubjectIds).trigger('change');
-                }
-            }
-        });
     });
 
-    // Dynamic Exam Change -> Load Subjects for that specific exam
+    // Dynamic Exam Change -> Fetch exact subjects configured for THIS examination
     $('#exam_id').on('change', function() {
         var baseurl = "{{ url('/') }}";
         var classId = $('#class_type_id').val();
         var examId = $(this).val();
-        if (!classId) return;
+        var $subjectSelect = $('#subject_id');
 
-        var url = baseurl + '/subjectGetData/' + classId + (examId ? '?exam_id=' + examId : '');
+        if (!examId) {
+            $subjectSelect.empty().trigger('change');
+            updateSelectAllBtn();
+            return;
+        }
+
+        var url = baseurl + '/subjectGetData/' + (classId || 0) + '?exam_id=' + examId;
         $.ajax({
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             url: url,
             success: function(data) {
-                $('#subject_id').html(data);
-                // Auto-select all subjects of the exam
+                $subjectSelect.html(data);
+                // Pre-select all subjects of the exam
                 var allVals = [];
-                $('#subject_id option').each(function() {
-                    if ($(this).val()) allVals.push($(this).val());
+                $subjectSelect.find('option').each(function() {
+                    var val = $(this).val();
+                    if (val) allVals.push(val);
                 });
-                $('#subject_id').val(allVals);
-                if ($.fn.select2) {
-                    $('#subject_id').trigger('change.select2');
-                }
+                $subjectSelect.val(allVals).trigger('change');
+                updateSelectAllBtn();
             }
         });
     });
 
-    if ($('#class_type_id').val() !== '' && $('#subject_id option').length === 0) {
+    // On page load, sync Select All button state
+    updateSelectAllBtn();
+
+    // If page reloads with course & exam already selected but subjects not loaded
+    if ($('#class_type_id').val() !== '' && $('#exam_id').val() !== '' && $('#subject_id option').length === 0) {
         var baseurl = "{{ url('/') }}";
         var classId = $('#class_type_id').val();
         var examId = $('#exam_id').val();
-        var url = baseurl + '/subjectGetData/' + classId + (examId ? '?exam_id=' + examId : '');
+        var url = baseurl + '/subjectGetData/' + classId + '?exam_id=' + examId;
         $.ajax({
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             url: url,
@@ -816,13 +843,12 @@ $(document).ready(function() {
                 } else {
                     var allVals = [];
                     $('#subject_id option').each(function() {
-                        if ($(this).val()) allVals.push($(this).val());
+                        var val = $(this).val();
+                        if (val) allVals.push(val);
                     });
-                    $('#subject_id').val(allVals);
-                    if ($.fn.select2) {
-                        $('#subject_id').trigger('change.select2');
-                    }
+                    $('#subject_id').val(allVals).trigger('change');
                 }
+                updateSelectAllBtn();
             }
         });
     }

@@ -206,21 +206,7 @@ class ReportController extends Controller
                     ->where('session_id', Session::get('session_id'))
                     ->whereNull('deleted_at')->first();
 
-            $examSubjectIds = $exam ? $exam->selected_subject_ids : [];
-
-            $list_subject = Subject::where("class_type_id", $requestClassTypeId)
-                ->where("branch_id", Session::get("branch_id"))
-                ->where('session_id', Session::get("session_id"));
-
-            if (!empty($examSubjectIds)) {
-                $list_subject = $list_subject->whereIn('id', $examSubjectIds);
-            }
-
-            if (!empty($search["subject_id"])) {
-                $list_subject = $list_subject->whereIn('id', $search["subject_id"]);
-            }
-
-            $list_subject = $list_subject->orderBy("sort_by", "ASC")->get();
+            $list_subject = $this->resolveReportSubjects($exam, $requestClassTypeId, $search["subject_id"] ?? []);
 
             $students = Admission::where("class_type_id", $requestClassTypeId)
                     ->where("session_id", Session::get("session_id"))
@@ -288,19 +274,7 @@ class ReportController extends Controller
             ->whereNull('deleted_at')
             ->firstOrFail();
 
-        $listSubjectQuery = Subject::where('class_type_id', $classTypeId)
-            ->where('branch_id', $branchId)
-            ->where('session_id', $sessionId);
-
-        $examSubjectIds = $exam->selected_subject_ids;
-        if (!empty($examSubjectIds)) {
-            $listSubjectQuery->whereIn('id', $examSubjectIds);
-        }
-
-        $listSubject = $listSubjectQuery->whereIn('id', $validated['subject_id'])
-            ->orderBy('sort_by', 'ASC')
-            ->get();
-
+        $listSubject = $this->resolveReportSubjects($exam, $classTypeId, $validated['subject_id'] ?? []);
         abort_if($listSubject->isEmpty(), 404);
 
         $students = Admission::where('class_type_id', $classTypeId)
@@ -327,6 +301,79 @@ class ReportController extends Controller
             'summary' => $reportData['summary'] ?? [],
             'singleSubjectMode' => (bool) ($reportData['single_subject_mode'] ?? false),
         ])->setPaper('a4', 'landscape')->download($fileName);
+    }
+
+    private function resolveReportSubjects(?Exam $exam, int $classTypeId, array $requestedSubjectIds = []): \Illuminate\Support\Collection
+    {
+        $examSubjectIds = $exam ? ($exam->selected_subject_ids ?? []) : [];
+        if (empty($examSubjectIds) && $exam && !empty($exam->subject_question_ranges)) {
+            $ranges = is_string($exam->subject_question_ranges) ? json_decode($exam->subject_question_ranges, true) : $exam->subject_question_ranges;
+            if (is_array($ranges)) {
+                $examSubjectIds = array_values(array_filter(array_map(fn($r) => !empty($r['subject_id']) ? (int)$r['subject_id'] : null, $ranges)));
+            }
+        }
+        if (empty($examSubjectIds) && $exam && !empty($exam->subject_id)) {
+            $examSubjectIds = [(int) $exam->subject_id];
+        }
+
+        $targetSubjectIds = !empty($requestedSubjectIds) ? (array) $requestedSubjectIds : $examSubjectIds;
+        $targetSubjectIds = array_values(array_filter(array_map('intval', $targetSubjectIds)));
+
+        $listSubject = collect();
+
+        if (!empty($targetSubjectIds)) {
+            $subRows = Subject::whereIn('id', $targetSubjectIds)->orderBy('sort_by', 'ASC')->get();
+            $listSubject = $listSubject->merge($subRows);
+            $foundIds = $subRows->pluck('id')->all();
+            $missingIds = array_diff($targetSubjectIds, $foundIds);
+
+            if (!empty($missingIds)) {
+                $csRows = \App\Models\CourseSubject::whereIn('id', $missingIds)->orderBy('sort_by', 'ASC')->get();
+                foreach ($csRows as $cs) {
+                    $subObj = new Subject();
+                    $subObj->id = $cs->id;
+                    $subObj->name = $cs->name ?? $cs->subject_name;
+                    $subObj->other_subject = 0;
+                    $listSubject->push($subObj);
+                }
+            }
+
+            if ($exam && !empty($exam->subject_question_ranges)) {
+                $ranges = is_string($exam->subject_question_ranges) ? json_decode($exam->subject_question_ranges, true) : $exam->subject_question_ranges;
+                if (is_array($ranges)) {
+                    $rangeNameMap = [];
+                    foreach ($ranges as $rg) {
+                        if (!empty($rg['subject_id']) && !empty($rg['subject_name'])) {
+                            $rangeNameMap[(int)$rg['subject_id']] = $rg['subject_name'];
+                        }
+                    }
+                    foreach ($listSubject as $s) {
+                        if (isset($rangeNameMap[$s->id]) && (empty($s->name) || $s->name === 'Subject #' . $s->id)) {
+                            $s->name = $rangeNameMap[$s->id];
+                        }
+                    }
+                }
+            }
+        } else {
+            $listSubject = Subject::where('class_type_id', $classTypeId)
+                ->where('branch_id', Session::get('branch_id'))
+                ->where('session_id', Session::get('session_id'))
+                ->orderBy('sort_by', 'ASC')
+                ->get();
+
+            if ($listSubject->isEmpty()) {
+                $csRows = \App\Models\CourseSubject::where('course_id', $classTypeId)->orderBy('sort_by', 'ASC')->get();
+                foreach ($csRows as $cs) {
+                    $subObj = new Subject();
+                    $subObj->id = $cs->id;
+                    $subObj->name = $cs->name ?? $cs->subject_name;
+                    $subObj->other_subject = 0;
+                    $listSubject->push($subObj);
+                }
+            }
+        }
+
+        return $listSubject->unique('id')->values();
     }
 
     public function prepareExamWiseReportData(
