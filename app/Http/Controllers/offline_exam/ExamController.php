@@ -391,18 +391,11 @@ class ExamController extends Controller
 
         $imageFile = $request->file('image');
         $originalFileName = $imageFile->getClientOriginalName();
-        $fileExt = strtolower($imageFile->getClientOriginalExtension() ?: 'jpg');
-        $savedFileName = 'omr_' . time() . '_' . Str::random(8) . '.' . $fileExt;
-
-        $destPath = public_path('uploads/omr_scans');
-        if (!file_exists($destPath)) {
-            @mkdir($destPath, 0777, true);
-        }
-        $imageFile->move($destPath, $savedFileName);
-        $storedRelativePath = 'uploads/omr_scans/' . $savedFileName;
-        $fullPath = public_path($storedRelativePath);
+        $tempPath = $imageFile->getRealPath();
 
         // 1. Call AI Dynamic Extractor API (https://extractor.rusoft.in/api/omr/extract)
+        // Memory-efficient streaming: The raw input image is streamed directly from PHP temp memory.
+        // It is NEVER saved to public disk to minimize storage consumption.
         $extractorBaseUrl = rtrim(config('services.extractor.url', 'https://extractor.rusoft.in'), '/');
         $extractorTimeout = (int) config('services.extractor.timeout', 60);
 
@@ -410,7 +403,7 @@ class ExamController extends Controller
         $apiError = null;
 
         try {
-            $fileStream = file_get_contents($fullPath);
+            $fileStream = file_get_contents($tempPath);
             $response = Http::timeout($extractorTimeout)
                 ->attach('file', $fileStream, $originalFileName)
                 ->post($extractorBaseUrl . '/api/omr/extract');
@@ -475,7 +468,7 @@ class ExamController extends Controller
 
         $summary = $extractorData['summary'] ?? [];
 
-        // Save annotated image to disk so that detections (circles/bounding boxes) are permanently stored
+        // Save ONLY the annotated image to server disk (compressed & optimized for minimal storage)
         $annotatedStoredFile = null;
         $annotatedImageUrl = null;
 
@@ -486,11 +479,8 @@ class ExamController extends Controller
             }
             $decodedImg = base64_decode($rawB64);
             if ($decodedImg !== false) {
-                $annotatedFilename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
-                $annotatedRelativePath = 'uploads/omr_scans/' . $annotatedFilename;
-                @file_put_contents(public_path($annotatedRelativePath), $decodedImg);
-                $annotatedStoredFile = $annotatedRelativePath;
-                $annotatedImageUrl = asset($annotatedRelativePath);
+                $annotatedStoredFile = $this->saveOptimizedAnnotatedImage($decodedImg);
+                $annotatedImageUrl = asset($annotatedStoredFile);
             }
         } elseif (!empty($extractorData['annotated_image_url'])) {
             $remoteUrl = $extractorData['annotated_image_url'];
@@ -500,11 +490,8 @@ class ExamController extends Controller
             try {
                 $imgResp = Http::timeout(15)->get($remoteUrl);
                 if ($imgResp->successful()) {
-                    $annotatedFilename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
-                    $annotatedRelativePath = 'uploads/omr_scans/' . $annotatedFilename;
-                    @file_put_contents(public_path($annotatedRelativePath), $imgResp->body());
-                    $annotatedStoredFile = $annotatedRelativePath;
-                    $annotatedImageUrl = asset($annotatedRelativePath);
+                    $annotatedStoredFile = $this->saveOptimizedAnnotatedImage($imgResp->body());
+                    $annotatedImageUrl = asset($annotatedStoredFile);
                 } else {
                     $annotatedImageUrl = $remoteUrl;
                 }
@@ -513,19 +500,14 @@ class ExamController extends Controller
             }
         }
 
-        // Primary display image is prioritized to the saved annotated image
-        $displayImageUrl = $annotatedImageUrl ?: asset($storedRelativePath);
-        $primaryStoredFile = $annotatedStoredFile ?: $storedRelativePath;
-
         return response()->json([
             'status' => 'success',
             'message' => 'OMR sheet extracted and evaluated successfully.',
             'sheet' => [
                 'temp_id' => 'staged_' . Str::random(12),
                 'source_filename' => $originalFileName,
-                'stored_file' => $primaryStoredFile,
-                'raw_stored_file' => $storedRelativePath,
-                'image_url' => $displayImageUrl,
+                'stored_file' => $annotatedStoredFile,
+                'image_url' => $annotatedImageUrl,
                 'annotated_stored_file' => $annotatedStoredFile,
                 'annotated_image_url' => $annotatedImageUrl,
                 'annotated_image_base64' => $extractorData['annotated_image_base64'] ?? null,
@@ -543,6 +525,55 @@ class ExamController extends Controller
                 'evaluation' => $evalResult,
             ]
         ]);
+    }
+
+    /**
+     * Compress and save annotated OMR image with optimal dimensions and JPEG quality
+     * to minimize server disk storage while ensuring bubble detections remain razor-sharp.
+     */
+    protected function saveOptimizedAnnotatedImage($rawImageBytes, $destDirectory = 'uploads/omr_scans')
+    {
+        $destPath = public_path($destDirectory);
+        if (!file_exists($destPath)) {
+            @mkdir($destPath, 0777, true);
+        }
+
+        $filename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
+        $fullPath = $destPath . DIRECTORY_SEPARATOR . $filename;
+        $relPath = $destDirectory . '/' . $filename;
+
+        if (function_exists('imagecreatefromstring') && function_exists('imagejpeg')) {
+            $src = @imagecreatefromstring($rawImageBytes);
+            if ($src !== false) {
+                $w = imagesx($src);
+                $h = imagesy($src);
+                $maxDim = 1400; // Optimal for sharp bubble readability + compact storage
+
+                if ($w > $maxDim || $h > $maxDim) {
+                    if ($w >= $h) {
+                        $newW = $maxDim;
+                        $newH = (int) round(($h / $w) * $maxDim);
+                    } else {
+                        $newH = $maxDim;
+                        $newW = (int) round(($w / $h) * $maxDim);
+                    }
+                    $dst = imagecreatetruecolor($newW, $newH);
+                    imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
+                    imagejpeg($dst, $fullPath, 80); // 80% JPEG quality
+                    imagedestroy($dst);
+                    imagedestroy($src);
+                    return $relPath;
+                } else {
+                    imagejpeg($src, $fullPath, 80);
+                    imagedestroy($src);
+                    return $relPath;
+                }
+            }
+        }
+
+        // Direct write fallback
+        @file_put_contents($fullPath, $rawImageBytes);
+        return $relPath;
     }
 
     /**
