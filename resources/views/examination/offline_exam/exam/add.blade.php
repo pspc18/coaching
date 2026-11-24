@@ -1346,16 +1346,33 @@ textarea.theme-form-control {
                         {{-- Left Scrollable Body --}}
                         <div class="builder-card-body">
 
-                            {{-- Sub-Header: Basic Details --}}
+                            {{-- Section 1: Basic Exam Information & Schedule --}}
                             <div class="builder-section-header">
-                                <h4><i class="fa fa-info-circle text-primary"></i> Basic Exam Information</h4>
+                                <h4><i class="fa fa-info-circle text-primary"></i> 1. Examination Details &amp; Schedule</h4>
                             </div>
 
-                            {{-- Exam Name --}}
-                            <div class="theme-form-group">
-                                <label for="exam-name">Exam Name <span class="text-danger">*</span></label>
-                                <input type="text" id="exam-name" name="name" class="theme-form-control @error('name') is-invalid @enderror" placeholder="e.g. NEET Weekly Test 01 / Term 1 Science" value="{{ $previewName }}" required maxlength="255">
-                                @error('name')<span class="text-danger small">{{ $message }}</span>@enderror
+                            <div class="row">
+                                {{-- Exam Name --}}
+                                <div class="col-md-8">
+                                    <div class="theme-form-group">
+                                        <label for="exam-name">Exam Name <span class="text-danger">*</span></label>
+                                        <input type="text" id="exam-name" name="name" class="theme-form-control @error('name') is-invalid @enderror" placeholder="e.g. SSC CGL Tier-1 Mock 01 / Term 1 Science" value="{{ $previewName }}" required maxlength="255">
+                                        @error('name')<span class="text-danger small">{{ $message }}</span>@enderror
+                                    </div>
+                                </div>
+                                {{-- Exam Code --}}
+                                <div class="col-md-4">
+                                    <div class="theme-form-group">
+                                        <label for="exam-code">Exam Code</label>
+                                        <div class="input-group">
+                                            <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly style="background: #f8fafc; color: #002C54; font-family: monospace; font-size: 13px;">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text bg-light text-muted"><i class="fa fa-barcode text-primary"></i></span>
+                                            </div>
+                                        </div>
+                                        <div class="theme-hint"><i class="fa fa-lock text-muted mr-1"></i> Unique scanner barcode</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="row">
@@ -1459,322 +1476,296 @@ textarea.theme-form-control {
                                 </div>
                             </div>
 
-                            {{-- Multi-Subject Selection for Offline / OMR / Paper Exam --}}
-                            <div class="row" id="subject-multi-wrapper" style="{{ $initialMode === 'online' ? 'display: none;' : '' }}">
-                                <div class="col-12">
-                                    <div class="theme-form-group mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <label class="mb-0 font-weight-bold" style="color: #1e293b; font-size: 13px;">
-                                                <i class="fa fa-book text-primary mr-1"></i> Included Exam Subjects
-                                                <span class="badge ml-1" id="subject-selected-count-badge" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; border-radius:12px; padding:3px 8px;">
-                                                    All Selected
+                            {{-- Shared Multi-Subject Checklist Container (docked into active mode pane via JS) --}}
+                            <div id="subject-multi-wrapper" style="{{ $initialMode === 'online' ? 'display: none;' : '' }}">
+                                <div class="theme-form-group mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="mb-0 font-weight-bold" style="color: #1e293b; font-size: 12.5px;">
+                                            <i class="fa fa-book text-primary mr-1"></i> Included Exam Subjects:
+                                            <span class="badge ml-1" id="subject-selected-count-badge" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; border-radius:12px; padding:2px 8px;">
+                                                All Selected
+                                            </span>
+                                        </label>
+                                        <div class="btn-group btn-group-xs" role="group">
+                                            <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2" id="btn-select-all-subjects" style="font-size: 11px; height: 22px;">
+                                                <i class="fa fa-check-square-o mr-1"></i> Select All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" id="btn-deselect-all-subjects" style="font-size: 11px; height: 22px;">
+                                                <i class="fa fa-square-o mr-1"></i> Clear All
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="subjects-checklist-container" id="subjects-checklist-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; max-height: 120px; overflow-y: auto;">
+                                        <div class="d-flex flex-wrap" id="subjects-chips-list" style="gap: 8px;">
+                                            @if(!empty($subjects) && $subjects->count() > 0)
+                                                @foreach($subjects as $sub)
+                                                    @php
+                                                        $isChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
+                                                    @endphp
+                                                    <label class="subject-chip-item {{ $isChecked ? 'active' : '' }}" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:5px; background:{{ $isChecked ? '#eff6ff' : '#ffffff' }}; border:1px solid {{ $isChecked ? '#3b82f6' : '#cbd5e1' }}; font-size:12px; font-weight:{{ $isChecked ? '600' : '500' }}; color:{{ $isChecked ? '#1d4ed8' : '#334155' }}; margin:0; cursor:pointer;">
+                                                        <input type="checkbox" name="subject_ids[]" value="{{ $sub->id }}" data-name="{{ $sub->name }}" data-subject-name="{{ $sub->name }}" class="exam-subject-checkbox" {{ $isChecked ? 'checked' : '' }} style="margin:0; accent-color:#2563eb;">
+                                                        <span class="subject-chip-name">{{ $sub->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted small p-1" id="subjects-empty-notice">
+                                                    <i class="fa fa-info-circle"></i> Select a Target Course above to load its subjects automatically.
                                                 </span>
-                                            </label>
-                                            <div class="btn-group btn-group-xs" role="group">
-                                                <button type="button" class="btn btn-outline-primary btn-xs py-0 px-2" id="btn-select-all-subjects" style="font-size: 11px; height: 22px;">
-                                                    <i class="fa fa-check-square-o mr-1"></i> Select All
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- ============================================================== --}}
+                            {{-- MODE 1 PANE: Traditional Offline Exam (Manual / Excel Upload) --}}
+                            {{-- ============================================================== --}}
+                            <div id="pane-mode-normal-marks" style="{{ $initialMode === 'normal' ? 'display: block;' : 'display: none;' }}">
+                                <div class="builder-section-header mt-3">
+                                    <h4><i class="fa fa-sliders text-warning"></i> 2. Subject-Wise Maximum &amp; Passing Cut-off Marks</h4>
+                                </div>
+
+                                {{-- Dock location for subjects checklist in Mode 1 --}}
+                                <div id="mode1-subjects-dock"></div>
+
+                                {{-- Traditional Mode 1 Subject Marks Table --}}
+                                <div class="rounded mb-3" id="subject-marks-config-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+                                    <div class="p-2 px-3 d-flex flex-wrap align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 10px;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa fa-sliders mr-2" style="font-size: 15px; color: #002C54;"></i>
+                                            <span class="font-weight-bold" style="font-size: 13.5px; color: #002C54;">Subject-Wise Marks Configuration</span>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                                            <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
+                                                <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Max:</span>
+                                                <input type="number" id="bulk-subject-max" value="50" min="1" max="1000" step="1" style="width: 58px; height: 26px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 4px; margin-right: 4px; color: #002C54;">
+                                                <button type="button" class="btn btn-primary btn-sm py-0 px-2" id="btn-apply-bulk-max" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
+                                                    Apply All
                                                 </button>
-                                                <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" id="btn-deselect-all-subjects" style="font-size: 11px; height: 22px;">
-                                                    <i class="fa fa-square-o mr-1"></i> Clear All
+                                            </div>
+                                            <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
+                                                <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Cut-off:</span>
+                                                <select id="bulk-subject-min-pct" style="width: 125px; height: 26px; font-size: 11px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 5px; margin-right: 4px; background: #ffffff; color: #1e293b;">
+                                                    <option value="0.33">33% (School)</option>
+                                                    <option value="0.35">35% (State Govt)</option>
+                                                    <option value="0.40" selected>40% (SSC/PSC)</option>
+                                                    <option value="0.50">50% (Merit)</option>
+                                                </select>
+                                                <button type="button" class="btn btn-success btn-sm py-0 px-2" id="btn-apply-bulk-min" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
+                                                    Apply All
                                                 </button>
                                             </div>
                                         </div>
-
-                                        <div class="subjects-checklist-container" id="subjects-checklist-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; max-height: 160px; overflow-y: auto;">
-                                            <div class="d-flex flex-wrap" id="subjects-chips-list" style="gap: 8px;">
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                        <table class="table table-sm table-bordered table-hover mb-0" id="table-subject-marks" style="font-size: 12.5px; border-collapse: separate; border-spacing: 0;">
+                                            <thead style="background: #002C54; color: #ffffff;">
+                                                <tr>
+                                                    <th style="width: 45px; text-align: center; vertical-align: middle; padding: 8px 6px;">#</th>
+                                                    <th style="vertical-align: middle; padding: 8px 12px;">Subject Name</th>
+                                                    <th style="width: 140px; text-align: center; vertical-align: middle; padding: 8px 10px;">Max Marks <span class="text-warning">*</span></th>
+                                                    <th style="width: 150px; text-align: center; vertical-align: middle; padding: 8px 10px;">Min / Pass Marks <span class="text-warning">*</span></th>
+                                                    <th style="width: 105px; text-align: center; vertical-align: middle; padding: 8px 10px;">Cut-Off %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="subject-marks-tbody">
                                                 @if(!empty($subjects) && $subjects->count() > 0)
+                                                    @php $rowIdx = 1; @endphp
                                                     @foreach($subjects as $sub)
                                                         @php
-                                                            $isChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
+                                                            $isSubChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
+                                                            $subMax = isset($existingMinMaxMap[$sub->id]['max']) ? $existingMinMaxMap[$sub->id]['max'] : ($previewPerSubMarks ?: 50);
+                                                            $subMin = isset($existingMinMaxMap[$sub->id]['min']) ? $existingMinMaxMap[$sub->id]['min'] : round($subMax * 0.40, 2);
+                                                            $subPct = $subMax > 0 ? round(($subMin / $subMax) * 100, 1) : 0;
                                                         @endphp
-                                                        <label class="subject-chip-item {{ $isChecked ? 'active' : '' }}" style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:5px; background:{{ $isChecked ? '#eff6ff' : '#ffffff' }}; border:1px solid {{ $isChecked ? '#3b82f6' : '#cbd5e1' }}; font-size:12px; font-weight:{{ $isChecked ? '600' : '500' }}; color:{{ $isChecked ? '#1d4ed8' : '#334155' }}; margin:0; cursor:pointer;">
-                                                            <input type="checkbox" name="subject_ids[]" value="{{ $sub->id }}" data-name="{{ $sub->name }}" class="exam-subject-checkbox" {{ $isChecked ? 'checked' : '' }} style="margin:0; accent-color:#2563eb;">
-                                                            <span>{{ $sub->name }}</span>
-                                                        </label>
+                                                        <tr class="subject-mark-row {{ $isSubChecked ? '' : 'd-none' }}" id="subject-mark-row-{{ $sub->id }}" data-subject-id="{{ $sub->id }}" data-subject-name="{{ $sub->name }}">
+                                                            <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle; padding: 8px 6px;">{{ $rowIdx++ }}</td>
+                                                            <td style="vertical-align: middle; padding: 8px 12px;">
+                                                                <span class="font-weight-600 text-dark" style="font-size: 13px;">{{ $sub->name }}</span>
+                                                            </td>
+                                                            <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                <input type="number" name="subject_max_marks[{{ $sub->id }}]" id="sub_max_m1_{{ $sub->id }}" class="form-control form-control-sm text-center font-weight-bold sub-max-input sub-max-input-mode1" value="{{ $subMax }}" min="1" max="9999" step="0.5" {{ ($initialMode === 'normal' && $isSubChecked) ? '' : 'disabled' }} style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #002C54; background: #ffffff;">
+                                                            </td>
+                                                            <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                <input type="number" name="subject_min_marks[{{ $sub->id }}]" id="sub_min_m1_{{ $sub->id }}" class="form-control form-control-sm text-center font-weight-bold sub-min-input sub-min-input-mode1" value="{{ $subMin }}" min="0" max="9999" step="0.5" {{ ($initialMode === 'normal' && $isSubChecked) ? '' : 'disabled' }} style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #15803d; background: #ffffff;">
+                                                            </td>
+                                                            <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
+                                                                <span class="sub-cutoff-badge" id="sub_cutoff_badge_m1_{{ $sub->id }}" style="display: inline-block; min-width: 58px; padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 4px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0284c7;">
+                                                                    {{ $subPct }}%
+                                                                </span>
+                                                            </td>
+                                                        </tr>
                                                     @endforeach
                                                 @else
-                                                    <span class="text-muted small p-1" id="subjects-empty-notice">
-                                                        <i class="fa fa-info-circle"></i> Select a Target Course above to load its subjects automatically.
-                                                    </span>
+                                                    <tr id="subject-marks-empty-row">
+                                                        <td colspan="5" class="text-center text-muted py-3">
+                                                            <i class="fa fa-info-circle mr-1"></i> Select a Target Course above to load and configure subject marks.
+                                                        </td>
+                                                    </tr>
                                                 @endif
+                                            </tbody>
+                                            <tfoot style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
+                                                <tr>
+                                                    <td colspan="2" class="text-right text-dark" style="font-size: 12.5px; vertical-align: middle; padding: 8px 12px;">
+                                                        Total Weightage (<span id="total-active-subs-count">0</span> Active Subjects):
+                                                    </td>
+                                                    <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                        <span id="grand-total-max-marks" style="font-size: 14px; font-weight: 800; color: #002C54;">0.00</span>
+                                                    </td>
+                                                    <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                        <span id="grand-total-min-marks" style="font-size: 14px; font-weight: 800; color: #15803d;">0.00</span>
+                                                    </td>
+                                                    <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
+                                                        <span id="grand-total-cutoff-pct" style="font-size: 12px; font-weight: 700; color: #475569;">--</span>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group">
+                                            <label for="exam-max-marks">Maximum Marks (Per Subject) <span class="text-danger">*</span></label>
+                                            <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ $previewPerSubMarks }}" min="1" max="9999" step="0.5">
+                                            <div class="theme-hint" id="exam-max-marks-hint" style="color: #475569; font-weight: 500;">
+                                                <i class="fa fa-calculator text-primary"></i> <span id="max-marks-calc-text"></span>
                                             </div>
                                         </div>
-                                        <div class="theme-hint mt-1 text-muted" style="font-size:11px;">
-                                            <i class="fa fa-lightbulb-o text-warning"></i> By default all course subjects are included. Uncheck any subject to exclude it from this exam.
-                                        </div>
-
-                                        {{-- Subject-Wise Maximum & Minimum (Passing) Marks Table (Indian Coaching Pattern) --}}
-                                        <div class="mt-3 rounded" id="subject-marks-config-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
-                                            <div class="p-2 px-3 d-flex flex-wrap align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 10px;">
-                                                <div class="d-flex align-items-center">
-                                                    <i class="fa fa-sliders mr-2" style="font-size: 15px; color: #002C54;"></i>
-                                                    <span class="font-weight-bold" style="font-size: 13.5px; color: #002C54;">Subject-Wise Maximum & Passing Cut-off Marks</span>
-                                                    <span class="badge ml-2" style="background: #e0f2fe; color: #0369a1; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 12px; border: 1px solid #bae6fd;">
-                                                        Indian Coaching Standard
-                                                    </span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group">
+                                            <label for="normal-question-paper">Question Paper <span class="badge badge-secondary" style="font-size: 8.5px;">Optional PDF</span></label>
+                                            <input type="file" id="normal-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
+                                            @if(!empty($formExam->question_paper_path))
+                                                <div class="mt-1 small">
+                                                    <a href="{{ asset($formExam->question_paper_path) }}" target="_blank" class="text-primary font-weight-bold">
+                                                        <i class="fa fa-file-pdf-o text-danger mr-1"></i> View Attached PDF
+                                                    </a>
                                                 </div>
-                                                {{-- Inline Bulk Apply Controls --}}
-                                                <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
-                                                    <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
-                                                        <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Max:</span>
-                                                        <input type="number" id="bulk-subject-max" value="50" min="1" max="1000" step="1" style="width: 58px; height: 26px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 4px; margin-right: 4px; color: #002C54;">
-                                                        <button type="button" class="btn btn-primary btn-sm py-0 px-2" id="btn-apply-bulk-max" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
-                                                            Apply All
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 5px;">
-                                                        <span class="text-muted mr-1" style="font-size: 11px; font-weight: 600;">Cut-off:</span>
-                                                        <select id="bulk-subject-min-pct" style="width: 125px; height: 26px; font-size: 11px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 5px; margin-right: 4px; background: #ffffff; color: #1e293b;">
-                                                            <option value="0.33">33% (School)</option>
-                                                            <option value="0.35">35% (State Govt)</option>
-                                                            <option value="0.40" selected>40% (SSC/PSC)</option>
-                                                            <option value="0.50">50% (Merit)</option>
-                                                        </select>
-                                                        <button type="button" class="btn btn-success btn-sm py-0 px-2" id="btn-apply-bulk-min" style="height: 26px; font-size: 11px; font-weight: 600; line-height: 26px; border-radius: 3px;">
-                                                            Apply All
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
-                                                <table class="table table-sm table-bordered table-hover mb-0" id="table-subject-marks" style="font-size: 12.5px; border-collapse: separate; border-spacing: 0;">
-                                                    <thead style="background: #002C54; color: #ffffff;">
-                                                        <tr>
-                                                            <th style="width: 45px; text-align: center; vertical-align: middle; padding: 8px 6px;">#</th>
-                                                            <th style="vertical-align: middle; padding: 8px 12px;">Subject Name</th>
-                                                            <th style="width: 140px; text-align: center; vertical-align: middle; padding: 8px 10px;">
-                                                                Max Marks <span class="text-warning">*</span>
-                                                            </th>
-                                                            <th style="width: 150px; text-align: center; vertical-align: middle; padding: 8px 10px;">
-                                                                Min / Pass Marks <span class="text-warning">*</span>
-                                                            </th>
-                                                            <th style="width: 105px; text-align: center; vertical-align: middle; padding: 8px 10px;">Cut-Off %</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="subject-marks-tbody">
-                                                        @if(!empty($subjects) && $subjects->count() > 0)
-                                                            @php $rowIdx = 1; @endphp
-                                                            @foreach($subjects as $sub)
-                                                                @php
-                                                                    $isSubChecked = empty($previewSubjectIds) || in_array((int)$sub->id, $previewSubjectIds, true);
-                                                                    $subMax = isset($existingMinMaxMap[$sub->id]['max']) 
-                                                                        ? $existingMinMaxMap[$sub->id]['max'] 
-                                                                        : ($previewPerSubMarks ?: 50);
-                                                                    $subMin = isset($existingMinMaxMap[$sub->id]['min']) 
-                                                                        ? $existingMinMaxMap[$sub->id]['min'] 
-                                                                        : round($subMax * 0.40, 2);
-                                                                    $subPct = $subMax > 0 ? round(($subMin / $subMax) * 100, 1) : 0;
-                                                                @endphp
-                                                                <tr class="subject-mark-row {{ $isSubChecked ? '' : 'd-none' }}" id="subject-mark-row-{{ $sub->id }}" data-subject-id="{{ $sub->id }}" data-subject-name="{{ $sub->name }}">
-                                                                    <td class="text-center font-weight-bold text-muted row-number" style="vertical-align: middle; padding: 8px 6px;">{{ $rowIdx++ }}</td>
-                                                                    <td style="vertical-align: middle; padding: 8px 12px;">
-                                                                        <span class="font-weight-600 text-dark" style="font-size: 13px;">{{ $sub->name }}</span>
-                                                                    </td>
-                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
-                                                                        <input type="number" 
-                                                                               name="subject_max_marks[{{ $sub->id }}]" 
-                                                                               id="sub_max_{{ $sub->id }}" 
-                                                                               class="form-control form-control-sm text-center font-weight-bold sub-max-input" 
-                                                                               value="{{ $subMax }}" 
-                                                                               min="1" max="9999" step="0.5" 
-                                                                               {{ $isSubChecked ? '' : 'disabled' }} 
-                                                                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #002C54; background: #ffffff;">
-                                                                    </td>
-                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
-                                                                        <input type="number" 
-                                                                               name="subject_min_marks[{{ $sub->id }}]" 
-                                                                               id="sub_min_{{ $sub->id }}" 
-                                                                               class="form-control form-control-sm text-center font-weight-bold sub-min-input" 
-                                                                               value="{{ $subMin }}" 
-                                                                               min="0" max="9999" step="0.5" 
-                                                                               {{ $isSubChecked ? '' : 'disabled' }} 
-                                                                               style="width: 100px; height: 32px; font-size: 13px; margin: 0 auto; border: 1px solid #94a3b8; border-radius: 4px; color: #15803d; background: #ffffff;">
-                                                                    </td>
-                                                                    <td class="text-center" style="vertical-align: middle; padding: 6px 10px;">
-                                                                        <span class="sub-cutoff-badge" id="sub_cutoff_badge_{{ $sub->id }}" style="display: inline-block; min-width: 58px; padding: 4px 8px; font-size: 11.5px; font-weight: 700; border-radius: 4px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0284c7;">
-                                                                            {{ $subPct }}%
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        @else
-                                                            <tr id="subject-marks-empty-row">
-                                                                <td colspan="5" class="text-center text-muted py-3">
-                                                                    <i class="fa fa-info-circle mr-1"></i> Select a Target Course above to load and configure subject marks.
-                                                                </td>
-                                                            </tr>
-                                                        @endif
-                                                    </tbody>
-                                                    <tfoot style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
-                                                        <tr>
-                                                            <td colspan="2" class="text-right text-dark" style="font-size: 12.5px; vertical-align: middle; padding: 8px 12px;">
-                                                                Total Weightage (<span id="total-active-subs-count">0</span> Active Subjects):
-                                                            </td>
-                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
-                                                                <span id="grand-total-max-marks" style="font-size: 14px; font-weight: 800; color: #002C54;">0.00</span>
-                                                            </td>
-                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
-                                                                <span id="grand-total-min-marks" style="font-size: 14px; font-weight: 800; color: #15803d;">0.00</span>
-                                                            </td>
-                                                            <td class="text-center" style="vertical-align: middle; padding: 8px 10px;">
-                                                                <span id="grand-total-cutoff-pct" style="font-size: 12px; font-weight: 700; color: #475569;">--</span>
-                                                            </td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                            <div class="px-3 py-2 text-muted" style="font-size: 11px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
-                                                <i class="fa fa-info-circle text-primary mr-1"></i> <strong>Indian Exam Pattern Note:</strong> Each subject can have custom maximum marks and qualifying minimum cut-off marks. These values are automatically synchronized with Marks Entry, Excel Upload, OMR Scanner, and Green Sheet Reports.
-                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="row">
-                                {{-- Exam Code --}}
-                                <div class="col-md-12">
-                                    <div class="theme-form-group">
-                                        <label for="exam-code">Exam Code</label>
-                                        <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly>
-                                        <div class="theme-hint"><i class="fa fa-lock"></i> Auto-generated unique scanner code</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Mode 1 Only: Maximum Marks & Optional PDF Paper --}}
-                            <div class="row" id="pane-mode-normal-marks" style="{{ $initialMode === 'normal' ? '' : 'display: none;' }}">
-                                <div class="col-md-6">
-                                    <div class="theme-form-group">
-                                        <label for="exam-max-marks">Maximum Marks (Per Subject) <span class="text-danger">*</span></label>
-                                        <input type="number" id="exam-max-marks" name="exam_maximum_marks" class="theme-form-control" value="{{ $previewPerSubMarks }}" min="1" max="9999" step="0.5">
-                                        <div class="theme-hint" id="exam-max-marks-hint" style="color: #475569; font-weight: 500;">
-                                            <i class="fa fa-calculator text-primary"></i> <span id="max-marks-calc-text">
-                                                @if($initialEffectiveSubs > 1)
-                                                    {{ $previewPerSubMarks }} per subject &times; {{ $initialEffectiveSubs }} subjects = <strong>{{ $previewTotalMarks }} Total Marks</strong>
-                                                @else
-                                                    Total Marks: <strong>{{ $previewTotalMarks }}</strong> (Marks per subject)
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="theme-form-group">
-                                        <label for="normal-question-paper">Question Paper <span class="badge badge-secondary" style="font-size: 8.5px;">Optional PDF</span></label>
-                                        <input type="file" id="normal-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
-                                        @if(!empty($formExam->question_paper_path))
-                                            <div class="mt-1 small">
-                                                <a href="{{ asset($formExam->question_paper_path) }}" target="_blank" class="text-primary font-weight-bold">
-                                                    <i class="fa fa-file-pdf-o text-danger mr-1"></i> View Attached PDF
-                                                </a>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Mode 2, 3 & 4 Scoring: Marks Per Question & Negative Marking --}}
-                            <div class="row" id="pane-mode-omr-scoring" style="{{ $initialMode === 'normal' ? 'display: none;' : '' }}">
-                                {{-- Correct Marks --}}
-                                <div class="col-md-6">
-                                    <div class="theme-form-group">
-                                        <label for="marks-per-correct">Marks for Correct <span class="text-danger">*</span></label>
-                                        <input type="number" id="marks-per-correct" name="marks_per_correct" class="theme-form-control" value="{{ old('marks_per_correct', $formExam->marks_per_correct ?? 1) }}" min="0" max="999" step="0.01">
-                                    </div>
-                                </div>
-
-                                {{-- Negative Marks --}}
-                                <div class="col-md-6">
-                                    <div class="theme-form-group">
-                                        <label for="marks-per-incorrect">Negative Marks</label>
-                                        <input type="number" id="marks-per-incorrect" name="marks_per_incorrect" class="theme-form-control" value="{{ old('marks_per_incorrect', $formExam->marks_per_incorrect ?? 0) }}" min="-999" max="0" step="0.01">
-                                        <div class="theme-hint">Use 0 for none, or -1, -0.25</div>
-                                    </div>
-                                </div>
-
-                                {{-- Mode 4 Online Only: Test Duration in Minutes --}}
-                                <div class="col-12" id="pane-mode-online-duration" style="{{ $initialMode === 'online' ? '' : 'display: none;' }}">
-                                    <div class="theme-form-group">
-                                        <label for="exam-duration-input"><i class="fa fa-clock-o text-info mr-1"></i> Online Exam Duration (Minutes) <span class="text-danger">*</span></label>
-                                        <input type="number" id="exam-duration-input" name="duration" class="theme-form-control" value="{{ old('duration', $formExam->duration ?? 60) }}" min="1" max="1440" step="1">
-                                        <div class="theme-hint">Total test countdown time given to student in online panel (e.g. 60, 90, 180 min)</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Description / Notes --}}
-                            <div class="theme-form-group">
-                                <label for="description">Instructions / Remarks</label>
-                                <textarea id="description" name="description" rows="2" class="theme-form-control" placeholder="Optional examination notes or instructions...">{{ old('description', $formExam->description ?? '') }}</textarea>
-                            </div>
-
-                            {{-- Pane: Mode 2 (PDF Upload + OMR Key) --}}
-                            <div id="pane-mode-pdf-upload" style="{{ $initialMode === 'pdf_upload' ? '' : 'display: none;' }}">
-                                <div class="builder-section-header">
-                                    <h4><i class="fa fa-file-pdf-o text-warning"></i> Question Paper PDF & Count</h4>
+                            {{-- ============================================================== --}}
+                            {{-- MODE 2 PANE: PDF Paper + Printable OMR Sheet                   --}}
+                            {{-- ============================================================== --}}
+                            <div id="pane-mode-pdf-upload" style="{{ $initialMode === 'pdf_upload' ? 'display: block;' : 'display: none;' }}">
+                                
+                                {{-- Step 2: Paper Specifications & Default Scoring --}}
+                                <div class="builder-section-header mt-3">
+                                    <h4><i class="fa fa-file-pdf-o text-warning"></i> 2. Question Paper Setup &amp; Default Marking</h4>
                                     <span class="badge badge-primary py-1 px-2" id="pdf-qcount-badge" style="font-size: 10px;">{{ $previewQuestions }} Questions</span>
                                 </div>
 
-                                {{-- Number of Questions --}}
-                                <div class="theme-form-group">
-                                    <label for="exam-question-count">Total Questions <span class="text-danger">*</span></label>
-                                    <input type="number" id="exam-question-count" name="number_of_questions" class="theme-form-control" value="{{ $previewQuestions }}" min="1" max="100">
-                                </div>
-
-                                {{-- Quick Question Count Chips --}}
-                                <div class="mb-2">
-                                    <span class="small font-weight-bold text-muted mr-1" style="font-size: 10px;">Quick Questions:</span>
-                                    <span class="quick-chip-btn" data-count="20">20 Qs</span>
-                                    <span class="quick-chip-btn" data-count="30">30 Qs</span>
-                                    <span class="quick-chip-btn {{ $previewQuestions == 50 ? 'active' : '' }}" data-count="50">50 Qs</span>
-                                    <span class="quick-chip-btn" data-count="75">75 Qs</span>
-                                    <span class="quick-chip-btn" data-count="100">100 Qs</span>
-                                </div>
-
-                                {{-- Question Paper PDF --}}
-                                <div class="theme-form-group">
-                                    <label for="exam-question-paper">Question Paper <span class="text-muted font-weight-normal">(PDF up to 10MB)</span></label>
-                                    <input type="file" id="exam-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
-                                    @if(!empty($formExam->question_paper_path))
-                                        <div class="mt-1">
-                                            <a href="{{ asset($formExam->question_paper_path) }}" target="_blank" class="badge badge-primary py-1 px-2">
-                                                <i class="fa fa-file-pdf-o mr-1"></i> View Attached Question Paper
-                                            </a>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group mb-2">
+                                            <label for="exam-question-count">Total Questions <span class="text-danger">*</span></label>
+                                            <input type="number" id="exam-question-count" name="number_of_questions" class="theme-form-control font-weight-bold" value="{{ $previewQuestions }}" min="1" max="100" style="font-size: 14px; color: #002C54;">
+                                            <div class="d-flex align-items-center mt-1" style="gap: 4px;">
+                                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">Presets:</span>
+                                                <span class="quick-chip-btn" data-count="20">20 Qs</span>
+                                                <span class="quick-chip-btn" data-count="30">30 Qs</span>
+                                                <span class="quick-chip-btn {{ $previewQuestions == 50 ? 'active' : '' }}" data-count="50">50 Qs</span>
+                                                <span class="quick-chip-btn" data-count="75">75 Qs</span>
+                                                <span class="quick-chip-btn" data-count="100">100 Qs</span>
+                                            </div>
                                         </div>
-                                    @endif
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group mb-2">
+                                            <label for="exam-question-paper">Question Paper <span class="text-muted font-weight-normal">(PDF up to 10MB)</span></label>
+                                            <input type="file" id="exam-question-paper" name="question_paper" accept="application/pdf,.pdf" class="theme-form-control" style="height: 33px; padding: 3px;">
+                                            @if(!empty($formExam->question_paper_path))
+                                                <div class="mt-1">
+                                                    <a href="{{ asset($formExam->question_paper_path) }}" target="_blank" class="badge badge-primary py-1 px-2">
+                                                        <i class="fa fa-file-pdf-o mr-1"></i> View Attached Question Paper
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {{-- Subject Question Distribution & Weightage Table --}}
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group mb-1">
+                                            <label for="marks-per-correct">Default Marks for Correct <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend"><span class="input-group-text bg-success text-white font-weight-bold" style="font-size:11px;">+</span></div>
+                                                <input type="number" id="marks-per-correct" name="marks_per_correct" class="theme-form-control font-weight-bold text-success" value="{{ old('marks_per_correct', $formExam->marks_per_correct ?? 4) }}" min="0" max="999" step="0.5">
+                                            </div>
+                                            <div class="theme-hint text-muted" style="font-size: 10.5px;">Applied to all questions by default (can be overridden per section).</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="theme-form-group mb-1">
+                                            <label for="marks-per-incorrect">Default Negative Marks</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend"><span class="input-group-text bg-danger text-white font-weight-bold" style="font-size:11px;">-</span></div>
+                                                <input type="number" id="marks-per-incorrect" name="marks_per_incorrect" class="theme-form-control font-weight-bold text-danger" value="{{ old('marks_per_incorrect', $formExam->marks_per_incorrect ?? -1) }}" min="-999" max="0" step="0.25">
+                                            </div>
+                                            <div class="theme-hint text-muted" style="font-size: 10.5px;">E.g. -1 for 1 mark deduction, -0.25 for 1/4th penalty, 0 for none.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Step 3: Included Subjects & Unified Master Section Table --}}
                                 <div class="builder-section-header mt-3">
-                                    <h4><i class="fa fa-sitemap text-warning"></i> Subject Question Ranges & Section Weightage</h4>
-                                    <div class="d-flex align-items-center" style="gap: 6px;">
-                                        <button type="button" class="btn btn-xs btn-outline-success font-weight-bold" id="btn-auto-split-ranges" style="height: 24px; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
-                                            <i class="fa fa-magic mr-1"></i> Auto-Split Evenly
-                                        </button>
-                                    </div>
+                                    <h4><i class="fa fa-sitemap text-warning"></i> 3. Subject Sections, Question Distribution &amp; Cut-off Marks</h4>
                                 </div>
 
+                                {{-- Dock location for subjects checklist in Mode 2 --}}
+                                <div id="mode2-subjects-dock"></div>
+
+                                {{-- Unified Section Table --}}
                                 <div class="mb-3 rounded" id="question-ranges-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
-                                    <div class="p-2 px-3 d-flex align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11.5px;">
-                                        <span class="text-muted">
-                                            <i class="fa fa-info-circle text-primary mr-1"></i> Specify question ranges (e.g. Q1-20 Math, Q21-35 Reasoning) and marks per question for each subject section.
-                                        </span>
+                                    <div class="p-2 px-3 d-flex flex-wrap align-items-center justify-content-between" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 8px;">
+                                        <div class="d-flex align-items-center">
+                                            <span class="font-weight-bold" style="font-size: 12.5px; color: #002C54;">
+                                                <i class="fa fa-sliders text-primary mr-1"></i> Section Weightage &amp; Qualifying Cut-off Scheme
+                                            </span>
+                                            <span class="badge ml-2" id="range-validation-status-badge" style="font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 12px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+                                                <i class="fa fa-check-circle mr-1"></i> {{ $previewQuestions }} / {{ $previewQuestions }} Mapped
+                                            </span>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                                            <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" id="btn-auto-split-ranges" style="height: 26px; font-size: 11px; padding: 0 10px; border-radius: 4px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+                                                <i class="fa fa-magic mr-1"></i> Auto-Split Evenly
+                                            </button>
+                                            <div class="d-inline-flex align-items-center" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 4px;">
+                                                <span class="text-muted mr-1" style="font-size: 10.5px; font-weight: 600;">Cut-off:</span>
+                                                <select id="bulk-range-min-pct" style="width: 120px; height: 24px; font-size: 11px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 3px; padding: 0 4px; background: #ffffff; color: #1e293b;">
+                                                    <option value="0.33">33% (School)</option>
+                                                    <option value="0.35">35% (State Govt)</option>
+                                                    <option value="0.40" selected>40% (SSC/PSC)</option>
+                                                    <option value="0.50">50% (Merit)</option>
+                                                </select>
+                                                <button type="button" class="btn btn-success btn-sm py-0 px-2 ml-1" id="btn-apply-range-bulk-min" style="height: 24px; font-size: 10.5px; font-weight: 600; line-height: 24px; border-radius: 3px;">
+                                                    Apply All
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <div class="table-responsive">
                                         <table class="table table-sm table-bordered table-hover mb-0" id="table-question-ranges" style="font-size: 12px; border-collapse: separate; border-spacing: 0;">
                                             <thead style="background: #002C54; color: #ffffff;">
                                                 <tr>
-                                                    <th style="width: 40px; text-align: center; vertical-align: middle;">#</th>
+                                                    <th style="width: 35px; text-align: center; vertical-align: middle;">#</th>
                                                     <th style="vertical-align: middle;">Subject Section</th>
-                                                    <th style="width: 80px; text-align: center; vertical-align: middle;">From Q</th>
-                                                    <th style="width: 80px; text-align: center; vertical-align: middle;">To Q</th>
-                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">Questions</th>
-                                                    <th style="width: 95px; text-align: center; vertical-align: middle;">+ Correct</th>
-                                                    <th style="width: 95px; text-align: center; vertical-align: middle;">- Wrong</th>
-                                                    <th style="width: 100px; text-align: center; vertical-align: middle;">Section Max</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">From Q</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">To Q</th>
+                                                    <th style="width: 65px; text-align: center; vertical-align: middle;">Qs</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">+ Correct</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">- Wrong</th>
+                                                    <th style="width: 90px; text-align: center; vertical-align: middle;">Section Max</th>
+                                                    <th style="width: 75px; text-align: center; vertical-align: middle;">Cut-off %</th>
+                                                    <th style="width: 95px; text-align: center; vertical-align: middle;">Pass Marks</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="question-ranges-tbody">
@@ -1783,15 +1774,17 @@ textarea.theme-form-control {
                                             <tfoot style="background: #f1f5f9; font-weight: 700; border-top: 2px solid #cbd5e1;">
                                                 <tr>
                                                     <td colspan="4" class="text-right text-dark" style="font-size: 12px; vertical-align: middle; padding: 6px 10px;">Mapped Questions:</td>
-                                                    <td class="text-center font-weight-bold text-primary" id="range-total-q-count" style="vertical-align: middle; font-size: 13px;">0</td>
-                                                    <td colspan="2" class="text-right text-dark" style="font-size: 12px; vertical-align: middle; padding: 6px 10px;">Total PDF Exam Marks:</td>
+                                                    <td class="text-center font-weight-bold text-success" id="range-total-q-count" style="vertical-align: middle; font-size: 12.5px;">{{ $previewQuestions }}</td>
+                                                    <td colspan="2" class="text-right text-dark" style="font-size: 12px; vertical-align: middle; padding: 6px 10px;">Total Weightage:</td>
                                                     <td class="text-center font-weight-bold" style="color: #002C54; font-size: 13px; vertical-align: middle;" id="range-total-max-marks">0.00</td>
+                                                    <td class="text-center font-weight-bold" style="color: #475569; font-size: 12px; vertical-align: middle;" id="grand-total-cutoff-pct">40.0%</td>
+                                                    <td class="text-center font-weight-bold" style="color: #15803d; font-size: 13px; vertical-align: middle;" id="range-total-min-marks">0.00</td>
                                                 </tr>
                                             </tfoot>
                                         </table>
                                     </div>
                                     <div class="px-3 py-1 text-muted" style="font-size: 10.5px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
-                                        <i class="fa fa-lightbulb-o text-warning mr-1"></i> Questions mapped here automatically appear with subject badges in the Answer Key and evaluate independently in OMR extraction.
+                                        <i class="fa fa-info-circle text-primary mr-1"></i> <strong>Indian Coaching Standard:</strong> Question counts determine Section Max Marks automatically. Section Passing Cut-off marks are saved to exam evaluation and student rank reports.
                                     </div>
                                 </div>
 
@@ -1799,9 +1792,9 @@ textarea.theme-form-control {
                                 <input type="hidden" name="subject_question_ranges" id="hidden_subject_question_ranges" value="{{ json_encode($formExam->subject_question_ranges ?? []) }}">
                                 <input type="hidden" name="question_configs" id="hidden_question_configs" value="{{ json_encode($formExam->question_configs ?? []) }}">
 
-                                {{-- Answer Key Matrix (Mode 2) --}}
+                                {{-- Step 4: Answer Key Matrix (OMR Options) --}}
                                 <div class="builder-section-header">
-                                    <h4><i class="fa fa-key text-warning"></i> Answer Key (OMR Options)</h4>
+                                    <h4><i class="fa fa-key text-warning"></i> 4. Answer Key (OMR Options)</h4>
                                     <span class="badge badge-info py-1 px-2" id="answer-key-progress" style="font-size: 10px;">0 / {{ $previewQuestions }} Selected</span>
                                 </div>
                                 <div class="answer-key-box mb-2">
@@ -1822,8 +1815,10 @@ textarea.theme-form-control {
                                 </div>
                             </div>
 
-                            {{-- Pane: Mode 3 (Question Bank OMR) & Mode 4 (Online Exam CBT) --}}
-                            <div id="pane-mode-question-bank" style="{{ in_array($initialMode, ['question_bank', 'online']) ? '' : 'display: none;' }}">
+                            {{-- ============================================================== --}}
+                            {{-- MODE 3 & 4 PANE: Question Bank Questions                       --}}
+                            {{-- ============================================================== --}}
+                            <div id="pane-mode-question-bank" style="{{ in_array($initialMode, ['question_bank', 'online']) ? 'display: block;' : 'display: none;' }}">
                                 <div class="builder-section-header">
                                     <h4><i class="fa fa-list-ol text-warning"></i> Questions From Question Bank</h4>
                                     <div class="d-flex align-items-center gap-2">
@@ -1833,6 +1828,9 @@ textarea.theme-form-control {
                                         </button>
                                     </div>
                                 </div>
+
+                                {{-- Dock location for subjects checklist in Mode 3 --}}
+                                <div id="mode3-subjects-dock"></div>
 
                                 {{-- Empty state message --}}
                                 <div id="qbank-empty-state" class="text-center py-4 text-muted mb-2" style="border: 2px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
@@ -1872,6 +1870,21 @@ textarea.theme-form-control {
                                         <i class="fa fa-info-circle text-info mr-1"></i> <strong>Online CBT Mode:</strong> Questions selected here will appear on the Student Online Examination Portal for students to answer digitally.
                                     </div>
                                 </div>
+                            </div>
+
+                            {{-- Mode 4 Online Only: Test Duration in Minutes --}}
+                            <div id="pane-mode-online-duration" style="{{ $initialMode === 'online' ? 'display: block;' : 'display: none;' }}">
+                                <div class="theme-form-group mt-2">
+                                    <label for="exam-duration-input"><i class="fa fa-clock-o text-info mr-1"></i> Online Exam Duration (Minutes) <span class="text-danger">*</span></label>
+                                    <input type="number" id="exam-duration-input" name="duration" class="theme-form-control" value="{{ old('duration', $formExam->duration ?? 60) }}" min="1" max="1440" step="1">
+                                    <div class="theme-hint">Total test countdown time given to student in online panel (e.g. 60, 90, 180 min)</div>
+                                </div>
+                            </div>
+
+                            {{-- Common Instructions / Remarks --}}
+                            <div class="theme-form-group mt-3">
+                                <label for="description"><i class="fa fa-pencil-square-o text-primary mr-1"></i> Instructions / Remarks</label>
+                                <textarea id="description" name="description" rows="2" class="theme-form-control" placeholder="Optional examination notes or instructions...">{{ old('description', $formExam->description ?? '') }}</textarea>
                             </div>
 
                         </div>
@@ -2447,6 +2460,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return `background: ${c.bg} !important; color: ${c.color} !important; border: 1px solid ${c.border} !important;`;
     };
 
+    const getSubjectName = (sid) => {
+        sid = String(sid);
+        const cb = document.querySelector(`.exam-subject-checkbox[value="${sid}"]`);
+        if (cb) {
+            const name = cb.getAttribute('data-name') || cb.getAttribute('data-subject-name') || cb.closest('.subject-chip-item')?.querySelector('.subject-chip-name')?.textContent?.trim() || cb.closest('.subject-chip-item')?.querySelector('span')?.textContent?.trim();
+            if (name && !name.startsWith('Subject #')) return name;
+        }
+        const found = (subjectRanges || []).find(r => String(r.subject_id) === sid);
+        if (found && found.subject_name && !found.subject_name.startsWith('Subject #')) {
+            return found.subject_name;
+        }
+        return `Subject #${sid}`;
+    };
+
     // Helper: Render LaTeX math in element
     const renderMath = (element) => {
         if (!element || !window.renderMathInElement) return;
@@ -2628,7 +2655,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 3. Left Column Panes
         const paneNormalMarks = document.getElementById('pane-mode-normal-marks');
-        const paneOmrScoring = document.getElementById('pane-mode-omr-scoring');
         const paneOnlineDuration = document.getElementById('pane-mode-online-duration');
         const panePdf = document.getElementById('pane-mode-pdf-upload');
         const paneQBank = document.getElementById('pane-mode-question-bank');
@@ -2637,21 +2663,56 @@ document.addEventListener('DOMContentLoaded', function () {
         const subjectSingleWrapper = document.getElementById('subject-single-wrapper');
         const subjectMultiWrapper = document.getElementById('subject-multi-wrapper');
 
+        // Dynamically dock multi-subject checklist into the active mode pane
         if (mode === 'online') {
             if (subjectSingleWrapper) subjectSingleWrapper.style.display = 'block';
             if (subjectMultiWrapper) subjectMultiWrapper.style.display = 'none';
         } else {
             if (subjectSingleWrapper) subjectSingleWrapper.style.display = 'none';
-            if (subjectMultiWrapper) subjectMultiWrapper.style.display = 'block';
+            if (subjectMultiWrapper) {
+                subjectMultiWrapper.style.display = 'block';
+                if (mode === 'normal') {
+                    document.getElementById('mode1-subjects-dock')?.appendChild(subjectMultiWrapper);
+                } else if (mode === 'pdf_upload') {
+                    document.getElementById('mode2-subjects-dock')?.appendChild(subjectMultiWrapper);
+                } else if (mode === 'question_bank') {
+                    document.getElementById('mode3-subjects-dock')?.appendChild(subjectMultiWrapper);
+                }
+            }
         }
 
-        if (paneNormalMarks) paneNormalMarks.style.display = (mode === 'normal') ? 'flex' : 'none';
-        if (paneOmrScoring) paneOmrScoring.style.display = (mode === 'normal') ? 'none' : 'flex';
+        if (paneNormalMarks) paneNormalMarks.style.display = (mode === 'normal') ? 'block' : 'none';
         if (paneOnlineDuration) paneOnlineDuration.style.display = (mode === 'online') ? 'block' : 'none';
         if (panePdf) panePdf.style.display = (mode === 'pdf_upload') ? 'block' : 'none';
         if (paneQBank) paneQBank.style.display = (mode === 'question_bank' || mode === 'online') ? 'block' : 'none';
         if (qbankDerivedKeyBox) qbankDerivedKeyBox.style.display = (mode === 'question_bank') ? 'block' : 'none';
         if (onlineNoticeBox) onlineNoticeBox.style.display = (mode === 'online') ? 'block' : 'none';
+
+        // Enable/disable inputs based on active mode to avoid collisions
+        const m1Inputs = document.querySelectorAll('#pane-mode-normal-marks input[name^="subject_max_marks"], #pane-mode-normal-marks input[name^="subject_min_marks"]');
+        const m2Inputs = document.querySelectorAll('#pane-mode-pdf-upload input[name^="subject_max_marks"], #pane-mode-pdf-upload input[name^="subject_min_marks"]');
+        if (mode === 'normal') {
+            m1Inputs.forEach(i => i.disabled = false);
+            m2Inputs.forEach(i => i.disabled = true);
+            syncSubjectMarksRows();
+            recalcSubjectMarksTotals();
+            updateNormalSummary();
+        } else if (mode === 'pdf_upload') {
+            m1Inputs.forEach(i => i.disabled = true);
+            m2Inputs.forEach(i => i.disabled = false);
+            syncQuestionRangesTable(false);
+            recalcSubjectMarksTotals();
+            renderOMRPreview();
+        } else if (mode === 'question_bank') {
+            m1Inputs.forEach(i => i.disabled = true);
+            m2Inputs.forEach(i => i.disabled = true);
+            renderQBankExam();
+            renderOMRPreview();
+        } else if (mode === 'online') {
+            m1Inputs.forEach(i => i.disabled = true);
+            m2Inputs.forEach(i => i.disabled = true);
+            renderOnlineExamPreview();
+        }
 
         // 4. Right Column Previews (Equal Height with flex)
         const rightNormal = document.getElementById('right-panel-normal');
@@ -2708,9 +2769,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let subName = '';
             if (qSubId) {
-                const subCb = document.querySelector(`.exam-subject-checkbox[value="${qSubId}"]`);
-                const parentLabel = subCb?.closest('.subject-chip-item');
-                subName = subCb?.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || (qRange ? qRange.subject_name : `Sub #${qSubId}`);
+                subName = getSubjectName(qSubId);
             }
 
             const badgeStyle = qSubId ? getSubjectBadgeStyle(qSubId) : '';
@@ -2773,21 +2832,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const checkedSubs = [];
         document.querySelectorAll('.exam-subject-checkbox:checked').forEach(cb => {
             const sid = parseInt(cb.value, 10);
-            const parentLabel = cb.closest('.subject-chip-item');
-            const name = cb.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || `Subject #${sid}`;
+            const name = getSubjectName(sid);
             checkedSubs.push({ id: sid, name: name });
         });
 
         if (checkedSubs.length === 0) {
             questionRangesTbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-3">
+                    <td colspan="10" class="text-center text-muted py-3">
                         <i class="fa fa-info-circle mr-1"></i> No subjects selected. Check at least one course subject above to configure question ranges.
                     </td>
                 </tr>
             `;
-            if (rangeTotalQCountEl) rangeTotalQCountEl.textContent = '0';
+            if (rangeTotalQCountEl) rangeTotalQCountEl.textContent = '0 / ' + totalQuestions;
             if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = '0.00';
+            const rangeTotalMinEl = document.getElementById('range-total-min-marks');
+            if (rangeTotalMinEl) rangeTotalMinEl.textContent = '0.00';
             if (hiddenRangesInput) hiddenRangesInput.value = '[]';
             if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
             renderAnswerKey(totalQuestions);
@@ -2795,8 +2855,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const currentSubIds = checkedSubs.map(s => s.id);
+        const sumOfRanges = (subjectRanges || []).reduce((acc, r) => acc + Math.max(0, (parseInt(r.to_q, 10) || 0) - (parseInt(r.from_q, 10) || 0) + 1), 0);
         const rangesMatch = !forceSplit && subjectRanges.length === checkedSubs.length &&
-            subjectRanges.every(r => currentSubIds.includes(parseInt(r.subject_id, 10)));
+            subjectRanges.every(r => currentSubIds.includes(parseInt(r.subject_id, 10))) &&
+            sumOfRanges === totalQuestions;
 
         if (!rangesMatch || forceSplit) {
             // Auto split evenly across checked subjects
@@ -2818,6 +2880,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     to_q: toQ,
                     marks_correct: prev && prev.marks_correct !== undefined ? parseFloat(prev.marks_correct) : defaultCorrect,
                     marks_incorrect: prev && prev.marks_incorrect !== undefined ? parseFloat(prev.marks_incorrect) : defaultIncorrect,
+                    cutoff_pct: prev && prev.cutoff_pct !== undefined ? parseFloat(prev.cutoff_pct) : 40.0,
+                    min_marks: prev && prev.min_marks !== undefined ? parseFloat(prev.min_marks) : null,
                 };
             });
         } else {
@@ -2830,6 +2894,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let html = '';
         let totalMappedQs = 0;
         let totalSectionMax = 0;
+        let totalSectionMin = 0;
 
         subjectRanges.forEach((range, idx) => {
             const sid = range.subject_id;
@@ -2846,8 +2911,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 secMax += qM;
             }
 
+            // Cut-off and min marks
+            const defaultCutoffPct = (range.cutoff_pct !== undefined && range.cutoff_pct !== null) ? parseFloat(range.cutoff_pct) : 40.0;
+            const existingMin = (existingSubjectMinMax[sid]?.min !== undefined) ? existingSubjectMinMax[sid].min : null;
+            let passMarks = (range.min_marks !== undefined && range.min_marks !== null && range.min_marks !== '')
+                ? parseFloat(range.min_marks)
+                : (existingMin !== null ? existingMin : Math.round(secMax * (defaultCutoffPct / 100) * 10) / 10);
+            
+            const actualPct = secMax > 0 ? ((passMarks / secMax) * 100) : defaultCutoffPct;
+
             totalMappedQs += qCount;
             totalSectionMax += secMax;
+            totalSectionMin += passMarks;
+
+            range.cutoff_pct = actualPct;
+            range.min_marks = passMarks;
 
             const badgeStyle = getSubjectBadgeStyle(sid);
 
@@ -2879,39 +2957,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="text-center" style="vertical-align: middle; padding: 4px;">
                         <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-correct text-success" 
                                value="${mCorrect}" min="0" max="999" step="0.5" 
-                               style="width: 75px; height: 28px; margin: 0 auto; border: 1px solid #86efac; font-size: 12px; background: #f0fdf4;" 
+                               style="width: 70px; height: 28px; margin: 0 auto; border: 1px solid #86efac; font-size: 12px; background: #f0fdf4;" 
                                data-subject-id="${sid}">
                     </td>
                     <td class="text-center" style="vertical-align: middle; padding: 4px;">
                         <input type="number" class="form-control form-control-sm text-center font-weight-bold range-input-incorrect text-danger" 
                                value="${mIncorrect}" min="-999" max="0" step="0.25" 
-                               style="width: 75px; height: 28px; margin: 0 auto; border: 1px solid #fca5a5; font-size: 12px; background: #fef2f2;" 
+                               style="width: 70px; height: 28px; margin: 0 auto; border: 1px solid #fca5a5; font-size: 12px; background: #fef2f2;" 
                                data-subject-id="${sid}">
                     </td>
                     <td class="text-center font-weight-bold" style="vertical-align: middle; padding: 6px; color: #002C54; font-size: 13px;">
                         <span class="range-sub-max-display">${secMax.toFixed(2)}</span>
+                        <input type="hidden" name="subject_max_marks[${sid}]" id="sub_max_${sid}" class="sub-max-input" value="${secMax}">
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <span class="sub-cutoff-badge" id="sub_cutoff_badge_${sid}" style="display: inline-block; min-width: 52px; padding: 3px 6px; font-size: 11px; font-weight: 700; border-radius: 4px; border: 1px solid #bae6fd; background: #f0f9ff; color: #0284c7;">
+                            ${actualPct.toFixed(1)}%
+                        </span>
+                    </td>
+                    <td class="text-center" style="vertical-align: middle; padding: 4px;">
+                        <input type="number" name="subject_min_marks[${sid}]" id="sub_min_${sid}" class="form-control form-control-sm text-center font-weight-bold sub-min-input range-input-min" 
+                               value="${passMarks}" min="0" max="9999" step="0.5" 
+                               style="width: 75px; height: 28px; margin: 0 auto; border: 1px solid #86efac; font-size: 12px; color: #15803d; background: #ffffff;" 
+                               data-subject-id="${sid}">
                     </td>
                 </tr>
             `;
-
-            const upperSubMaxInp = document.getElementById(`sub_max_${sid}`);
-            if (upperSubMaxInp) {
-                upperSubMaxInp.value = secMax;
-                const upperSubMinInp = document.getElementById(`sub_min_${sid}`);
-                if (upperSubMinInp) {
-                    const pctVal = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.35') || 0.35;
-                    upperSubMinInp.value = Math.round(secMax * pctVal * 10) / 10;
-                }
-            }
         });
 
         questionRangesTbody.innerHTML = html;
-
-        if (rangeTotalQCountEl) {
-            rangeTotalQCountEl.textContent = `${totalMappedQs} / ${totalQuestions}`;
-            rangeTotalQCountEl.className = (totalMappedQs === totalQuestions) ? 'text-center font-weight-bold text-success' : 'text-center font-weight-bold text-danger';
-        }
-        if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = totalSectionMax.toFixed(2);
 
         if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
         if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
@@ -2954,41 +3028,54 @@ document.addEventListener('DOMContentLoaded', function () {
                 const maxDisplay = row.querySelector('.range-sub-max-display');
                 if (maxDisplay) maxDisplay.textContent = secMax.toFixed(2);
 
-                const upperSubMaxInp = document.getElementById(`sub_max_${sid}`);
-                if (upperSubMaxInp) {
-                    upperSubMaxInp.value = secMax;
-                    const upperSubMinInp = document.getElementById(`sub_min_${sid}`);
-                    if (upperSubMinInp) {
-                        const pctVal = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.35') || 0.35;
-                        upperSubMinInp.value = Math.round(secMax * pctVal * 10) / 10;
-                    }
-                }
+                const maxHidden = row.querySelector('.sub-max-input');
+                if (maxHidden) maxHidden.value = secMax;
 
-                let totalMapped = 0;
-                let grandTotalSecMax = 0;
-                subjectRanges.forEach(r => {
-                    const f = parseInt(r.from_q, 10) || 1;
-                    const t = parseInt(r.to_q, 10) || f;
-                    totalMapped += Math.max(0, t - f + 1);
-                    const defC = parseFloat(r.marks_correct !== undefined ? r.marks_correct : 1);
-                    for (let q = f; q <= t; q++) {
-                        const qCfg = questionConfigs[String(q)] || questionConfigs[q];
-                        grandTotalSecMax += (qCfg && qCfg.marks_correct !== undefined && qCfg.marks_correct !== '') ? parseFloat(qCfg.marks_correct) : defC;
-                    }
-                });
+                // Auto update min marks if bulk cut-off is configured
+                const minInp = row.querySelector('.range-input-min');
+                const cutoffBadge = row.querySelector('.sub-cutoff-badge');
+                const bulkPct = parseFloat(document.getElementById('bulk-subject-min-pct')?.value || '0.40') || 0.40;
+                const newPass = Math.round(secMax * bulkPct * 10) / 10;
+                if (minInp) minInp.value = newPass;
+                if (cutoffBadge) cutoffBadge.textContent = `${(bulkPct * 100).toFixed(1)}%`;
 
-                const totalQuestions = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
-                if (rangeTotalQCountEl) {
-                    rangeTotalQCountEl.textContent = `${totalMapped} / ${totalQuestions}`;
-                    rangeTotalQCountEl.className = (totalMapped === totalQuestions) ? 'text-center font-weight-bold text-success' : 'text-center font-weight-bold text-danger';
+                if (rangeItem) {
+                    rangeItem.min_marks = newPass;
+                    rangeItem.cutoff_pct = bulkPct * 100;
                 }
-                if (rangeTotalMaxMarksEl) rangeTotalMaxMarksEl.textContent = grandTotalSecMax.toFixed(2);
 
                 if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
                 if (hiddenConfigsInput) hiddenConfigsInput.value = JSON.stringify(questionConfigs);
 
+                const totalQuestions = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
                 recalcSubjectMarksTotals();
                 renderAnswerKey(totalQuestions);
+            });
+        });
+
+        // Min Pass Marks direct edit listener
+        questionRangesTbody.querySelectorAll('.range-input-min').forEach(inp => {
+            inp.addEventListener('input', function() {
+                const sid = parseInt(this.getAttribute('data-subject-id'), 10);
+                const row = this.closest('tr');
+                if (!row) return;
+
+                const maxVal = parseFloat(row.querySelector('.sub-max-input')?.value || '0') || 0;
+                const minVal = parseFloat(this.value || '0') || 0;
+                const pct = maxVal > 0 ? ((minVal / maxVal) * 100) : 0;
+                const badge = row.querySelector('.sub-cutoff-badge');
+                if (badge) {
+                    badge.textContent = `${pct.toFixed(1)}%`;
+                }
+
+                const rangeItem = subjectRanges.find(r => parseInt(r.subject_id, 10) === sid);
+                if (rangeItem) {
+                    rangeItem.min_marks = minVal;
+                    rangeItem.cutoff_pct = pct;
+                }
+
+                if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
+                recalcSubjectMarksTotals();
             });
         });
     };
@@ -3008,8 +3095,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let selHtml = '<option value="">(Default from Section Range)</option>';
         document.querySelectorAll('.exam-subject-checkbox:checked').forEach(cb => {
             const sid = cb.value;
-            const parentLabel = cb.closest('.subject-chip-item');
-            const name = cb.getAttribute('data-subject-name') || parentLabel?.querySelector('.subject-chip-name')?.textContent?.trim() || `Subject #${sid}`;
+            const name = getSubjectName(sid);
             selHtml += `<option value="${sid}">${escapeHtml(name)}</option>`;
         });
         if (qmodalSubSelect) qmodalSubSelect.innerHTML = selHtml;
@@ -3122,7 +3208,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.quick-chip-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             countInput.value = this.dataset.count;
-            syncQuestionRangesTable(false);
+            syncQuestionRangesTable(true);
             renderOMRPreview();
         });
     });
@@ -3212,10 +3298,34 @@ document.addEventListener('DOMContentLoaded', function () {
         renderOMRPreview();
     });
     marksCorrectInput?.addEventListener('input', () => {
-        syncQuestionRangesTable(false);
+        const val = parseFloat(marksCorrectInput?.value || '1') || 1;
+        document.querySelectorAll('#question-ranges-tbody .range-input-correct').forEach(inp => {
+            inp.value = val;
+        });
+        (subjectRanges || []).forEach(r => {
+            r.marks_correct = val;
+        });
+        const firstRangeInp = document.querySelector('#question-ranges-tbody .range-input-correct');
+        if (firstRangeInp) {
+            firstRangeInp.dispatchEvent(new Event('input'));
+        } else {
+            syncQuestionRangesTable(false);
+        }
     });
     marksIncorrectInput?.addEventListener('input', () => {
-        syncQuestionRangesTable(false);
+        const val = parseFloat(marksIncorrectInput?.value || '0') || 0;
+        document.querySelectorAll('#question-ranges-tbody .range-input-incorrect').forEach(inp => {
+            inp.value = val;
+        });
+        (subjectRanges || []).forEach(r => {
+            r.marks_incorrect = val;
+        });
+        const firstRangeInp = document.querySelector('#question-ranges-tbody .range-input-incorrect');
+        if (firstRangeInp) {
+            firstRangeInp.dispatchEvent(new Event('input'));
+        } else {
+            syncQuestionRangesTable(false);
+        }
     });
 
     // -------------------------------------------------------------
@@ -3310,6 +3420,102 @@ document.addEventListener('DOMContentLoaded', function () {
         let totalMax = 0;
         let totalMin = 0;
         let activeCount = 0;
+
+        if (currentMode === 'pdf_upload') {
+            const rangeRows = document.querySelectorAll('#question-ranges-tbody .range-row');
+            let totalMappedQs = 0;
+            const totalQuestions = Math.max(1, Math.min(100, parseInt(countInput?.value || '50', 10) || 50));
+
+            rangeRows.forEach(row => {
+                activeCount++;
+                const fromVal = parseInt(row.querySelector('.range-input-from')?.value || '1', 10) || 1;
+                const toVal = parseInt(row.querySelector('.range-input-to')?.value || '1', 10) || fromVal;
+                const qCount = Math.max(0, toVal - fromVal + 1);
+                totalMappedQs += qCount;
+
+                const maxHidden = row.querySelector('.sub-max-input');
+                const minInp = row.querySelector('.range-input-min');
+                const badge = row.querySelector('.sub-cutoff-badge');
+
+                const maxVal = parseFloat(maxHidden?.value || '0') || 0;
+                const minVal = parseFloat(minInp?.value || '0') || 0;
+
+                totalMax += maxVal;
+                totalMin += minVal;
+
+                if (badge) {
+                    const pct = maxVal > 0 ? ((minVal / maxVal) * 100).toFixed(1) : '0';
+                    badge.textContent = `${pct}%`;
+                    if (parseFloat(pct) < 33) {
+                        badge.style.color = '#b91c1c';
+                        badge.style.borderColor = '#fca5a5';
+                        badge.style.background = '#fef2f2';
+                    } else if (parseFloat(pct) <= 40) {
+                        badge.style.color = '#0284c7';
+                        badge.style.borderColor = '#bae6fd';
+                        badge.style.background = '#f0f9ff';
+                    } else {
+                        badge.style.color = '#15803d';
+                        badge.style.borderColor = '#bbf7d0';
+                        badge.style.background = '#f0fdf4';
+                    }
+                }
+            });
+
+            // Update Mode 2 footer elements
+            const rangeTotalQCountEl = document.getElementById('range-total-q-count');
+            if (rangeTotalQCountEl) {
+                rangeTotalQCountEl.textContent = `${totalMappedQs} / ${totalQuestions} Qs`;
+                if (totalMappedQs === totalQuestions) {
+                    rangeTotalQCountEl.className = 'text-center font-weight-bold text-success';
+                } else {
+                    rangeTotalQCountEl.className = 'text-center font-weight-bold text-danger';
+                }
+            }
+
+            const rangeTotalMaxEl = document.getElementById('range-total-max-marks');
+            if (rangeTotalMaxEl) rangeTotalMaxEl.textContent = totalMax.toFixed(2);
+
+            const rangeTotalMinEl = document.getElementById('range-total-min-marks');
+            if (rangeTotalMinEl) rangeTotalMinEl.textContent = totalMin.toFixed(2);
+
+            const rangeTotalPctEl = document.getElementById('grand-total-cutoff-pct');
+            if (rangeTotalPctEl) {
+                rangeTotalPctEl.textContent = totalMax > 0 ? `${((totalMin / totalMax) * 100).toFixed(1)}%` : '--';
+            }
+
+            const statusBadge = document.getElementById('range-validation-status-badge');
+            if (statusBadge) {
+                if (totalMappedQs === totalQuestions) {
+                    statusBadge.innerHTML = `<i class="fa fa-check-circle mr-1"></i> ${totalMappedQs} / ${totalQuestions} Mapped`;
+                    statusBadge.style.background = '#f0fdf4';
+                    statusBadge.style.color = '#166534';
+                    statusBadge.style.borderColor = '#bbf7d0';
+                } else {
+                    statusBadge.innerHTML = `<i class="fa fa-exclamation-triangle mr-1"></i> ${totalMappedQs} / ${totalQuestions} Mapped`;
+                    statusBadge.style.background = '#fef2f2';
+                    statusBadge.style.color = '#b91c1c';
+                    statusBadge.style.borderColor = '#fca5a5';
+                }
+            }
+
+            // Sync overall exam max marks input
+            const examMaxInput = document.getElementById('exam-max-marks');
+            if (examMaxInput) {
+                examMaxInput.value = totalMax;
+            }
+
+            const calcHintText = document.getElementById('max-marks-calc-text');
+            if (calcHintText) {
+                if (activeCount > 0) {
+                    calcHintText.innerHTML = `Total: <strong>${totalMax.toFixed(2)} Marks</strong> across ${activeCount} active subjects | Sectional Qualifying Cut-off: <strong>${totalMin.toFixed(2)}</strong>`;
+                } else {
+                    calcHintText.innerHTML = `<span class="text-danger">0 subjects selected (Total: 0 Marks)</span>`;
+                }
+            }
+
+            return;
+        }
 
         const rows = document.querySelectorAll('.subject-mark-row');
         rows.forEach(row => {
@@ -3495,6 +3701,27 @@ document.addEventListener('DOMContentLoaded', function () {
             const minVal = Math.round(maxVal * pct * 10) / 10;
             if (minInp) minInp.value = minVal;
         });
+        recalcSubjectMarksTotals();
+    });
+
+    document.getElementById('btn-apply-range-bulk-min')?.addEventListener('click', () => {
+        const pct = parseFloat(document.getElementById('bulk-range-min-pct')?.value || '0.40') || 0.40;
+        document.querySelectorAll('#question-ranges-tbody .range-row').forEach(row => {
+            const sid = parseInt(row.getAttribute('data-subject-id'), 10);
+            const maxHidden = row.querySelector('.sub-max-input');
+            const minInp = row.querySelector('.range-input-min');
+            const cutoffBadge = row.querySelector('.sub-cutoff-badge');
+            const maxVal = parseFloat(maxHidden?.value || '0') || 0;
+            const minVal = Math.round(maxVal * pct * 10) / 10;
+            if (minInp) minInp.value = minVal;
+            if (cutoffBadge) cutoffBadge.textContent = `${(pct * 100).toFixed(1)}%`;
+            const rangeItem = (subjectRanges || []).find(r => parseInt(r.subject_id, 10) === sid);
+            if (rangeItem) {
+                rangeItem.min_marks = minVal;
+                rangeItem.cutoff_pct = pct * 100;
+            }
+        });
+        if (hiddenRangesInput) hiddenRangesInput.value = JSON.stringify(subjectRanges);
         recalcSubjectMarksTotals();
     });
 

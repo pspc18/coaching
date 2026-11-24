@@ -2262,6 +2262,23 @@ class ExamController extends Controller
                     ];
                 })
                 ->toArray();
+
+            if (!empty($savedExam->subject_question_ranges)) {
+                $ranges = is_string($savedExam->subject_question_ranges)
+                    ? json_decode($savedExam->subject_question_ranges, true)
+                    : $savedExam->subject_question_ranges;
+                if (is_array($ranges) && !empty($subjects)) {
+                    $subMap = $subjects->pluck('name', 'id')->toArray();
+                    foreach ($ranges as &$r) {
+                        $sId = (int)($r['subject_id'] ?? 0);
+                        if ($sId > 0 && isset($subMap[$sId])) {
+                            $r['subject_name'] = $subMap[$sId];
+                        }
+                    }
+                    unset($r);
+                    $savedExam->subject_question_ranges = $ranges;
+                }
+            }
         }
 
         return view('examination.offline_exam.exam.add', compact('examCode', 'classType', 'instituteName', 'savedExam', 'subjects', 'preloadedQuestions', 'preloadedClassId', 'preloadedSubjectId', 'preloadedSubjectIds', 'preloadedExamDate', 'preloadedBatches', 'preloadedBatchId', 'existingMinMaxMap'));
