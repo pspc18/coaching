@@ -1364,13 +1364,7 @@ textarea.theme-form-control {
                                 <div class="col-md-4">
                                     <div class="theme-form-group">
                                         <label for="exam-code">Exam Code</label>
-                                        <div class="input-group">
-                                            <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly style="background: #f8fafc; color: #002C54; font-family: monospace; font-size: 13px;">
-                                            <div class="input-group-append">
-                                                <span class="input-group-text bg-light text-muted"><i class="fa fa-barcode text-primary"></i></span>
-                                            </div>
-                                        </div>
-                                        <div class="theme-hint"><i class="fa fa-lock text-muted mr-1"></i> Unique scanner barcode</div>
+                                        <input type="text" id="exam-code" name="code" class="theme-form-control font-weight-bold" value="{{ $previewCode }}" readonly style="background: #f8fafc; color: #002C54; font-family: monospace; font-size: 13px;">
                                     </div>
                                 </div>
                             </div>
