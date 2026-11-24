@@ -638,6 +638,9 @@ class ExamController extends Controller
         $overallTotalMarks = 0.0;
         $overallObtainedMarks = 0.0;
 
+        // Detect if passed answers are 0-indexed list (e.g. [0=>"C", 1=>null, ...]) or 1-based map (e.g. ["1"=>"C", "3"=>"B", ...])
+        $isZeroIndexed = is_array($passedAnswers) && !isset($passedAnswers[1]) && !isset($passedAnswers['1']) && (isset($passedAnswers[0]) || isset($passedAnswers['0']));
+
         for ($i = 1; $i <= $totalQuestions; $i++) {
             $correctOption = $answerKey[$i] ?? $answerKey[(string)$i] ?? null;
             if (!empty($correctOption)) {
@@ -645,13 +648,17 @@ class ExamController extends Controller
             }
 
             $userOption = null;
-            if (isset($passedAnswers[(string)$i])) {
-                $userOption = $passedAnswers[(string)$i];
-            } elseif (isset($passedAnswers[$i])) {
-                $userOption = $passedAnswers[$i];
-            } elseif (isset($passedAnswers[$i - 1])) {
-                $item = $passedAnswers[$i - 1];
-                $userOption = is_array($item) ? ($item['value'] ?? $item['answer'] ?? null) : $item;
+            if ($isZeroIndexed) {
+                $idx = $i - 1;
+                $rawVal = $passedAnswers[$idx] ?? $passedAnswers[(string)$idx] ?? null;
+            } else {
+                $rawVal = $passedAnswers[$i] ?? $passedAnswers[(string)$i] ?? null;
+            }
+
+            if (is_array($rawVal)) {
+                $userOption = $rawVal['value'] ?? $rawVal['answer'] ?? $rawVal['detected'] ?? $rawVal['option'] ?? null;
+            } else {
+                $userOption = $rawVal;
             }
 
             if ($userOption === '—' || $userOption === '?' || $userOption === '' || $userOption === null) {
