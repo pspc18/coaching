@@ -2343,6 +2343,17 @@ textarea.theme-form-control {
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
 <script>
+window.escapeHtml = function (str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+const escapeHtml = window.escapeHtml;
+
 document.addEventListener('DOMContentLoaded', function () {
     // -------------------------------------------------------------
     // Core Elements & State
