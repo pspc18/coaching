@@ -791,8 +791,37 @@
 
                                     {{-- Sheet / Image Column --}}
                                     <td class="text-center cell-sheet" style="vertical-align: middle;">
-                                        @if($hasOmr && !empty($omrRecord->source_filename))
-                                            <img src="{{ asset($omrRecord->annotated_image_url ?? $omrRecord->source_filename) }}" class="omr-thumb" alt="Sheet" onclick="viewSavedOmrModal('{{ $omrRecord->id }}');" title="Click to view sheet">
+                                        @php
+                                            $sheetUrl = null;
+                                            if ($hasOmr) {
+                                                $sheetUrl = $omrRecord->image_url;
+                                                if (!$sheetUrl && !empty($omrRecord->stored_file)) {
+                                                    $sheetUrl = asset($omrRecord->stored_file);
+                                                }
+                                                if (!$sheetUrl && !empty($omrRecord->source_filename)) {
+                                                    $sheetUrl = file_exists(public_path('uploads/omr_scans/' . $omrRecord->source_filename))
+                                                        ? asset('uploads/omr_scans/' . $omrRecord->source_filename)
+                                                        : asset($omrRecord->source_filename);
+                                                }
+                                            }
+                                        @endphp
+                                        @if($hasOmr && !empty($sheetUrl))
+                                            <img src="{{ $sheetUrl }}" 
+                                                 class="omr-thumb" 
+                                                 alt="Sheet" 
+                                                 onclick="viewSavedOmrModal('{{ $omrRecord->id }}', this);" 
+                                                 data-image-url="{{ $sheetUrl }}"
+                                                 data-student-name="{{ $stu->first_name }} {{ $stu->last_name }}"
+                                                 data-roll="{{ $displayRoll }}"
+                                                 data-score="+{{ $omrRecord->obtained_marks }} / {{ $omrRecord->total_marks }} ({{ $omrRecord->percentage }}%)"
+                                                 data-filename="{{ $omrRecord->source_filename ?: 'omr_sheet.jpg' }}"
+                                                 title="Click to view sheet preview"
+                                                 style="cursor: pointer;">
+                                        @elseif($hasOmr)
+                                            <div class="sheet-placeholder text-primary" style="font-size: 10px; cursor: pointer;" onclick="viewSavedOmrModal('{{ $omrRecord->id }}', this);" title="Click to view sheet preview">
+                                                <i class="fa fa-file-image-o d-block mb-1 text-primary" style="font-size: 14px;"></i>
+                                                <span class="badge badge-light border" style="font-size: 9px;">Sheet</span>
+                                            </div>
                                         @else
                                             <div class="sheet-placeholder text-muted" style="font-size: 10px; opacity: 0.6;">
                                                 <i class="fa fa-file-image-o d-block mb-1"></i> Waiting
@@ -871,8 +900,24 @@
                                     {{-- Actions Column --}}
                                     <td class="text-right cell-actions" style="vertical-align: middle; white-space: nowrap;">
                                         @if($hasOmr)
-                                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedOmrModal('{{ $omrRecord->id }}');" title="Inspect OMR Scan">
+                                            <button type="button" 
+                                                    class="btn btn-xs btn-outline-primary mr-1" 
+                                                    style="padding: 2px 7px; font-size: 11px;" 
+                                                    onclick="viewSavedOmrModal('{{ $omrRecord->id }}', this);" 
+                                                    data-image-url="{{ $sheetUrl }}"
+                                                    data-student-name="{{ $stu->first_name }} {{ $stu->last_name }}"
+                                                    data-roll="{{ $displayRoll }}"
+                                                    data-score="+{{ $omrRecord->obtained_marks }} / {{ $omrRecord->total_marks }} ({{ $omrRecord->percentage }}%)"
+                                                    data-filename="{{ $omrRecord->source_filename ?: 'omr_sheet.jpg' }}"
+                                                    title="Inspect OMR Scan">
                                                 <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-xs btn-outline-info mr-1" 
+                                                    style="padding: 2px 7px; font-size: 11px;" 
+                                                    onclick="viewSavedAnswersModal('{{ $omrRecord->id }}');" 
+                                                    title="Question-by-Question Matrix">
+                                                <i class="fa fa-list"></i>
                                             </button>
                                         @else
                                             <span class="text-muted small pr-2">--</span>
@@ -942,7 +987,24 @@
                             @endphp
                             <tr id="scan-row-{{ $scan->id }}" data-unique-id="{{ $scan->unique_id }}">
                                 <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="{{ $scan->source_filename }}">
-                                    <i class="fa fa-file-image-o text-muted mr-1"></i> {{ $scan->source_filename ?: 'omr_scan.png' }}
+                                    <div class="d-flex align-items-center">
+                                        @if(!empty($scan->image_url))
+                                            <img src="{{ $scan->image_url }}" 
+                                                 class="omr-thumb mr-2" 
+                                                 alt="Sheet" 
+                                                 onclick="viewSavedOmrModal('{{ $scan->id }}', this);" 
+                                                 data-image-url="{{ $scan->image_url }}"
+                                                 data-student-name="{{ $stName }}"
+                                                 data-roll="{{ $scan->unique_id }}"
+                                                 data-score="+{{ $scan->obtained_marks }} / {{ $scan->total_marks }} ({{ $scan->percentage }}%)"
+                                                 data-filename="{{ $scan->source_filename }}"
+                                                 title="Click to view sheet preview" 
+                                                 style="width: 26px; height: 26px; object-fit: cover; border-radius: 3px; cursor: pointer; flex-shrink: 0;">
+                                        @else
+                                            <i class="fa fa-file-image-o text-muted mr-1"></i>
+                                        @endif
+                                        <span class="text-truncate">{{ $scan->source_filename ?: 'omr_scan.png' }}</span>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="font-mono font-weight-bold text-primary">{{ $scan->unique_id }}</span>
@@ -973,10 +1035,29 @@
                                     <span class="badge-pill-status badge-matched">{{ $scan->percentage }}%</span>
                                 </td>
                                 <td class="text-center font-weight-bold text-primary">#{{ $scan->rank ?: 1 }}</td>
-                                <td class="text-right">
-                                    <span class="badge-pill-status badge-saved" title="Marks recorded in student exam file">
+                                <td class="text-right" style="white-space: nowrap;">
+                                    <span class="badge-pill-status badge-saved mr-1" title="Marks recorded in student exam file">
                                         <i class="fa fa-check-circle"></i> Saved
                                     </span>
+                                    <button type="button" 
+                                            class="btn btn-xs btn-outline-primary mr-1" 
+                                            style="padding: 2px 6px; font-size: 10px;" 
+                                            onclick="viewSavedOmrModal('{{ $scan->id }}', this);" 
+                                            data-image-url="{{ $scan->image_url }}"
+                                            data-student-name="{{ $stName }}"
+                                            data-roll="{{ $scan->unique_id }}"
+                                            data-score="+{{ $scan->obtained_marks }} / {{ $scan->total_marks }} ({{ $scan->percentage }}%)"
+                                            data-filename="{{ $scan->source_filename }}"
+                                            title="Inspect OMR Scan">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-xs btn-outline-info" 
+                                            style="padding: 2px 6px; font-size: 10px;" 
+                                            onclick="viewSavedAnswersModal('{{ $scan->id }}');" 
+                                            title="Question Matrix">
+                                        <i class="fa fa-list"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -1009,7 +1090,12 @@
                 </button>
             </div>
             <div class="modal-body p-2 text-center" style="background: #f8fafc; max-height: 80vh; overflow-y: auto;">
-                <img id="modal-annotated-img" src="" alt="Annotated OMR" style="max-width: 100%; height: auto; border: 1px solid #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 2px; background: #ffffff;">
+                <img id="modal-annotated-img" src="" alt="Scanned OMR Sheet" style="max-width: 100%; height: auto; border: 1px solid #cbd5e1; box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 2px; background: #ffffff;" onerror="this.style.display='none'; const noImg = document.getElementById('modal-sheet-no-img'); if(noImg) noImg.style.display='block';" onload="this.style.display='inline-block'; const noImg = document.getElementById('modal-sheet-no-img'); if(noImg) noImg.style.display='none';">
+                <div id="modal-sheet-no-img" style="display: none; padding: 40px;" class="text-muted">
+                    <i class="fa fa-file-image-o fa-3x mb-2 text-muted" style="opacity: 0.5;"></i>
+                    <div class="font-weight-bold">Sheet image scan file not found on server disk</div>
+                    <div class="small text-muted">Evaluation answers, score, and subject breakdown are preserved in database.</div>
+                </div>
                 <div class="mt-2 text-dark font-weight-bold small" id="modal-annotated-info"></div>
             </div>
             <div class="modal-footer py-2 px-3 d-flex justify-content-between" style="background: #ffffff; border-top: 1px solid #e2e8f0;">
@@ -1098,7 +1184,21 @@
 @endsection
 
 @section('scripts')
+@php
+    $allSavedMap = [];
+    if (!empty($existingOmrMap)) {
+        foreach ($existingOmrMap as $admId => $rec) {
+            $allSavedMap[$rec->id] = $rec;
+        }
+    }
+    if (!empty($recentScans)) {
+        foreach ($recentScans as $sc) {
+            $allSavedMap[$sc->id] = $sc;
+        }
+    }
+@endphp
 <script>
+window.savedOmrRecords = @json($allSavedMap);
 document.addEventListener('DOMContentLoaded', function () {
     const classSelect = document.getElementById('omr-class-select');
     const batchSelect = document.getElementById('omr-batch-select');
@@ -1815,17 +1915,142 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // Modal: Saved OMR Sheet Inspection
-    window.viewSavedOmrModal = function (omrId) {
-        const tr = document.getElementById(`scan-row-${omrId}`) || document.querySelector(`[onclick*="viewSavedOmrModal('${omrId}')"]`)?.closest('tr');
+    window.viewSavedOmrModal = function (omrId, btnEl) {
+        const rec = (window.savedOmrRecords && window.savedOmrRecords[omrId]) || null;
+        let btn = btnEl;
+        if (!btn && typeof event !== 'undefined' && event) {
+            btn = event.currentTarget || (event.target ? event.target.closest('button, img, div') : null);
+        }
+        const tr = btn ? btn.closest('tr') : (document.querySelector(`[onclick*="viewSavedOmrModal('${omrId}')"]`)?.closest('tr') || document.getElementById(`scan-row-${omrId}`));
         const img = tr ? tr.querySelector('img.omr-thumb') : null;
-        if (img && img.src) {
-            modalAnnotatedImg.src = img.src;
-            modalAnnotatedInfo.innerHTML = `<b>Saved Evaluation Record #${omrId}</b>`;
-            if (typeof $ !== 'undefined' && $('#modalAnnotatedSheet').modal) {
-                $('#modalAnnotatedSheet').modal('show');
-            } else if (typeof bootstrap !== 'undefined') {
-                new bootstrap.Modal(document.getElementById('modalAnnotatedSheet')).show();
+
+        let imageUrl = btn?.dataset?.imageUrl || tr?.dataset?.imageUrl || (rec ? (rec.image_url || (rec.stored_file ? '/' + rec.stored_file.replace(/^\/+/, '') : null)) : null);
+        if (!imageUrl && img && img.src && !img.src.includes('broken') && !img.src.endsWith('/')) {
+            imageUrl = img.src;
+        }
+
+        const studentName = btn?.dataset?.studentName || tr?.dataset?.studentName || (rec?.student ? (rec.student.first_name + ' ' + (rec.student.last_name || '')) : 'Student');
+        const rollNo = btn?.dataset?.roll || tr?.dataset?.rollNo || rec?.unique_id || '';
+        const score = btn?.dataset?.score || (rec ? `+${rec.obtained_marks || 0} / ${rec.total_marks || 0} (${rec.percentage || 0}%)` : '');
+        const filename = btn?.dataset?.filename || rec?.source_filename || '';
+
+        if (modalAnnotatedImg) {
+            if (imageUrl) {
+                modalAnnotatedImg.src = imageUrl;
+                modalAnnotatedImg.style.display = 'inline-block';
+            } else {
+                modalAnnotatedImg.src = '';
+                modalAnnotatedImg.style.display = 'none';
             }
+        }
+
+        if (modalAnnotatedInfo) {
+            modalAnnotatedInfo.innerHTML = `
+                <div class="py-1">
+                    <span class="badge badge-primary px-2 py-1 mr-1" style="background: #002C54; color: #fff;">Evaluation #${omrId}</span>
+                    <span class="font-weight-bold text-dark font-size-13">${escapeHtml(studentName)}</span> 
+                    ${rollNo ? `<span class="text-muted ml-1">(Roll: <b class="font-mono text-primary">${escapeHtml(rollNo)}</b>)</span>` : ''} 
+                    ${score ? `&bull; Score: <span class="text-success font-weight-bold font-mono font-size-13">${score}</span>` : ''}
+                    ${filename ? `<div class="text-muted mt-1 small font-mono"><i class="fa fa-file-image-o mr-1"></i>${escapeHtml(filename)}</div>` : ''}
+                </div>
+            `;
+        }
+
+        if (typeof $ !== 'undefined' && $('#modalAnnotatedSheet').modal) {
+            $('#modalAnnotatedSheet').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(document.getElementById('modalAnnotatedSheet')).show();
+        }
+    };
+
+    // Modal: Saved Question-by-Question Matrix
+    window.viewSavedAnswersModal = function (omrId) {
+        const rec = (window.savedOmrRecords && window.savedOmrRecords[omrId]) || null;
+        if (!rec) {
+            alert('Evaluation record #' + omrId + ' not found in memory.');
+            return;
+        }
+
+        let answers = rec.extracted_answers || [];
+        if (typeof answers === 'string') {
+            try { answers = JSON.parse(answers); } catch (e) { answers = []; }
+        }
+
+        let subBreakdown = rec.subject_breakdown || [];
+        if (typeof subBreakdown === 'string') {
+            try { subBreakdown = JSON.parse(subBreakdown); } catch (e) { subBreakdown = []; }
+        }
+
+        const stName = rec.student ? (rec.student.first_name + ' ' + (rec.student.last_name || '')) : ('Student #' + (rec.unique_id || ''));
+        modalAnsStudent.textContent = stName;
+        modalAnsRoll.textContent = rec.unique_id || 'N/A';
+        modalAnsScore.textContent = `+${rec.obtained_marks || 0} / ${rec.total_marks || 0} (${rec.percentage || 0}%)`;
+
+        // Subject breakdown
+        const subWrapper = document.getElementById('modal-subject-breakdown-wrapper');
+        const subTbody = document.getElementById('modal-subject-breakdown-tbody');
+
+        if (subWrapper && subTbody) {
+            if (Array.isArray(subBreakdown) && subBreakdown.length > 0) {
+                let subHtml = '';
+                subBreakdown.forEach(sb => {
+                    const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q}-${sb.to_q}` : `${sb.total_questions || 0} Qs`;
+                    subHtml += `
+                        <tr>
+                            <td class="font-weight-bold text-dark">${escapeHtml(sb.subject_name || 'Subject')}</td>
+                            <td class="text-center font-mono small text-muted">${rangeText}</td>
+                            <td class="text-center font-weight-bold text-success">${sb.correct_answers || 0}</td>
+                            <td class="text-center font-weight-bold text-danger">${sb.incorrect_answers || 0}</td>
+                            <td class="text-center text-muted">${sb.blank_answers || 0}</td>
+                            <td class="text-center font-weight-bold font-mono text-primary">+${sb.obtained_marks_formatted || sb.obtained_marks || 0}</td>
+                            <td class="text-center font-weight-bold font-mono text-muted">${sb.max_marks_formatted || sb.max_marks || 0}</td>
+                            <td class="text-center font-weight-bold ${parseFloat(sb.percentage || 0) >= 40 ? 'text-success' : 'text-danger'}">${sb.percentage || 0}%</td>
+                        </tr>
+                    `;
+                });
+                subTbody.innerHTML = subHtml;
+                subWrapper.style.display = 'block';
+            } else {
+                subWrapper.style.display = 'none';
+            }
+        }
+
+        let html = '';
+        answers.forEach(item => {
+            let resBadge = '';
+            let marksBadge = '';
+            const mAwarded = (item.marks_awarded !== undefined) ? item.marks_awarded : (item.is_correct ? (item.marks_correct || 1) : (item.answer ? -(item.marks_incorrect || 0) : 0));
+
+            if (item.is_correct) {
+                resBadge = '<span class="badge badge-success font-weight-bold px-2 py-1" style="background: #dcfce7 !important; color: #15803d !important; border: 1px solid #86efac !important; font-size: 10px;"><i class="fa fa-check"></i> Correct</span>';
+                marksBadge = `<span class="badge font-mono font-weight-bold text-success" style="background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 10px;">+${parseFloat(mAwarded).toFixed(2)}</span>`;
+            } else if (item.status === 'blank' || !item.answer) {
+                resBadge = '<span class="badge badge-light px-2 py-1 text-muted" style="border: 1px solid #cbd5e1; font-size: 10px;">Left Blank</span>';
+                marksBadge = `<span class="badge font-mono text-muted" style="background: #f8fafc; border: 1px solid #e2e8f0; font-size: 10px;">0.00</span>`;
+            } else {
+                resBadge = '<span class="badge badge-danger font-weight-bold px-2 py-1" style="background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important; font-size: 10px;"><i class="fa fa-times"></i> Wrong</span>';
+                marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background: #fef2f2; border: 1px solid #fca5a5; font-size: 10px;">${parseFloat(mAwarded).toFixed(2)}</span>`;
+            }
+
+            const subTag = item.subject_name ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(item.subject_name)}</span>` : '<span class="text-muted small">--</span>';
+
+            html += `
+                <tr>
+                    <td class="font-weight-bold text-dark">Q${item.question}</td>
+                    <td>${subTag}</td>
+                    <td class="text-center font-mono font-weight-bold ${item.is_correct ? 'text-success' : (item.answer ? 'text-danger' : 'text-muted')}">${item.answer || '—'}</td>
+                    <td class="text-center font-mono font-weight-bold text-primary">${item.correct_answer || '—'}</td>
+                    <td class="text-center">${marksBadge}</td>
+                    <td class="text-right">${resBadge}</td>
+                </tr>
+            `;
+        });
+        modalAnswersTbody.innerHTML = html;
+
+        if (typeof $ !== 'undefined' && $('#modalAnswersGrid').modal) {
+            $('#modalAnswersGrid').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(document.getElementById('modalAnswersGrid')).show();
         }
     };
 

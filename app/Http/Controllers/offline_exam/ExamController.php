@@ -326,8 +326,7 @@ class ExamController extends Controller
                     ->get()
                     ->keyBy('admission_id');
 
-                $existingOmrMap = DB::table('omr_results')
-                    ->where('exam_id', $examId)
+                $existingOmrMap = OmrResult::where('exam_id', $examId)
                     ->whereIn('admission_id', $studentIds)
                     ->get()
                     ->keyBy('admission_id');
@@ -871,6 +870,8 @@ class ExamController extends Controller
                 $percentage = (float) ($s['evaluation']['percentage'] ?? ($s['percentage'] ?? 0));
                 $extractedAnswers = $s['evaluation']['extracted_answers'] ?? ($s['extracted_answers'] ?? []);
                 $sourceFilename = $s['source_filename'] ?? 'omr_sheet.jpg';
+                $storedFile = $s['stored_file'] ?? null;
+                $annotatedImageUrl = $s['annotated_image_url'] ?? ($s['annotated_image_base64'] ?? null);
 
                 $omrResult = OmrResult::updateOrCreate(
                     [
@@ -889,6 +890,8 @@ class ExamController extends Controller
                         'subject_breakdown' => $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? null),
                         'extraction_confidence' => 0.9500,
                         'source_filename' => $sourceFilename,
+                        'stored_file' => $storedFile,
+                        'annotated_image_url' => $annotatedImageUrl,
                         'scanned_by_user_id' => $userId,
                     ]
                 );
