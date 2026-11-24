@@ -673,15 +673,52 @@ class ExamController extends Controller
             }
             $questionConfigs = is_array($rawConfigs) ? $rawConfigs : [];
 
-            // Load subject names
+            // 1. Prime subject names from subject_question_ranges
+            foreach ($subjectRanges as $r) {
+                $sId = (int)($r['subject_id'] ?? 0);
+                $sName = trim((string)($r['subject_name'] ?? ''));
+                if ($sId > 0 && !empty($sName) && !str_starts_with($sName, 'Subject #')) {
+                    $subjectMap[$sId] = $sName;
+                }
+            }
+
+            // 2. Load subject names from current class / course
             if (!empty($exam->class_type_id)) {
                 $csList = CourseSubject::where('course_id', $exam->class_type_id)->get();
                 foreach ($csList as $cs) {
-                    $subjectMap[$cs->id] = $cs->name ?? ('Subject #' . $cs->id);
+                    $sName = $cs->name ?? ($cs->subject_name ?? null);
+                    if ($sName && (!isset($subjectMap[$cs->id]) || str_starts_with($subjectMap[$cs->id], 'Subject #'))) {
+                        $subjectMap[$cs->id] = $sName;
+                    }
                 }
                 $subList = Subject::where('class_type_id', $exam->class_type_id)->whereNull('deleted_at')->get();
                 foreach ($subList as $s) {
-                    $subjectMap[$s->id] = $s->name ?? ('Subject #' . $s->id);
+                    $sName = $s->name ?? ($s->subject_name ?? null);
+                    if ($sName && (!isset($subjectMap[$s->id]) || str_starts_with($subjectMap[$s->id], 'Subject #'))) {
+                        $subjectMap[$s->id] = $sName;
+                    }
+                }
+            }
+
+            // 3. Fallback for any ranges or configs where subject_id is not in current class_type_id
+            $allSubIds = [];
+            foreach ($subjectRanges as $r) {
+                if (!empty($r['subject_id'])) $allSubIds[] = (int)$r['subject_id'];
+            }
+            foreach ($questionConfigs as $qc) {
+                if (!empty($qc['subject_id'])) $allSubIds[] = (int)$qc['subject_id'];
+            }
+            $missingIds = array_diff(array_unique($allSubIds), array_keys($subjectMap));
+            if (!empty($missingIds)) {
+                $csExtra = CourseSubject::whereIn('id', $missingIds)->get();
+                foreach ($csExtra as $cs) {
+                    $sName = $cs->name ?? ($cs->subject_name ?? null);
+                    if ($sName) $subjectMap[$cs->id] = $sName;
+                }
+                $subExtra = Subject::whereIn('id', $missingIds)->whereNull('deleted_at')->get();
+                foreach ($subExtra as $s) {
+                    $sName = $s->name ?? ($s->subject_name ?? null);
+                    if ($sName) $subjectMap[$s->id] = $sName;
                 }
             }
         }
@@ -692,9 +729,13 @@ class ExamController extends Controller
             foreach ($subjectRanges as $r) {
                 $sId = (int)($r['subject_id'] ?? 0);
                 if ($sId > 0 && !isset($subjectBreakdown[$sId])) {
+                    $sName = !empty($r['subject_name']) && !str_starts_with($r['subject_name'], 'Subject #')
+                        ? $r['subject_name']
+                        : ($subjectMap[$sId] ?? ('Subject #' . $sId));
+
                     $subjectBreakdown[$sId] = [
                         'subject_id' => $sId,
-                        'subject_name' => $subjectMap[$sId] ?? ('Subject #' . $sId),
+                        'subject_name' => $sName,
                         'from_q' => (int)($r['from_q'] ?? 1),
                         'to_q' => (int)($r['to_q'] ?? 1),
                         'total_questions' => 0,
@@ -791,9 +832,13 @@ class ExamController extends Controller
 
             // Ensure matched subject is tracked in breakdown
             if ($matchedSubjectId && !isset($subjectBreakdown[$matchedSubjectId])) {
+                $sName = !empty($rangeObj['subject_name']) && !str_starts_with($rangeObj['subject_name'], 'Subject #')
+                    ? $rangeObj['subject_name']
+                    : ($subjectMap[$matchedSubjectId] ?? ('Subject #' . $matchedSubjectId));
+
                 $subjectBreakdown[$matchedSubjectId] = [
                     'subject_id' => $matchedSubjectId,
-                    'subject_name' => $subjectMap[$matchedSubjectId] ?? ('Subject #' . $matchedSubjectId),
+                    'subject_name' => $sName,
                     'from_q' => $i,
                     'to_q' => $i,
                     'total_questions' => 0,
@@ -844,6 +889,10 @@ class ExamController extends Controller
                 }
             }
 
+            $qSubName = !empty($rangeObj['subject_name']) && !str_starts_with($rangeObj['subject_name'], 'Subject #')
+                ? $rangeObj['subject_name']
+                : ($subjectMap[$matchedSubjectId] ?? '');
+
             $extractedAnswers[] = [
                 'question' => $i,
                 'answer' => $userOption,
@@ -851,7 +900,7 @@ class ExamController extends Controller
                 'is_correct' => $isCorrect,
                 'status' => $status,
                 'subject_id' => $matchedSubjectId,
-                'subject_name' => $subjectMap[$matchedSubjectId] ?? '',
+                'subject_name' => $qSubName,
                 'marks_correct' => $qCorrectWeight,
                 'marks_incorrect' => $qIncorrectWeight,
                 'marks_awarded' => round($marksAwarded, 2),

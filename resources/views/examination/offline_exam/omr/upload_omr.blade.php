@@ -19,6 +19,20 @@
     $avgAccuracy = $avgAccuracy ?? 0;
     $totalEvaluatedCount = $totalEvaluatedCount ?? 0;
     $extractorApiUrl = config('services.extractor.url', 'https://extractor.rusoft.in');
+
+    $examSubjectMap = [];
+    if (!empty($selectedExam->subject_question_ranges)) {
+        $ranges = is_string($selectedExam->subject_question_ranges)
+            ? json_decode($selectedExam->subject_question_ranges, true)
+            : $selectedExam->subject_question_ranges;
+        if (is_array($ranges)) {
+            foreach ($ranges as $r) {
+                if (!empty($r['subject_id']) && !empty($r['subject_name']) && !str_starts_with($r['subject_name'], 'Subject #')) {
+                    $examSubjectMap[$r['subject_id']] = $r['subject_name'];
+                }
+            }
+        }
+    }
 @endphp
 
 @section('styles')
@@ -578,6 +592,7 @@
                                             data-batchid="{{ $ex->batch_id ?: 0 }}"
                                             data-batchname="{{ $batchName }}"
                                             data-keycount="{{ $keyCount }}"
+                                            data-ranges="{{ json_encode($ex->subject_question_ranges ?? []) }}"
                                             {{ $isSelected ? 'selected' : '' }}>
                                             {{ $eCode }} — {{ $ex->name }} ({{ $qCount }} Q &bull; {{ $batchName }})
                                         </option>
@@ -867,8 +882,13 @@
                                             @if(!empty($omrRecord->subject_breakdown) && is_array($omrRecord->subject_breakdown))
                                                 <div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">
                                                     @foreach($omrRecord->subject_breakdown as $sb)
-                                                        @php $sShort = explode(' ', $sb['subject_name'] ?? 'Sub')[0]; @endphp
-                                                        <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sb['subject_name'] ?? '' }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
+                                                        @php 
+                                                            $sFullName = (!empty($sb['subject_name']) && !str_starts_with($sb['subject_name'], 'Subject #'))
+                                                                ? $sb['subject_name']
+                                                                : ($examSubjectMap[$sb['subject_id'] ?? 0] ?? ($sb['subject_name'] ?? 'Subject'));
+                                                            $sShort = explode(' ', $sFullName)[0];
+                                                        @endphp
+                                                        <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sFullName }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
                                                             {{ $sShort }}: +{{ $sb['obtained_marks'] ?? 0 }}
                                                         </span>
                                                     @endforeach
@@ -1023,8 +1043,13 @@
                                     @if(!empty($scan->subject_breakdown) && is_array($scan->subject_breakdown))
                                         <div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">
                                             @foreach($scan->subject_breakdown as $sb)
-                                                @php $sShort = explode(' ', $sb['subject_name'] ?? 'Sub')[0]; @endphp
-                                                <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sb['subject_name'] ?? '' }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
+                                                @php 
+                                                    $sFullName = (!empty($sb['subject_name']) && !str_starts_with($sb['subject_name'], 'Subject #'))
+                                                        ? $sb['subject_name']
+                                                        : ($examSubjectMap[$sb['subject_id'] ?? 0] ?? ($sb['subject_name'] ?? 'Subject'));
+                                                    $sShort = explode(' ', $sFullName)[0];
+                                                @endphp
+                                                <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="{{ $sFullName }}: {{ $sb['obtained_marks'] ?? 0 }}/{{ $sb['max_marks'] ?? 0 }}">
                                                     {{ $sShort }}: +{{ $sb['obtained_marks'] ?? 0 }}
                                                 </span>
                                             @endforeach
@@ -1432,8 +1457,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (Array.isArray(sbList) && sbList.length > 0) {
                 pillsHtml = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
                 sbList.forEach(sb => {
-                    const shortName = (sb.subject_name || 'Sub').split(' ')[0];
-                    pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sb.subject_name)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+                    const sFullName = resolveSubjectName(sb);
+                    const shortName = sFullName.split(' ')[0];
+                    pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
                 });
                 pillsHtml += '</div>';
             }
@@ -1994,10 +2020,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (Array.isArray(subBreakdown) && subBreakdown.length > 0) {
                 let subHtml = '';
                 subBreakdown.forEach(sb => {
+                    const sName = resolveSubjectName(sb);
                     const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q}-${sb.to_q}` : `${sb.total_questions || 0} Qs`;
                     subHtml += `
                         <tr>
-                            <td class="font-weight-bold text-dark">${escapeHtml(sb.subject_name || 'Subject')}</td>
+                            <td class="font-weight-bold text-dark">${escapeHtml(sName)}</td>
                             <td class="text-center font-mono small text-muted">${rangeText}</td>
                             <td class="text-center font-weight-bold text-success">${sb.correct_answers || 0}</td>
                             <td class="text-center font-weight-bold text-danger">${sb.incorrect_answers || 0}</td>
@@ -2032,7 +2059,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background: #fef2f2; border: 1px solid #fca5a5; font-size: 10px;">${parseFloat(mAwarded).toFixed(2)}</span>`;
             }
 
-            const subTag = item.subject_name ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(item.subject_name)}</span>` : '<span class="text-muted small">--</span>';
+            const qSubName = resolveSubjectName(item, item.question);
+            const subTag = qSubName ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(qSubName)}</span>` : '<span class="text-muted small">--</span>';
 
             html += `
                 <tr>
@@ -2073,10 +2101,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (Array.isArray(subBreakdown) && subBreakdown.length > 0) {
                 let subHtml = '';
                 subBreakdown.forEach(sb => {
+                    const sName = resolveSubjectName(sb);
                     const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q}-${sb.to_q}` : `${sb.total_questions} Qs`;
                     subHtml += `
                         <tr>
-                            <td class="font-weight-bold text-dark">${escapeHtml(sb.subject_name || 'Subject')}</td>
+                            <td class="font-weight-bold text-dark">${escapeHtml(sName)}</td>
                             <td class="text-center font-mono small text-muted">${rangeText}</td>
                             <td class="text-center font-weight-bold text-success">${sb.correct_answers || 0}</td>
                             <td class="text-center font-weight-bold text-danger">${sb.incorrect_answers || 0}</td>
@@ -2112,7 +2141,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background: #fef2f2; border: 1px solid #fca5a5; font-size: 10px;">${parseFloat(mAwarded).toFixed(2)}</span>`;
             }
 
-            const subTag = item.subject_name ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(item.subject_name)}</span>` : '<span class="text-muted small">--</span>';
+            const qSubName = resolveSubjectName(item, item.question);
+            const subTag = qSubName ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width: 140px; font-size: 9.5px; border: 1px solid #cbd5e1;">${escapeHtml(qSubName)}</span>` : '<span class="text-muted small">--</span>';
 
             html += `
                 <tr>
@@ -2302,6 +2332,45 @@ document.addEventListener('DOMContentLoaded', function () {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    // Helper: Resolve human-readable subject name
+    function resolveSubjectName(sb, qNum) {
+        let name = sb?.subject_name;
+        if (name && !name.startsWith('Subject #') && name !== 'Subject' && name !== 'General') {
+            return name;
+        }
+        // Fallback: Check exam ranges attached to selected exam option
+        const opt = getSelectedExamOption();
+        if (opt && opt.dataset.ranges) {
+            try {
+                let ranges = opt.dataset.ranges;
+                if (typeof ranges === 'string') ranges = JSON.parse(ranges);
+                if (typeof ranges === 'string') ranges = JSON.parse(ranges);
+                if (Array.isArray(ranges) && ranges.length > 0) {
+                    if (sb && sb.subject_id) {
+                        const found = ranges.find(r => String(r.subject_id) === String(sb.subject_id));
+                        if (found && found.subject_name && !found.subject_name.startsWith('Subject #')) {
+                            return found.subject_name;
+                        }
+                    }
+                    if (sb && sb.from_q && sb.to_q) {
+                        const found = ranges.find(r => parseInt(r.from_q, 10) === parseInt(sb.from_q, 10) && parseInt(r.to_q, 10) === parseInt(sb.to_q, 10));
+                        if (found && found.subject_name && !found.subject_name.startsWith('Subject #')) {
+                            return found.subject_name;
+                        }
+                    }
+                    if (qNum) {
+                        const q = parseInt(qNum, 10);
+                        const found = ranges.find(r => q >= parseInt(r.from_q, 10) && q <= parseInt(r.to_q, 10));
+                        if (found && found.subject_name && !found.subject_name.startsWith('Subject #')) {
+                            return found.subject_name;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        return name || (sb?.subject_id ? `Subject #${sb.subject_id}` : 'General');
     }
 
     // Initial counter sync on page load
