@@ -141,6 +141,11 @@
     border: 1px solid #e2e8f0;
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    position: relative;
+    z-index: 1;
+}
+.mob-exam-card.dropdown-active {
+    z-index: 1060 !important;
 }
 .mob-card-top {
     display: flex;
@@ -328,6 +333,68 @@
     align-items: center;
     justify-content: center;
     font-size: 11px;
+}
+
+/* Floating High Z-Index Dropdown Menu (Overlay without extending layout) */
+.mob-actions-left .dropdown {
+    position: relative !important;
+    display: inline-block !important;
+}
+.mob-actions-left .dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    left: 0 !important;
+    z-index: 1070 !important;
+    display: none !important;
+    min-width: 195px;
+    padding: 6px 0;
+    margin: 0;
+    font-size: 11.5px;
+    color: #1e293b;
+    text-align: left;
+    list-style: none;
+    background-color: #ffffff !important;
+    background-clip: padding-box;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 12px 28px rgba(0, 44, 84, 0.25), 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.mob-actions-left .dropdown.show > .dropdown-menu,
+.mob-actions-left .dropdown-menu.show {
+    display: block !important;
+}
+.mob-actions-left .dropdown-header {
+    display: block;
+    padding: 5px 14px 6px 14px;
+    margin-bottom: 2px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.mob-actions-left .dropdown-item {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 8px 14px !important;
+    clear: both;
+    font-weight: 600 !important;
+    font-size: 11.5px !important;
+    color: #1e293b !important;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    text-decoration: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mob-actions-left .dropdown-item:hover, 
+.mob-actions-left .dropdown-item:active, 
+.mob-actions-left .dropdown-item:focus {
+    color: #002C54 !important;
+    background-color: #f1f5f9 !important;
 }
 
 /* Modals styling */
@@ -679,17 +746,17 @@
                         {{-- 1. Marks Dropdown Button --}}
                         <div class="dropdown d-inline-block">
                             <button type="button" 
-                                    class="mob-btn-action btn-outline-info" 
+                                    class="mob-btn-action btn-outline-info mob-marks-dropdown-btn" 
                                     id="mobMarksDropdown_{{ $item->id }}" 
                                     data-toggle="dropdown" 
+                                    data-display="static"
                                     aria-haspopup="true" 
                                     aria-expanded="false"
                                     style="border-color:#7dd3fc; color:#0369a1; background:#f0f9ff;">
                                 <i class="fa fa-check-square-o"></i> Marks <i class="fa fa-caret-down ml-1"></i>
                             </button>
                             <div class="dropdown-menu shadow border py-1" 
-                                 aria-labelledby="mobMarksDropdown_{{ $item->id }}" 
-                                 style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1060;">
+                                 aria-labelledby="mobMarksDropdown_{{ $item->id }}">
                                 <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9px;">
                                     {{ $item->class_name ?? 'Marks Entry' }}
                                 </div>
@@ -909,6 +976,43 @@ $(document).ready(function(){
             alert(msg);
         }
     }
+
+    // 0. Dropdown Floating Overlay & Z-Index Elevation
+    $(document).on('show.bs.dropdown', '.mob-actions-left .dropdown', function () {
+        $('.mob-exam-card').removeClass('dropdown-active');
+        $(this).closest('.mob-exam-card').addClass('dropdown-active');
+    });
+    $(document).on('hide.bs.dropdown', '.mob-actions-left .dropdown', function () {
+        $(this).closest('.mob-exam-card').removeClass('dropdown-active');
+    });
+
+    $(document).on('click', '.mob-marks-dropdown-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $dropdown = $(this).closest('.dropdown');
+        var $menu = $dropdown.find('.dropdown-menu');
+        var isOpen = $dropdown.hasClass('show') || $menu.hasClass('show');
+
+        // Close any other open dropdowns first
+        $('.mob-actions-left .dropdown').removeClass('show');
+        $('.mob-actions-left .dropdown-menu').removeClass('show');
+        $('.mob-exam-card').removeClass('dropdown-active');
+
+        if (!isOpen) {
+            $dropdown.addClass('show');
+            $menu.addClass('show');
+            $dropdown.closest('.mob-exam-card').addClass('dropdown-active');
+        }
+    });
+
+    // Close when tapping or clicking anywhere outside
+    $(document).on('click touchstart', function(e) {
+        if (!$(e.target).closest('.mob-actions-left .dropdown').length) {
+            $('.mob-actions-left .dropdown').removeClass('show');
+            $('.mob-actions-left .dropdown-menu').removeClass('show');
+            $('.mob-exam-card').removeClass('dropdown-active');
+        }
+    });
 
     // 1. Result Publish Modal Handler
     $(document).on('click', '.openPublishModalBtn', function(e) {

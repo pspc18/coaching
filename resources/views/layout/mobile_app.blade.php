@@ -465,6 +465,27 @@
         padding: 6px 8px 16px;
     }
 
+    /* Generic Bootstrap Dropdown Support for Mobile */
+    .dropdown {
+        position: relative;
+    }
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1060;
+        display: none;
+        min-width: 160px;
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    .dropdown.show > .dropdown-menu,
+    .dropdown-menu.show {
+        display: block !important;
+    }
+
     /* 3. Compact Sharp Floating Bottom Dock */
     .mobile-bottom-dock {
         position: fixed;
