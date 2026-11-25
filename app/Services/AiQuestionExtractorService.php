@@ -373,13 +373,9 @@ EOT;
             }
             $mediaPayload = $imgPayload['data'];
 
-            // Store a copy in public uploads for diagram attachment
+            // Store a copy in uploads for diagram attachment
             $filename = 'paper_img_' . time() . '_' . Str::random(6) . '.' . ($ext ?: 'jpg');
-            $destDir = public_path('uploads/questions');
-            if (!file_exists($destDir)) {
-                mkdir($destDir, 0755, true);
-            }
-            @copy($pdfPath, $destDir . '/' . $filename);
+            $this->mirrorSaveQuestionFile($filename, $pdfPath, false);
             $extractedDiagrams = [
                 [
                     'id' => 'diag_img_1',
@@ -704,14 +700,9 @@ NOTE;
                 if ($imgPayload['success']) {
                     $mediaParts[] = $imgPayload['data'];
 
-                    // Save a copy in public uploads for diagram attachment if extract mode
+                    // Save a copy in uploads for diagram attachment if extract mode
                     $filename = 'ai_ref_' . time() . '_' . Str::random(6) . '.' . ($ext ?: 'jpg');
-                    $destDir = public_path('uploads/questions');
-                    if (!file_exists($destDir)) {
-                        mkdir($destDir, 0755, true);
-                    }
-                    @copy($filePath, $destDir . '/' . $filename);
-                    $uploadedRefImage = 'uploads/questions/' . $filename;
+                    $uploadedRefImage = $this->mirrorSaveQuestionFile($filename, $filePath, false);
                     $extractedDiagrams = [
                         [
                             'id' => 'diag_img_1',
@@ -1586,17 +1577,9 @@ JSON;
                 $svg = preg_replace('/<svg\b/i', '<svg viewBox="0 0 500 250"', $svg, 1);
             }
 
-            // Save file to public/uploads/questions
-            $dir = public_path('uploads/questions');
-            if (!file_exists($dir)) {
-                @mkdir($dir, 0755, true);
-            }
-
             $filename = $prefix . '_' . time() . '_' . Str::random(8) . '.svg';
-            $fullPath = $dir . DIRECTORY_SEPARATOR . $filename;
-            @file_put_contents($fullPath, $svg);
+            $relativePath = $this->mirrorSaveQuestionFile($filename, $svg, true);
 
-            $relativePath = 'uploads/questions/' . $filename;
             $item['image'] = $relativePath;
             $item['has_diagram'] = true;
             $item['diagram_svg'] = $svg;
@@ -1615,6 +1598,38 @@ JSON;
         }
 
         return null;
+    }
+
+    /**
+     * Mirror save an image or raw SVG content into all candidate directories
+     * so that assets are directly accessible regardless of whether DocumentRoot
+     * is public/ or the project root.
+     */
+    public function mirrorSaveQuestionFile(string $filename, $contentOrPath, bool $isRawContent = true): string
+    {
+        $targetDirs = [
+            public_path('uploads/questions'),
+            base_path('uploads/questions'),
+            public_path('schoolimage/questions'),
+            base_path('schoolimage/questions'),
+        ];
+        if (env('IMAGE_UPLOAD_PATH')) {
+            $targetDirs[] = rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . DIRECTORY_SEPARATOR . 'questions';
+        }
+
+        foreach ($targetDirs as $d) {
+            if (!file_exists($d)) {
+                @mkdir($d, 0777, true);
+            }
+            $targetPath = $d . DIRECTORY_SEPARATOR . $filename;
+            if ($isRawContent) {
+                @file_put_contents($targetPath, $contentOrPath);
+            } else {
+                @copy($contentOrPath, $targetPath);
+            }
+        }
+
+        return 'uploads/questions/' . $filename;
     }
 
     /**
@@ -2061,6 +2076,7 @@ EOT;
         @unlink($specFile);
 
         if (file_exists($outFullPath) && filesize($outFullPath) > 1000) {
+            $this->mirrorSaveQuestionFile($outFilename, $outFullPath, false);
             return [
                 'success' => true,
                 'is_recreated' => true,
@@ -2100,6 +2116,7 @@ EOT;
 
         $res = json_decode(implode('', $output), true);
         if (!empty($res['success']) && file_exists($outFullPath)) {
+            $this->mirrorSaveQuestionFile($outFilename, $outFullPath, false);
             return [
                 'success' => true,
                 'is_cleaned' => true,

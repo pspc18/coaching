@@ -672,6 +672,8 @@ Route::match(['get', 'post'], 'minidashboard', 'DashboardController@minidashboar
 	Route::get('question/get-chapters', 'offline_exam\QuestionController@getChapters');
 	Route::get('question/get-topics', 'offline_exam\QuestionController@getTopics');
 	Route::post('question/store-chapter-topic', 'offline_exam\QuestionController@storeChapterTopic');
+	Route::get('uploads/questions/{filename}', 'offline_exam\QuestionController@serveQuestionImage')->name('question.serve_image');
+	Route::get('schoolimage/questions/{filename}', 'offline_exam\QuestionController@serveQuestionImage');
 
 	
 	

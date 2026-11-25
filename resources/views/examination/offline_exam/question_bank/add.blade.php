@@ -6374,14 +6374,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${formatRichExamContent(q.name)}
                 </div>
 
-                ${imgUrl ? `
-                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important;">
-                    <img src="${imgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram">
-                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
-                </div>` : (q.diagram_svg ? `
-                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
+                ${q.diagram_svg ? `
+                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important; max-height: 260px; overflow: auto;">
                     ${q.diagram_svg}
                     <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                </div>` : (imgUrl ? `
+                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important;">
+                    <img src="${imgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
                 </div>` : '')}
 
                 ${isDesc ? `
@@ -6464,14 +6464,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     ${formatRichExamContent(set.direction || '<em>No common narrative provided</em>')}
 
-                    ${setImgUrl ? `
-                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
-                        <img src="${setImgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram">
-                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
-                    </div>` : (set.diagram_svg ? `
-                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
+                    ${set.diagram_svg ? `
+                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 260px; overflow: auto;">
                         ${set.diagram_svg}
                         <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                    </div>` : (setImgUrl ? `
+                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
+                        <img src="${setImgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
                     </div>` : '')}
 
                     ${set.direction_table ? `<div class="mt-2 table-responsive">${set.direction_table}</div>` : ''}
@@ -6502,12 +6502,13 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${formatRichExamContent(sq.name)}
                             </div>
 
-                            ${sqImgUrl ? `
-                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
-                                <img src="${sqImgUrl}" style="max-height: 200px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram">
-                            </div>` : (sq.diagram_svg ? `
-                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 220px; overflow: auto;">
+                            ${sq.diagram_svg ? `
+                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
                                 ${sq.diagram_svg}
+                                <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                            </div>` : (sqImgUrl ? `
+                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
+                                <img src="${sqImgUrl}" style="max-height: 200px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
                             </div>` : '')}
 
                             ${sqIsDesc ? `

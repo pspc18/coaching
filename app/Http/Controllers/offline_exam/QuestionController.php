@@ -329,6 +329,7 @@ class QuestionController extends Controller
                         mkdir($destPath, 0755, true);
                     }
                     $file->move($destPath, $filename);
+                    $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                     $dirImagePath = 'uploads/questions/' . $filename;
                 } elseif ($request->filled('direction_image_path')) {
                     $dirImagePath = $request->input('direction_image_path');
@@ -360,6 +361,7 @@ class QuestionController extends Controller
                                 mkdir($destPath, 0755, true);
                             }
                             $file->move($destPath, $filename);
+                            $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                             $subImgPath = 'uploads/questions/' . $filename;
                         } elseif (!empty($subQ['image_path'])) {
                             $subImgPath = $subQ['image_path'];
@@ -479,6 +481,7 @@ class QuestionController extends Controller
                     mkdir($destPath, 0755, true);
                 }
                 $file->move($destPath, $filename);
+                $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                 $imagePath = 'uploads/questions/' . $filename;
             } elseif ($request->filled('image_path')) {
                 $imagePath = $request->image_path;
@@ -621,6 +624,7 @@ class QuestionController extends Controller
                     mkdir($destPath, 0755, true);
                 }
                 $file->move($destPath, $filename);
+                $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                 $fullPath = $destPath . '/' . $filename;
                 $result['data']['image_path'] = 'uploads/questions/' . $filename;
                 $result['data']['original_image_path'] = 'uploads/questions/' . $filename;
@@ -984,6 +988,7 @@ class QuestionController extends Controller
                 $file = $request->file('diagram_file');
                 $filename = 'diagram_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
                 $file->move($destPath, $filename);
+                $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                 return response()->json([
                     'success' => true,
                     'file_path' => 'uploads/questions/' . $filename,
@@ -1004,6 +1009,7 @@ class QuestionController extends Controller
                     if ($base64 !== false) {
                         $filename = 'diagram_' . time() . '_' . Str::random(8) . '.' . $type;
                         file_put_contents($destPath . '/' . $filename, $base64);
+                        $this->mirrorSaveQuestionFile($filename, $base64, true);
                         return response()->json([
                             'success' => true,
                             'file_path' => 'uploads/questions/' . $filename,
@@ -1142,6 +1148,7 @@ class QuestionController extends Controller
                         mkdir($destPath, 0755, true);
                     }
                     $file->move($destPath, $filename);
+                    $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                     $dirImagePath = 'uploads/questions/' . $filename;
                 } elseif ($request->filled('direction_image_path')) {
                     $dirImagePath = $request->input('direction_image_path');
@@ -1193,6 +1200,7 @@ class QuestionController extends Controller
                                 mkdir($destPath, 0755, true);
                             }
                             $file->move($destPath, $filename);
+                            $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                             $subImgPath = 'uploads/questions/' . $filename;
                         } elseif (!empty($subQ['image_path'])) {
                             $subImgPath = $subQ['image_path'];
@@ -1298,6 +1306,7 @@ class QuestionController extends Controller
                     mkdir($destPath, 0755, true);
                 }
                 $file->move($destPath, $filename);
+                $this->mirrorSaveQuestionFile($filename, $destPath . '/' . $filename);
                 $imagePath = 'uploads/questions/' . $filename;
             } elseif ($request->filled('image_path')) {
                 $imagePath = $request->image_path;
@@ -1665,5 +1674,77 @@ class QuestionController extends Controller
             'topic_id' => $topId,
             'topic' => $topicName
         ];
+    }
+
+    /**
+     * Serve Question Diagram / Image securely with mime resolution and multi-directory fallback.
+     * Ensures images load regardless of whether Apache DocumentRoot is public/ or the base directory.
+     */
+    public function serveQuestionImage($filename)
+    {
+        $filename = basename($filename);
+        $candidates = [
+            base_path('uploads/questions/' . $filename),
+            public_path('uploads/questions/' . $filename),
+            base_path('schoolimage/questions/' . $filename),
+            public_path('schoolimage/questions/' . $filename),
+        ];
+        if (env('IMAGE_UPLOAD_PATH')) {
+            $candidates[] = rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . DIRECTORY_SEPARATOR . 'questions' . DIRECTORY_SEPARATOR . $filename;
+        }
+
+        foreach ($candidates as $cand) {
+            if (file_exists($cand) && is_readable($cand)) {
+                $ext = strtolower(pathinfo($cand, PATHINFO_EXTENSION));
+                $mimes = [
+                    'svg' => 'image/svg+xml; charset=utf-8',
+                    'png' => 'image/png',
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'webp' => 'image/webp',
+                    'gif' => 'image/gif',
+                    'pdf' => 'application/pdf',
+                ];
+                $mime = $mimes[$ext] ?? 'application/octet-stream';
+                return response()->file($cand, [
+                    'Content-Type' => $mime,
+                    'Cache-Control' => 'public, max-age=604800',
+                ]);
+            }
+        }
+
+        abort(404, 'Question diagram / image not found.');
+    }
+
+    /**
+     * Mirror save an uploaded file or raw content into all candidate directories
+     */
+    protected function mirrorSaveQuestionFile(string $filename, $contentOrFile, bool $isRawContent = false): string
+    {
+        $targetDirs = [
+            public_path('uploads/questions'),
+            base_path('uploads/questions'),
+            public_path('schoolimage/questions'),
+            base_path('schoolimage/questions'),
+        ];
+        if (env('IMAGE_UPLOAD_PATH')) {
+            $targetDirs[] = rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . DIRECTORY_SEPARATOR . 'questions';
+        }
+
+        foreach ($targetDirs as $d) {
+            if (!file_exists($d)) {
+                @mkdir($d, 0777, true);
+            }
+            $targetPath = $d . DIRECTORY_SEPARATOR . $filename;
+            if ($isRawContent) {
+                @file_put_contents($targetPath, $contentOrFile);
+            } elseif ($contentOrFile instanceof \Illuminate\Http\UploadedFile) {
+                @copy($contentOrFile->getRealPath(), $targetPath);
+            } elseif (is_string($contentOrFile) && file_exists($contentOrFile)) {
+                @copy($contentOrFile, $targetPath);
+            }
+        }
+
+        return 'uploads/questions/' . $filename;
     }
 }
