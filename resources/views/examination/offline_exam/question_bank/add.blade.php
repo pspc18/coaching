@@ -654,6 +654,50 @@ textarea.theme-form-control {
     70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
     100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
+
+.ai-diagram-window {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 12px !important;
+    margin: 10px 0 14px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+}
+.ai-diagram-window svg {
+    max-width: 100% !important;
+    max-height: 380px !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+}
+.ai-diagram-window img {
+    max-width: 100% !important;
+    max-height: 380px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+    border-radius: 4px !important;
+}
+.ai-diagram-window .diagram-label {
+    font-size: 10px !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    margin-top: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
 </style>
 
 <div class="content-wrapper">
@@ -3196,6 +3240,52 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) {
             console.warn('KaTeX render error:', e);
         }
+    }
+
+    /**
+     * Sanitizes and responsive-scales SVG string so it never clips, cuts off, or overflows.
+     */
+    function fitAndSanitizeSvg(svgString) {
+        if (!svgString || typeof svgString !== 'string') return '';
+        let svg = svgString.trim();
+        if (!svg.includes('preserveAspectRatio')) {
+            svg = svg.replace(/<svg\b/i, '<svg preserveAspectRatio="xMidYMid meet"');
+        }
+        svg = svg.replace(/<svg\b([^>]*?)\bheight\s*=\s*["\']\d+px?["\']/i, '<svg$1');
+        svg = svg.replace(/<svg\b([^>]*?)\bwidth\s*=\s*["\']\d+px?["\']/i, '<svg$1');
+
+        const vbMatch = svg.match(/viewBox\s*=\s*["\']([-\d\.\s]+)["\']/i);
+        let vbW = 600, vbH = 360;
+        if (vbMatch) {
+            const parts = vbMatch[1].trim().split(/\s+/).map(Number);
+            if (parts.length === 4) {
+                vbW = parts[2];
+                vbH = parts[3];
+            }
+        }
+
+        let maxY = vbH;
+        const yMatches = svg.matchAll(/\b(?:y|y1|y2|cy)\s*=\s*["\']?(\d+(?:\.\d+)?)/gi);
+        for (const m of yMatches) {
+            const v = parseFloat(m[1]);
+            if (!isNaN(v) && v > maxY) maxY = v;
+        }
+        const rectMatches = svg.matchAll(/<rect[^>]*?\by\s*=\s*["\']?(\d+(?:\.\d+)?)[^>]*?\bheight\s*=\s*["\']?(\d+(?:\.\d+)?)/gi);
+        for (const m of rectMatches) {
+            const y = parseFloat(m[1]), h = parseFloat(m[2]);
+            if (!isNaN(y) && !isNaN(h) && (y + h) > maxY) maxY = y + h;
+        }
+
+        if (maxY > vbH) {
+            const newH = Math.ceil(maxY + 35);
+            if (vbMatch) {
+                svg = svg.replace(vbMatch[0], `viewBox="0 0 ${vbW} ${newH}"`);
+            } else {
+                svg = svg.replace(/<svg\b/i, `<svg viewBox="0 0 ${vbW} ${newH}"`);
+            }
+        }
+
+        return svg;
     }
 
     /**
@@ -6375,13 +6465,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
 
                 ${q.diagram_svg ? `
-                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important; max-height: 260px; overflow: auto;">
-                    ${q.diagram_svg}
-                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                <div class="ai-diagram-window">
+                    ${fitAndSanitizeSvg(q.diagram_svg)}
+                    <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
                 </div>` : (imgUrl ? `
-                <div class="mb-2 text-center p-2 rounded border bg-white" style="border-color: #cbd5e1 !important;">
-                    <img src="${imgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Question Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
-                    <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
+                <div class="ai-diagram-window">
+                    <img src="${imgUrl}" alt="Question Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                    <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
                 </div>` : '')}
 
                 ${isDesc ? `
@@ -6465,13 +6555,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${formatRichExamContent(set.direction || '<em>No common narrative provided</em>')}
 
                     ${set.diagram_svg ? `
-                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 260px; overflow: auto;">
-                        ${set.diagram_svg}
-                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                    <div class="ai-diagram-window my-2">
+                        ${fitAndSanitizeSvg(set.diagram_svg)}
+                        <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
                     </div>` : (setImgUrl ? `
-                    <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
-                        <img src="${setImgUrl}" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Passage Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
-                        <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
+                    <div class="ai-diagram-window my-2">
+                        <img src="${setImgUrl}" alt="Passage Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                        <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Passage Diagram / Graph</div>
                     </div>` : '')}
 
                     ${set.direction_table ? `<div class="mt-2 table-responsive">${set.direction_table}</div>` : ''}
@@ -6503,12 +6593,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
 
                             ${sq.diagram_svg ? `
-                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important; max-height: 240px; overflow: auto;">
-                                ${sq.diagram_svg}
-                                <div class="small text-muted mt-1" style="font-size: 9.5px;"><i class="fa fa-picture-o text-primary mr-1"></i> Vector SVG Diagram</div>
+                            <div class="ai-diagram-window my-2">
+                                ${fitAndSanitizeSvg(sq.diagram_svg)}
+                                <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
                             </div>` : (sqImgUrl ? `
-                            <div class="my-2 text-center p-2 rounded bg-white border" style="border-color: #cbd5e1 !important;">
-                                <img src="${sqImgUrl}" style="max-height: 200px; max-width: 100%; object-fit: contain; border-radius: 4px;" alt="Sub-Q Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                            <div class="ai-diagram-window my-2">
+                                <img src="${sqImgUrl}" alt="Sub-Q Diagram" onerror="this.onerror=null; this.parentElement.style.display='none';">
+                                <div class="diagram-label"><i class="fa fa-picture-o text-primary mr-1"></i> Question Diagram / Figure</div>
                             </div>` : '')}
 
                             ${sqIsDesc ? `

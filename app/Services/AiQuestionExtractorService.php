@@ -733,7 +733,7 @@ The user explicitly asked to CREATE A NEW / SIMILAR QUESTION inspired by this re
    - "direction": A clear narrative introducing the NEW context and dataset.
    - "direction_table": You MUST provide the full new tabular data in a clean HTML table:
      <table class="table table-bordered table-sm text-center"><thead>...</thead><tbody>...</tbody></table>
-   - "diagram_svg": You MUST generate a clean, responsive vector SVG chart (e.g. double bar chart, line graph, or pie chart) with viewBox="0 0 550 260" displaying the NEW data visually!
+   - "diagram_svg": You MUST generate a clean, responsive vector SVG chart (e.g. double bar chart, line graph, or pie chart) with viewBox="0 0 600 380" (ensure adequate vertical height so all bars, baseline axes, and labels fit comfortably without clipping) displaying the NEW data visually!
    - DO NOT set "diagram_id": "diag_img_1" (set "diagram_id": null and "has_diagram": true). The attached image is an old photo with printed test questions; attaching it to the new question set is strictly forbidden!
 
 4. SUB-QUESTIONS:
@@ -834,9 +834,9 @@ NOTE;
   YOU MUST GENERATE ONE OR MORE QUESTIONS WITH HIGH-QUALITY EMBEDDED VECTOR SVG DIAGRAMS!
   Do NOT say you cannot create images. You CAN generate clean, complete, professional Scalable Vector Graphics (SVG) code!
   For every diagrammatic question:
-  - Provide complete, valid SVG vector graphics inside the "diagram_svg" JSON property (e.g. "<svg viewBox=\"0 0 500 220\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>").
+  - Provide complete, valid SVG vector graphics inside the "diagram_svg" JSON property (e.g. "<svg viewBox=\"0 0 600 360\" xmlns=\"http://www.w3.org/2000/svg\">...</svg>").
   - Set "has_diagram": true and "diagram_id": null.
-  - The SVG must be clean, responsive with viewBox (e.g. viewBox="0 0 500 220"), xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
+  - The SVG must be clean, responsive with viewBox (e.g. viewBox="0 0 600 360" or "0 0 650 400" with sufficient vertical height for all axes, bars, tick marks, and bottom labels so nothing is cut off), preserveAspectRatio="xMidYMid meet", xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
   - Explicitly refer to the diagram in the question statement (e.g., "In the given figure / diagram below...", "Refer to the diagram below to find...").
   - Make the diagram academically meaningful to solve the question:
     * For Number System / Divisibility / Arithmetic: Draw a Division Ladder, Factor Tree diagram, Number Line with tick marks and intervals, or Remainder Venn diagram.
@@ -921,7 +921,7 @@ STRICT GUIDELINES:
    - GENERATING NEW VECTOR DIAGRAMS (SVG):
      When the user prompt requests diagrams, figures, charts, drawings, or when the subject/topic naturally requires or benefits from visual illustration (e.g. Geometry triangles/circles/angles, Mensuration 2D/3D shapes, Coordinate Geometry, Number Lines, Factor Trees, Division Ladders, Venn Diagrams, Flowcharts, Data Interpretation Charts, Physics circuits/optics):
      YOU MUST GENERATE A STANDALONE, COMPLETE, CLEAN VECTOR SVG IN "diagram_svg"!
-     - The SVG must be responsive with viewBox (e.g. viewBox="0 0 500 220" or "0 0 450 300"), xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
+     - The SVG must be responsive with viewBox (e.g. viewBox="0 0 600 360" or "0 0 650 400" with sufficient vertical height for all axes, bars, tick marks, and bottom labels so nothing is cut off), preserveAspectRatio="xMidYMid meet", xmlns="http://www.w3.org/2000/svg", dark clear outlines (stroke="#0f172a", stroke-width="2"), clean soft fills (#f8fafc, #eff6ff, #fef2f2), clean shapes (<circle>, <rect>, <polygon>, <line>, <path>), and legible bold typography (<text font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a">).
      - Set "has_diagram": true and "diagram_id": null.
      - The question statement ("name") must refer to the figure (e.g. "In the given diagram below...", "Refer to the figure below...").
    - REFERENCE DOCUMENT DIAGRAMS:
@@ -1572,9 +1572,53 @@ JSON;
                 $svg = preg_replace('/<svg\b/i', '<svg xmlns="http://www.w3.org/2000/svg"', $svg, 1);
             }
 
-            // Ensure viewBox exists for clean responsive rendering
-            if (stripos($svg, 'viewBox=') === false && stripos($svg, 'width=') === false) {
-                $svg = preg_replace('/<svg\b/i', '<svg viewBox="0 0 500 250"', $svg, 1);
+            // Ensure preserveAspectRatio="xMidYMid meet" so entire graphic scales proportionally
+            if (stripos($svg, 'preserveAspectRatio=') === false) {
+                $svg = preg_replace('/<svg\b/i', '<svg preserveAspectRatio="xMidYMid meet"', $svg, 1);
+            }
+
+            // Strip fixed width/height attributes from <svg> root that could break responsive card fitting
+            $svg = preg_replace('/<svg\b([^>]*?)\bheight\s*=\s*["\']\d+px?["\']/i', '<svg$1', $svg, 1);
+            $svg = preg_replace('/<svg\b([^>]*?)\bwidth\s*=\s*["\']\d+px?["\']/i', '<svg$1', $svg, 1);
+
+            // Parse existing viewBox or set a comfortable default
+            $vbW = 600;
+            $vbH = 360;
+            if (preg_match('/viewBox\s*=\s*["\']([-\d\.\s]+)["\']/i', $svg, $vbMatch)) {
+                $parts = preg_split('/\s+/', trim($vbMatch[1]));
+                if (count($parts) === 4) {
+                    $vbW = (float)$parts[2];
+                    $vbH = (float)$parts[3];
+                }
+            } else {
+                $svg = preg_replace('/<svg\b/i', '<svg viewBox="0 0 600 360"', $svg, 1);
+            }
+
+            // Check actual maximum Y coordinate to prevent bottom cut-off (bars, baseline axes, bottom labels)
+            $maxY = $vbH;
+            if (preg_match_all('/\b(?:y|y1|y2|cy)\s*=\s*["\']?(-?\d+(?:\.\d+)?)/i', $svg, $yMatches)) {
+                foreach ($yMatches[1] as $yVal) {
+                    $yFloat = (float)$yVal;
+                    if ($yFloat > $maxY) {
+                        $maxY = $yFloat;
+                    }
+                }
+            }
+            if (preg_match_all('/<rect[^>]*?\by\s*=\s*["\']?(-?\d+(?:\.\d+)?)[^>]*?\bheight\s*=\s*["\']?(-?\d+(?:\.\d+)?)/i', $svg, $rectMatches, PREG_SET_ORDER)) {
+                foreach ($rectMatches as $rm) {
+                    $bottom = (float)$rm[1] + (float)$rm[2];
+                    if ($bottom > $maxY) {
+                        $maxY = $bottom;
+                    }
+                }
+            }
+            if ($maxY > $vbH) {
+                $newH = (int)ceil($maxY + 35);
+                if (isset($vbMatch[0])) {
+                    $svg = str_replace($vbMatch[0], 'viewBox="0 0 ' . (int)$vbW . ' ' . $newH . '"', $svg);
+                } else {
+                    $svg = preg_replace('/<svg\b/i', '<svg viewBox="0 0 ' . (int)$vbW . ' ' . $newH . '"', $svg, 1);
+                }
             }
 
             $filename = $prefix . '_' . time() . '_' . Str::random(8) . '.svg';
