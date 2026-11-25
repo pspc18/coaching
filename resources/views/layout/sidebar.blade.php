@@ -28,6 +28,14 @@
             || strtolower(trim((string) ($item->name ?? ''))) === 'student promote';
     })->values();
 
+    // Temporarily hide "Fill Marks" and "Fill Marks By Excel" from Examination Panel
+    $subSidebar = $subSidebar->reject(function ($item) {
+        $u = trim((string) ($item->url ?? ''), '/');
+        $n = strtolower(trim((string) ($item->name ?? '')));
+        return in_array($u, ['fill_marks', 'fill-marks-by-excel', 'fill_marks_by_excel'], true)
+            || in_array($n, ['fill marks', 'fill marks by excel'], true);
+    })->values();
+
     $getSetting = Helper::getSetting();
 
     $checkSubActive = function ($subUrl) {
