@@ -374,27 +374,27 @@
 /* Card Body Details */
 .mob-card-body-details {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 3px;
-    padding: 6px 8px;
+    border-radius: 4px;
+    padding: 7px 8px;
     margin-bottom: 6px;
 }
 .mob-sheet-thumb-img {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     object-fit: cover;
-    border-radius: 2px;
+    border-radius: 3px;
     border: 1px solid #cbd5e1;
     cursor: pointer;
     flex-shrink: 0;
 }
 .mob-sheet-thumb-placeholder {
-    width: 44px;
-    height: 44px;
-    border-radius: 2px;
+    width: 48px;
+    height: 48px;
+    border-radius: 3px;
     background: #f8fafc;
     border: 1px dashed #cbd5e1;
     display: flex;
@@ -404,6 +404,19 @@
     font-size: 9px;
     color: #94a3b8;
     flex-shrink: 0;
+}
+.mob-roll-input {
+    width: 82px;
+    height: 24px;
+    font-size: 11px;
+    padding: 2px 4px;
+    font-family: monospace;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 3px;
+    border: 1px solid #0284c7;
+    background: #ffffff;
+    display: inline-block;
 }
 
 /* Card Actions */
@@ -424,11 +437,11 @@
     padding: 0 8px;
     font-size: 10.5px;
     font-weight: 700;
-    border-radius: 2px;
+    border-radius: 3px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     cursor: pointer;
     border: 1px solid transparent;
 }
@@ -598,6 +611,210 @@
     border-radius: 4px;
     padding: 9px;
     margin-bottom: 6px;
+}
+
+/* ==========================================================================
+   MOBILE ANSWERS BREAKDOWN MODAL - APP-LIKE BOTTOM SHEET (NO OVERLAPPING)
+   ========================================================================== */
+#modalAnswersGrid .modal-dialog-bottom {
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+}
+#modalAnswersGrid .mob-modal-content {
+    border-radius: 14px 14px 0 0;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    border: none;
+    box-shadow: 0 -8px 30px rgba(0, 24, 51, 0.35);
+    background: #f8fafc;
+}
+#modalAnswersGrid .modal-header {
+    background: linear-gradient(135deg, #001833 0%, #002C54 100%) !important;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+#modalAnswersGrid .modal-body {
+    padding: 10px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+}
+
+/* Modal Hero Summary Card */
+.mob-ans-hero-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 9px 11px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.mob-ans-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 6px;
+}
+.mob-ans-stat-pill {
+    padding: 5px 2px;
+    border-radius: 3px;
+    text-align: center;
+    font-size: 9.5px;
+    font-weight: 700;
+}
+.stat-pill-total {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+.stat-pill-right {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.stat-pill-wrong {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+.stat-pill-blank {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+/* Filter Segment Control */
+.mob-ans-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.mob-ans-filter-btn {
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.mob-ans-filter-btn.active {
+    background: #002C54;
+    color: #ffffff;
+    border-color: #002C54;
+}
+
+/* Subject Performance Cards (Native Card Layout - NO wide table) */
+.mob-sub-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* Question Matrix Feed Cards */
+.mob-q-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.mob-q-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #94a3b8;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.mob-q-card.q-correct {
+    border-left-color: #22c55e;
+    background: #fafdfb;
+}
+.mob-q-card.q-wrong {
+    border-left-color: #ef4444;
+    background: #fffdfd;
+}
+.mob-q-card.q-blank {
+    border-left-color: #94a3b8;
+    background: #fbfbfc;
+}
+.mob-q-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.mob-q-num-badge {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #0f172a;
+    font-family: monospace;
+}
+.mob-q-sub-badge {
+    font-size: 9px;
+    font-weight: 700;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    padding: 1px 6px;
+    border-radius: 3px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mob-q-card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.02);
+    border-radius: 4px;
+    padding: 5px 8px;
+}
+.mob-ans-bubble {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 900;
+    font-family: monospace;
+}
+.bubble-correct {
+    background: #22c55e;
+    color: #ffffff;
+}
+.bubble-wrong {
+    background: #ef4444;
+    color: #ffffff;
+}
+.bubble-blank {
+    background: #e2e8f0;
+    color: #64748b;
+    border: 1px dashed #94a3b8;
+}
+.bubble-key {
+    background: #002C54;
+    color: #ffffff;
 }
 </style>
 @endsection
@@ -846,30 +1063,31 @@
                 @php
                     $stuId = $st->id;
                     $stuName = trim(($st->first_name ?? '') . ' ' . ($st->last_name ?? ''));
-                    $admNo = $st->admission_no ?? '';
-                    $rollNo = $st->roll_no ?? '';
+                    $admNo = $st->admissionNo ?: ($st->admission_no ?? '');
+                    $rollNo = $st->roll_no ?: ($st->roll_number ?? '');
                     $examRollNo = $st->exam_roll_no ?? '';
-                    $father = $st->father_name ?? '';
-                    $batchName = $st->batch_name ?? '';
+                    $father = $st->father_name ?: ($st->father ?? '');
+                    $batchName = $st->batch ? $st->batch->name : ($st->batch_name ?? '');
 
                     $exMark = $existingMarksMap[$stuId] ?? null;
                     $exOmr = $existingOmrMap[$stuId] ?? null;
                     $isSaved = !empty($exOmr);
 
-                    $numericRoll = preg_replace('/\D/', '', $rollNo ?: $admNo);
+                    $displayRoll = $rollNo ?: ($admNo ?: 'ID-' . $stuId);
+                    $numericRoll = preg_replace('/\D/', '', (string)$displayRoll);
                 @endphp
 
                 <div class="mob-student-card mob-student-item {{ $isSaved ? 'card-saved' : '' }}" 
                      id="student-card-{{ $stuId }}"
                      data-student-id="{{ $stuId }}"
                      data-student-name="{{ $stuName }}"
-                     data-admission-no="{{ strtolower($admNo) }}"
-                     data-roll-no="{{ strtolower($rollNo) }}"
-                     data-exam-roll-no="{{ strtolower($examRollNo) }}"
+                     data-admission-no="{{ strtolower((string)$admNo) }}"
+                     data-roll-no="{{ strtolower((string)$rollNo) }}"
+                     data-exam-roll-no="{{ strtolower((string)$examRollNo) }}"
                      data-numeric-roll="{{ $numericRoll }}"
                      data-status="{{ $isSaved ? 'saved' : 'pending' }}">
                     
-                    {{-- Card Header: Checkbox, Avatar, Name, Status --}}
+                    {{-- Card Header: Checkbox, Avatar, Name, Identifiers, Status --}}
                     <div class="mob-card-head">
                         <div class="mob-card-profile">
                             <input type="checkbox" class="staged-checkbox" data-student-id="{{ $stuId }}" {{ $isSaved ? 'checked' : '' }} onchange="toggleStudentSelect('{{ $stuId }}', this.checked);">
@@ -879,7 +1097,8 @@
                             <div>
                                 <div class="mob-student-name">{{ $stuName }}</div>
                                 <div class="mob-student-adm">
-                                    Adm: <b>{{ $admNo ?: '--' }}</b> &bull; Roll: <b>{{ $rollNo ?: '--' }}</b>
+                                    Adm: <b>{{ $admNo ?: '--' }}</b> &bull; Roll: <b>{{ $rollNo ?: ($admNo ?: '--') }}</b>
+                                    @if($father) &bull; <span class="text-muted">S/O {{ $father }}</span>@endif
                                     @if($batchName) &bull; <span class="text-primary font-weight-bold">{{ $batchName }}</span>@endif
                                 </div>
                             </div>
@@ -906,41 +1125,81 @@
                                 @endphp
                                 <img src="{{ $imgUrl }}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewSavedOmrModal('{{ $exOmr->id }}', this);" data-image-url="{{ $imgUrl }}" title="Tap to inspect scan">
                             @else
-                                <div class="mob-sheet-thumb-placeholder">
-                                    <i class="fa fa-file-image-o mb-1"></i>
-                                    <span>Empty</span>
+                                <div class="mob-sheet-thumb-placeholder" onclick="triggerCameraInput();" style="cursor: pointer;" title="Tap to snap sheet photo">
+                                    <i class="fa fa-camera mb-1 text-primary" style="font-size:14px;"></i>
+                                    <span class="text-primary font-weight-bold">Snap</span>
                                 </div>
                             @endif
                         </div>
 
                         <div style="flex:1; overflow:hidden;">
+                            {{-- Line 1: Detected Roll & Match Status --}}
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <div class="cell-detected-roll">
-                                    <span class="text-muted" style="font-size:10px;">Detected: </span>
-                                    <b class="font-mono" style="font-size:11px;">{{ $isSaved ? ($exOmr->unique_id ?: $rollNo) : '--' }}</b>
-                                </div>
-                                <div class="cell-questions">
+                                    <span class="text-muted" style="font-size:10px;">Detected Roll: </span>
                                     @if($isSaved)
-                                        <b style="font-size:11px;">{{ ($exOmr->right_answer ?? 0) + ($exOmr->wrong_answer ?? 0) }} / {{ $exOmr->total_question ?? 50 }}</b>
-                                        <span class="small font-weight-bold ml-1" style="font-size:9.5px;">
-                                            <span class="text-success">🟢{{ $exOmr->right_answer ?? 0 }}</span> 
-                                            <span class="text-danger">🔴{{ $exOmr->wrong_answer ?? 0 }}</span>
-                                        </span>
+                                        <b class="font-mono text-dark" style="font-size:11.5px;">{{ $exOmr->unique_id ?: $displayRoll }}</b>
                                     @else
-                                        <span class="text-muted" style="font-size:10.5px;">-- / {{ $selectedExam->number_of_questions ?? 50 }}</span>
+                                        <b class="font-mono text-muted" style="font-size:11.5px;">--</b>
+                                    @endif
+                                </div>
+                                <div>
+                                    @if($isSaved)
+                                        <span class="badge badge-light border text-success font-weight-bold" style="font-size:9.5px;"><i class="fa fa-check mr-1"></i>Verified</span>
+                                    @else
+                                        <span class="badge badge-light border text-muted" style="font-size:9.5px;">Roll: {{ $displayRoll }}</span>
                                     @endif
                                 </div>
                             </div>
 
-                            <div class="cell-score">
+                            {{-- Line 2: Questions & Accuracy Breakdown --}}
+                            <div class="cell-questions mb-1">
                                 @if($isSaved)
-                                    <div>
-                                        <span class="font-weight-bold text-success" style="font-size:12.5px;">+{{ $exOmr->obtained_marks ?? 0 }}</span>
-                                        <span class="text-muted small"> / {{ $exOmr->total_marks ?? 100 }}</span>
-                                        <span class="badge badge-success ml-1 font-weight-bold" style="font-size:9.5px;">{{ $exOmr->percentage ?? 0 }}%</span>
+                                    @php
+                                        $attempted = ($exOmr->right_answer ?? 0) + ($exOmr->wrong_answer ?? 0);
+                                        $totalQ = $exOmr->total_question ?? 50;
+                                        $blankCount = max(0, $totalQ - $attempted);
+                                    @endphp
+                                    <div class="d-flex flex-wrap align-items-center" style="gap: 3px;">
+                                        <span class="badge badge-light border font-weight-bold text-dark" style="font-size:9.5px;">{{ $attempted }}/{{ $totalQ }} Attempted</span>
+                                        <span class="badge text-success font-weight-bold" style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:9.5px;">🟢 {{ $exOmr->right_answer ?? 0 }} Right</span>
+                                        <span class="badge text-danger font-weight-bold" style="background:#fef2f2; border:1px solid #fca5a5; font-size:9.5px;">🔴 {{ $exOmr->wrong_answer ?? 0 }} Wrong</span>
+                                        <span class="badge text-muted font-weight-bold" style="background:#f8fafc; border:1px solid #e2e8f0; font-size:9.5px;">⚪ {{ $blankCount }} Blank</span>
                                     </div>
                                 @else
-                                    <span class="text-muted" style="font-size:11px;">Score: <b>-- / {{ $selectedExam->exam_maximum_marks ?? 100 }}</b></span>
+                                    <span class="text-muted" style="font-size:10.5px;">-- / {{ $selectedExam->number_of_questions ?? 50 }} Questions</span>
+                                @endif
+                            </div>
+
+                            {{-- Line 3: Score & Percentage --}}
+                            <div class="cell-score">
+                                @if($isSaved)
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-muted" style="font-size:10px;">Score: </span>
+                                            <b class="text-success font-mono" style="font-size:12.5px;">+{{ $exOmr->obtained_marks ?? 0 }}</b>
+                                            <span class="text-muted small"> / {{ $exOmr->total_marks ?? 100 }}</span>
+                                        </div>
+                                        <span class="badge badge-success font-weight-bold" style="font-size:9.5px;">{{ $exOmr->percentage ?? 0 }}%</span>
+                                    </div>
+                                    @if(!empty($exOmr->subject_breakdown))
+                                        @php
+                                            $sbList = is_string($exOmr->subject_breakdown) ? json_decode($exOmr->subject_breakdown, true) : $exOmr->subject_breakdown;
+                                        @endphp
+                                        @if(is_array($sbList) && count($sbList) > 0)
+                                            <div class="d-flex flex-wrap mt-1" style="gap: 3px;">
+                                                @foreach($sbList as $sb)
+                                                    @php
+                                                        $sbName = $sb['subject_name'] ?? ($examSubjectMap[$sb['subject_id'] ?? ''] ?? 'Sub');
+                                                        $shortName = explode(' ', $sbName)[0];
+                                                    @endphp
+                                                    <span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;">{{ $shortName }}: +{{ $sb['obtained_marks'] ?? 0 }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    @endif
+                                @else
+                                    <span class="text-muted" style="font-size:10.5px;">Score: <b>-- / {{ $selectedExam->exam_maximum_marks ?? 100 }}</b></span>
                                 @endif
                             </div>
                         </div>
@@ -948,7 +1207,7 @@
 
                     {{-- Card Footer: Action Buttons --}}
                     <div class="mob-card-foot-actions">
-                        <div class="cell-filename text-truncate" style="max-width:180px; font-size:10px; color:#64748b;">
+                        <div class="cell-filename text-truncate" style="max-width:160px; font-size:10px; color:#64748b;">
                             @if($isSaved && !empty($exOmr->source_filename))
                                 <i class="fa fa-file-image-o text-primary mr-1"></i> {{ $exOmr->source_filename }}
                             @else
@@ -960,12 +1219,15 @@
                                 <button type="button" class="btn-card-action btn-outline-primary border" onclick="viewSavedOmrModal('{{ $exOmr->id }}', this);" title="Inspect Scan">
                                     <i class="fa fa-eye"></i> View
                                 </button>
-                                <button type="button" class="btn-card-action btn-outline-info border" onclick="viewSavedAnswersModal('{{ $exOmr->id }}');" title="Answers Breakdown">
-                                    <i class="fa fa-list"></i>
+                                <button type="button" class="btn-card-action btn-outline-info border" onclick="viewSavedAnswersModal('{{ $exOmr->id }}');" title="Breakdown">
+                                    <i class="fa fa-list-ol"></i> Breakdown
+                                </button>
+                                <button type="button" class="btn-card-action btn-outline-secondary border" onclick="triggerCameraInput();" title="Re-scan / Retake">
+                                    <i class="fa fa-camera"></i>
                                 </button>
                             @else
-                                <button type="button" class="btn-card-action btn-outline-secondary border" onclick="triggerCameraInput();" title="Snap sheet">
-                                    <i class="fa fa-camera"></i>
+                                <button type="button" class="btn-card-action btn-primary" onclick="triggerCameraInput();" title="Snap sheet" style="background:#002C54; color:#fff; border-color:#002C54;">
+                                    <i class="fa fa-camera mr-1"></i> Snap
                                 </button>
                             @endif
                         </div>
@@ -1152,23 +1414,39 @@
     </div>
 </div>
 
-{{-- 8. Answers Breakdown Modal --}}
+{{-- 8. Answers Breakdown Modal (Mobile Native Bottom-Sheet View - NO Overlapping) --}}
 <div class="modal fade" id="modalAnswersGrid" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 96%;">
-        <div class="modal-content" style="border-radius:4px; overflow:hidden;">
-            <div class="modal-header py-2 px-3 bg-primary text-white" style="background:#002C54 !important;">
-                <h6 class="modal-title font-weight-bold mb-0" style="font-size:12.5px;">
-                    <i class="fa fa-list-ol text-info mr-1"></i> Extracted Answers Breakdown
-                </h6>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body p-2" style="max-height:75vh; overflow-y:auto;">
-                <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-light border" style="font-size:11px;">
-                    <div>
-                        Student: <strong id="modal-ans-student" class="text-dark">Student</strong> &bull;
-                        Roll: <b id="modal-ans-roll" class="font-mono text-primary">--</b>
+    <div class="modal-dialog modal-dialog-bottom" role="document">
+        <div class="modal-content mob-modal-content">
+            <div class="modal-header py-2 px-3 text-white" style="background:#002C54 !important;">
+                <div>
+                    <h6 class="modal-title font-weight-bold mb-0" style="font-size:13px;">
+                        <i class="fa fa-list-ol text-info mr-1"></i> Question &amp; Subject Breakdown
+                    </h6>
+                    <div class="text-white-50" style="font-size: 10px;">
+                        <span id="modal-ans-student" class="text-white font-weight-bold">Student</span> &bull; 
+                        Roll: <span id="modal-ans-roll" class="font-mono text-warning font-weight-bold">--</span>
                     </div>
-                    <div id="modal-ans-score" class="font-weight-bold text-success font-mono">--</div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" style="font-size: 24px; opacity: 0.9;">&times;</button>
+            </div>
+            <div class="modal-body p-2" style="background: #f8fafc; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                
+                {{-- Score & Accuracy Summary Card --}}
+                <div class="mob-ans-hero-card mb-2">
+                    <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                        <div>
+                            <span class="text-muted" style="font-size:10px;">Total Score:</span>
+                            <div id="modal-ans-score" class="font-weight-bold font-mono text-success" style="font-size: 15px;">--</div>
+                        </div>
+                        <div id="modal-ans-percent-badge"></div>
+                    </div>
+                    <div class="mob-ans-stats-row">
+                        <div class="mob-ans-stat-pill stat-pill-total" id="modal-stat-total">10 Qs</div>
+                        <div class="mob-ans-stat-pill stat-pill-right" id="modal-stat-right">🟢 0 Right</div>
+                        <div class="mob-ans-stat-pill stat-pill-wrong" id="modal-stat-wrong">🔴 0 Wrong</div>
+                        <div class="mob-ans-stat-pill stat-pill-blank" id="modal-stat-blank">⚪ 0 Blank</div>
+                    </div>
                 </div>
 
                 {{-- Subject Section Performance --}}
@@ -1176,46 +1454,28 @@
                     <div class="font-weight-bold text-dark mb-1" style="font-size:11px;">
                         <i class="fa fa-sitemap text-primary mr-1"></i> Subject Section Performance:
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered mb-1" style="font-size:10px;">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Subject</th>
-                                    <th>Range</th>
-                                    <th>Right</th>
-                                    <th>Wrong</th>
-                                    <th>Left</th>
-                                    <th>Score</th>
-                                    <th>%</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modal-subject-breakdown-tbody"></tbody>
-                        </table>
+                    <div id="modal-subject-breakdown-container"></div>
+                </div>
+
+                {{-- Questions Filter Segment Tabs --}}
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="font-weight-bold text-dark" style="font-size:11px;">
+                        <i class="fa fa-check-square-o text-success mr-1"></i> Question Details:
+                    </div>
+                    <div class="mob-ans-filter-bar mb-0" id="modal-q-filters">
+                        <button type="button" class="mob-ans-filter-btn active" onclick="filterModalQuestions('all', this);">All</button>
+                        <button type="button" class="mob-ans-filter-btn text-success" onclick="filterModalQuestions('correct', this);">🟢 Right</button>
+                        <button type="button" class="mob-ans-filter-btn text-danger" onclick="filterModalQuestions('wrong', this);">🔴 Wrong</button>
+                        <button type="button" class="mob-ans-filter-btn text-muted" onclick="filterModalQuestions('blank', this);">⚪ Blank</button>
                     </div>
                 </div>
 
-                {{-- Questions Table --}}
-                <div class="font-weight-bold text-dark mb-1" style="font-size:11px;">
-                    <i class="fa fa-check-square-o text-success mr-1"></i> Question Details:
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped table-bordered mb-0" style="font-size:10.5px;">
-                        <thead class="bg-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Subject</th>
-                                <th>Marked</th>
-                                <th>Key</th>
-                                <th>Marks</th>
-                                <th>Result</th>
-                            </tr>
-                        </thead>
-                        <tbody id="modal-answers-tbody"></tbody>
-                    </table>
-                </div>
+                {{-- Question Details Feed (Native Card Rows - NO overlapping tables) --}}
+                <div id="modal-questions-feed" class="mob-q-feed"></div>
+
             </div>
-            <div class="modal-footer py-2 px-3 bg-light">
-                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
+            <div class="modal-footer py-2 px-3 bg-white border-top">
+                <button type="button" class="btn btn-sm btn-block btn-secondary font-weight-bold" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1252,7 +1512,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const modalAnnotatedImg = document.getElementById('modal-annotated-img');
     const modalAnnotatedInfo = document.getElementById('modal-annotated-info');
-    const modalAnswersTbody = document.getElementById('modal-answers-tbody');
     const modalAnsStudent = document.getElementById('modal-ans-student');
     const modalAnsRoll = document.getElementById('modal-ans-roll');
     const modalAnsScore = document.getElementById('modal-ans-score');
@@ -1564,14 +1823,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
             } else if (isPdf) {
                 cellSheet.innerHTML = `
-                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${tempId}');" title="PDF Document" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;">
-                        <i class="fa fa-file-pdf-o" style="font-size: 18px;"></i>
+                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${tempId}');" title="PDF Document" style="cursor: pointer; width: 48px; height: 48px; border-radius: 3px;">
+                        <i class="fa fa-file-pdf-o" style="font-size: 22px;"></i>
                     </div>
                 `;
             } else {
                 cellSheet.innerHTML = `
-                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${tempId}');" title="Sheet" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;">
-                        <i class="fa fa-file-image-o" style="font-size: 16px;"></i>
+                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${tempId}');" title="Sheet" style="cursor: pointer; width: 48px; height: 48px; border-radius: 3px;">
+                        <i class="fa fa-file-image-o" style="font-size: 20px;"></i>
                     </div>
                 `;
             }
@@ -1582,22 +1841,28 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cellRoll) {
             cellRoll.innerHTML = `
                 <span class="text-muted" style="font-size:10px;">Detected: </span>
-                <input type="text" class="form-control form-control-sm font-mono text-center d-inline-block font-weight-bold" 
+                <input type="text" class="mob-roll-input" 
                        value="${escapeHtml(sheet.roll_number || '')}" 
-                       style="width: 80px; height: 24px; font-size: 11px; padding: 2px 4px;"
                        onchange="handleStagedRollChange('${tempId}', this.value);">
             `;
         }
 
-        // Questions
+        // Questions & Accuracy Breakdown Chips
+        const cCount = parseInt(evalData.correct_answers ?? evalData.right_answer ?? 0, 10);
+        const iCount = parseInt(evalData.incorrect_answers ?? evalData.wrong_answer ?? 0, 10);
+        const totalQ = parseInt(sheet.summary?.total_questions || evalData.total_questions || getSelectedExamOption()?.dataset.questions || 50, 10);
+        const attempted = cCount + iCount;
+        const blankCount = Math.max(0, totalQ - attempted);
+
         const cellQuestions = card.querySelector('.cell-questions');
         if (cellQuestions) {
             cellQuestions.innerHTML = `
-                <b style="font-size:11px;">${sheet.summary?.attempted || (evalData.correct_answers + evalData.incorrect_answers)} / ${sheet.summary?.total_questions || evalData.total_questions || 50}</b>
-                <span class="small font-weight-bold ml-1" style="font-size:9.5px;">
-                    <span class="text-success">🟢${evalData.correct_answers || 0}</span> 
-                    <span class="text-danger">🔴${evalData.incorrect_answers || 0}</span>
-                </span>
+                <div class="d-flex flex-wrap align-items-center" style="gap: 3px;">
+                    <span class="badge badge-light border font-weight-bold text-dark" style="font-size:9.5px;">${attempted}/${totalQ} Attempted</span>
+                    <span class="badge text-success font-weight-bold" style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:9.5px;">🟢 ${cCount} Right</span>
+                    <span class="badge text-danger font-weight-bold" style="background:#fef2f2; border:1px solid #fca5a5; font-size:9.5px;">🔴 ${iCount} Wrong</span>
+                    <span class="badge text-muted font-weight-bold" style="background:#f8fafc; border:1px solid #e2e8f0; font-size:9.5px;">⚪ ${blankCount} Blank</span>
+                </div>
             `;
         }
 
@@ -1617,10 +1882,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             cellScore.innerHTML = `
-                <div>
-                    <span class="font-weight-bold text-success" style="font-size:12.5px;">+${evalData.obtained_marks || 0}</span>
-                    <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
-                    <span class="badge badge-success ml-1 font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted" style="font-size:10px;">Score: </span>
+                        <b class="text-success font-mono" style="font-size:12.5px;">+${parseFloat(evalData.obtained_marks || 0).toFixed(2)}</b>
+                        <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
+                    </div>
+                    <span class="badge badge-success font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
                 </div>
                 ${pillsHtml}
             `;
@@ -1640,7 +1908,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <i class="fa fa-eye"></i> View
                 </button>
                 <button type="button" class="btn-card-action btn-outline-info border" onclick="viewAnswersModal('${tempId}');" title="Answers Breakdown">
-                    <i class="fa fa-list"></i>
+                    <i class="fa fa-list-ol"></i> Breakdown
                 </button>
                 <button type="button" class="btn-card-action btn-outline-danger border" onclick="resetStudentCard('${tempId}');" title="Reset scan">
                     <i class="fa fa-undo"></i>
@@ -1664,6 +1932,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const thumbSrc = resolveSheetThumbSrc(sheet);
         const evalData = sheet.evaluation || {};
         const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
+        const cCount = parseInt(evalData.correct_answers ?? evalData.right_answer ?? 0, 10);
+        const iCount = parseInt(evalData.incorrect_answers ?? evalData.wrong_answer ?? 0, 10);
+        const totalQ = parseInt(sheet.summary?.total_questions || evalData.total_questions || getSelectedExamOption()?.dataset.questions || 50, 10);
+        const attempted = cCount + iCount;
+        const blankCount = Math.max(0, totalQ - attempted);
+
+        let pillsHtml = '';
+        const sbList = evalData.subject_breakdown || [];
+        if (Array.isArray(sbList) && sbList.length > 0) {
+            pillsHtml = '<div class="d-flex flex-wrap mt-1" style="gap: 3px;">';
+            sbList.forEach(sb => {
+                const sFullName = resolveSubjectName(sb);
+                const shortName = sFullName.split(' ')[0];
+                pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+            });
+            pillsHtml += '</div>';
+        }
 
         card.innerHTML = `
             <div class="mob-card-head">
@@ -1674,42 +1959,58 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                     <div>
                         <div class="mob-student-name text-warning">Unmatched Roll #</div>
-                        <div class="mob-student-adm text-danger font-weight-bold">Student not found in this course/batch</div>
+                        <div class="mob-student-adm text-danger font-weight-bold">Student not found in this class</div>
                     </div>
                 </div>
                 <span class="badge badge-warning text-dark px-2 py-1 font-weight-bold" style="font-size:10px;">
-                    Needs Review
+                    <i class="fa fa-exclamation-triangle mr-1"></i> Needs Review
                 </span>
             </div>
 
             <div class="mob-card-body-details">
                 <div class="cell-sheet">
                     ${thumbSrc ? `<img src="${thumbSrc}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewAnnotatedModal('${sheet.temp_id}');">` :
-                      ((sheet.source_filename || '').toLowerCase().endsWith('.pdf') ? `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="PDF Document" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;"><i class="fa fa-file-pdf-o" style="font-size: 18px;"></i></div>` : `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Sheet" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;"><i class="fa fa-file-image-o" style="font-size: 16px;"></i></div>`)}
+                      ((sheet.source_filename || '').toLowerCase().endsWith('.pdf') ? `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="PDF Document" style="cursor: pointer; width: 48px; height: 48px; border-radius: 3px;"><i class="fa fa-file-pdf-o" style="font-size: 22px;"></i></div>` : `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Sheet" style="cursor: pointer; width: 48px; height: 48px; border-radius: 3px;"><i class="fa fa-file-image-o" style="font-size: 20px;"></i></div>`)}
                 </div>
-                <div style="flex:1;">
+                <div style="flex:1; overflow:hidden;">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <div>
                             <span class="text-muted" style="font-size:10px;">Roll #: </span>
-                            <input type="text" class="form-control form-control-sm font-mono text-center d-inline-block font-weight-bold border-warning" 
+                            <input type="text" class="mob-roll-input border-warning" 
                                    value="${escapeHtml(sheet.roll_number || '')}" 
-                                   style="width: 80px; height: 24px; font-size: 11px; padding: 2px 4px;"
                                    placeholder="Roll #"
                                    onchange="handleUnmatchedRollChange('${sheet.temp_id}', this.value);">
                         </div>
-                        <div class="font-weight-bold font-mono" style="font-size:11px;">
-                            ${sheet.summary?.attempted || 0} / ${sheet.summary?.total_questions || 50} Qs
+                        <div>
+                            <span class="badge badge-light border text-danger font-weight-bold" style="font-size:9.5px;">Not Enrolled</span>
                         </div>
                     </div>
-                    <div>
-                        <span class="font-weight-bold text-success">+${evalData.obtained_marks || 0}</span> / ${evalData.total_marks || maxMarks}
-                        <span class="badge badge-success ml-1 font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
+
+                    <div class="cell-questions mb-1">
+                        <div class="d-flex flex-wrap align-items-center" style="gap: 3px;">
+                            <span class="badge badge-light border font-weight-bold text-dark" style="font-size:9.5px;">${attempted}/${totalQ} Attempted</span>
+                            <span class="badge text-success font-weight-bold" style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:9.5px;">🟢 ${cCount} Right</span>
+                            <span class="badge text-danger font-weight-bold" style="background:#fef2f2; border:1px solid #fca5a5; font-size:9.5px;">🔴 ${iCount} Wrong</span>
+                            <span class="badge text-muted font-weight-bold" style="background:#f8fafc; border:1px solid #e2e8f0; font-size:9.5px;">⚪ ${blankCount} Blank</span>
+                        </div>
+                    </div>
+
+                    <div class="cell-score">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted" style="font-size:10px;">Score: </span>
+                                <b class="text-success font-mono" style="font-size:12.5px;">+${parseFloat(evalData.obtained_marks || 0).toFixed(2)}</b>
+                                <span class="text-muted small"> / ${evalData.total_marks || maxMarks}</span>
+                            </div>
+                            <span class="badge badge-success font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
+                        </div>
+                        ${pillsHtml}
                     </div>
                 </div>
             </div>
 
             <div class="mob-card-foot-actions">
-                <div class="text-truncate" style="max-width:180px; font-size:10px; color:#64748b;">
+                <div class="text-truncate" style="max-width:160px; font-size:10px; color:#64748b;">
                     <i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(sheet.source_filename)}
                 </div>
                 <div class="mob-card-btns">
@@ -1717,7 +2018,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa fa-eye"></i> View
                     </button>
                     <button type="button" class="btn-card-action btn-outline-info border" onclick="viewAnswersModal('${sheet.temp_id}');">
-                        <i class="fa fa-list"></i>
+                        <i class="fa fa-list-ol"></i> Breakdown
                     </button>
                     <button type="button" class="btn-card-action btn-outline-danger border" onclick="removeUnmatchedSheet('${sheet.temp_id}');">
                         <i class="fa fa-trash-o"></i>
@@ -1829,23 +2130,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const cellSheet = card.querySelector('.cell-sheet');
             if (cellSheet) {
-                cellSheet.innerHTML = `<div class="mob-sheet-thumb-placeholder"><i class="fa fa-file-image-o mb-1"></i><span>Empty</span></div>`;
+                cellSheet.innerHTML = `
+                    <div class="mob-sheet-thumb-placeholder" onclick="triggerCameraInput();" style="cursor: pointer;" title="Tap to snap sheet photo">
+                        <i class="fa fa-camera mb-1 text-primary" style="font-size:14px;"></i>
+                        <span class="text-primary font-weight-bold">Snap</span>
+                    </div>
+                `;
             }
 
             const cellRoll = card.querySelector('.cell-detected-roll');
-            if (cellRoll) cellRoll.innerHTML = `<span class="text-muted" style="font-size:10px;">Detected: </span><b class="font-mono">--</b>`;
+            if (cellRoll) cellRoll.innerHTML = `<span class="text-muted" style="font-size:10px;">Detected Roll: </span><b class="font-mono text-muted" style="font-size:11.5px;">--</b>`;
 
             const cellQ = card.querySelector('.cell-questions');
-            if (cellQ) cellQ.innerHTML = `<span class="text-muted" style="font-size:10.5px;">-- / ${getSelectedExamOption()?.dataset.questions || 50}</span>`;
+            if (cellQ) cellQ.innerHTML = `<span class="text-muted" style="font-size:10.5px;">-- / ${getSelectedExamOption()?.dataset.questions || 50} Questions</span>`;
 
             const cellScore = card.querySelector('.cell-score');
-            if (cellScore) cellScore.innerHTML = `<span class="text-muted" style="font-size:11px;">Score: <b>-- / ${getSelectedExamOption()?.dataset.maxmarks || 100}</b></span>`;
+            if (cellScore) cellScore.innerHTML = `<span class="text-muted" style="font-size:10.5px;">Score: <b>-- / ${getSelectedExamOption()?.dataset.maxmarks || 100}</b></span>`;
 
             const cellFilename = card.querySelector('.cell-filename');
             if (cellFilename) cellFilename.innerHTML = `<i class="fa fa-clock-o mr-1"></i> Waiting for sheet`;
 
             const cellActions = card.querySelector('.cell-actions');
-            if (cellActions) cellActions.innerHTML = `<button type="button" class="btn-card-action btn-outline-secondary border" onclick="triggerCameraInput();"><i class="fa fa-camera"></i></button>`;
+            if (cellActions) cellActions.innerHTML = `
+                <button type="button" class="btn-card-action btn-primary" onclick="triggerCameraInput();" title="Snap sheet" style="background:#002C54; color:#fff; border-color:#002C54;">
+                    <i class="fa fa-camera mr-1"></i> Snap
+                </button>
+            `;
         }
         stagedSheets.delete(tempId);
         updateStagingCounters();
@@ -2045,10 +2355,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const answers = sheet.evaluation?.extracted_answers || [];
         modalAnsStudent.textContent = sheet.student?.name || 'Unregistered Student';
         modalAnsRoll.textContent = sheet.roll_number || 'N/A';
-        modalAnsScore.textContent = `+${sheet.evaluation?.obtained_marks || 0} / ${sheet.evaluation?.total_marks || 0} (${sheet.evaluation?.percentage || 0}%)`;
+        modalAnsScore.textContent = `+${parseFloat(sheet.evaluation?.obtained_marks || 0).toFixed(2)} / ${sheet.evaluation?.total_marks || 0}`;
 
         const subBreakdown = sheet.evaluation?.subject_breakdown || [];
-        renderModalBreakdownContent(subBreakdown, answers);
+        renderModalBreakdownContent(subBreakdown, answers, sheet.evaluation);
 
         if (typeof $ !== 'undefined' && $('#modalAnswersGrid').modal) {
             $('#modalAnswersGrid').modal('show');
@@ -2071,77 +2381,172 @@ document.addEventListener('DOMContentLoaded', function () {
         const stName = rec.student ? (rec.student.first_name + ' ' + (rec.student.last_name || '')) : ('Student #' + (rec.unique_id || ''));
         modalAnsStudent.textContent = stName;
         modalAnsRoll.textContent = rec.unique_id || 'N/A';
-        modalAnsScore.textContent = `+${rec.obtained_marks || 0} / ${rec.total_marks || 0} (${rec.percentage || 0}%)`;
+        modalAnsScore.textContent = `+${parseFloat(rec.obtained_marks || 0).toFixed(2)} / ${rec.total_marks || 0}`;
 
-        renderModalBreakdownContent(subBreakdown, answers);
+        renderModalBreakdownContent(subBreakdown, answers, rec);
 
         if (typeof $ !== 'undefined' && $('#modalAnswersGrid').modal) {
             $('#modalAnswersGrid').modal('show');
         }
     };
 
-    function renderModalBreakdownContent(subBreakdown, answers) {
-        const subWrapper = document.getElementById('modal-subject-breakdown-wrapper');
-        const subTbody = document.getElementById('modal-subject-breakdown-tbody');
+    function renderModalBreakdownContent(subBreakdown, answers, summaryData) {
+        summaryData = summaryData || {};
 
-        if (subWrapper && subTbody) {
+        let rightCount = 0;
+        let wrongCount = 0;
+        let blankCount = 0;
+        let totalCount = answers.length;
+
+        answers.forEach(item => {
+            if (item.is_correct) rightCount++;
+            else if (item.status === 'blank' || !item.answer) blankCount++;
+            else wrongCount++;
+        });
+
+        if (totalCount === 0 && (summaryData.total_questions || summaryData.total_question)) {
+            totalCount = parseInt(summaryData.total_questions || summaryData.total_question || 0, 10);
+            rightCount = parseInt(summaryData.correct_answers || summaryData.right_answer || 0, 10);
+            wrongCount = parseInt(summaryData.incorrect_answers || summaryData.wrong_answer || 0, 10);
+            blankCount = Math.max(0, totalCount - rightCount - wrongCount);
+        }
+
+        const pct = summaryData.percentage !== undefined ? summaryData.percentage : (totalCount > 0 ? ((rightCount / totalCount) * 100).toFixed(1) : 0);
+
+        const badgeEl = document.getElementById('modal-ans-percent-badge');
+        if (badgeEl) {
+            badgeEl.innerHTML = `<span class="badge ${parseFloat(pct) >= 40 ? 'badge-success' : 'badge-danger'} font-weight-bold" style="font-size:12px; padding:3px 8px;">${pct}%</span>`;
+        }
+
+        const elTotal = document.getElementById('modal-stat-total');
+        const elRight = document.getElementById('modal-stat-right');
+        const elWrong = document.getElementById('modal-stat-wrong');
+        const elBlank = document.getElementById('modal-stat-blank');
+        if (elTotal) elTotal.textContent = `${totalCount} Qs`;
+        if (elRight) elRight.textContent = `🟢 ${rightCount} Right`;
+        if (elWrong) elWrong.textContent = `🔴 ${wrongCount} Wrong`;
+        if (elBlank) elBlank.textContent = `⚪ ${blankCount} Blank`;
+
+        // Subject Breakdown Cards
+        const subWrapper = document.getElementById('modal-subject-breakdown-wrapper');
+        const subContainer = document.getElementById('modal-subject-breakdown-container');
+        if (subWrapper && subContainer) {
             if (Array.isArray(subBreakdown) && subBreakdown.length > 0) {
                 let subHtml = '';
                 subBreakdown.forEach(sb => {
                     const sName = resolveSubjectName(sb);
-                    const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q}-${sb.to_q}` : `${sb.total_questions || 0} Qs`;
+                    const rangeText = (sb.from_q && sb.to_q) ? `Q${sb.from_q} - Q${sb.to_q}` : `${sb.total_questions || 0} Questions`;
+                    const sbPct = parseFloat(sb.percentage || 0);
                     subHtml += `
-                        <tr>
-                            <td class="font-weight-bold text-dark">${escapeHtml(sName)}</td>
-                            <td class="font-mono text-muted">${rangeText}</td>
-                            <td class="font-weight-bold text-success">${sb.correct_answers || 0}</td>
-                            <td class="font-weight-bold text-danger">${sb.incorrect_answers || 0}</td>
-                            <td class="text-muted">${sb.blank_answers || 0}</td>
-                            <td class="font-weight-bold font-mono text-primary">+${sb.obtained_marks_formatted || sb.obtained_marks || 0}</td>
-                            <td class="font-weight-bold ${parseFloat(sb.percentage || 0) >= 40 ? 'text-success' : 'text-danger'}">${sb.percentage || 0}%</td>
-                        </tr>
+                        <div class="mob-sub-stat-card">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="font-weight-bold text-dark" style="font-size:11.5px;">${escapeHtml(sName)}</span>
+                                <span class="badge ${sbPct >= 40 ? 'badge-success' : 'badge-danger'} font-weight-bold font-mono" style="font-size:9.5px;">${sbPct}%</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between text-muted mb-1" style="font-size:10px;">
+                                <span>Range: <b class="font-mono text-dark">${rangeText}</b></span>
+                                <span>Score: <b class="font-mono text-success">+${sb.obtained_marks_formatted || sb.obtained_marks || 0}</b> / ${sb.max_marks || 0}</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between" style="font-size:9.5px;">
+                                <span class="text-success font-weight-bold">🟢 ${sb.correct_answers || 0} Right</span>
+                                <span class="text-danger font-weight-bold">🔴 ${sb.incorrect_answers || 0} Wrong</span>
+                                <span class="text-muted font-weight-bold">⚪ ${sb.blank_answers || 0} Blank</span>
+                            </div>
+                            <div class="progress mt-1" style="height:4px; border-radius:2px; background:#e2e8f0;">
+                                <div class="progress-bar ${sbPct >= 40 ? 'bg-success' : 'bg-danger'}" style="width:${Math.min(100, Math.max(0, sbPct))}%"></div>
+                            </div>
+                        </div>
                     `;
                 });
-                subTbody.innerHTML = subHtml;
+                subContainer.innerHTML = subHtml;
                 subWrapper.style.display = 'block';
             } else {
                 subWrapper.style.display = 'none';
             }
         }
 
-        let html = '';
-        answers.forEach(item => {
-            let resBadge = '';
-            let marksBadge = '';
-            const mAwarded = (item.marks_awarded !== undefined) ? item.marks_awarded : (item.is_correct ? (item.marks_correct || 1) : (item.answer ? -(item.marks_incorrect || 0) : 0));
+        // Questions matrix feed cards
+        const qFeed = document.getElementById('modal-questions-feed');
+        if (qFeed) {
+            let qHtml = '';
+            answers.forEach(item => {
+                let filter = 'wrong';
+                let cardClass = 'q-wrong';
+                let statusBadge = '<span class="badge badge-danger font-weight-bold" style="font-size:9px;"><i class="fa fa-times mr-1"></i>Wrong</span>';
+                let bubbleClass = 'bubble-wrong';
+                const mAwarded = (item.marks_awarded !== undefined) 
+                    ? item.marks_awarded 
+                    : (item.is_correct ? (item.marks_correct || 1) : (item.answer ? -(item.marks_incorrect || 0) : 0));
+                let marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background:#fef2f2; border:1px solid #fca5a5; font-size:9.5px;">${parseFloat(mAwarded).toFixed(2)}</span>`;
 
-            if (item.is_correct) {
-                resBadge = '<span class="badge badge-success font-weight-bold px-2 py-1"><i class="fa fa-check"></i> Right</span>';
-                marksBadge = `<span class="badge font-mono font-weight-bold text-success" style="background:#f0fdf4; border:1px solid #bbf7d0;">+${parseFloat(mAwarded).toFixed(2)}</span>`;
-            } else if (item.status === 'blank' || !item.answer) {
-                resBadge = '<span class="badge badge-light px-2 py-1 text-muted border">Blank</span>';
-                marksBadge = `<span class="badge font-mono text-muted border">0.00</span>`;
-            } else {
-                resBadge = '<span class="badge badge-danger font-weight-bold px-2 py-1"><i class="fa fa-times"></i> Wrong</span>';
-                marksBadge = `<span class="badge font-mono font-weight-bold text-danger" style="background:#fef2f2; border:1px solid #fca5a5;">${parseFloat(mAwarded).toFixed(2)}</span>`;
-            }
+                if (item.is_correct) {
+                    filter = 'correct';
+                    cardClass = 'q-correct';
+                    statusBadge = '<span class="badge badge-success font-weight-bold" style="font-size:9px;"><i class="fa fa-check mr-1"></i>Right</span>';
+                    bubbleClass = 'bubble-correct';
+                    marksBadge = `<span class="badge font-mono font-weight-bold text-success" style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:9.5px;">+${parseFloat(mAwarded).toFixed(2)}</span>`;
+                } else if (item.status === 'blank' || !item.answer) {
+                    filter = 'blank';
+                    cardClass = 'q-blank';
+                    statusBadge = '<span class="badge badge-light text-muted border font-weight-bold" style="font-size:9px;">Blank</span>';
+                    bubbleClass = 'bubble-blank';
+                    marksBadge = `<span class="badge font-mono text-muted border" style="font-size:9.5px;">0.00</span>`;
+                }
 
-            const qSubName = resolveSubjectName(item, item.question);
-            const subTag = qSubName ? `<span class="badge badge-light text-primary font-weight-bold text-truncate" style="max-width:110px; font-size:9px; border:1px solid #cbd5e1;">${escapeHtml(qSubName)}</span>` : '<span class="text-muted small">--</span>';
+                const qSubName = resolveSubjectName(item, item.question);
 
-            html += `
-                <tr>
-                    <td class="font-weight-bold text-dark">Q${item.question}</td>
-                    <td>${subTag}</td>
-                    <td class="font-mono font-weight-bold ${item.is_correct ? 'text-success' : (item.answer ? 'text-danger' : 'text-muted')}">${item.answer || '—'}</td>
-                    <td class="font-mono font-weight-bold text-primary">${item.correct_answer || '—'}</td>
-                    <td>${marksBadge}</td>
-                    <td>${resBadge}</td>
-                </tr>
-            `;
+                qHtml += `
+                    <div class="mob-q-card ${cardClass}" data-filter="${filter}">
+                        <div class="mob-q-card-top">
+                            <div class="d-flex align-items-center" style="gap:6px;">
+                                <span class="mob-q-num-badge">Q${item.question}</span>
+                                ${qSubName ? `<span class="mob-q-sub-badge" title="${escapeHtml(qSubName)}">${escapeHtml(qSubName)}</span>` : ''}
+                            </div>
+                            <div class="d-flex align-items-center" style="gap:5px;">
+                                ${marksBadge}
+                                ${statusBadge}
+                            </div>
+                        </div>
+                        <div class="mob-q-card-body">
+                            <div class="d-flex align-items-center" style="gap:6px;">
+                                <span class="text-muted" style="font-size:10px;">Your Ans:</span>
+                                <span class="mob-ans-bubble ${bubbleClass}">${escapeHtml(item.answer || '—')}</span>
+                            </div>
+                            <div class="d-flex align-items-center" style="gap:6px;">
+                                <span class="text-muted" style="font-size:10px;">Correct Key:</span>
+                                <span class="mob-ans-bubble bubble-key">${escapeHtml(item.correct_answer || '—')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            qFeed.innerHTML = qHtml;
+        }
+
+        // Reset filter tab active state to "All"
+        const filterBtns = document.querySelectorAll('#modal-q-filters .mob-ans-filter-btn');
+        filterBtns.forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-        modalAnswersTbody.innerHTML = html;
     }
+
+    window.filterModalQuestions = function (type, btn) {
+        const parent = document.getElementById('modal-q-filters');
+        if (parent) {
+            parent.querySelectorAll('.mob-ans-filter-btn').forEach(b => b.classList.remove('active'));
+        }
+        if (btn) btn.classList.add('active');
+
+        const cards = document.querySelectorAll('#modal-questions-feed .mob-q-card');
+        cards.forEach(c => {
+            if (type === 'all' || c.dataset.filter === type) {
+                c.style.display = 'block';
+            } else {
+                c.style.display = 'none';
+            }
+        });
+    };
 
     // FINAL SUBMIT: Save marks to database
     window.confirmFinalSubmit = async function () {
@@ -2229,24 +2634,53 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     const cellRoll = card.querySelector('.cell-detected-roll');
-                    if (cellRoll) cellRoll.innerHTML = `<span class="text-muted" style="font-size:10px;">Detected: </span><b class="font-mono">${escapeHtml(roll)}</b>`;
+                    if (cellRoll) cellRoll.innerHTML = `<span class="text-muted" style="font-size:10px;">Detected Roll: </span><b class="font-mono text-dark" style="font-size:11.5px;">${escapeHtml(roll)}</b>`;
+
+                    const cCount = parseInt(evalData.correct_answers ?? evalData.right_answer ?? 0, 10);
+                    const iCount = parseInt(evalData.incorrect_answers ?? evalData.wrong_answer ?? 0, 10);
+                    const totalQ = parseInt(evalData.total_questions ?? evalData.total_question ?? getSelectedExamOption()?.dataset.questions ?? 50, 10);
+                    const attempted = cCount + iCount;
+                    const blankCount = Math.max(0, totalQ - attempted);
 
                     const cellQ = card.querySelector('.cell-questions');
                     if (cellQ) {
-                        const cCount = parseInt(evalData.correct_answers || 0, 10);
-                        const iCount = parseInt(evalData.incorrect_answers || 0, 10);
-                        const totalQ = (cCount + iCount + parseInt(evalData.blank_answers || 0, 10)) || (getSelectedExamOption()?.dataset.questions || 50);
-                        cellQ.innerHTML = `<b style="font-size:11px;">${cCount + iCount} / ${totalQ}</b> <span class="small font-weight-bold ml-1"><span class="text-success">🟢${cCount}</span> <span class="text-danger">🔴${iCount}</span></span>`;
+                        cellQ.innerHTML = `
+                            <div class="d-flex flex-wrap align-items-center" style="gap: 3px;">
+                                <span class="badge badge-light border font-weight-bold text-dark" style="font-size:9.5px;">${attempted}/${totalQ} Attempted</span>
+                                <span class="badge text-success font-weight-bold" style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:9.5px;">🟢 ${cCount} Right</span>
+                                <span class="badge text-danger font-weight-bold" style="background:#fef2f2; border:1px solid #fca5a5; font-size:9.5px;">🔴 ${iCount} Wrong</span>
+                                <span class="badge text-muted font-weight-bold" style="background:#f8fafc; border:1px solid #e2e8f0; font-size:9.5px;">⚪ ${blankCount} Blank</span>
+                            </div>
+                        `;
                     }
 
                     const cellScore = card.querySelector('.cell-score');
                     if (cellScore) {
+                        let pillsHtml = '';
+                        let sbList = evalData.subject_breakdown || [];
+                        if (typeof sbList === 'string') {
+                            try { sbList = JSON.parse(sbList); } catch(e) { sbList = []; }
+                        }
+                        if (Array.isArray(sbList) && sbList.length > 0) {
+                            pillsHtml = '<div class="d-flex flex-wrap mt-1" style="gap: 3px;">';
+                            sbList.forEach(sb => {
+                                const sFullName = resolveSubjectName(sb);
+                                const shortName = sFullName.split(' ')[0];
+                                pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+                            });
+                            pillsHtml += '</div>';
+                        }
+
                         cellScore.innerHTML = `
-                            <div>
-                                <span class="font-weight-bold text-success" style="font-size:12.5px;">+${parseFloat(evalData.obtained_marks || 0).toFixed(2)}</span>
-                                <span class="text-muted small"> / ${evalData.total_marks || (getSelectedExamOption()?.dataset.maxmarks || 100)}</span>
-                                <span class="badge badge-success ml-1 font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="text-muted" style="font-size:10px;">Score: </span>
+                                    <b class="text-success font-mono" style="font-size:12.5px;">+${parseFloat(evalData.obtained_marks || 0).toFixed(2)}</b>
+                                    <span class="text-muted small"> / ${evalData.total_marks || (getSelectedExamOption()?.dataset.maxmarks || 100)}</span>
+                                </div>
+                                <span class="badge badge-success font-weight-bold" style="font-size:9.5px;">${evalData.percentage || 0}%</span>
                             </div>
+                            ${pillsHtml}
                         `;
                     }
 
@@ -2254,7 +2688,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (cellActions) {
                         cellActions.innerHTML = `
                             <button type="button" class="btn-card-action btn-outline-primary border" onclick="viewSavedOmrModal('${rec.id}', this);"><i class="fa fa-eye"></i> View</button>
-                            <button type="button" class="btn-card-action btn-outline-info border" onclick="viewSavedAnswersModal('${rec.id}');"><i class="fa fa-list"></i></button>
+                            <button type="button" class="btn-card-action btn-outline-info border" onclick="viewSavedAnswersModal('${rec.id}');"><i class="fa fa-list-ol"></i> Breakdown</button>
+                            <button type="button" class="btn-card-action btn-outline-secondary border" onclick="triggerCameraInput();"><i class="fa fa-camera"></i></button>
                         `;
                     }
                 }
