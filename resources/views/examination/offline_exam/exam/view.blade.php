@@ -786,9 +786,31 @@ select.excel-col-filter option {
     color: #0f766e !important;
     border-color: #99f6e4;
 }
-.btn-action-marks:hover {
-    background: #0f766e;
+.btn-action-marks:hover, .btn-action-marks:focus, .dropdown.show .btn-action-marks {
+    background: #0f766e !important;
     color: #ffffff !important;
+    border-color: #0f766e !important;
+}
+.table-actions .dropdown-menu {
+    left: 0 !important;
+    right: auto !important;
+    top: 100% !important;
+    margin-top: 5px !important;
+    box-shadow: 0 4px 16px rgba(0, 44, 84, 0.15) !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.table-actions .dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 7px;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-top: 1px solid #cbd5e1;
+    border-left: 1px solid #cbd5e1;
+    transform: rotate(45deg);
+    z-index: 1;
 }
 .btn-action-copy {
     background: #f8fafc;

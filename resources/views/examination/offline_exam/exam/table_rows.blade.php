@@ -201,28 +201,7 @@
         {{-- 8. Actions (Sticky Fixed Column) --}}
         <td class="text-center fixed_action_col" style="vertical-align: middle;">
             <div class="table-actions">
-                {{-- Edit Exam --}}
-                @if($permission->edit ?? true)
-                    <a href="{{ url('edit/exam/'.$item->id) }}" class="table-btn btn-action-edit" title="Edit Exam Details">
-                        <i class="fa fa-edit"></i>
-                    </a>
-                @endif
-
-                {{-- Duplicate / Copy Exam --}}
-                @if($permission->add ?? true)
-                    <button type="button" class="table-btn btn-action-copy copyExamData" 
-                            data-id="{{ $item->id }}" 
-                            data-name="{{ $item->copy_name }}" 
-                            data-class-id="{{ $item->class_type_id }}"
-                            data-class-name="{{ $item->class_name }}"
-                            data-batch-id="{{ $item->batch_id ?? '' }}"
-                            data-date="{{ $examDateIso }}" 
-                            title="Duplicate / Copy Exam">
-                        <i class="fa fa-copy"></i>
-                    </button>
-                @endif
-
-                {{-- Marks Entry Action Icon Dropdown (1-Click Open) --}}
+                {{-- 1. Marks Entry Action Icon Dropdown (1-Click Open, FIRST POSITION) --}}
                 <div class="dropdown d-inline-block">
                     <button type="button" 
                             class="table-btn btn-action-marks" 
@@ -231,9 +210,9 @@
                             aria-haspopup="true" 
                             aria-expanded="false" 
                             title="Marks Entry Options (OMR / Manual / Excel)">
-                        <i class="fa fa-pencil-square-o"></i>
+                        <i class="fa fa-check-square-o"></i>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right shadow-sm border py-1" 
+                    <div class="dropdown-menu shadow-sm border py-1" 
                          aria-labelledby="marksActionDropdown_{{ $item->id }}" 
                          style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1050;">
                         <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9.5px; letter-spacing: 0.5px;">
@@ -257,7 +236,28 @@
                     </div>
                 </div>
 
-                {{-- Delete Exam (Themed Modal) --}}
+                {{-- 2. Edit Exam --}}
+                @if($permission->edit ?? true)
+                    <a href="{{ url('edit/exam/'.$item->id) }}" class="table-btn btn-action-edit" title="Edit Exam Details">
+                        <i class="fa fa-edit"></i>
+                    </a>
+                @endif
+
+                {{-- 3. Duplicate / Copy Exam --}}
+                @if($permission->add ?? true)
+                    <button type="button" class="table-btn btn-action-copy copyExamData" 
+                            data-id="{{ $item->id }}" 
+                            data-name="{{ $item->copy_name }}" 
+                            data-class-id="{{ $item->class_type_id }}"
+                            data-class-name="{{ $item->class_name }}"
+                            data-batch-id="{{ $item->batch_id ?? '' }}"
+                            data-date="{{ $examDateIso }}" 
+                            title="Duplicate / Copy Exam">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                @endif
+
+                {{-- 4. Delete Exam (Themed Modal) --}}
                 @if($permission->delete ?? true)
                     <button type="button" class="table-btn btn-action-delete deleteExamBtn" 
                             data-id="{{ $item->id }}" 
