@@ -864,7 +864,14 @@
                                     {{-- Questions Column --}}
                                     <td class="text-center cell-questions" style="vertical-align: middle;">
                                         @if($hasOmr)
-                                            <div class="font-weight-bold text-dark" style="font-size: 12px;">{{ ($omrRecord->correct_answers + $omrRecord->incorrect_answers) }} / {{ $omrRecord->total_questions ?? ($selectedExam->number_of_questions ?? 50) }}</div>
+                                            @php
+                                                $attemptedCount = (int)($omrRecord->correct_answers + $omrRecord->incorrect_answers);
+                                                $totalQCount = (int)($omrRecord->correct_answers + $omrRecord->incorrect_answers + $omrRecord->blank_answers);
+                                                if ($totalQCount <= 0) {
+                                                    $totalQCount = (int)($selectedExam->number_of_questions ?? 50);
+                                                }
+                                            @endphp
+                                            <div class="font-weight-bold text-dark" style="font-size: 12px;">{{ $attemptedCount }} / {{ $totalQCount }}</div>
                                             <div class="small font-weight-bold" style="font-size: 10px;">🟢 {{ $omrRecord->correct_answers }} 🔴 {{ $omrRecord->incorrect_answers }} ⚪ {{ $omrRecord->blank_answers }}</div>
                                         @else
                                             <span class="text-muted small">-- / {{ $selectedExam ? ($selectedExam->number_of_questions ?: 50) : 50 }}</span>
@@ -1005,7 +1012,7 @@
                             @php
                                 $stName = $scan->student ? ($scan->student->first_name . ' ' . $scan->student->last_name) : 'Student #' . $scan->unique_id;
                             @endphp
-                            <tr id="scan-row-{{ $scan->id }}" data-unique-id="{{ $scan->unique_id }}">
+                            <tr id="scan-row-{{ $scan->id }}" data-unique-id="{{ $scan->unique_id }}" data-admission-id="{{ $scan->admission_id }}">
                                 <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="{{ $scan->source_filename }}">
                                     <div class="d-flex align-items-center">
                                         @if(!empty($scan->image_url))
@@ -2216,15 +2223,112 @@ document.addEventListener('DOMContentLoaded', function () {
 
             alert(`✅ ${data.message}`);
 
-            // Update student rows to "Saved" status
+            // Update student rows and Saved Ledger to "Saved" status (Overwrite all older data)
             const savedTbody = document.getElementById('omr-saved-tbody');
             document.getElementById('omr-saved-empty-row')?.remove();
             let newlyAddedCount = 0;
 
-            selectedSheets.forEach(s => {
-                // If attached to an enrolled student row
-                const stuRow = document.querySelector(`tr.student-omr-row[data-temp-id="${s.temp_id}"]`);
+            const recordsToApply = (data.saved_records && Array.isArray(data.saved_records) && data.saved_records.length > 0)
+                ? data.saved_records
+                : selectedSheets;
+
+            recordsToApply.forEach(rec => {
+                if (rec.id) {
+                    window.savedOmrRecords = window.savedOmrRecords || {};
+                    window.savedOmrRecords[rec.id] = rec;
+                }
+
+                const admId = rec.admission_id || (rec.student?.id);
+                const roll = String(rec.unique_id || rec.roll_number || '').trim();
+                const evalData = rec.evaluation || rec;
+
+                // 1. Update Enrolled Student Row in Table 3
+                let stuRow = null;
+                if (admId) {
+                    stuRow = document.querySelector(`tr.student-omr-row[data-student-id="${admId}"]`);
+                }
+                if (!stuRow && roll) {
+                    stuRow = document.querySelector(`tr.student-omr-row[data-roll-no="${CSS.escape(roll.toLowerCase())}"]`) ||
+                             document.querySelector(`tr.student-omr-row[data-admission-no="${CSS.escape(roll.toLowerCase())}"]`);
+                }
+                if (!stuRow && rec.temp_id) {
+                    stuRow = document.querySelector(`tr.student-omr-row[data-temp-id="${rec.temp_id}"]`);
+                }
+
                 if (stuRow) {
+                    stuRow.classList.add('table-success', 'row-scanned');
+                    delete stuRow.dataset.tempId;
+
+                    // Sheet Thumbnail
+                    const cellSheet = stuRow.querySelector('.cell-sheet');
+                    const imgUrl = rec.image_url || rec.annotated_image_url || rec.stored_file;
+                    if (cellSheet && imgUrl) {
+                        const fullImgUrl = imgUrl.startsWith('http') ? imgUrl : `{{ url('/') }}/${imgUrl.replace(/^\/+/, '')}`;
+                        cellSheet.innerHTML = `<img src="${fullImgUrl}" class="omr-thumb" alt="Sheet" onclick="viewSavedOmrModal('${rec.id}', this);" data-image-url="${fullImgUrl}" title="Click to inspect annotated scan" style="cursor: pointer;">`;
+                    }
+
+                    // Filename
+                    const cellFilename = stuRow.querySelector('.cell-filename');
+                    const fn = rec.source_filename || 'omr_scan.jpeg';
+                    if (cellFilename) {
+                        cellFilename.setAttribute('title', fn);
+                        cellFilename.innerHTML = `<span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;"><i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(fn)}</span>`;
+                    }
+
+                    // Detected Roll
+                    const cellRoll = stuRow.querySelector('.cell-detected-roll');
+                    if (cellRoll) {
+                        cellRoll.innerHTML = `<input type="text" class="form-control form-control-sm font-mono text-center roll-input" value="${escapeHtml(roll)}" style="width: 95px; font-weight: 700; height: 28px; font-size: 12px; margin: 0 auto;" readonly>`;
+                    }
+
+                    // Questions breakdown (dynamically calculated from correct + incorrect + blank)
+                    const cellQuestions = stuRow.querySelector('.cell-questions');
+                    if (cellQuestions) {
+                        const cCount = parseInt(evalData.correct_answers || 0, 10);
+                        const iCount = parseInt(evalData.incorrect_answers || 0, 10);
+                        const bCount = parseInt(evalData.blank_answers || 0, 10);
+                        const totalQ = (cCount + iCount + bCount) || (getSelectedExamOption()?.dataset.questions || 50);
+                        const attempted = cCount + iCount;
+                        cellQuestions.innerHTML = `
+                            <div class="font-weight-bold text-dark" style="font-size: 12px;">${attempted} / ${totalQ}</div>
+                            <div class="small font-weight-bold" style="font-size: 10px;">
+                                <span style="color: #16a34a !important;">🟢 ${cCount}</span> 
+                                <span style="color: #dc2626 !important;">🔴 ${iCount}</span> 
+                                <span style="color: #64748b !important;">⚪ ${bCount}</span>
+                            </div>
+                        `;
+                    }
+
+                    // Score & Marks
+                    const cellScore = stuRow.querySelector('.cell-score');
+                    if (cellScore) {
+                        let pillsHtml = '';
+                        let sbList = evalData.subject_breakdown || [];
+                        if (typeof sbList === 'string') {
+                            try { sbList = JSON.parse(sbList); } catch(e) { sbList = []; }
+                        }
+                        if (Array.isArray(sbList) && sbList.length > 0) {
+                            pillsHtml = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
+                            sbList.forEach(sb => {
+                                const sFullName = resolveSubjectName(sb);
+                                const shortName = sFullName.split(' ')[0];
+                                pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+                            });
+                            pillsHtml += '</div>';
+                        }
+                        const obMarks = parseFloat(evalData.obtained_marks || 0).toFixed(2);
+                        const totMarks = parseFloat(evalData.total_marks || (getSelectedExamOption()?.dataset.maxmarks || 100)).toFixed(2);
+                        cellScore.innerHTML = `
+                            <div>
+                                <span class="font-weight-bold text-success font-size-13">+${obMarks}</span>
+                                <span class="text-muted small"> / ${totMarks}</span>
+                                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">${evalData.percentage || 0}%</span>
+                            </div>
+                            ${pillsHtml}
+                        `;
+                    }
+
+                    // Status Cell
                     const statusCell = stuRow.querySelector('.cell-status');
                     if (statusCell) {
                         statusCell.innerHTML = `
@@ -2233,65 +2337,126 @@ document.addEventListener('DOMContentLoaded', function () {
                             </span>
                         `;
                     }
-                    delete stuRow.dataset.tempId;
+
+                    // Actions
+                    const cellActions = stuRow.querySelector('.cell-actions');
+                    if (cellActions) {
+                        cellActions.innerHTML = `
+                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedOmrModal('${rec.id}', this);" title="Inspect OMR Scan">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedAnswersModal('${rec.id}');" title="Question-by-Question Matrix">
+                                <i class="fa fa-list"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary" style="padding: 2px 7px; font-size: 11px;" onclick="triggerFileInput();" title="Re-scan / Upload replacement sheet">
+                                <i class="fa fa-upload"></i>
+                            </button>
+                        `;
+                    }
                 }
 
-                // If unmatched row
-                const unmatchedRow = document.getElementById(`staged-unmatched-${s.temp_id}`);
-                if (unmatchedRow) {
-                    unmatchedRow.remove();
+                // If unmatched row was staged, remove it
+                if (rec.temp_id) {
+                    document.getElementById(`staged-unmatched-${rec.temp_id}`)?.remove();
                 }
 
-                // Update existing row OR Prepend new row to Saved Ledger (No Duplicate Rows!)
+                // 2. Update Table 4 (Saved Ledger) - OVERWRITE ALL COLUMNS ON OLDER DATA
                 if (savedTbody) {
-                    const roll = String(s.roll_number || '').trim();
-                    let existingRow = savedTbody.querySelector(`tr[data-unique-id="${CSS.escape(roll)}"]`);
+                    let existingRow = null;
+                    if (admId) {
+                        existingRow = savedTbody.querySelector(`tr[data-admission-id="${admId}"]`);
+                    }
+                    if (!existingRow && roll) {
+                        existingRow = savedTbody.querySelector(`tr[data-unique-id="${CSS.escape(roll)}"]`);
+                    }
+
+                    const stProfileName = rec.student ? (rec.student.first_name + ' ' + (rec.student.last_name || '')) : (stuRow?.dataset.studentName || ('Student #' + roll));
+                    const examTitle = rec.exam ? rec.exam.name : (examName || 'Exam');
+                    const examCode = rec.exam ? (rec.exam.code || rec.exam.exam_code || '') : (getSelectedExamOption()?.dataset.code || '');
+
+                    let sbPills = '';
+                    let sbList = evalData.subject_breakdown || [];
+                    if (typeof sbList === 'string') {
+                        try { sbList = JSON.parse(sbList); } catch(e) { sbList = []; }
+                    }
+                    if (Array.isArray(sbList) && sbList.length > 0) {
+                        sbPills = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
+                        sbList.forEach(sb => {
+                            const sFullName = resolveSubjectName(sb);
+                            const shortName = sFullName.split(' ')[0];
+                            sbPills += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
+                        });
+                        sbPills += '</div>';
+                    }
+
+                    const imgUrl = rec.image_url || rec.annotated_image_url || rec.stored_file || '';
+                    const fullImgUrl = imgUrl ? (imgUrl.startsWith('http') ? imgUrl : `{{ url('/') }}/${imgUrl.replace(/^\/+/, '')}`) : '';
+                    const fn = rec.source_filename || 'omr_scan.jpeg';
 
                     const rowHtml = `
-                        <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(s.source_filename)}">
-                            <i class="fa fa-file-image-o text-muted mr-1"></i> ${escapeHtml(s.source_filename)}
+                        <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(fn)}">
+                            <div class="d-flex align-items-center">
+                                ${fullImgUrl ? `<img src="${fullImgUrl}" class="omr-thumb mr-2" alt="Sheet" onclick="viewSavedOmrModal('${rec.id}', this);" style="width: 26px; height: 26px; object-fit: cover; border-radius: 3px; cursor: pointer; flex-shrink: 0;" title="Click to view sheet preview">` : '<i class="fa fa-file-image-o text-muted mr-1"></i>'}
+                                <span class="text-truncate">${escapeHtml(fn)}</span>
+                            </div>
                         </td>
                         <td>
-                            <span class="font-mono font-weight-bold text-primary">${escapeHtml(s.roll_number)}</span>
-                            <div class="text-muted small font-weight-bold">${escapeHtml(s.student?.name || 'Student #' + s.roll_number)}</div>
+                            <span class="font-mono font-weight-bold text-primary">${escapeHtml(roll)}</span>
+                            <div class="text-muted small font-weight-bold">${escapeHtml(stProfileName)}</div>
                         </td>
                         <td>
-                            <span class="font-weight-bold text-dark">${escapeHtml(examName)}</span>
+                            <span class="font-weight-bold text-dark">${escapeHtml(examTitle)}</span>
+                            <div class="text-muted small font-mono">${escapeHtml(examCode)}</div>
                         </td>
-                        <td class="text-center font-weight-bold text-success">${s.evaluation?.correct_answers || 0}</td>
-                        <td class="text-center font-weight-bold text-danger">${s.evaluation?.incorrect_answers || 0}</td>
-                        <td class="text-center text-muted">${s.evaluation?.blank_answers || 0}</td>
-                        <td class="font-mono font-weight-bold">${Number(s.evaluation?.total_marks || 0).toFixed(2)}</td>
-                        <td class="font-mono font-weight-bold text-success">+${Number(s.evaluation?.obtained_marks || 0).toFixed(2)}</td>
+                        <td class="text-center font-weight-bold text-success">${evalData.correct_answers || 0}</td>
+                        <td class="text-center font-weight-bold text-danger">${evalData.incorrect_answers || 0}</td>
+                        <td class="text-center text-muted">${evalData.blank_answers || 0}</td>
+                        <td class="font-mono font-weight-bold">${Number(evalData.total_marks || 0).toFixed(2)}</td>
+                        <td class="font-mono font-weight-bold text-success">
+                            +${Number(evalData.obtained_marks || 0).toFixed(2)}
+                            ${sbPills}
+                        </td>
                         <td>
-                            <span class="badge-pill-status badge-matched">${s.evaluation?.percentage || 0}%</span>
+                            <span class="badge-pill-status badge-matched">${evalData.percentage || 0}%</span>
                         </td>
-                        <td class="text-center font-weight-bold text-primary">#1</td>
-                        <td class="text-right">
-                            <span class="badge-pill-status badge-saved" title="Marks updated in student exam file">
+                        <td class="text-center font-weight-bold text-primary">#${rec.rank || 1}</td>
+                        <td class="text-right" style="white-space: nowrap;">
+                            <span class="badge-pill-status badge-saved mr-1" title="Marks recorded in student exam file">
                                 <i class="fa fa-check-circle"></i> Saved
                             </span>
+                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 6px; font-size: 10px;" onclick="viewSavedOmrModal('${rec.id}', this);" title="Inspect OMR Scan">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-xs btn-outline-info" style="padding: 2px 6px; font-size: 10px;" onclick="viewSavedAnswersModal('${rec.id}');" title="Question-by-Question Matrix">
+                                <i class="fa fa-list"></i>
+                            </button>
                         </td>
                     `;
 
                     if (existingRow) {
-                        // REPLACE & UPDATE existing row with pulse highlight
+                        // OVERWRITE EXISTING ROW completely
+                        existingRow.id = `scan-row-${rec.id}`;
+                        existingRow.dataset.uniqueId = roll;
+                        if (admId) existingRow.dataset.admissionId = admId;
                         existingRow.innerHTML = rowHtml;
                         existingRow.style.transition = 'background-color 0.4s ease';
                         existingRow.style.backgroundColor = '#dcfce7';
                         setTimeout(() => { existingRow.style.backgroundColor = ''; }, 2000);
                     } else {
-                        // PREPEND new record
+                        // PREPEND new row
                         const tr = document.createElement('tr');
+                        tr.id = `scan-row-${rec.id}`;
                         tr.dataset.uniqueId = roll;
+                        if (admId) tr.dataset.admissionId = admId;
                         tr.innerHTML = rowHtml;
                         savedTbody.prepend(tr);
                         newlyAddedCount++;
                     }
                 }
-
-                stagedSheets.delete(s.temp_id);
             });
+
+            // Clear in-memory staged sheets
+            stagedSheets.clear();
 
             // Update Saved Ledger badge & KPIs
             const savedCountBadge = document.getElementById('omr-saved-count-badge');

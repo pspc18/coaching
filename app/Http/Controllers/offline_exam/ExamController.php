@@ -452,7 +452,20 @@ class ExamController extends Controller
         $studentData = $this->formatStudentData($student, $rollNumber);
 
         // 4. Answers Evaluation against Exam Answer Key
-        $totalQuestions = (int) ($exam->number_of_questions ?: 50);
+        $passedAnswers = $extractorData['answers'] ?? [];
+
+        // Dynamically pick questions count from API response first, fallback to exam setting
+        $dynamicQuestionsCount = 0;
+        if (!empty($extractorData['total_questions']) && is_numeric($extractorData['total_questions'])) {
+            $dynamicQuestionsCount = (int) $extractorData['total_questions'];
+        } elseif (!empty($extractorData['summary']['total_questions']) && is_numeric($extractorData['summary']['total_questions'])) {
+            $dynamicQuestionsCount = (int) $extractorData['summary']['total_questions'];
+        } elseif (!empty($passedAnswers) && is_array($passedAnswers)) {
+            $dynamicQuestionsCount = count($passedAnswers);
+        }
+
+        $totalQuestions = $dynamicQuestionsCount > 0 ? $dynamicQuestionsCount : (int) ($exam->number_of_questions ?: 50);
+
         $rawKey = $exam->answer_key;
         if (is_string($rawKey)) {
             $rawKey = json_decode($rawKey, true) ?: [];
@@ -463,7 +476,6 @@ class ExamController extends Controller
         $marksPerIncorrect = (float) ($exam->marks_per_incorrect ?? 0.0);
         if ($marksPerCorrect <= 0) $marksPerCorrect = 1.0;
 
-        $passedAnswers = $extractorData['answers'] ?? [];
         $evalResult = $this->evaluateAnswersAgainstKey($passedAnswers, $answerKey, $totalQuestions, $marksPerCorrect, $marksPerIncorrect, $exam);
 
         $summary = $extractorData['summary'] ?? [];
@@ -997,28 +1009,85 @@ class ExamController extends Controller
                 $storedFile = $s['annotated_stored_file'] ?? ($s['stored_file'] ?? null);
                 $annotatedImageUrl = $s['annotated_stored_file'] ?? ($s['annotated_image_url'] ?? ($s['image_url'] ?? null));
 
-                $omrResult = OmrResult::updateOrCreate(
-                    [
-                        'exam_id' => $exam->id,
-                        'unique_id' => $rollNumber,
-                    ],
-                    [
-                        'admission_id' => $admissionId,
-                        'correct_answers' => $correctCount,
-                        'incorrect_answers' => $incorrectCount,
-                        'blank_answers' => $blankCount,
-                        'total_marks' => $totalMarks,
-                        'obtained_marks' => $obtainedMarks,
-                        'percentage' => $percentage,
-                        'extracted_answers' => $extractedAnswers,
-                        'subject_breakdown' => $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? null),
-                        'extraction_confidence' => 0.9500,
-                        'source_filename' => $sourceFilename,
-                        'stored_file' => $storedFile,
-                        'annotated_image_url' => $annotatedImageUrl,
-                        'scanned_by_user_id' => $userId,
-                    ]
-                );
+                // 1. Locate existing OmrResult to overwrite all columns
+                $omrResult = null;
+                if ($admissionId) {
+                    $omrResult = OmrResult::where('exam_id', $exam->id)
+                        ->where('admission_id', $admissionId)
+                        ->first();
+                }
+
+                if (!$omrResult && !empty($rollNumber)) {
+                    $omrResult = OmrResult::where('exam_id', $exam->id)
+                        ->where('unique_id', $rollNumber)
+                        ->first();
+
+                    if (!$omrResult) {
+                        $cleanRoll = preg_replace('/\D/', '', $rollNumber);
+                        if ($cleanRoll !== '') {
+                            $trimmedRoll = ltrim($cleanRoll, '0');
+                            $omrResult = OmrResult::where('exam_id', $exam->id)
+                                ->where(function($q) use ($cleanRoll, $trimmedRoll) {
+                                    $q->where('unique_id', $cleanRoll)
+                                      ->orWhere('unique_id', $trimmedRoll);
+                                })->first();
+                        }
+                    }
+                }
+
+                if (!$omrResult) {
+                    $omrResult = new OmrResult();
+                    $omrResult->exam_id = $exam->id;
+                }
+
+                // Delete older replacement image file to keep storage footprint minimal
+                if (!empty($omrResult->stored_file) && $storedFile && $omrResult->stored_file !== $storedFile) {
+                    $oldFilePath = public_path($omrResult->stored_file);
+                    if (file_exists($oldFilePath) && is_file($oldFilePath)) {
+                        @unlink($oldFilePath);
+                    }
+                }
+
+                // OVERWRITE ALL COLUMNS with freshly fetched data
+                $omrResult->unique_id = $rollNumber;
+                $omrResult->admission_id = $admissionId;
+                $omrResult->correct_answers = $correctCount;
+                $omrResult->incorrect_answers = $incorrectCount;
+                $omrResult->blank_answers = $blankCount;
+                $omrResult->total_marks = $totalMarks;
+                $omrResult->obtained_marks = $obtainedMarks;
+                $omrResult->percentage = $percentage;
+                $omrResult->extracted_answers = $extractedAnswers;
+                $omrResult->subject_breakdown = $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? null);
+                $omrResult->extraction_confidence = 0.9500;
+                $omrResult->source_filename = $sourceFilename;
+                if (!empty($storedFile)) {
+                    $omrResult->stored_file = $storedFile;
+                }
+                if (!empty($annotatedImageUrl)) {
+                    $omrResult->annotated_image_url = $annotatedImageUrl;
+                }
+                $omrResult->scanned_by_user_id = $userId;
+                $omrResult->save();
+
+                // Clean up any historical duplicate rows for this student in this exam
+                if ($admissionId) {
+                    $oldDuplicates = OmrResult::where('exam_id', $exam->id)
+                        ->where('admission_id', $admissionId)
+                        ->where('id', '!=', $omrResult->id)
+                        ->get();
+
+                    foreach ($oldDuplicates as $dup) {
+                        if (!empty($dup->stored_file) && $dup->stored_file !== $omrResult->stored_file) {
+                            $dupPath = public_path($dup->stored_file);
+                            if (file_exists($dupPath) && is_file($dupPath)) {
+                                @unlink($dupPath);
+                            }
+                        }
+                        $dup->delete();
+                    }
+                }
+
                 $savedCount++;
 
                 // Upload marks directly to exam (FillMarks & FillMinMaxMarks)
@@ -1031,10 +1100,13 @@ class ExamController extends Controller
                     $subjectBreakdown = $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? []);
 
                     if (!empty($subjectBreakdown) && is_array($subjectBreakdown)) {
+                        $updatedSubjectIds = [];
+
                         // Section-aware marks persistence: one ledger row per evaluated subject
                         foreach ($subjectBreakdown as $sb) {
                             $subId = (int) ($sb['subject_id'] ?? 0);
                             if ($subId <= 0) continue;
+                            $updatedSubjectIds[] = $subId;
 
                             $subTotalMarks = (float) ($sb['max_marks'] ?? 0);
                             $subObtainedMarks = (float) ($sb['obtained_marks'] ?? 0);
@@ -1067,39 +1139,45 @@ class ExamController extends Controller
                             $minMax->deleted_at = null;
                             $minMax->save();
 
-                            // FillMarks for student & subject
+                            // FillMarks for student & subject: OVERWRITE ALL COLUMNS
                             $fillMark = FillMarks::withTrashed()
                                 ->where('exam_id', $exam->id)
                                 ->where('admission_id', $student->id)
-                                ->where('class_type_id', $classTypeId)
                                 ->where('subject_id', $subId)
-                                ->where('session_id', $sessionId)
-                                ->where('branch_id', $branchId)
                                 ->first();
 
                             if (!$fillMark) {
                                 $fillMark = new FillMarks();
                                 $fillMark->exam_id = $exam->id;
                                 $fillMark->admission_id = $student->id;
-                                $fillMark->class_type_id = $classTypeId;
-                                $fillMark->course_id = $student->course_id ?: $exam->course_id;
-                                $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
                                 $fillMark->subject_id = $subId;
-                                $fillMark->session_id = $sessionId;
-                                $fillMark->branch_id = $branchId;
                                 $fillMark->user_id = $userId;
                             }
 
+                            $fillMark->class_type_id = $classTypeId;
+                            $fillMark->course_id = $student->course_id ?: ($exam->course_id ?: $classTypeId);
+                            $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                            $fillMark->session_id = $sessionId;
+                            $fillMark->branch_id = $branchId;
                             $fillMark->student_marks = $subObtainedMarks;
                             $fillMark->r_marks = (string)$subCorrect;
                             $fillMark->w_marks = (string)$subIncorrect;
                             $fillMark->l_marks = (string)$subBlank;
                             $fillMark->exam_maximum_marks = (string)$subTotalMarks;
                             $fillMark->fill_min_max_marks_id = $minMax->id;
+                            $fillMark->updated_by = $userId;
                             $fillMark->deleted_at = null;
                             $fillMark->save();
 
                             $marksUploadedCount++;
+                        }
+
+                        // Clean up any stale FillMarks for subjects not in this updated evaluation
+                        if (!empty($updatedSubjectIds)) {
+                            FillMarks::where('exam_id', $exam->id)
+                                ->where('admission_id', $student->id)
+                                ->whereNotIn('subject_id', $updatedSubjectIds)
+                                ->delete();
                         }
                     } else {
                         // Fallback: single exam subject
@@ -1134,35 +1212,33 @@ class ExamController extends Controller
                             $minMax->deleted_at = null;
                             $minMax->save();
 
-                            // FillMarks
+                            // FillMarks: OVERWRITE ALL COLUMNS
                             $fillMark = FillMarks::withTrashed()
                                 ->where('exam_id', $exam->id)
                                 ->where('admission_id', $student->id)
-                                ->where('class_type_id', $classTypeId)
                                 ->where('subject_id', $subjectId)
-                                ->where('session_id', $sessionId)
-                                ->where('branch_id', $branchId)
                                 ->first();
 
                             if (!$fillMark) {
                                 $fillMark = new FillMarks();
                                 $fillMark->exam_id = $exam->id;
                                 $fillMark->admission_id = $student->id;
-                                $fillMark->class_type_id = $classTypeId;
-                                $fillMark->course_id = $student->course_id ?: $exam->course_id;
-                                $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
                                 $fillMark->subject_id = $subjectId;
-                                $fillMark->session_id = $sessionId;
-                                $fillMark->branch_id = $branchId;
                                 $fillMark->user_id = $userId;
                             }
 
+                            $fillMark->class_type_id = $classTypeId;
+                            $fillMark->course_id = $student->course_id ?: ($exam->course_id ?: $classTypeId);
+                            $fillMark->batch_id = $student->batch_id ?: $exam->batch_id;
+                            $fillMark->session_id = $sessionId;
+                            $fillMark->branch_id = $branchId;
                             $fillMark->student_marks = $obtainedMarks;
                             $fillMark->r_marks = (string)$correctCount;
                             $fillMark->w_marks = (string)$incorrectCount;
                             $fillMark->l_marks = (string)$blankCount;
                             $fillMark->exam_maximum_marks = (string)$totalMarks;
                             $fillMark->fill_min_max_marks_id = $minMax->id;
+                            $fillMark->updated_by = $userId;
                             $fillMark->deleted_at = null;
                             $fillMark->save();
 
@@ -1183,11 +1259,18 @@ class ExamController extends Controller
 
             DB::commit();
 
+            // Refetch saved results to return to frontend
+            $savedRecords = OmrResult::with(['exam', 'student'])
+                ->where('exam_id', $exam->id)
+                ->orderBy('obtained_marks', 'desc')
+                ->get();
+
             return response()->json([
                 'status' => 'success',
-                'message' => "Successfully saved {$savedCount} OMR evaluations and uploaded marks for {$marksUploadedCount} matched students!",
+                'message' => "Successfully saved {$savedCount} OMR evaluations and updated marks for {$marksUploadedCount} student records!",
                 'saved_count' => $savedCount,
                 'marks_uploaded_count' => $marksUploadedCount,
+                'saved_records' => $savedRecords,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
