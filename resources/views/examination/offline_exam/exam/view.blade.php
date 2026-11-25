@@ -1306,8 +1306,8 @@ select.excel-col-filter option {
                             <th style="text-align: left; padding-left: 10px; min-width: 170px;">Included Subject(s)</th>
                             <th style="width: 115px; text-align: center;">Exam Date</th>
                             <th style="width: 140px; text-align: center;">Result Published</th>
-                            <th style="min-width: 175px; width: 185px; text-align: center;">Marks Status &amp; Entry</th>
-                            <th class="fixed_action_head" style="width: 115px; text-align: center;">Actions</th>
+                            <th style="min-width: 155px; width: 165px; text-align: center;">Marks Status</th>
+                            <th class="fixed_action_head" style="width: 135px; text-align: center;">Actions</th>
                         </tr>
 
                         {{-- Row 2: In-Column Dark Navy Excel Filters (Sticky Top: 36px) --}}

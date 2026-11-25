@@ -195,41 +195,6 @@
                 @else
                     <div class="text-muted" style="font-size: 9.5px;"><em>0 Enrolled Students</em></div>
                 @endif
-
-                {{-- Marks Entry Action Dropdown --}}
-                <div class="dropdown mt-1">
-                    <button class="btn btn-sm btn-outline-primary dropdown-toggle py-0 px-2 font-weight-500" 
-                            type="button" 
-                            id="marksDropdown_{{ $item->id }}" 
-                            data-toggle="dropdown" 
-                            aria-haspopup="true" 
-                            aria-expanded="false"
-                            style="font-size: 10.5px; height: 23px; line-height: 21px; border-radius: 4px; background: #ffffff;">
-                        <i class="fa fa-pencil-square-o mr-1"></i> Marks Entry
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-right shadow-sm border py-1" 
-                         aria-labelledby="marksDropdown_{{ $item->id }}" 
-                         style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1050;">
-                        <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9.5px; letter-spacing: 0.5px;">
-                            {{ $item->class_name ?? 'Course Options' }}
-                        </div>
-                        <a class="dropdown-item px-3 py-2 d-flex align-items-center font-weight-600 text-primary" 
-                           href="{{ url('upload_omr?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                           title="Upload scanned OMR sheets">
-                            <i class="fa fa-check-square-o text-warning mr-2" style="width: 14px;"></i> Upload OMR Sheet
-                        </a>
-                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
-                           href="{{ url('fill_marks?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                           title="Manual marks entry">
-                            <i class="fa fa-pencil text-primary mr-2" style="width: 14px;"></i> Manual Fill Marks
-                        </a>
-                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
-                           href="{{ url('fill-marks-by-excel?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                           title="Upload marks using Excel sheet">
-                            <i class="fa fa-file-excel-o text-success mr-2" style="width: 14px;"></i> Upload by Excel
-                        </a>
-                    </div>
-                </div>
             </div>
         </td>
 
@@ -256,6 +221,41 @@
                         <i class="fa fa-copy"></i>
                     </button>
                 @endif
+
+                {{-- Marks Entry Action Icon Dropdown (1-Click Open) --}}
+                <div class="dropdown d-inline-block">
+                    <button type="button" 
+                            class="table-btn btn-action-marks" 
+                            id="marksActionDropdown_{{ $item->id }}" 
+                            data-toggle="dropdown" 
+                            aria-haspopup="true" 
+                            aria-expanded="false" 
+                            title="Marks Entry Options (OMR / Manual / Excel)">
+                        <i class="fa fa-pencil-square-o"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow-sm border py-1" 
+                         aria-labelledby="marksActionDropdown_{{ $item->id }}" 
+                         style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1050;">
+                        <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9.5px; letter-spacing: 0.5px;">
+                            {{ $item->class_name ?? 'Course Options' }}
+                        </div>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center font-weight-600 text-primary" 
+                           href="{{ url('upload_omr?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Upload scanned OMR sheets">
+                            <i class="fa fa-check-square-o text-warning mr-2" style="width: 14px;"></i> Upload OMR Sheet
+                        </a>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
+                           href="{{ url('fill_marks?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Manual marks entry">
+                            <i class="fa fa-pencil text-primary mr-2" style="width: 14px;"></i> Manual Fill Marks
+                        </a>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
+                           href="{{ url('fill-marks-by-excel?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Upload marks using Excel sheet">
+                            <i class="fa fa-file-excel-o text-success mr-2" style="width: 14px;"></i> Upload by Excel
+                        </a>
+                    </div>
+                </div>
 
                 {{-- Delete Exam (Themed Modal) --}}
                 @if($permission->delete ?? true)
