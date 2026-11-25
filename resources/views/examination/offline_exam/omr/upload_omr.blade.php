@@ -997,13 +997,14 @@
                             <th style="min-width: 130px;">Source File</th>
                             <th style="min-width: 160px;">Student Profile</th>
                             <th style="min-width: 140px;">Examination</th>
-                            <th style="text-align: center; min-width: 70px;">Right</th>
-                            <th style="text-align: center; min-width: 70px;">Wrong</th>
-                            <th style="text-align: center; min-width: 70px;">Left</th>
-                            <th style="min-width: 85px;">Total</th>
+                            <th style="text-align: center; min-width: 60px;">Right</th>
+                            <th style="text-align: center; min-width: 60px;">Wrong</th>
+                            <th style="text-align: center; min-width: 60px;">Left</th>
+                            <th style="text-align: center; min-width: 70px;">Total Qs</th>
+                            <th style="min-width: 85px;">Max Marks</th>
                             <th style="min-width: 85px;">Obtained</th>
-                            <th style="min-width: 85px;">Percentage</th>
-                            <th style="text-align: center; min-width: 60px;">Rank</th>
+                            <th style="min-width: 80px;">Percentage</th>
+                            <th style="text-align: center; min-width: 55px;">Rank</th>
                             <th style="text-align: right; min-width: 120px;">Status</th>
                         </tr>
                     </thead>
@@ -1044,6 +1045,7 @@
                                 <td class="text-center font-weight-bold text-success">{{ $scan->correct_answers }}</td>
                                 <td class="text-center font-weight-bold text-danger">{{ $scan->incorrect_answers }}</td>
                                 <td class="text-center text-muted">{{ $scan->blank_answers }}</td>
+                                <td class="text-center font-weight-bold text-dark">{{ ($scan->correct_answers + $scan->incorrect_answers + $scan->blank_answers) ?: 10 }}</td>
                                 <td class="font-mono font-weight-bold">{{ number_format($scan->total_marks, 2) }}</td>
                                 <td class="font-mono font-weight-bold text-success">
                                     {{ number_format($scan->obtained_marks, 2) }}
@@ -2411,6 +2413,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td class="text-center font-weight-bold text-success">${evalData.correct_answers || 0}</td>
                         <td class="text-center font-weight-bold text-danger">${evalData.incorrect_answers || 0}</td>
                         <td class="text-center text-muted">${evalData.blank_answers || 0}</td>
+                        <td class="text-center font-weight-bold text-dark">${(parseInt(evalData.correct_answers || 0, 10) + parseInt(evalData.incorrect_answers || 0, 10) + parseInt(evalData.blank_answers || 0, 10)) || (getSelectedExamOption()?.dataset.questions || 10)}</td>
                         <td class="font-mono font-weight-bold">${Number(evalData.total_marks || 0).toFixed(2)}</td>
                         <td class="font-mono font-weight-bold text-success">
                             +${Number(evalData.obtained_marks || 0).toFixed(2)}
