@@ -202,11 +202,12 @@
         <td class="text-center fixed_action_col" style="vertical-align: middle;">
             <div class="table-actions">
                 {{-- 1. Marks Entry Action Icon Dropdown (1-Click Open, FIRST POSITION) --}}
-                <div class="dropdown d-inline-block">
+                <div class="dropdown d-inline-block position-relative">
                     <button type="button" 
                             class="table-btn btn-action-marks" 
                             id="marksActionDropdown_{{ $item->id }}" 
                             data-toggle="dropdown" 
+                            data-display="static"
                             aria-haspopup="true" 
                             aria-expanded="false" 
                             title="Marks Entry Options (OMR / Manual / Excel)">

@@ -417,6 +417,30 @@ select.excel-col-filter option {
     background: inherit;
     box-shadow: -3px 0 6px rgba(0,0,0,.08);
 }
+/* Elevate table row and sticky column when dropdown is open so next row doesn't clip it */
+tr.row-dropdown-active {
+    position: relative;
+    z-index: 1050 !important;
+}
+tr.row-dropdown-active .fixed_action_col,
+.col-dropdown-active {
+    z-index: 1055 !important;
+}
+tr:has(.dropdown.show) {
+    position: relative;
+    z-index: 1050 !important;
+}
+tr:has(.dropdown.show) .fixed_action_col,
+.fixed_action_col:has(.dropdown.show) {
+    z-index: 1055 !important;
+}
+.fixed_action_col .dropdown.show {
+    position: relative;
+    z-index: 1060 !important;
+}
+.fixed_action_col .dropdown.show .dropdown-menu {
+    z-index: 1065 !important;
+}
 .dash-table tbody tr:nth-child(odd) .fixed_action_col {
     background: #ffffff !important;
 }
@@ -792,24 +816,27 @@ select.excel-col-filter option {
     border-color: #0f766e !important;
 }
 .table-actions .dropdown-menu {
-    left: 0 !important;
+    left: 50% !important;
     right: auto !important;
+    transform: translateX(-50%) !important;
     top: 100% !important;
-    margin-top: 5px !important;
-    box-shadow: 0 4px 16px rgba(0, 44, 84, 0.15) !important;
+    margin-top: 6px !important;
+    box-shadow: 0 8px 24px rgba(0, 44, 84, 0.22), 0 2px 6px rgba(0,0,0,0.08) !important;
     border: 1px solid #cbd5e1 !important;
+    z-index: 1065 !important;
+    min-width: 170px !important;
 }
 .table-actions .dropdown-menu::before {
     content: '';
     position: absolute;
     top: -5px;
-    left: 7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
     width: 8px;
     height: 8px;
     background: #ffffff;
     border-top: 1px solid #cbd5e1;
     border-left: 1px solid #cbd5e1;
-    transform: rotate(45deg);
     z-index: 1;
 }
 .btn-action-copy {
@@ -2006,6 +2033,16 @@ $(document).ready(function(){
 
     $('#btnLastPage').on('click', function(){
         if (currentPage < lastPage) fetchExams(lastPage);
+    });
+
+    // Ensure sticky action column z-index is elevated on dropdown open
+    $(document).on('show.bs.dropdown', '.fixed_action_col .dropdown', function () {
+        $(this).closest('tr').addClass('row-dropdown-active').css('z-index', 1050);
+        $(this).closest('.fixed_action_col').addClass('col-dropdown-active').css('z-index', 1055);
+    });
+    $(document).on('hidden.bs.dropdown', '.fixed_action_col .dropdown', function () {
+        $(this).closest('tr').removeClass('row-dropdown-active').css('z-index', '');
+        $(this).closest('.fixed_action_col').removeClass('col-dropdown-active').css('z-index', '');
     });
 
     // Reset All Filters
