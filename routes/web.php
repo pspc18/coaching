@@ -266,6 +266,8 @@ Route::post('upload_omr/extract', 'offline_exam\ExamController@processOmrSheet')
 Route::post('upload_omr/process_sheet', 'offline_exam\ExamController@processOmrSheet');
 Route::post('upload_omr/lookup_student', 'offline_exam\ExamController@lookupStudent');
 Route::post('upload_omr/finalize_save', 'offline_exam\ExamController@finalizeOmrSave');
+Route::get('uploads/omr_scans/{filename}', 'offline_exam\ExamController@serveOmrScan')->name('omr.serve_scan');
+Route::get('schoolimage/omr_scans/{filename}', 'offline_exam\ExamController@serveOmrScan');
 Route::match(['get', 'post'], 'student_performance', 'StudentPerformanceController@studentPerformance');
 //Examination Offline
 Route::match(['get', 'post'], 'exam_wise_report', 'offline_exam\ReportController@exam_wise_report');

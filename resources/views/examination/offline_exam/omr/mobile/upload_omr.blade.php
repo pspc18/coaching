@@ -223,8 +223,8 @@
 /* 3. Upload & Capture Action Hub */
 .mob-capture-hub {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
     margin-top: 4px;
     margin-bottom: 8px;
 }
@@ -763,7 +763,7 @@
         {{-- Input 2: Multiple File Selector / Gallery --}}
         <input type="file" id="mob-omr-file-input" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif,application/pdf,.pdf,image/*" multiple style="display:none;">
 
-        {{-- 3 Touch Action Buttons --}}
+        {{-- 2 Touch Action Buttons (Live Scanner hidden as requested) --}}
         <div class="mob-capture-hub">
             {{-- Quick Camera Snap --}}
             <button type="button" class="mob-capture-btn btn-capture-camera" onclick="triggerCameraInput();">
@@ -772,8 +772,8 @@
                 <div class="mob-capture-subtitle">Take single photo</div>
             </button>
 
-            {{-- Live In-App Scanner --}}
-            <button type="button" class="mob-capture-btn btn-capture-live" onclick="openLiveCameraModal();">
+            {{-- Live In-App Scanner (Temporarily hidden) --}}
+            <button type="button" class="mob-capture-btn btn-capture-live" onclick="openLiveCameraModal();" style="display: none !important;">
                 <i class="fa fa-video-camera mob-capture-icon"></i>
                 <div class="mob-capture-title">Live Scanner</div>
                 <div class="mob-capture-subtitle">Viewfinder batch</div>
@@ -1516,9 +1516,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return null;
     }
 
+    function resolveSheetThumbSrc(sheet) {
+        if (!sheet) return '';
+        if (sheet.annotated_image_base64) {
+            return sheet.annotated_image_base64.startsWith('data:') 
+                ? sheet.annotated_image_base64 
+                : 'data:image/jpeg;base64,' + sheet.annotated_image_base64;
+        }
+        return sheet.annotated_image_url || sheet.image_url || '';
+    }
+
     function attachSheetToStudentCard(sheet, card) {
         const tempId = sheet.temp_id;
-        const thumbSrc = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
+        const thumbSrc = resolveSheetThumbSrc(sheet);
         const evalData = sheet.evaluation || {};
         const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
 
@@ -1651,7 +1661,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.appendChild(card);
         }
 
-        const thumbSrc = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
+        const thumbSrc = resolveSheetThumbSrc(sheet);
         const evalData = sheet.evaluation || {};
         const maxMarks = getSelectedExamOption()?.dataset.maxmarks || evalData.total_marks || 100;
 
@@ -1946,7 +1956,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const sheet = stagedSheets.get(tempId);
         if (!sheet) return;
 
-        const src = sheet.annotated_image_url || sheet.annotated_image_base64 || sheet.image_url;
+        const src = resolveSheetThumbSrc(sheet);
         modalAnnotatedImg.src = src;
         modalAnnotatedInfo.innerHTML = `
             <b>File:</b> ${escapeHtml(sheet.source_filename)} &bull; 

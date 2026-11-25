@@ -685,7 +685,7 @@ class ExamController extends Controller
 
         $summary = $extractorData['summary'] ?? [];
 
-        // Save ONLY the annotated image to server disk (compressed & optimized for minimal storage)
+        // Save annotated image to server disk (mirrored across root & public dirs for 100% reliable serving)
         $annotatedStoredFile = null;
         $annotatedImageUrl = null;
 
@@ -717,6 +717,11 @@ class ExamController extends Controller
             }
         }
 
+        $formattedB64 = $extractorData['annotated_image_base64'] ?? null;
+        if (!empty($formattedB64) && !str_starts_with($formattedB64, 'data:')) {
+            $formattedB64 = 'data:image/jpeg;base64,' . $formattedB64;
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'OMR sheet extracted and evaluated successfully.',
@@ -727,7 +732,7 @@ class ExamController extends Controller
                 'image_url' => $annotatedImageUrl,
                 'annotated_stored_file' => $annotatedStoredFile,
                 'annotated_image_url' => $annotatedImageUrl,
-                'annotated_image_base64' => $extractorData['annotated_image_base64'] ?? null,
+                'annotated_image_base64' => $formattedB64,
                 'roll_number' => $rollNumber ?: ($student ? ($student->roll_no ?: $student->admissionNo) : ''),
                 'organization' => $extractorData['organization'] ?? null,
                 'exam_name' => $extractorData['exam_name'] ?? null,
@@ -738,6 +743,9 @@ class ExamController extends Controller
                     'attempted' => $evalResult['correct_answers'] + $evalResult['incorrect_answers'],
                     'unattempted' => $evalResult['blank_answers'],
                     'multiple_marked' => (int) ($summary['multiple_marked'] ?? 0),
+                    'total_marks' => $evalResult['total_marks'],
+                    'obtained_marks' => $evalResult['obtained_marks'],
+                    'percentage' => $evalResult['percentage'],
                 ],
                 'evaluation' => $evalResult,
             ]
@@ -745,20 +753,35 @@ class ExamController extends Controller
     }
 
     /**
-     * Compress and save annotated OMR image with optimal dimensions and JPEG quality
-     * to minimize server disk storage while ensuring bubble detections remain razor-sharp.
+     * Compress and save annotated OMR image across all candidate web directories
+     * (public/uploads, root uploads, public/schoolimage, root schoolimage)
+     * so that images load properly regardless of whether DocumentRoot is public/ or project root.
      */
     protected function saveOptimizedAnnotatedImage($rawImageBytes, $destDirectory = 'uploads/omr_scans')
     {
-        $destPath = public_path($destDirectory);
-        if (!file_exists($destPath)) {
-            @mkdir($destPath, 0777, true);
+        $filename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
+        $relPath = 'uploads/omr_scans/' . $filename;
+
+        // Target directories to mirror to:
+        $targetDirs = [
+            public_path('uploads/omr_scans'),
+            base_path('uploads/omr_scans'),
+            public_path('schoolimage/omr_scans'),
+            base_path('schoolimage/omr_scans'),
+        ];
+        if (env('IMAGE_UPLOAD_PATH')) {
+            $targetDirs[] = rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . DIRECTORY_SEPARATOR . 'omr_scans';
         }
 
-        $filename = 'annotated_' . time() . '_' . Str::random(8) . '.jpeg';
-        $fullPath = $destPath . DIRECTORY_SEPARATOR . $filename;
-        $relPath = $destDirectory . '/' . $filename;
+        foreach ($targetDirs as $dir) {
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+        }
 
+        $primaryPath = $targetDirs[0] . DIRECTORY_SEPARATOR . $filename;
+
+        $saved = false;
         if (function_exists('imagecreatefromstring') && function_exists('imagejpeg')) {
             $src = @imagecreatefromstring($rawImageBytes);
             if ($src !== false) {
@@ -776,21 +799,64 @@ class ExamController extends Controller
                     }
                     $dst = imagecreatetruecolor($newW, $newH);
                     imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $w, $h);
-                    imagejpeg($dst, $fullPath, 80); // 80% JPEG quality
+                    imagejpeg($dst, $primaryPath, 80); // 80% JPEG quality
                     imagedestroy($dst);
                     imagedestroy($src);
-                    return $relPath;
+                    $saved = true;
                 } else {
-                    imagejpeg($src, $fullPath, 80);
+                    imagejpeg($src, $primaryPath, 80);
                     imagedestroy($src);
-                    return $relPath;
+                    $saved = true;
                 }
             }
         }
 
-        // Direct write fallback
-        @file_put_contents($fullPath, $rawImageBytes);
+        if (!$saved) {
+            // Direct write fallback
+            @file_put_contents($primaryPath, $rawImageBytes);
+        }
+
+        // Mirror to all remaining candidate directories
+        if (file_exists($primaryPath)) {
+            foreach ($targetDirs as $dir) {
+                $destFile = $dir . DIRECTORY_SEPARATOR . $filename;
+                if ($destFile !== $primaryPath) {
+                    @copy($primaryPath, $destFile);
+                }
+            }
+        }
+
         return $relPath;
+    }
+
+    /**
+     * Dynamically serve annotated OMR scans if static file serving is bypassed or misconfigured on server.
+     */
+    public function serveOmrScan($filename)
+    {
+        $filename = basename($filename);
+        $candidates = [
+            base_path('uploads/omr_scans/' . $filename),
+            public_path('uploads/omr_scans/' . $filename),
+            base_path('schoolimage/omr_scans/' . $filename),
+            public_path('schoolimage/omr_scans/' . $filename),
+        ];
+        if (env('IMAGE_UPLOAD_PATH')) {
+            $candidates[] = rtrim(env('IMAGE_UPLOAD_PATH'), '/\\') . DIRECTORY_SEPARATOR . 'omr_scans' . DIRECTORY_SEPARATOR . $filename;
+        }
+
+        foreach ($candidates as $cand) {
+            if (file_exists($cand) && is_readable($cand)) {
+                $ext = strtolower(pathinfo($cand, PATHINFO_EXTENSION));
+                $mime = ($ext === 'png') ? 'image/png' : (($ext === 'webp') ? 'image/webp' : (($ext === 'pdf') ? 'application/pdf' : 'image/jpeg'));
+                return response()->file($cand, [
+                    'Content-Type' => $mime,
+                    'Cache-Control' => 'public, max-age=604800',
+                ]);
+            }
+        }
+
+        abort(404, 'OMR sheet scan not found.');
     }
 
     /**
