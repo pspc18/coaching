@@ -2172,9 +2172,23 @@ for ($date = $startOfMonth; $date->lte($today); $date->addDay()) {
             if (request()->get('view_mode') === 'mobile') return true;
             if (request()->get('view_mode') === 'desktop') return false;
         }
-        if (Session::has('view_mode')) {
-            if (Session::get('view_mode') === 'mobile') return true;
-            if (Session::get('view_mode') === 'desktop') return false;
+        // Support malformed / concatenated URLs like "?exam_id=5?layout=mobile"
+        $rawQuery = request()->server('QUERY_STRING', '');
+        $fullUrl = request()->fullUrl();
+        if (str_contains($rawQuery, 'layout=mobile') || str_contains($fullUrl, 'layout=mobile') || str_contains($rawQuery, 'view_mode=mobile') || str_contains($fullUrl, 'view_mode=mobile')) {
+            return true;
+        }
+        if (str_contains($rawQuery, 'layout=desktop') || str_contains($fullUrl, 'layout=desktop')) {
+            return false;
+        }
+
+        try {
+            if (function_exists('session') && session()->has('view_mode')) {
+                if (session()->get('view_mode') === 'mobile') return true;
+                if (session()->get('view_mode') === 'desktop') return false;
+            }
+        } catch (\Throwable $e) {
+            // In CLI or uninitialized session context
         }
 
         // 2. User Agent & MobileDetect

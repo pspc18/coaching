@@ -640,7 +640,7 @@
                             <h2 class="omr-card-title">
                                 <i class="fa fa-cloud-upload text-info"></i> 2. Upload OMR Sheets (Multiple / Bulk Supported)
                             </h2>
-                            <p class="omr-card-desc">Select multiple image files at once (JPG, PNG, WebP). Files are sent to AI Extractor and staged below.</p>
+                            <p class="omr-card-desc">Select multiple files at once (PDF, JPG, PNG, WebP, HEIF). Files are sent to AI Extractor and staged below.</p>
                         </div>
                         <span class="badge badge-info px-2 py-1" style="font-size: 10px;">Step 2</span>
                     </div>
@@ -648,12 +648,12 @@
                         <div id="omr-upload-dropzone" class="omr-dropzone-box {{ $selectedExam ? 'active' : 'disabled' }}" onclick="triggerFileInput();">
                             <i class="fa fa-cloud-upload text-primary" style="font-size: 28px; margin-bottom: 4px;"></i>
                             <div class="font-weight-bold text-dark" style="font-size: 12.5px;" id="omr-dropzone-title">
-                                {{ $selectedExam ? 'Click or Drop OMR Sheet Image(s) Here' : 'Select an examination on the left first' }}
+                                {{ $selectedExam ? 'Click or Drop OMR Sheet(s) Here' : 'Select an examination on the left first' }}
                             </div>
                             <div class="text-muted" style="font-size: 10.5px; margin-top: 2px;">
-                                Select 1, 10, or 50+ sheets at once. Data will be extracted and displayed in the staging table for review before saving.
+                                Select 1, 10, or 50+ sheets at once (PDF, JPG, PNG, WebP, HEIF). Data will be extracted and displayed in the staging table for review before saving.
                             </div>
-                            <input type="file" id="omr-image-input" multiple accept="image/png,image/jpeg,image/webp" style="display: none;" {{ $selectedExam ? '' : 'disabled' }}>
+                            <input type="file" id="omr-image-input" multiple accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif,application/pdf,.pdf" style="display: none;" {{ $selectedExam ? '' : 'disabled' }}>
                         </div>
 
                         {{-- Batch Progress Bar & Status Text --}}
@@ -1418,18 +1418,35 @@ document.addEventListener('DOMContentLoaded', function () {
         // Sheet Thumbnail
         const cellSheet = row.querySelector('.cell-sheet');
         if (cellSheet) {
-            cellSheet.innerHTML = `
-                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${tempId}');" title="Click to inspect annotated scan">
-            `;
+            const isPdf = (sheet.source_filename || '').toLowerCase().endsWith('.pdf');
+            if (thumbSrc) {
+                cellSheet.innerHTML = `
+                    <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${tempId}');" title="Click to inspect annotated scan">
+                `;
+            } else if (isPdf) {
+                cellSheet.innerHTML = `
+                    <div class="omr-thumb d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${tempId}');" title="PDF Document" style="cursor: pointer; width: 38px; height: 38px; border-radius: 4px;">
+                        <i class="fa fa-file-pdf-o" style="font-size: 20px;"></i>
+                    </div>
+                `;
+            } else {
+                cellSheet.innerHTML = `
+                    <div class="omr-thumb d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${tempId}');" title="Sheet" style="cursor: pointer; width: 38px; height: 38px; border-radius: 4px;">
+                        <i class="fa fa-file-image-o" style="font-size: 18px;"></i>
+                    </div>
+                `;
+            }
         }
 
         // File Name
         const cellFilename = row.querySelector('.cell-filename');
         if (cellFilename) {
             cellFilename.setAttribute('title', sheet.source_filename);
+            const isPdf = (sheet.source_filename || '').toLowerCase().endsWith('.pdf');
+            const fileIcon = isPdf ? 'fa-file-pdf-o text-danger' : 'fa-file-image-o text-primary';
             cellFilename.innerHTML = `
                 <span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;">
-                    <i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(sheet.source_filename)}
+                    <i class="fa ${fileIcon} mr-1"></i> ${escapeHtml(sheet.source_filename)}
                 </span>
             `;
         }
@@ -1545,11 +1562,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 </span>
             </td>
             <td class="text-center" style="vertical-align: middle;">
-                <img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect scan">
+                ${thumbSrc ? `<img src="${thumbSrc}" class="omr-thumb" alt="Sheet" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Click to inspect scan">` : 
+                  ((sheet.source_filename || '').toLowerCase().endsWith('.pdf') ? `<div class="omr-thumb d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="PDF Document" style="cursor: pointer; width: 38px; height: 38px; border-radius: 4px;"><i class="fa fa-file-pdf-o" style="font-size: 20px;"></i></div>` : `<div class="omr-thumb d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Sheet" style="cursor: pointer; width: 38px; height: 38px; border-radius: 4px;"><i class="fa fa-file-image-o" style="font-size: 18px;"></i></div>`)}
             </td>
             <td class="cell-filename text-truncate" style="max-width: 130px; vertical-align: middle;" title="${escapeHtml(sheet.source_filename)}">
                 <span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;">
-                    <i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(sheet.source_filename)}
+                    <i class="fa ${(sheet.source_filename || '').toLowerCase().endsWith('.pdf') ? 'fa-file-pdf-o text-danger' : 'fa-file-image-o text-primary'} mr-1"></i> ${escapeHtml(sheet.source_filename)}
                 </span>
             </td>
             <td class="text-center" style="vertical-align: middle;">

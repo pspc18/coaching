@@ -405,9 +405,22 @@ class ExamController extends Controller
 
     public function uploadOmr(Request $request)
     {
-        $classTypeId = (int) ($request->input('class_type_id') ?: $request->input('class_name', 0));
-        $examId = (int) $request->input('exam_id', 0);
+        $rawClassId = $request->input('class_type_id') ?: $request->input('class_name', 0);
+        if (is_string($rawClassId) && str_contains($rawClassId, '?')) {
+            $rawClassId = explode('?', $rawClassId)[0];
+        }
+        $classTypeId = (int) $rawClassId;
+
+        $rawExamId = $request->input('exam_id', 0);
+        if (is_string($rawExamId) && str_contains($rawExamId, '?')) {
+            $rawExamId = explode('?', $rawExamId)[0];
+        }
+        $examId = (int) $rawExamId;
+
         $batchIdInput = $request->input('batch_id');
+        if (is_string($batchIdInput) && str_contains($batchIdInput, '?')) {
+            $batchIdInput = explode('?', $batchIdInput)[0];
+        }
         $branchId = Session::get('branch_id');
         $sessionId = Session::get('session_id');
 
@@ -563,13 +576,26 @@ class ExamController extends Controller
     {
         $validated = $request->validate([
             'exam_id' => 'required|integer',
-            'image' => 'required|file|image|max:25600',
+            'image' => 'required|file|max:51200',
+        ], [
+            'image.required' => 'Please select an OMR file (PDF, JPG, PNG, WebP, HEIF).',
+            'image.file' => 'Uploaded file is invalid.',
+            'image.max' => 'File size cannot exceed 50MB.',
         ]);
 
         $exam = Exam::where('id', $validated['exam_id'])->whereNull('deleted_at')->firstOrFail();
 
         $imageFile = $request->file('image');
         $originalFileName = $imageFile->getClientOriginalName();
+        $ext = strtolower($imageFile->getClientOriginalExtension());
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'heic', 'heif'];
+        if (!in_array($ext, $allowedExtensions)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unsupported file format. Please upload PDF, JPG, PNG, WebP, or HEIF/HEIC files.',
+                'source_filename' => $originalFileName
+            ], 422);
+        }
         $tempPath = $imageFile->getRealPath();
 
         // 1. Call AI Dynamic Extractor API (https://extractor.rusoft.in/api/omr/extract)

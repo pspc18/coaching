@@ -754,14 +754,14 @@
         </div>
 
         <p class="text-muted mb-2" style="font-size:10.5px;">
-            Snap OMR sheets with camera or browse saved images. AI Extractor evaluates answers instantly.
+            Snap OMR sheets with camera or browse files (PDF, JPG, PNG, WebP, HEIF). AI Extractor evaluates answers instantly.
         </p>
 
         {{-- Hidden File Inputs --}}
         {{-- Input 1: Native System Camera --}}
         <input type="file" id="mob-omr-camera-input" accept="image/*" capture="environment" style="display:none;">
         {{-- Input 2: Multiple File Selector / Gallery --}}
-        <input type="file" id="mob-omr-file-input" accept="image/*" multiple style="display:none;">
+        <input type="file" id="mob-omr-file-input" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif,application/pdf,.pdf,image/*" multiple style="display:none;">
 
         {{-- 3 Touch Action Buttons --}}
         <div class="mob-capture-hub">
@@ -783,7 +783,7 @@
             <button type="button" class="mob-capture-btn btn-capture-browse" onclick="triggerFileInput();">
                 <i class="fa fa-folder-open-o mob-capture-icon"></i>
                 <div class="mob-capture-title">Browse Files</div>
-                <div class="mob-capture-subtitle">Multiple images</div>
+                <div class="mob-capture-subtitle">PDF / Images</div>
             </button>
         </div>
 
@@ -1547,9 +1547,24 @@ document.addEventListener('DOMContentLoaded', function () {
         // Sheet Thumbnail
         const cellSheet = card.querySelector('.cell-sheet');
         if (cellSheet) {
-            cellSheet.innerHTML = `
-                <img src="${thumbSrc}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewAnnotatedModal('${tempId}');" title="Tap to inspect scan">
-            `;
+            const isPdf = (sheet.source_filename || '').toLowerCase().endsWith('.pdf');
+            if (thumbSrc) {
+                cellSheet.innerHTML = `
+                    <img src="${thumbSrc}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewAnnotatedModal('${tempId}');" title="Tap to inspect scan">
+                `;
+            } else if (isPdf) {
+                cellSheet.innerHTML = `
+                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${tempId}');" title="PDF Document" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;">
+                        <i class="fa fa-file-pdf-o" style="font-size: 18px;"></i>
+                    </div>
+                `;
+            } else {
+                cellSheet.innerHTML = `
+                    <div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${tempId}');" title="Sheet" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;">
+                        <i class="fa fa-file-image-o" style="font-size: 16px;"></i>
+                    </div>
+                `;
+            }
         }
 
         // Detected Roll
@@ -1659,7 +1674,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <div class="mob-card-body-details">
                 <div class="cell-sheet">
-                    <img src="${thumbSrc}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewAnnotatedModal('${sheet.temp_id}');">
+                    ${thumbSrc ? `<img src="${thumbSrc}" class="mob-sheet-thumb-img" alt="Scan" onclick="viewAnnotatedModal('${sheet.temp_id}');">` :
+                      ((sheet.source_filename || '').toLowerCase().endsWith('.pdf') ? `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-danger" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="PDF Document" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;"><i class="fa fa-file-pdf-o" style="font-size: 18px;"></i></div>` : `<div class="mob-sheet-thumb-img d-inline-flex align-items-center justify-content-center bg-light border text-primary" onclick="viewAnnotatedModal('${sheet.temp_id}');" title="Sheet" style="cursor: pointer; width: 34px; height: 34px; border-radius: 3px;"><i class="fa fa-file-image-o" style="font-size: 16px;"></i></div>`)}
                 </div>
                 <div style="flex:1;">
                     <div class="d-flex align-items-center justify-content-between mb-1">
