@@ -38,6 +38,7 @@ class ExamController extends Controller
         $classTypeId = $request->input('class_type_id');
         $batchId = $request->input('batch_id');
         $status = $request->input('status');
+        $marksStatusFilter = $request->input('marks_status');
         $page = max(1, (int) $request->input('page', 1));
         $perPageInput = $request->input('per_page', 25);
         $perPage = ($perPageInput === 'all' || (int)$perPageInput === 0) ? 999999 : max(1, (int) $perPageInput);
@@ -78,41 +79,86 @@ class ExamController extends Controller
             });
         }
 
-        // Total Count for Pagination
-        $totalCount = $query->count('exams.id');
-        $lastPage = $perPage > 0 ? (int) ceil($totalCount / $perPage) : 1;
-        if ($page > $lastPage && $lastPage > 0) {
-            $page = $lastPage;
-        }
-        $offset = ($page - 1) * $perPage;
+        // Handle filtering by marks status vs normal pagination
+        if (!empty($marksStatusFilter)) {
+            $allFilteredQuery = $query->leftJoin('class_types', 'class_types.id', '=', 'exams.class_type_id')
+                ->leftJoin('batches', 'batches.id', '=', 'exams.batch_id')
+                ->select(
+                    'exams.id',
+                    'exams.name',
+                    'exams.code',
+                    'exams.exam_code',
+                    'exams.class_type_id',
+                    'exams.course_id',
+                    'exams.batch_id',
+                    'exams.exam_date',
+                    'exams.subject_id',
+                    'exams.subject_ids',
+                    'exams.number_of_questions',
+                    'exams.exam_maximum_marks',
+                    'exams.exam_term_id',
+                    'exams.created_at',
+                    'class_types.name as class_name',
+                    'batches.name as batch_name',
+                    'batches.shift as batch_shift',
+                    DB::raw("NULL as exam_term_name")
+                )
+                ->orderBy('exams.id', 'DESC')
+                ->get();
 
-        // Fetch ONLY Requested Page Slice with joined Class & Batch
-        $data = $query->leftJoin('class_types', 'class_types.id', '=', 'exams.class_type_id')
-            ->leftJoin('batches', 'batches.id', '=', 'exams.batch_id')
-            ->select(
-                'exams.id',
-                'exams.name',
-                'exams.code',
-                'exams.exam_code',
-                'exams.class_type_id',
-                'exams.course_id',
-                'exams.batch_id',
-                'exams.exam_date',
-                'exams.subject_id',
-                'exams.subject_ids',
-                'exams.number_of_questions',
-                'exams.exam_maximum_marks',
-                'exams.exam_term_id',
-                'exams.created_at',
-                'class_types.name as class_name',
-                'batches.name as batch_name',
-                'batches.shift as batch_shift',
-                DB::raw("NULL as exam_term_name")
-            )
-            ->orderBy('exams.id', 'DESC')
-            ->skip($offset)
-            ->take($perPage)
-            ->get();
+            $this->attachMarksStats($allFilteredQuery, $sessionId, $branchId);
+
+            $matchedExams = $allFilteredQuery->filter(function($item) use ($marksStatusFilter) {
+                return ($item->marks_stats->status ?? '') === $marksStatusFilter;
+            })->values();
+
+            $totalCount = $matchedExams->count();
+            $lastPage = $perPage > 0 ? (int) ceil($totalCount / $perPage) : 1;
+            if ($page > $lastPage && $lastPage > 0) {
+                $page = $lastPage;
+            }
+            $offset = ($page - 1) * $perPage;
+
+            $data = $matchedExams->slice($offset, $perPage)->values();
+        } else {
+            // Total Count for Pagination
+            $totalCount = $query->count('exams.id');
+            $lastPage = $perPage > 0 ? (int) ceil($totalCount / $perPage) : 1;
+            if ($page > $lastPage && $lastPage > 0) {
+                $page = $lastPage;
+            }
+            $offset = ($page - 1) * $perPage;
+
+            // Fetch ONLY Requested Page Slice with joined Class & Batch
+            $data = $query->leftJoin('class_types', 'class_types.id', '=', 'exams.class_type_id')
+                ->leftJoin('batches', 'batches.id', '=', 'exams.batch_id')
+                ->select(
+                    'exams.id',
+                    'exams.name',
+                    'exams.code',
+                    'exams.exam_code',
+                    'exams.class_type_id',
+                    'exams.course_id',
+                    'exams.batch_id',
+                    'exams.exam_date',
+                    'exams.subject_id',
+                    'exams.subject_ids',
+                    'exams.number_of_questions',
+                    'exams.exam_maximum_marks',
+                    'exams.exam_term_id',
+                    'exams.created_at',
+                    'class_types.name as class_name',
+                    'batches.name as batch_name',
+                    'batches.shift as batch_shift',
+                    DB::raw("NULL as exam_term_name")
+                )
+                ->orderBy('exams.id', 'DESC')
+                ->skip($offset)
+                ->take($perPage)
+                ->get();
+
+            $this->attachMarksStats($data, $sessionId, $branchId);
+        }
 
         $examIds = $data->pluck('id')->toArray();
         $examNames = $data->pluck('name');
@@ -168,19 +214,38 @@ class ExamController extends Controller
             $exam->subject_names = $subNames;
         }
 
-        // Overall Global KPI Stats
-        $statsTotalExams = Exam::where('session_id', $sessionId)->where('branch_id', $branchId)->whereNull('deleted_at')->count();
+        // Overall Global KPI Stats & Marks Status Summary
+        $allSessionExams = Exam::where('session_id', $sessionId)
+            ->where('branch_id', $branchId)
+            ->whereNull('deleted_at')
+            ->select('id', 'name', 'class_type_id', 'batch_id', 'exam_date')
+            ->get();
+        $this->attachMarksStats($allSessionExams, $sessionId, $branchId);
+
+        $statsTotalExams = $allSessionExams->count();
+        $statsCompleted = $allSessionExams->where('marks_stats.status', 'completed')->count();
+        $statsInProgress = $allSessionExams->where('marks_stats.status', 'in_progress')->count();
+        $statsPendingMarks = $allSessionExams->where('marks_stats.status', 'pending')->count();
+        $statsNotHeld = $allSessionExams->where('marks_stats.status', 'not_held')->count();
+
         $statsPublished = 0;
         if (Schema::hasTable('exam_result_publications')) {
-            $statsPublished = DB::table('exam_result_publications')->where('session_id', $sessionId)->where('branch_id', $branchId)->count();
+            $statsPublished = DB::table('exam_result_publications')
+                ->where('session_id', $sessionId)
+                ->where('branch_id', $branchId)
+                ->count();
         }
-        $statsPending = max(0, $statsTotalExams - $statsPublished);
+        $statsPendingPub = max(0, $statsTotalExams - $statsPublished);
 
         $stats = [
             'total' => $statsTotalExams,
             'assigned' => $statsTotalExams,
             'published' => $statsPublished,
-            'pending' => $statsPending,
+            'pending' => $statsPendingPub,
+            'marks_completed' => $statsCompleted,
+            'marks_in_progress' => $statsInProgress,
+            'marks_pending' => $statsPendingMarks,
+            'marks_not_held' => $statsNotHeld,
         ];
 
         // Real-time AJAX response
@@ -212,7 +277,14 @@ class ExamController extends Controller
 
         return Helper::view('examination.offline_exam.exam.view', [
             'data' => $data,
-            'search' => ['name' => $searchName, 'term_id' => $termId, 'class_type_id' => $classTypeId, 'batch_id' => $batchId, 'status' => $status],
+            'search' => [
+                'name' => $searchName,
+                'term_id' => $termId,
+                'class_type_id' => $classTypeId,
+                'batch_id' => $batchId,
+                'status' => $status,
+                'marks_status' => $marksStatusFilter
+            ],
             'totalCount' => $totalCount,
             'currentPage' => $page,
             'perPage' => $perPageInput,
@@ -222,6 +294,113 @@ class ExamController extends Controller
             'batches' => !empty($classTypeId) ? DB::table('batches')->where('course_id', $classTypeId)->where('status', 1)->orderBy('orderBy', 'asc')->get() : collect([]),
             'examTerms' => collect([])
         ]);
+    }
+
+    /**
+     * Compute and attach marks entry progress metrics to an exam collection.
+     */
+    protected function attachMarksStats($exams, $sessionId, $branchId)
+    {
+        if ($exams->isEmpty()) {
+            return $exams;
+        }
+
+        $examIds = $exams->pluck('id')->filter()->toArray();
+        $classTypeIds = $exams->pluck('class_type_id')->unique()->filter()->toArray();
+
+        // 1. Bulk count of enrolled admissions per class
+        $admissionsClassTotal = DB::table('admissions')
+            ->whereNull('deleted_at')
+            ->when($branchId, function($q) use ($branchId) {
+                $q->where(function($sub) use ($branchId) {
+                    $sub->where('branch_id', $branchId)->orWhereNull('branch_id');
+                });
+            })
+            ->whereIn('class_type_id', $classTypeIds)
+            ->groupBy('class_type_id')
+            ->select('class_type_id', DB::raw('count(*) as count'))
+            ->pluck('count', 'class_type_id');
+
+        // 2. Bulk count of enrolled admissions per class + batch
+        $admissionsBatchTotal = DB::table('admissions')
+            ->whereNull('deleted_at')
+            ->when($branchId, function($q) use ($branchId) {
+                $q->where(function($sub) use ($branchId) {
+                    $sub->where('branch_id', $branchId)->orWhereNull('branch_id');
+                });
+            })
+            ->whereIn('class_type_id', $classTypeIds)
+            ->whereNotNull('batch_id')
+            ->groupBy('class_type_id', 'batch_id')
+            ->select(DB::raw("CONCAT(class_type_id, '_', batch_id) as k"), DB::raw('count(*) as count'))
+            ->pluck('count', 'k');
+
+        // 3. Bulk fetch filled students from fill_marks & omr_results
+        $fillMarksRecords = DB::table('fill_marks')
+            ->whereIn('exam_id', $examIds)
+            ->whereNotNull('admission_id')
+            ->select('exam_id', 'admission_id')
+            ->distinct()
+            ->get();
+
+        $omrRecords = DB::table('omr_results')
+            ->whereIn('exam_id', $examIds)
+            ->whereNotNull('admission_id')
+            ->select('exam_id', 'admission_id')
+            ->distinct()
+            ->get();
+
+        $filledByExam = [];
+        foreach ($fillMarksRecords as $fm) {
+            $filledByExam[$fm->exam_id][$fm->admission_id] = true;
+        }
+        foreach ($omrRecords as $om) {
+            $filledByExam[$om->exam_id][$om->admission_id] = true;
+        }
+
+        $today = Carbon::today()->format('Y-m-d');
+
+        foreach ($exams as $exam) {
+            $enrolled = !empty($exam->class_type_id)
+                ? (!empty($exam->batch_id)
+                    ? ($admissionsBatchTotal[$exam->class_type_id . '_' . $exam->batch_id] ?? 0)
+                    : ($admissionsClassTotal[$exam->class_type_id] ?? 0))
+                : 0;
+
+            $filled = isset($filledByExam[$exam->id]) ? count($filledByExam[$exam->id]) : 0;
+            $pending = max(0, $enrolled - $filled);
+            $percent = $enrolled > 0 ? min(100, round(($filled / $enrolled) * 100, 1)) : 0;
+
+            $examDate = !empty($exam->exam_date) ? Carbon::parse($exam->exam_date)->format('Y-m-d') : null;
+
+            if ($enrolled == 0) {
+                $status = 'no_students';
+                $statusLabel = 'No Students';
+            } elseif ($filled >= $enrolled && $enrolled > 0) {
+                $status = 'completed';
+                $statusLabel = 'Completed';
+            } elseif ($filled > 0 && $filled < $enrolled) {
+                $status = 'in_progress';
+                $statusLabel = 'In Progress';
+            } elseif ($examDate && $examDate > $today) {
+                $status = 'not_held';
+                $statusLabel = 'Exam Not Held';
+            } else {
+                $status = 'pending';
+                $statusLabel = 'Marks Pending';
+            }
+
+            $exam->marks_stats = (object) [
+                'enrolled' => $enrolled,
+                'filled' => $filled,
+                'pending' => $pending,
+                'percentage' => $percent,
+                'status' => $status,
+                'status_label' => $statusLabel,
+            ];
+        }
+
+        return $exams;
     }
 
     public function uploadOmr(Request $request)

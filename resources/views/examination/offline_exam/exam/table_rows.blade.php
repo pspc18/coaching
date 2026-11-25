@@ -22,7 +22,8 @@
         data-id="{{ $item->id }}"
         data-name="{{ strtolower($item->name ?? '') }}" 
         data-class="{{ strtolower($item->class_name ?? '') }}"
-        data-status="{{ $statusType }}">
+        data-status="{{ $statusType }}"
+        data-marks-status="{{ $item->marks_stats->status ?? 'pending' }}">
         
         {{-- 1. S.No. --}}
         <td class="text-center font-weight-bold text-muted row-index" style="vertical-align: middle;">
@@ -123,39 +124,111 @@
             @endif
         </td>
 
-        {{-- 7. Marks Entry Dropdown Menu --}}
-        <td class="text-center" style="vertical-align: middle;">
-            <div class="dropdown d-inline-block">
-                <button class="btn btn-sm btn-outline-primary dropdown-toggle py-1 px-2 font-weight-500" 
-                        type="button" 
-                        id="marksDropdown_{{ $item->id }}" 
-                        data-toggle="dropdown" 
-                        aria-haspopup="true" 
-                        aria-expanded="false"
-                        style="font-size: 11px; height: 26px; border-radius: 4px;">
-                    <i class="fa fa-pencil-square-o mr-1"></i> Marks Entry
-                </button>
-                <div class="dropdown-menu dropdown-menu-right shadow-sm border py-1" 
-                     aria-labelledby="marksDropdown_{{ $item->id }}" 
-                     style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1050;">
-                    <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9.5px; letter-spacing: 0.5px;">
-                        {{ $item->class_name ?? 'Course Options' }}
+        {{-- 7. Marks Status & Entry Action --}}
+        <td class="text-center" style="vertical-align: middle; padding: 6px 8px;">
+            @php
+                $mStats = $item->marks_stats ?? (object)[
+                    'status' => 'pending',
+                    'enrolled' => 0,
+                    'filled' => 0,
+                    'pending' => 0,
+                    'percentage' => 0
+                ];
+                $mStatus = $mStats->status;
+                $enrolled = $mStats->enrolled;
+                $filled = $mStats->filled;
+                $pending = $mStats->pending;
+                $percent = $mStats->percentage;
+            @endphp
+
+            <div class="d-flex flex-column align-items-center" style="gap: 4px;">
+                {{-- Status Pill --}}
+                @if($mStatus === 'completed')
+                    <span class="badge-marks-status status-completed" title="Marks entry completed for all {{ $enrolled }} enrolled student(s)">
+                        <i class="fa fa-check-circle mr-1"></i> Completed
+                    </span>
+                @elseif($mStatus === 'in_progress')
+                    <span class="badge-marks-status status-in-progress" title="Marks entry in progress: {{ $filled }} filled, {{ $pending }} pending">
+                        <i class="fa fa-adjust mr-1"></i> In Progress
+                    </span>
+                @elseif($mStatus === 'not_held')
+                    <span class="badge-marks-status status-not-held" title="Exam scheduled for {{ $examDateFormatted }} (Future Date)">
+                        <i class="fa fa-calendar-o mr-1"></i> Exam Not Held
+                    </span>
+                @elseif($mStatus === 'no_students')
+                    <span class="badge-marks-status status-no-students" title="No enrolled students found in this course/batch">
+                        <i class="fa fa-user-times mr-1"></i> No Students
+                    </span>
+                @else
+                    <span class="badge-marks-status status-pending" title="Exam conducted but marks entry not started">
+                        <i class="fa fa-clock-o mr-1"></i> Marks Pending
+                    </span>
+                @endif
+
+                {{-- Progress Bar & Metrics --}}
+                @if($enrolled > 0)
+                    <div style="width: 100%; max-width: 155px;">
+                        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 10px; line-height: 1;">
+                            <span class="font-weight-bold text-dark">{{ $filled }} / {{ $enrolled }} Filled</span>
+                            <span class="font-weight-600 {{ $mStatus === 'completed' ? 'text-success' : ($mStatus === 'in_progress' ? 'text-primary' : 'text-muted') }}">{{ $percent }}%</span>
+                        </div>
+                        <div class="progress" style="height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin-bottom: 3px;">
+                            <div class="progress-bar {{ $mStatus === 'completed' ? 'bg-success' : ($mStatus === 'in_progress' ? 'bg-primary' : ($mStatus === 'not_held' ? 'bg-secondary' : 'bg-warning')) }}" 
+                                 role="progressbar" 
+                                 style="width: {{ $percent }}%;" 
+                                 aria-valuenow="{{ $percent }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center" style="font-size: 9px; line-height: 1; color: #64748b;">
+                            @if($mStatus === 'completed')
+                                <span class="text-success font-weight-500"><i class="fa fa-check"></i> 100% Done</span>
+                            @elseif($mStatus === 'not_held')
+                                <span class="text-secondary font-weight-500"><i class="fa fa-calendar"></i> {{ $examDateFormatted }}</span>
+                            @elseif($pending > 0)
+                                <span class="text-danger font-weight-500"><i class="fa fa-exclamation-circle"></i> {{ $pending }} Pending</span>
+                            @endif
+                            <span class="text-muted">{{ $enrolled }} Enrolled</span>
+                        </div>
                     </div>
-                    <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
-                       href="{{ url('fill-marks-by-excel?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                       title="Upload marks using Excel sheet">
-                        <i class="fa fa-file-excel-o text-success mr-2" style="width: 14px;"></i> Upload by Excel
-                    </a>
-                    <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
-                       href="{{ url('fill_marks?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                       title="Manual marks entry">
-                        <i class="fa fa-pencil text-primary mr-2" style="width: 14px;"></i> Manual Fill Marks
-                    </a>
-                    <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
-                       href="{{ url('upload_omr?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
-                       title="Upload scanned OMR sheets">
-                        <i class="fa fa-check-square-o text-warning mr-2" style="width: 14px;"></i> Upload OMR Sheet
-                    </a>
+                @else
+                    <div class="text-muted" style="font-size: 9.5px;"><em>0 Enrolled Students</em></div>
+                @endif
+
+                {{-- Marks Entry Action Dropdown --}}
+                <div class="dropdown mt-1">
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle py-0 px-2 font-weight-500" 
+                            type="button" 
+                            id="marksDropdown_{{ $item->id }}" 
+                            data-toggle="dropdown" 
+                            aria-haspopup="true" 
+                            aria-expanded="false"
+                            style="font-size: 10.5px; height: 23px; line-height: 21px; border-radius: 4px; background: #ffffff;">
+                        <i class="fa fa-pencil-square-o mr-1"></i> Marks Entry
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow-sm border py-1" 
+                         aria-labelledby="marksDropdown_{{ $item->id }}" 
+                         style="min-width: 175px; font-size: 11.5px; border-radius: 4px; z-index: 1050;">
+                        <div class="dropdown-header text-uppercase text-muted font-weight-bold px-3 py-1" style="font-size: 9.5px; letter-spacing: 0.5px;">
+                            {{ $item->class_name ?? 'Course Options' }}
+                        </div>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center font-weight-600 text-primary" 
+                           href="{{ url('upload_omr?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Upload scanned OMR sheets">
+                            <i class="fa fa-check-square-o text-warning mr-2" style="width: 14px;"></i> Upload OMR Sheet
+                        </a>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
+                           href="{{ url('fill_marks?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Manual marks entry">
+                            <i class="fa fa-pencil text-primary mr-2" style="width: 14px;"></i> Manual Fill Marks
+                        </a>
+                        <a class="dropdown-item px-3 py-2 d-flex align-items-center" 
+                           href="{{ url('fill-marks-by-excel?class_type_id='.$item->class_type_id.'&exam_id='.$item->id) }}" 
+                           title="Upload marks using Excel sheet">
+                            <i class="fa fa-file-excel-o text-success mr-2" style="width: 14px;"></i> Upload by Excel
+                        </a>
+                    </div>
                 </div>
             </div>
         </td>

@@ -140,12 +140,17 @@
 /* 2. Fast KPI Summary Filter Pills */
 .exam-kpi-strip {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
     margin-bottom: 4px;
     flex-shrink: 0;
 }
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
+    .exam-kpi-strip {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 768px) {
     .exam-kpi-strip {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -697,6 +702,43 @@ select.excel-col-filter option {
     border: 1px solid #e2e8f0;
 }
 
+/* Marks Status Badges & Metrics */
+.badge-marks-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 3px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.badge-marks-status.status-completed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+.badge-marks-status.status-in-progress {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+}
+.badge-marks-status.status-pending {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+.badge-marks-status.status-not-held {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+.badge-marks-status.status-no-students {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
 /* ==========================================================================
    SUBTLE TINTED PASTEL ACTION BUTTONS (Exact admissionView Standard)
    Soft pastel tint background, matching border, dark saturated icon color.
@@ -1182,7 +1224,7 @@ select.excel-col-filter option {
 
         {{-- 2. Fast KPI Summary Filter Pills --}}
         <div class="exam-kpi-strip">
-            <div class="kpi-mini-card filter-kpi-btn" data-status-filter="" title="Click to show all exams">
+            <div class="kpi-mini-card filter-kpi-btn active-kpi" data-status-filter="" data-marks-filter="" title="Click to show all exams">
                 <div>
                     <div class="kpi-label">Total Exams</div>
                     <div class="kpi-val" id="statTotalVal">{{ $stats['total'] }}</div>
@@ -1191,31 +1233,40 @@ select.excel-col-filter option {
                     <i class="fa fa-leanpub"></i>
                 </div>
             </div>
-            <div class="kpi-mini-card kpi-classes filter-kpi-btn" data-status-filter="assigned" title="Click to show exams with assigned classes">
+            <div class="kpi-mini-card filter-kpi-btn" data-marks-filter="completed" title="Click to filter exams with all marks filled">
                 <div>
-                    <div class="kpi-label">Assigned Classes</div>
-                    <div class="kpi-val" id="statAssignedVal" style="color:#0284c7;">{{ $stats['assigned'] }}</div>
-                </div>
-                <div class="kpi-icon" style="background:#e0f2fe; color:#0284c7;">
-                    <i class="fa fa-tags"></i>
-                </div>
-            </div>
-            <div class="kpi-mini-card kpi-published filter-kpi-btn" data-status-filter="published" title="Click to filter published exams">
-                <div>
-                    <div class="kpi-label">Published Results</div>
-                    <div class="kpi-val" id="statPublishedVal" style="color:#15803d;">{{ $stats['published'] }}</div>
+                    <div class="kpi-label">Marks Completed</div>
+                    <div class="kpi-val" id="statCompletedVal" style="color:#15803d;">{{ $stats['marks_completed'] ?? 0 }}</div>
                 </div>
                 <div class="kpi-icon" style="background:#dcfce7; color:#15803d;">
                     <i class="fa fa-check-circle"></i>
                 </div>
             </div>
-            <div class="kpi-mini-card kpi-pending filter-kpi-btn" data-status-filter="pending" title="Click to filter pending publication">
+            <div class="kpi-mini-card filter-kpi-btn" data-marks-filter="in_progress" title="Click to filter exams with marks entry in progress">
                 <div>
-                    <div class="kpi-label">Pending Publication</div>
-                    <div class="kpi-val" id="statPendingVal" style="color:#b45309;">{{ $stats['pending'] }}</div>
+                    <div class="kpi-label">Marks In Progress</div>
+                    <div class="kpi-val" id="statInProgressVal" style="color:#0284c7;">{{ $stats['marks_in_progress'] ?? 0 }}</div>
+                </div>
+                <div class="kpi-icon" style="background:#e0f2fe; color:#0284c7;">
+                    <i class="fa fa-adjust"></i>
+                </div>
+            </div>
+            <div class="kpi-mini-card filter-kpi-btn" data-marks-filter="pending" title="Click to filter conducted exams with pending marks">
+                <div>
+                    <div class="kpi-label">Marks Pending</div>
+                    <div class="kpi-val" id="statPendingMarksVal" style="color:#b45309;">{{ $stats['marks_pending'] ?? 0 }}</div>
                 </div>
                 <div class="kpi-icon" style="background:#fef3c7; color:#b45309;">
                     <i class="fa fa-clock-o"></i>
+                </div>
+            </div>
+            <div class="kpi-mini-card filter-kpi-btn" data-status-filter="published" title="Click to filter exams with published results">
+                <div>
+                    <div class="kpi-label">Published Results</div>
+                    <div class="kpi-val" id="statPublishedVal" style="color:#059669;">{{ $stats['published'] }}</div>
+                </div>
+                <div class="kpi-icon" style="background:#d1fae5; color:#059669;">
+                    <i class="fa fa-globe"></i>
                 </div>
             </div>
         </div>
@@ -1255,7 +1306,7 @@ select.excel-col-filter option {
                             <th style="text-align: left; padding-left: 10px; min-width: 170px;">Included Subject(s)</th>
                             <th style="width: 115px; text-align: center;">Exam Date</th>
                             <th style="width: 140px; text-align: center;">Result Published</th>
-                            <th style="width: 125px; text-align: center;">Marks Entry</th>
+                            <th style="min-width: 175px; width: 185px; text-align: center;">Marks Status &amp; Entry</th>
                             <th class="fixed_action_head" style="width: 115px; text-align: center;">Actions</th>
                         </tr>
 
@@ -1293,8 +1344,16 @@ select.excel-col-filter option {
                                 </select>
                             </th>
 
-                            {{-- Column: Marks Entry (no filter needed) --}}
-                            <th style="text-align: center; color: rgba(255,255,255,0.4); font-size: 10.5px;">-</th>
+                            {{-- Filter: Marks Status --}}
+                            <th>
+                                <select class="excel-col-filter col-filter-marks-status" id="selectMarksStatusFilter">
+                                    <option value="">All Marks Status</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="pending">Marks Pending</option>
+                                    <option value="not_held">Exam Not Held</option>
+                                </select>
+                            </th>
 
                             {{-- Filter: Reset --}}
                             <th class="fixed_action_filter">
@@ -1812,6 +1871,7 @@ $(document).ready(function(){
         var termVal = $('.col-filter-term').val();
         var classVal = $('.col-filter-class').val();
         var statusVal = $('.col-filter-status').val();
+        var marksStatusVal = $('.col-filter-marks-status').val();
 
         $('#tableLoadingOverlay').css('display', 'flex');
 
@@ -1823,6 +1883,7 @@ $(document).ready(function(){
                 term_id: termVal,
                 class_type_id: classVal,
                 status: statusVal,
+                marks_status: marksStatusVal,
                 page: currentPage,
                 per_page: perPage
             },
@@ -1854,9 +1915,10 @@ $(document).ready(function(){
                     // Update KPI counters
                     if (res.stats) {
                         $('#statTotalVal').text(res.stats.total);
-                        $('#statAssignedVal').text(res.stats.assigned);
+                        $('#statCompletedVal').text(res.stats.marks_completed || 0);
+                        $('#statInProgressVal').text(res.stats.marks_in_progress || 0);
+                        $('#statPendingMarksVal').text(res.stats.marks_pending || 0);
                         $('#statPublishedVal').text(res.stats.published);
-                        $('#statPendingVal').text(res.stats.pending);
                     }
                 }
             },
@@ -1875,17 +1937,29 @@ $(document).ready(function(){
         }, 300);
     });
 
-    // Dropdown Filters Change (Term, Class, Status)
-    $('.col-filter-term, .col-filter-class, .col-filter-status').on('change', function(){
+    // Dropdown Filters Change (Term, Class, Status, Marks Status)
+    $('.col-filter-term, .col-filter-class, .col-filter-status, .col-filter-marks-status').on('change', function(){
         fetchExams(1);
     });
 
     // KPI Cards Click Filter
     $('.filter-kpi-btn').on('click', function(){
         var filterVal = $(this).data('status-filter');
+        var marksFilterVal = $(this).data('marks-filter');
+
         $('.filter-kpi-btn').removeClass('active-kpi');
         $(this).addClass('active-kpi');
-        $('#selectStatusFilter').val(filterVal);
+
+        if (marksFilterVal !== undefined && marksFilterVal !== '') {
+            $('#selectMarksStatusFilter').val(marksFilterVal);
+            $('#selectStatusFilter').val('');
+        } else if (filterVal !== undefined && filterVal !== '') {
+            $('#selectStatusFilter').val(filterVal);
+            $('#selectMarksStatusFilter').val('');
+        } else {
+            $('#selectStatusFilter').val('');
+            $('#selectMarksStatusFilter').val('');
+        }
         fetchExams(1);
     });
 
@@ -1918,7 +1992,9 @@ $(document).ready(function(){
         $('.col-filter-term').val('');
         $('.col-filter-class').val('');
         $('.col-filter-status').val('');
+        $('.col-filter-marks-status').val('');
         $('.filter-kpi-btn').removeClass('active-kpi');
+        $('.filter-kpi-btn[data-status-filter=""][data-marks-filter=""]').addClass('active-kpi');
         fetchExams(1);
     });
 });
