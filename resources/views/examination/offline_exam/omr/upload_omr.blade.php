@@ -1214,6 +1214,40 @@
         </div>
     </div>
 </div>
+{{-- ======================================================== --}}
+{{-- MODAL 3: Custom Theme Confirmation & Alert Dialog        --}}
+{{-- ======================================================== --}}
+<div class="modal fade" id="omrCustomThemeModal" tabindex="-1" role="dialog" aria-labelledby="omrCustomModalTitle" aria-hidden="true" style="z-index: 99999;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;" role="document">
+        <div class="modal-content shadow-lg" style="border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; background: #ffffff;">
+            <div class="modal-header py-2 px-3" id="omrCustomModalHeader" style="background: #002C54; color: #ffffff; border-bottom: none;">
+                <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" id="omrCustomModalTitle" style="font-size: 13.5px; color: #ffffff;">
+                    <i id="omrCustomModalHeaderIcon" class="fa fa-info-circle mr-2 text-info"></i>
+                    <span id="omrCustomModalTitleText">Notification</span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="opacity: 0.85; text-shadow: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center" style="background: #ffffff;">
+                <div id="omrCustomModalIconWrap" class="mb-3">
+                    <span id="omrCustomModalBigIcon" class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 50%; background: #ecfdf5; color: #059669; font-size: 26px;">
+                        <i class="fa fa-check"></i>
+                    </span>
+                </div>
+                <h6 id="omrCustomModalHeading" class="font-weight-bold text-dark mb-2" style="font-size: 15px;">Notification</h6>
+                <div id="omrCustomModalMessage" class="text-secondary" style="font-size: 13px; line-height: 1.6; white-space: pre-line;"></div>
+            </div>
+            <div class="modal-footer py-2 px-3 d-flex justify-content-end" id="omrCustomModalFooter" style="background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="btn btn-secondary btn-sm px-3 mr-2" id="omrCustomModalBtnCancel" data-dismiss="modal" data-bs-dismiss="modal" style="font-size: 12px; display: none;">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm px-3 font-weight-bold" id="omrCustomModalBtnConfirm" style="background: #002C54; border-color: #002C54; font-size: 12px;">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Floating Toast Container --}}
+<div id="omr-floating-toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 100000; max-width: 380px; pointer-events: none;"></div>
 
 @endsection
 
@@ -1234,6 +1268,165 @@
 <script>
 window.savedOmrRecords = @json($allSavedMap);
 document.addEventListener('DOMContentLoaded', function () {
+
+    // ========================================================
+    // Custom Theme Modal & Toast Utility (Replaces Native Browser Alert/Confirm)
+    // ========================================================
+    window.showOmrModal = function(options) {
+        return new Promise((resolve) => {
+            const title = options.title || 'Notification';
+            const message = options.message || '';
+            const type = options.type || 'info'; // 'success' | 'error' | 'warning' | 'info' | 'confirm'
+            const confirmText = options.confirmText || (type === 'confirm' ? 'Yes, Proceed' : 'OK');
+            const cancelText = options.cancelText || 'Cancel';
+
+            const modalEl = document.getElementById('omrCustomThemeModal');
+            if (!modalEl) {
+                if (type === 'confirm') {
+                    resolve(window.confirm(message));
+                } else {
+                    window.alert(message);
+                    resolve(true);
+                }
+                return;
+            }
+
+            const titleText = document.getElementById('omrCustomModalTitleText');
+            const headerIcon = document.getElementById('omrCustomModalHeaderIcon');
+            const heading = document.getElementById('omrCustomModalHeading');
+            const messageEl = document.getElementById('omrCustomModalMessage');
+            const bigIcon = document.getElementById('omrCustomModalBigIcon');
+            const btnCancel = document.getElementById('omrCustomModalBtnCancel');
+            const btnConfirm = document.getElementById('omrCustomModalBtnConfirm');
+
+            if (titleText) titleText.textContent = title;
+            if (heading) heading.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+
+            if (bigIcon && headerIcon) {
+                if (type === 'success') {
+                    headerIcon.className = 'fa fa-check-circle mr-2 text-success';
+                    bigIcon.className = 'd-inline-flex align-items-center justify-content-center';
+                    bigIcon.style.background = '#ecfdf5';
+                    bigIcon.style.color = '#059669';
+                    bigIcon.innerHTML = '<i class="fa fa-check"></i>';
+                } else if (type === 'error') {
+                    headerIcon.className = 'fa fa-times-circle mr-2 text-danger';
+                    bigIcon.className = 'd-inline-flex align-items-center justify-content-center';
+                    bigIcon.style.background = '#fef2f2';
+                    bigIcon.style.color = '#dc2626';
+                    bigIcon.innerHTML = '<i class="fa fa-times"></i>';
+                } else if (type === 'warning') {
+                    headerIcon.className = 'fa fa-exclamation-triangle mr-2 text-warning';
+                    bigIcon.className = 'd-inline-flex align-items-center justify-content-center';
+                    bigIcon.style.background = '#fffbeb';
+                    bigIcon.style.color = '#d97706';
+                    bigIcon.innerHTML = '<i class="fa fa-exclamation"></i>';
+                } else if (type === 'confirm') {
+                    headerIcon.className = 'fa fa-question-circle mr-2 text-warning';
+                    bigIcon.className = 'd-inline-flex align-items-center justify-content-center';
+                    bigIcon.style.background = '#eff6ff';
+                    bigIcon.style.color = '#2563eb';
+                    bigIcon.innerHTML = '<i class="fa fa-question"></i>';
+                } else {
+                    headerIcon.className = 'fa fa-info-circle mr-2 text-info';
+                    bigIcon.className = 'd-inline-flex align-items-center justify-content-center';
+                    bigIcon.style.background = '#eff6ff';
+                    bigIcon.style.color = '#0284c7';
+                    bigIcon.innerHTML = '<i class="fa fa-info"></i>';
+                }
+            }
+
+            if (btnConfirm) {
+                btnConfirm.textContent = confirmText;
+                btnConfirm.className = (type === 'error') ? 'btn btn-danger btn-sm px-3 font-weight-bold' : 'btn btn-primary btn-sm px-3 font-weight-bold';
+                btnConfirm.style.background = (type === 'error') ? '#dc2626' : '#002C54';
+                btnConfirm.style.borderColor = (type === 'error') ? '#dc2626' : '#002C54';
+            }
+
+            if (btnCancel) {
+                if (type === 'confirm') {
+                    btnCancel.style.display = 'inline-block';
+                    btnCancel.textContent = cancelText;
+                } else {
+                    btnCancel.style.display = 'none';
+                }
+            }
+
+            let answered = false;
+
+            const hideModal = () => {
+                if (typeof $ !== 'undefined' && $(modalEl).modal) {
+                    $(modalEl).modal('hide');
+                } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const inst = bootstrap.Modal.getInstance(modalEl);
+                    if (inst) inst.hide();
+                }
+            };
+
+            btnConfirm.onclick = () => {
+                if (!answered) {
+                    answered = true;
+                    hideModal();
+                    resolve(true);
+                }
+            };
+
+            btnCancel.onclick = () => {
+                if (!answered) {
+                    answered = true;
+                    hideModal();
+                    resolve(false);
+                }
+            };
+
+            if (typeof $ !== 'undefined') {
+                $(modalEl).off('hidden.bs.modal').one('hidden.bs.modal', function () {
+                    if (!answered) {
+                        answered = true;
+                        resolve(false);
+                    }
+                });
+                $(modalEl).modal({ backdrop: 'static', keyboard: false, show: true });
+            } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false }).show();
+            }
+        });
+    };
+
+    window.showOmrToast = function(type, message) {
+        const container = document.getElementById('omr-floating-toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.style.cssText = 'pointer-events: auto; background: #ffffff; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); margin-bottom: 8px; padding: 10px 14px; display: flex; align-items: center; border-left: 4px solid #059669; font-size: 12.5px; line-height: 1.4; transform: translateY(-10px); opacity: 0; transition: all .25s ease;';
+        
+        let icon = '<i class="fa fa-check-circle text-success mr-2" style="font-size: 16px;"></i>';
+        if (type === 'error') {
+            toast.style.borderLeftColor = '#dc2626';
+            icon = '<i class="fa fa-times-circle text-danger mr-2" style="font-size: 16px;"></i>';
+        } else if (type === 'warning') {
+            toast.style.borderLeftColor = '#d97706';
+            icon = '<i class="fa fa-exclamation-triangle text-warning mr-2" style="font-size: 16px;"></i>';
+        } else if (type === 'info') {
+            toast.style.borderLeftColor = '#0284c7';
+            icon = '<i class="fa fa-info-circle text-info mr-2" style="font-size: 16px;"></i>';
+        }
+
+        toast.innerHTML = icon + '<div style="flex:1; color:#0f172a; font-weight: 500;">' + message + '</div>';
+        container.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+            toast.style.transform = 'translateY(-10px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 250);
+        }, 3500);
+    };
+
     const classSelect = document.getElementById('omr-class-select');
     const batchSelect = document.getElementById('omr-batch-select');
     const examSelect = document.getElementById('omr-exam-select');
@@ -1288,7 +1481,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Trigger file chooser
     window.triggerFileInput = function () {
         if (!examSelect || !examSelect.value) {
-            alert('Please select a target examination first.');
+            showOmrModal({
+                title: 'Examination Required',
+                message: 'Please select a target examination first.',
+                type: 'warning'
+            });
             if (examSelect) examSelect.focus();
             return;
         }
@@ -1888,7 +2085,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 sheet.selected = false;
                 const cb = document.querySelector(`.staged-checkbox[data-temp-id="${tempId}"]`);
                 if (cb) cb.checked = false;
-                alert('Unmatched roll numbers cannot be selected or saved. Please match to an enrolled student first.');
+                showOmrModal({
+                    title: 'Unmatched Roll Number',
+                    message: 'Unmatched roll numbers cannot be selected or saved. Please match to an enrolled student first.',
+                    type: 'warning'
+                });
             } else {
                 sheet.selected = isSelected;
             }
@@ -1937,7 +2138,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Clear all newly staged extractions
     window.clearAllStaged = function () {
         if (!stagedSheets.size) return;
-        if (!confirm('Are you sure you want to clear all scanned extractions? (Unsaved marks will be discarded).')) return;
 
         stagedSheets.forEach((sheet, tempId) => {
             const row = document.querySelector(`tr.student-omr-row[data-temp-id="${tempId}"]`);
@@ -2060,7 +2260,11 @@ document.addEventListener('DOMContentLoaded', function () {
     window.viewSavedAnswersModal = function (omrId) {
         const rec = (window.savedOmrRecords && window.savedOmrRecords[omrId]) || null;
         if (!rec) {
-            alert('Evaluation record #' + omrId + ' not found in memory.');
+            showOmrModal({
+                title: 'Record Not Found',
+                message: 'Evaluation record #' + omrId + ' not found in memory.',
+                type: 'error'
+            });
             return;
         }
 
@@ -2235,34 +2439,61 @@ document.addEventListener('DOMContentLoaded', function () {
     window.confirmFinalSubmit = async function () {
         const examId = examSelect ? examSelect.value : '';
         if (!examId) {
-            alert('Please select an examination first.');
+            showOmrModal({
+                title: 'Examination Required',
+                message: 'Please select an examination first.',
+                type: 'warning'
+            });
             if (examSelect) examSelect.focus();
             return;
         }
 
         const selectedSheets = [];
         let unmatchedIgnoredCount = 0;
-        stagedSheets.forEach(s => {
-            // Strictly require sheet to be matched to an enrolled student
-            if (s.is_matched && s.selected !== false) {
-                selectedSheets.push(s);
-            } else if (!s.is_matched) {
+        let uncheckedSkippedCount = 0;
+
+        stagedSheets.forEach((s, tempId) => {
+            // Strictly require sheet to be matched to an enrolled student AND explicitly checked in UI
+            const cb = document.querySelector(`.staged-checkbox[data-temp-id="${tempId}"]`);
+            const isChecked = cb ? cb.checked : (s.selected === true);
+
+            if (!s.is_matched) {
                 unmatchedIgnoredCount++;
+            } else if (isChecked && s.selected !== false) {
+                selectedSheets.push(s);
+            } else {
+                uncheckedSkippedCount++;
             }
         });
 
         if (!selectedSheets.length) {
             if (unmatchedIgnoredCount > 0) {
-                alert('No enrolled student sheets are ready to save. Unmatched roll numbers cannot be saved until matched to an enrolled student.');
+                showOmrModal({
+                    title: 'No Enrolled Sheets Ready',
+                    message: 'No enrolled student sheets are ready to save. Unmatched roll numbers cannot be saved until matched to an enrolled student.',
+                    type: 'warning'
+                });
             } else {
-                alert('No scanned sheets selected for final submission.');
+                showOmrModal({
+                    title: 'No Students Selected',
+                    message: 'No scanned sheets are selected for final submission. Please check the checkbox for the students you wish to save.',
+                    type: 'warning'
+                });
             }
             return;
         }
 
         const examName = getSelectedExamOption()?.dataset.name || 'this examination';
-        const msg = `You are about to save ${selectedSheets.length} evaluated OMR sheet(s) and upload student marks directly to "${examName}".\n\nAre you sure you want to proceed?`;
-        if (!confirm(msg)) return;
+        const msg = `You have selected ${selectedSheets.length} student sheet(s) to finalize and upload marks directly to "${examName}".\n\nOnly checked students will be updated. All other (${uncheckedSkippedCount}) student(s) will remain completely untouched.\n\nAre you sure you want to proceed?`;
+        
+        const confirmed = await showOmrModal({
+            title: 'Confirm Save & Upload Marks',
+            message: msg,
+            type: 'confirm',
+            confirmText: 'Yes, Save Marks',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
 
         btnFinalSubmit.disabled = true;
         btnFinalSubmit.setAttribute('disabled', 'disabled');
@@ -2289,9 +2520,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(data.message || 'Failed to save final evaluation records.');
             }
 
-            alert(`✅ ${data.message}`);
+            await showOmrModal({
+                title: 'Marks Saved Successfully',
+                message: data.message,
+                type: 'success',
+                confirmText: 'Done'
+            });
 
-            // Update student rows and Saved Ledger to "Saved" status (Overwrite all older data)
+            // Update ONLY the student rows corresponding to submitted sheets (others untouched)
+            const submittedAdmIds = new Set(selectedSheets.map(s => s.admission_id || s.student?.id).filter(Boolean));
+            const submittedRolls = new Set(selectedSheets.map(s => (s.roll_number || '').trim()).filter(Boolean));
+
             const savedTbody = document.getElementById('omr-saved-tbody');
             document.getElementById('omr-saved-empty-row')?.remove();
             let newlyAddedCount = 0;
@@ -2307,243 +2546,143 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const admId = rec.admission_id || (rec.student?.id);
-                const roll = String(rec.unique_id || rec.roll_number || '').trim();
-                const evalData = rec.evaluation || rec;
+                const roll = (rec.unique_id || rec.roll_number || '').toString().trim();
 
-                // 1. Update Enrolled Student Row in Table 3
-                let stuRow = null;
+                // Strictly ensure ONLY submitted students are updated on screen
+                const isThisSubmitted = (admId && submittedAdmIds.has(admId)) || (roll && submittedRolls.has(roll));
+                if (!isThisSubmitted) return;
+
+                let targetRow = null;
                 if (admId) {
-                    stuRow = document.querySelector(`tr.student-omr-row[data-student-id="${admId}"]`);
+                    targetRow = document.getElementById(`student-row-${admId}`);
                 }
-                if (!stuRow && roll) {
-                    stuRow = document.querySelector(`tr.student-omr-row[data-roll-no="${CSS.escape(roll.toLowerCase())}"]`) ||
-                             document.querySelector(`tr.student-omr-row[data-admission-no="${CSS.escape(roll.toLowerCase())}"]`);
-                }
-                if (!stuRow && rec.temp_id) {
-                    stuRow = document.querySelector(`tr.student-omr-row[data-temp-id="${rec.temp_id}"]`);
+                if (!targetRow && roll) {
+                    targetRow = document.querySelector(`tr.student-omr-row[data-roll-no="${roll.toLowerCase()}"]`) ||
+                                document.querySelector(`tr.student-omr-row[data-admission-no="${roll.toLowerCase()}"]`);
                 }
 
-                if (stuRow) {
-                    stuRow.classList.add('table-success', 'row-scanned');
-                    delete stuRow.dataset.tempId;
+                if (targetRow) {
+                    targetRow.classList.remove('table-success', 'row-scanned');
+                    targetRow.classList.add('table-light');
+                    delete targetRow.dataset.tempId;
 
-                    // Sheet Thumbnail
-                    const cellSheet = stuRow.querySelector('.cell-sheet');
-                    const imgUrl = rec.image_url || rec.annotated_image_url || rec.stored_file;
-                    if (cellSheet && imgUrl) {
-                        const fullImgUrl = imgUrl.startsWith('http') ? imgUrl : `{{ url('/') }}/${imgUrl.replace(/^\/+/, '')}`;
-                        cellSheet.innerHTML = `<img src="${fullImgUrl}" class="omr-thumb" alt="Sheet" onclick="viewSavedOmrModal('${rec.id}', this);" data-image-url="${fullImgUrl}" title="Click to inspect annotated scan" style="cursor: pointer;">`;
-                    }
-
-                    // Filename
-                    const cellFilename = stuRow.querySelector('.cell-filename');
-                    const fn = rec.source_filename || 'omr_scan.jpeg';
-                    if (cellFilename) {
-                        cellFilename.setAttribute('title', fn);
-                        cellFilename.innerHTML = `<span class="file-name-text text-dark font-weight-bold" style="font-size: 11.5px;"><i class="fa fa-file-image-o text-primary mr-1"></i> ${escapeHtml(fn)}</span>`;
-                    }
-
-                    // Detected Roll
-                    const cellRoll = stuRow.querySelector('.cell-detected-roll');
-                    if (cellRoll) {
-                        cellRoll.innerHTML = `<input type="text" class="form-control form-control-sm font-mono text-center roll-input" value="${escapeHtml(roll)}" style="width: 95px; font-weight: 700; height: 28px; font-size: 12px; margin: 0 auto;" readonly>`;
-                    }
-
-                    // Questions breakdown (dynamically calculated from correct + incorrect + blank)
-                    const cellQuestions = stuRow.querySelector('.cell-questions');
-                    if (cellQuestions) {
-                        const cCount = parseInt(evalData.correct_answers || 0, 10);
-                        const iCount = parseInt(evalData.incorrect_answers || 0, 10);
-                        const bCount = parseInt(evalData.blank_answers || 0, 10);
-                        const totalQ = (cCount + iCount + bCount) || (getSelectedExamOption()?.dataset.questions || 50);
-                        const attempted = cCount + iCount;
-                        cellQuestions.innerHTML = `
-                            <div class="font-weight-bold text-dark" style="font-size: 12px;">${attempted} / ${totalQ}</div>
-                            <div class="small font-weight-bold" style="font-size: 10px;">
-                                <span style="color: #16a34a !important;">🟢 ${cCount}</span> 
-                                <span style="color: #dc2626 !important;">🔴 ${iCount}</span> 
-                                <span style="color: #64748b !important;">⚪ ${bCount}</span>
-                            </div>
-                        `;
-                    }
-
-                    // Score & Marks
-                    const cellScore = stuRow.querySelector('.cell-score');
-                    if (cellScore) {
-                        let pillsHtml = '';
-                        let sbList = evalData.subject_breakdown || [];
-                        if (typeof sbList === 'string') {
-                            try { sbList = JSON.parse(sbList); } catch(e) { sbList = []; }
-                        }
-                        if (Array.isArray(sbList) && sbList.length > 0) {
-                            pillsHtml = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
-                            sbList.forEach(sb => {
-                                const sFullName = resolveSubjectName(sb);
-                                const shortName = sFullName.split(' ')[0];
-                                pillsHtml += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
-                            });
-                            pillsHtml += '</div>';
-                        }
-                        const obMarks = parseFloat(evalData.obtained_marks || 0).toFixed(2);
-                        const totMarks = parseFloat(evalData.total_marks || (getSelectedExamOption()?.dataset.maxmarks || 100)).toFixed(2);
-                        cellScore.innerHTML = `
-                            <div>
-                                <span class="font-weight-bold text-success font-size-13">+${obMarks}</span>
-                                <span class="text-muted small"> / ${totMarks}</span>
-                                <span class="badge badge-success ml-1 font-weight-bold" style="font-size: 9.5px;">${evalData.percentage || 0}%</span>
-                            </div>
-                            ${pillsHtml}
-                        `;
-                    }
-
-                    // Status Cell
-                    const statusCell = stuRow.querySelector('.cell-status');
+                    const statusCell = targetRow.querySelector('.cell-status');
                     if (statusCell) {
-                        statusCell.innerHTML = `
-                            <span class="badge badge-success px-2 py-1 font-weight-bold" style="background: #16a34a !important; color: #ffffff !important; font-size: 10.5px;">
-                                <i class="fa fa-check-circle mr-1"></i> Saved
-                            </span>
-                        `;
+                        statusCell.innerHTML = `<span class="badge badge-success px-2 py-1"><i class="fa fa-check-circle mr-1"></i> Saved</span>`;
                     }
-
-                    // Actions
-                    const cellActions = stuRow.querySelector('.cell-actions');
-                    if (cellActions) {
-                        cellActions.innerHTML = `
-                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedOmrModal('${rec.id}', this);" title="Inspect OMR Scan">
-                                <i class="fa fa-eye"></i>
-                            </button>
-                            <button type="button" class="btn btn-xs btn-outline-info mr-1" style="padding: 2px 7px; font-size: 11px;" onclick="viewSavedAnswersModal('${rec.id}');" title="Question-by-Question Matrix">
-                                <i class="fa fa-list"></i>
-                            </button>
-                            <button type="button" class="btn btn-xs btn-outline-secondary" style="padding: 2px 7px; font-size: 11px;" onclick="triggerFileInput();" title="Re-scan / Upload replacement sheet">
-                                <i class="fa fa-upload"></i>
-                            </button>
-                        `;
+                    const cb = targetRow.querySelector('.staged-checkbox');
+                    if (cb) {
+                        cb.checked = true;
+                        cb.disabled = true;
                     }
                 }
 
-                // If unmatched row was staged, remove it
-                if (rec.temp_id) {
-                    document.getElementById(`staged-unmatched-${rec.temp_id}`)?.remove();
+                // Add or update row in Saved Table
+                const existingSavedRow = document.getElementById(`saved-row-${rec.id}`);
+                const evalData = rec.evaluation || rec;
+                const cCount = parseInt(evalData.correct_answers || rec.correct_answers || 0, 10);
+                const iCount = parseInt(evalData.incorrect_answers || rec.incorrect_answers || 0, 10);
+                const bCount = parseInt(evalData.blank_answers || rec.blank_answers || 0, 10);
+                const totalQ = (cCount + iCount + bCount) || (getSelectedExamOption()?.dataset.questions || 50);
+
+                const cMarks = parseFloat(evalData.correct_marks || 0);
+                const iMarks = parseFloat(evalData.incorrect_marks || 0);
+                const netMarks = parseFloat(evalData.obtained_marks !== undefined ? evalData.obtained_marks : (rec.obtained_marks || 0));
+                const totMarks = parseFloat(evalData.total_marks || (getSelectedExamOption()?.dataset.maxmarks || 100));
+                const pct = totMarks > 0 ? ((netMarks / totMarks) * 100).toFixed(1) : (rec.percentage || 0);
+
+                const studentName = rec.student ? `${rec.student.first_name} ${rec.student.last_name || ''}` : (rec.student_name || 'Enrolled Student');
+                const studentAdm = rec.student ? (rec.student.admission_no || rec.student.roll_no || '--') : (rec.admission_no || '--');
+                const studentBatch = rec.student?.batch ? rec.student.batch.name : (rec.batch_name || '--');
+                const examCode = rec.exam ? (rec.exam.code || rec.exam.exam_code || '') : (getSelectedExamOption()?.dataset.code || '');
+                const thumbUrl = rec.stored_file ? '{{ asset("") }}' + rec.stored_file : '';
+
+                let subjHtml = '';
+                const subjBreak = evalData.subject_breakdown || rec.subject_breakdown || [];
+                if (Array.isArray(subjBreak) && subjBreak.length > 0) {
+                    subjHtml = '<div class="d-flex flex-wrap mt-1" style="gap: 3px;">' +
+                        subjBreak.map(sb => {
+                            const subName = sb.subject_name || sb.name || 'Sub';
+                            const subScore = parseFloat(sb.obtained_marks || 0).toFixed(1);
+                            const badgeBg = subScore >= 0 ? '#eff6ff' : '#fef2f2';
+                            const badgeColor = subScore >= 0 ? '#1d4ed8' : '#b91c1c';
+                            const badgeBorder = subScore >= 0 ? '#bfdbfe' : '#fecaca';
+                            return `<span class="badge" style="background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeBorder}; font-size:9.5px; padding:2px 4px;">${escapeHtml(subName)}: ${subScore}</span>`;
+                        }).join('') +
+                        '</div>';
                 }
 
-                // 2. Update Table 4 (Saved Ledger) - OVERWRITE ALL COLUMNS ON OLDER DATA
-                if (savedTbody) {
-                    let existingRow = null;
-                    if (admId) {
-                        existingRow = savedTbody.querySelector(`tr[data-admission-id="${admId}"]`);
-                    }
-                    if (!existingRow && roll) {
-                        existingRow = savedTbody.querySelector(`tr[data-unique-id="${CSS.escape(roll)}"]`);
-                    }
-
-                    const stProfileName = rec.student ? (rec.student.first_name + ' ' + (rec.student.last_name || '')) : (stuRow?.dataset.studentName || ('Student #' + roll));
-                    const examTitle = rec.exam ? rec.exam.name : (examName || 'Exam');
-                    const examCode = rec.exam ? (rec.exam.code || rec.exam.exam_code || '') : (getSelectedExamOption()?.dataset.code || '');
-
-                    let sbPills = '';
-                    let sbList = evalData.subject_breakdown || [];
-                    if (typeof sbList === 'string') {
-                        try { sbList = JSON.parse(sbList); } catch(e) { sbList = []; }
-                    }
-                    if (Array.isArray(sbList) && sbList.length > 0) {
-                        sbPills = '<div class="d-flex flex-wrap justify-content-center mt-1" style="gap: 3px;">';
-                        sbList.forEach(sb => {
-                            const sFullName = resolveSubjectName(sb);
-                            const shortName = sFullName.split(' ')[0];
-                            sbPills += `<span class="badge" style="font-size: 8.5px; padding: 1px 4px; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd;" title="${escapeHtml(sFullName)}: ${sb.obtained_marks}/${sb.max_marks}">${escapeHtml(shortName)}: +${sb.obtained_marks}</span>`;
-                        });
-                        sbPills += '</div>';
-                    }
-
-                    const imgUrl = rec.image_url || rec.annotated_image_url || rec.stored_file || '';
-                    const fullImgUrl = imgUrl ? (imgUrl.startsWith('http') ? imgUrl : `{{ url('/') }}/${imgUrl.replace(/^\/+/, '')}`) : '';
-                    const fn = rec.source_filename || 'omr_scan.jpeg';
-
-                    const rowHtml = `
-                        <td class="font-weight-bold text-dark text-truncate" style="max-width: 140px;" title="${escapeHtml(fn)}">
-                            <div class="d-flex align-items-center">
-                                ${fullImgUrl ? `<img src="${fullImgUrl}" class="omr-thumb mr-2" alt="Sheet" onclick="viewSavedOmrModal('${rec.id}', this);" style="width: 26px; height: 26px; object-fit: cover; border-radius: 3px; cursor: pointer; flex-shrink: 0;" title="Click to view sheet preview">` : '<i class="fa fa-file-image-o text-muted mr-1"></i>'}
-                                <span class="text-truncate">${escapeHtml(fn)}</span>
+                const rowHtml = `
+                    <tr id="saved-row-${rec.id}">
+                        <td class="text-center font-weight-bold" style="color: #64748b;">${rec.rank ? '#' + rec.rank : '--'}</td>
+                        <td>
+                            <div class="font-weight-bold text-dark">${escapeHtml(studentName)}</div>
+                            <div class="small text-muted font-mono">Adm: ${escapeHtml(studentAdm)} &bull; ${escapeHtml(studentBatch)}</div>
+                        </td>
+                        <td class="text-center font-mono font-weight-bold">${escapeHtml(roll || studentAdm)}</td>
+                        <td class="text-center">
+                            ${thumbUrl ? `
+                                <img src="${thumbUrl}" class="omr-thumb" alt="Sheet" onclick="viewSavedModal(${rec.id});" title="Click to view sheet">
+                            ` : `<span class="text-muted small">--</span>`}
+                        </td>
+                        <td class="text-center font-weight-bold text-dark">${(parseInt(evalData.correct_answers || 0, 10) + parseInt(evalData.incorrect_answers || 0, 10))} / ${totalQ}</td>
+                        <td class="text-center">
+                            <span class="badge badge-success">${cCount}</span>
+                            <span class="badge badge-danger">${iCount}</span>
+                            <span class="badge badge-secondary">${bCount}</span>
+                        </td>
+                        <td>
+                            <div class="font-weight-bold text-success" style="font-size: 13px;">+${netMarks.toFixed(2)} <span class="text-muted small" style="font-size: 10px;">/ ${totMarks.toFixed(0)}</span></div>
+                            ${subjHtml}
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="progress mr-1" style="height: 6px; width: 45px; background: #e2e8f0;">
+                                    <div class="progress-bar ${pct >= 50 ? 'bg-success' : (pct >= 33 ? 'bg-warning' : 'bg-danger')}" style="width: ${Math.min(100, Math.max(0, pct))}%;"></div>
+                                </div>
+                                <span class="small font-weight-bold font-mono text-dark">${pct}%</span>
                             </div>
                         </td>
-                        <td>
-                            <span class="font-mono font-weight-bold text-primary">${escapeHtml(roll)}</span>
-                            <div class="text-muted small font-weight-bold">${escapeHtml(stProfileName)}</div>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary btn-xs" onclick="viewSavedModal(${rec.id});" title="Inspect OMR Sheet"><i class="fa fa-eye"></i></button>
+                                <button type="button" class="btn btn-outline-info btn-xs" onclick="viewAnswersGridModal(${rec.id});" title="Answer Matrix"><i class="fa fa-list-ol"></i></button>
+                            </div>
                         </td>
-                        <td>
-                            <span class="font-weight-bold text-dark">${escapeHtml(examTitle)}</span>
-                            <div class="text-muted small font-mono">${escapeHtml(examCode)}</div>
-                        </td>
-                        <td class="text-center font-weight-bold text-success">${evalData.correct_answers || 0}</td>
-                        <td class="text-center font-weight-bold text-danger">${evalData.incorrect_answers || 0}</td>
-                        <td class="text-center text-muted">${evalData.blank_answers || 0}</td>
-                        <td class="text-center font-weight-bold text-dark">${(parseInt(evalData.correct_answers || 0, 10) + parseInt(evalData.incorrect_answers || 0, 10) + parseInt(evalData.blank_answers || 0, 10)) || (getSelectedExamOption()?.dataset.questions || 10)}</td>
-                        <td class="font-mono font-weight-bold">${Number(evalData.total_marks || 0).toFixed(2)}</td>
-                        <td class="font-mono font-weight-bold text-success">
-                            +${Number(evalData.obtained_marks || 0).toFixed(2)}
-                            ${sbPills}
-                        </td>
-                        <td>
-                            <span class="badge-pill-status badge-matched">${evalData.percentage || 0}%</span>
-                        </td>
-                        <td class="text-center font-weight-bold text-primary">#${rec.rank || 1}</td>
-                        <td class="text-right" style="white-space: nowrap;">
-                            <span class="badge-pill-status badge-saved mr-1" title="Marks recorded in student exam file">
-                                <i class="fa fa-check-circle"></i> Saved
-                            </span>
-                            <button type="button" class="btn btn-xs btn-outline-primary mr-1" style="padding: 2px 6px; font-size: 10px;" onclick="viewSavedOmrModal('${rec.id}', this);" title="Inspect OMR Scan">
-                                <i class="fa fa-eye"></i>
-                            </button>
-                            <button type="button" class="btn btn-xs btn-outline-info" style="padding: 2px 6px; font-size: 10px;" onclick="viewSavedAnswersModal('${rec.id}');" title="Question-by-Question Matrix">
-                                <i class="fa fa-list"></i>
-                            </button>
-                        </td>
-                    `;
+                    </tr>
+                `;
 
-                    if (existingRow) {
-                        // OVERWRITE EXISTING ROW completely
-                        existingRow.id = `scan-row-${rec.id}`;
-                        existingRow.dataset.uniqueId = roll;
-                        if (admId) existingRow.dataset.admissionId = admId;
-                        existingRow.innerHTML = rowHtml;
-                        existingRow.style.transition = 'background-color 0.4s ease';
-                        existingRow.style.backgroundColor = '#dcfce7';
-                        setTimeout(() => { existingRow.style.backgroundColor = ''; }, 2000);
-                    } else {
-                        // PREPEND new row
-                        const tr = document.createElement('tr');
-                        tr.id = `scan-row-${rec.id}`;
-                        tr.dataset.uniqueId = roll;
-                        if (admId) tr.dataset.admissionId = admId;
-                        tr.innerHTML = rowHtml;
-                        savedTbody.prepend(tr);
-                        newlyAddedCount++;
-                    }
+                if (existingSavedRow) {
+                    existingSavedRow.outerHTML = rowHtml;
+                } else if (savedTbody) {
+                    savedTbody.insertAdjacentHTML('afterbegin', rowHtml);
+                    newlyAddedCount++;
                 }
             });
 
-            // Clear in-memory staged sheets
-            stagedSheets.clear();
+            // Remove selected sheets from staging memory
+            selectedSheets.forEach(s => {
+                stagedSheets.delete(s.temp_id);
+                const unmatchedRow = document.getElementById(`unmatched-row-${s.temp_id}`);
+                if (unmatchedRow) unmatchedRow.remove();
+            });
 
-            // Update Saved Ledger badge & KPIs
-            const savedCountBadge = document.getElementById('omr-saved-count-badge');
-            if (savedCountBadge && savedTbody) {
-                const totalLedgerRows = savedTbody.querySelectorAll('tr[data-unique-id]').length;
-                savedCountBadge.textContent = `${totalLedgerRows} Records Saved`;
+            if (stagedSheets.size === 0) {
+                stagedSheets.clear();
             }
-            if (kpiTodayScans && newlyAddedCount > 0) {
-                const currentToday = parseInt(kpiTodayScans.textContent.replace(/\D/g, '') || '0', 10);
-                kpiTodayScans.textContent = (currentToday + newlyAddedCount);
-            }
-            if (kpiTotalScans && newlyAddedCount > 0) {
-                const currentTotal = parseInt(kpiTotalScans.textContent.replace(/\D/g, '') || '0', 10);
-                kpiTotalScans.textContent = (currentTotal + newlyAddedCount);
+
+            const kpiTotalSheets = document.getElementById('kpi-total-sheets');
+            if (kpiTotalSheets) {
+                const cur = parseInt(kpiTotalSheets.textContent || '0', 10);
+                kpiTotalSheets.textContent = cur + newlyAddedCount;
             }
 
         } catch (err) {
-            alert(`❌ Error saving marks: ${err.message}`);
+            showOmrModal({
+                title: 'Error Saving Marks',
+                message: err.message || 'An error occurred while saving marks.',
+                type: 'error'
+            });
         } finally {
             btnFinalSubmit.innerHTML = `<i class="fa fa-check-circle mr-1"></i> Final Submit & Save Marks (${stagedSheets.size})`;
             updateStagingCounters();

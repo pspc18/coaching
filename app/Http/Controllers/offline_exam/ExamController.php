@@ -1250,6 +1250,7 @@ class ExamController extends Controller
         $sheets = $request->input('sheets', []);
         $savedCount = 0;
         $marksUploadedCount = 0;
+        $updatedStudentIds = [];
 
         DB::beginTransaction();
         try {
@@ -1373,6 +1374,9 @@ class ExamController extends Controller
                     $student = Admission::find($admissionId);
                 }
                 if ($student) {
+                    if (!in_array($student->id, $updatedStudentIds)) {
+                        $updatedStudentIds[] = $student->id;
+                    }
                     $classTypeId = (int) ($student->class_type_id ?: ($exam->class_type_id ?: 0));
                     $subjectBreakdown = $s['evaluation']['subject_breakdown'] ?? ($s['subject_breakdown'] ?? []);
 
@@ -1550,10 +1554,15 @@ class ExamController extends Controller
                 ->orderBy('obtained_marks', 'desc')
                 ->get();
 
+            $updatedStudentCount = count($updatedStudentIds);
+            $studentWord = $updatedStudentCount === 1 ? '1 student' : "{$updatedStudentCount} students";
+            $subjectWord = $marksUploadedCount === 1 ? '1 subject ledger' : "{$marksUploadedCount} subject ledgers";
+
             return response()->json([
                 'status' => 'success',
-                'message' => "Successfully saved {$savedCount} OMR evaluations and updated marks for {$marksUploadedCount} student records!",
+                'message' => "Successfully saved {$savedCount} evaluated OMR sheet(s) and updated marks for {$studentWord} ({$subjectWord})!",
                 'saved_count' => $savedCount,
+                'updated_student_count' => $updatedStudentCount,
                 'marks_uploaded_count' => $marksUploadedCount,
                 'saved_records' => $savedRecords,
             ]);
