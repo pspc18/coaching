@@ -1269,6 +1269,12 @@ class ExamController extends Controller
                     }
                 }
 
+                // Strictly prevent saving unmatched sheets (student not enrolled in this course/class)
+                if (!$admissionId) {
+                    \Log::warning("finalizeOmrSave: Skipping unmatched sheet. Roll: {$rollNumber}, Exam: {$exam->id}");
+                    continue;
+                }
+
                 $correctCount = (int) ($s['evaluation']['correct_answers'] ?? ($s['correct_answers'] ?? 0));
                 $incorrectCount = (int) ($s['evaluation']['incorrect_answers'] ?? ($s['incorrect_answers'] ?? 0));
                 $blankCount = (int) ($s['evaluation']['blank_answers'] ?? ($s['blank_answers'] ?? 0));
@@ -1517,6 +1523,14 @@ class ExamController extends Controller
                         }
                     }
                 }
+            }
+
+            if ($savedCount === 0) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No enrolled student records found to save. Unmatched roll numbers cannot be saved.',
+                ], 422);
             }
 
             // Recalculate ranks across exam

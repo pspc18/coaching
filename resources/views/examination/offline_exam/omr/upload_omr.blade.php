@@ -1409,6 +1409,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Attach extracted sheet data directly into an enrolled student's row
     function attachSheetToStudentRow(sheet, row) {
+        sheet.is_matched = true;
+        sheet.selected = (sheet.selected !== false);
         const tempId = sheet.temp_id;
         const studentId = row.dataset.studentId;
         const thumbSrc = resolveSheetThumbSrc(sheet);
@@ -1421,6 +1423,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Checkbox
         const cb = row.querySelector('.staged-checkbox');
         if (cb) {
+            cb.disabled = false;
+            cb.removeAttribute('disabled');
             cb.checked = (sheet.selected !== false);
             cb.dataset.tempId = tempId;
         }
@@ -1539,6 +1543,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Render an extra warning row for sheets whose roll does not match any enrolled student
     function renderUnmatchedRow(sheet) {
+        sheet.is_matched = false;
+        sheet.selected = false;
         let row = document.getElementById(`staged-unmatched-${sheet.temp_id}`);
         if (!row) {
             row = document.createElement('tr');
@@ -1553,7 +1559,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         row.innerHTML = `
             <td class="text-center" style="vertical-align: middle;">
-                <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" ${sheet.selected !== false ? 'checked' : ''} onchange="toggleSheetSelect('${sheet.temp_id}', this.checked);">
+                <input type="checkbox" class="staged-checkbox" data-temp-id="${sheet.temp_id}" disabled title="Unmatched roll numbers cannot be selected or saved. Please match to an enrolled student first.">
             </td>
             <td class="text-center font-weight-bold text-warning" style="vertical-align: middle;">
                 <i class="fa fa-exclamation-triangle" title="Unmatched student"></i>
@@ -1668,14 +1674,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     const sheet = data.sheet;
-                    sheet.selected = true; // default checked for final submit
-                    stagedSheets.set(sheet.temp_id, sheet);
 
                     // Match with enrolled student row or append unmatched row
                     const matchedRow = findStudentRow(sheet);
                     if (matchedRow) {
+                        sheet.is_matched = true;
+                        sheet.selected = true; // default checked for matched enrolled students
+                        stagedSheets.set(sheet.temp_id, sheet);
                         attachSheetToStudentRow(sheet, matchedRow);
                     } else {
+                        sheet.is_matched = false;
+                        sheet.selected = false; // MUST NOT be checked for unmatched roll numbers
+                        stagedSheets.set(sheet.temp_id, sheet);
                         renderUnmatchedRow(sheet);
                     }
 
@@ -1831,7 +1841,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let readyToSaveCount = 0;
         let sumMarks = 0;
         stagedSheets.forEach(s => {
-            if (s.selected !== false) {
+            // Strictly exclude unmatched roll numbers from being counted as ready to save
+            if (s.is_matched && s.selected !== false) {
                 readyToSaveCount++;
                 sumMarks += parseFloat(s.evaluation?.obtained_marks || 0);
             }
@@ -1873,7 +1884,14 @@ document.addEventListener('DOMContentLoaded', function () {
     window.toggleSheetSelect = function (tempId, isSelected) {
         const sheet = stagedSheets.get(tempId);
         if (sheet) {
-            sheet.selected = isSelected;
+            if (!sheet.is_matched) {
+                sheet.selected = false;
+                const cb = document.querySelector(`.staged-checkbox[data-temp-id="${tempId}"]`);
+                if (cb) cb.checked = false;
+                alert('Unmatched roll numbers cannot be selected or saved. Please match to an enrolled student first.');
+            } else {
+                sheet.selected = isSelected;
+            }
             updateStagingCounters();
         }
     };
@@ -1884,7 +1902,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (row && row.dataset.tempId) {
             const sheet = stagedSheets.get(row.dataset.tempId);
             if (sheet) {
-                sheet.selected = isSelected;
+                if (!sheet.is_matched) {
+                    sheet.selected = false;
+                } else {
+                    sheet.selected = isSelected;
+                }
             }
         }
         updateStagingCounters();
@@ -1895,10 +1917,18 @@ document.addEventListener('DOMContentLoaded', function () {
         masterSelectCheckbox.addEventListener('change', function () {
             const isChecked = this.checked;
             stagedSheets.forEach(s => {
-                s.selected = isChecked;
+                if (s.is_matched) {
+                    s.selected = isChecked;
+                } else {
+                    s.selected = false;
+                }
             });
             stagingTbody.querySelectorAll('.staged-checkbox').forEach(cb => {
-                cb.checked = isChecked;
+                if (cb.disabled) {
+                    cb.checked = false;
+                } else {
+                    cb.checked = isChecked;
+                }
             });
             updateStagingCounters();
         });
@@ -2211,14 +2241,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const selectedSheets = [];
+        let unmatchedIgnoredCount = 0;
         stagedSheets.forEach(s => {
-            if (s.selected !== false) {
+            // Strictly require sheet to be matched to an enrolled student
+            if (s.is_matched && s.selected !== false) {
                 selectedSheets.push(s);
+            } else if (!s.is_matched) {
+                unmatchedIgnoredCount++;
             }
         });
 
         if (!selectedSheets.length) {
-            alert('No scanned sheets selected for final submission.');
+            if (unmatchedIgnoredCount > 0) {
+                alert('No enrolled student sheets are ready to save. Unmatched roll numbers cannot be saved until matched to an enrolled student.');
+            } else {
+                alert('No scanned sheets selected for final submission.');
+            }
             return;
         }
 
